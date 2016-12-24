@@ -28,6 +28,7 @@ class adj_index {
 	//Such as publication and author relashionship.
 	//Here one professor/student can have multiple publication and
 	//same publication could have multiple authors.
+	
 };
 
 /*Top level CSR format (similar to begpos in CSR). A plain array. 
@@ -46,7 +47,14 @@ typedef struct __po_t {
 	flag_t flag;
 } po_t;
 
-typedef struct __po_indirect {
+typedef struct __ps_t {
+	adj_index in_edges;
+	degree_t in_degree;
+	flag_t flag;
+} ps_t;
+
+
+typedef struct __po_indirect_t {
 	int32_t count;
 	po_t* po;
 } po_indirect_t;
