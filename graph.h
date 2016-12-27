@@ -1,14 +1,17 @@
 #ifndef __GRAPH_H_
 #define __GRAPH_H_
 
+#include "btree.h"
+
 typedef int32_t literal_id_t;
 typedef char* literal_t;
 
 typedef int32_t index_t;
-typedef int32_t flag_t;
 typedef int32_t degree_t;
 typedef int32_t s_t;
 typedef int32_t o_t;
+
+class btree_node;
 
 //HashTable/KV-store for literal to ID mapping
 class literal2id_t {
@@ -40,43 +43,47 @@ class adj_index {
 	Flag
 */
 typedef struct __po_t {
-	adj_index out_edges;
-	adj_index in_edges;
-	degree_t out_degree;
-	degree_t in_degree;
-	flag_t flag;
+	union {
+        btree_t* out_edges_tree;//many PO
+        leaf_node_t* out_edges;//upto 32 PO
+        pair_t out_edge; //just one PO
+    };
+    union {
+	    btree_t* in_edges_tree; //many PO
+        leaf_node_t* in_edges;//upto 32 PO
+        pair_t in_edge; //just one PO
+    };
+	degree_t out_degree;//Will contain flag, if required
+	degree_t in_degree;//Will contain flag, if required
 } po_t;
 
-typedef struct __ps_t {
-	adj_index in_edges;
-	degree_t in_degree;
-	flag_t flag;
-} ps_t;
 
+po_t*		spo;
+int32_t     count_spo;
 
-typedef struct __po_indirect_t {
-	int32_t count;
-	po_t* po;
-} po_indirect_t;
-
-po_indirect_t*		spo;
-
-//predicate indices. As per our analysis, we don't need second index on S/O.
+//predicate indices. As per our analysis, we need second index on O only. 
+//This second index will help in specially FILTER queries 
 //So, it is more like a CSR representation. However, to support dynamic rdf graph,
 // we will manage it each adj list separatly. 
 //Also, note that, the size of adjacency list of each one is going to be very big,
 //as number of predicates are small while number of triples are like billions.
 
 typedef struct __so_t {
-	s_t s;
 	o_t o;
+	s_t s;
 } so_t;
 
 typedef struct __so_indirect {
 	int32_t count;
-	so_t* so;
+	so_t* os; //B-tree/Hashtable key = object.
 } so_indirect_t;
 
-so_indirect_t*		pso;
+so_indirect_t*		pos;
 
+
+//Type indices. As per our analysis, we don't need any second index.
+//XXX:Let's see if we need second index or not.
+//XXX: This could be stored as bitmap as well as almost every S 
+//will have a type.
+s_t** ts; //This could be S or O but only those O which are S as well.
 #endif
