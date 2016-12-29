@@ -1,6 +1,8 @@
 #ifndef __GRAPH_H_
 #define __GRAPH_H_
 
+
+
 #include "btree.h"
 
 typedef int32_t literal_id_t;
@@ -14,8 +16,8 @@ typedef int32_t o_t;
 class btree_node;
 
 //HashTable/KV-store for literal to ID mapping
-class literal2id_t {
-};
+typedef unordered_map<string, literal_id_t> literal2id_t
+//class literal2id_t { };
 
 literal2id_t	literal2id;
 
@@ -86,4 +88,10 @@ so_indirect_t*		pos;
 //XXX: This could be stored as bitmap as well as almost every S 
 //will have a type.
 s_t** ts; //This could be S or O but only those O which are S as well.
+
+
+class graph {
+
+}
+
 #endif
