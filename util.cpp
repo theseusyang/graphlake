@@ -25,40 +25,40 @@ void graph::prep_meta_nt(string idirname)
    
     //spo
     vector<string> sid_to_str;
-    unordered_map<string, int32_t> str_to_sid;
-    unordered_map<string, int32_t>::iterator  str_to_sid_iter;
+    map<string, int32_t> str_to_sid;
+    map<string, int32_t>::iterator  str_to_sid_iter;
 
     vector<int32_t> sp_count;//out-edges count
     vector<int32_t> op_count;//in-edges count
     
-    //For each subject- predicate pair, how many objects.
-    unordered_map<sp_pair_t, int32_t> spo_count;
-    unordered_map<sp_pair_t, int32_t>::iterator spo_count_iter;
+    //For each subject-predicate pair, how many objects.
+    map<sp_pair_t, int32_t> spo_count;
+    map<sp_pair_t, int32_t>::iterator spo_count_iter;
     
     
     //For each object-predicate pair, how many subjects.
-    unordered_map<op_pair_t, int32_t> ops_count;
-    unordered_map<op_pair_t, int32_t>::iterator ops_count_iter;
+    map<op_pair_t, int32_t> ops_count;
+    map<op_pair_t, int32_t>::iterator ops_count_iter;
 
     
     //POS
     vector<string> pid_to_str;
-    unordered_map<string, int> str_to_pid;
-    unordered_map<string, int>::iterator str_to_pid_iter;
-    vector<int> po_count;
+    map<string, int> str_to_pid;
+    map<string, int>::iterator str_to_pid_iter;
+    vector<int> po_count;//in-edges count 
 
     //For each predicate-object pair, how many subjects.
-    unordered_map<po_pair_t, int> pos_count;
-    unordered_map<po_pair_t, int>::iterator pos_count_iter;
+    map<po_pair_t, int> pos_count;
+    map<po_pair_t, int>::iterator pos_count_iter;
     
     str_to_pid[type] = 0;
     pid_to_str[0] = type;
     
     //TS
-    unordered_map<string, int32_t> str_to_tid;
-    unordered_map<string, int32_t>::iterator str_to_tid_iter;
+    map<string, int32_t> str_to_tid;
+    map<string, int32_t>::iterator str_to_tid_iter;
     vector<string> tid_to_str;
-    vector<int32_t> type_count;
+    vector<int32_t> type_count;//in-edges count
 
     struct dirent *ptr;
     DIR *dir;
@@ -95,6 +95,7 @@ void graph::prep_meta_nt(string idirname)
                 current_sid = spo_id;
                 spo_id++;
                 sid_to_str.push_back(subject);
+                sp_count[current_sid] = 0; // out-edge
     		} else {
                 current_sid = str_to_sid_iter->second;
             }
@@ -104,6 +105,7 @@ void graph::prep_meta_nt(string idirname)
                 str_to_tid_iter = str_to_tid.find(object);
                 if (str_to_tid_iter == str_to_tid.end()) {
         			str_to_tid[object] = t_id;
+                    current_tid = t_id;
                     t_id++;
                     tid_to_str.push_back(object);
                     type_count[current_tid] = 1;
@@ -112,8 +114,9 @@ void graph::prep_meta_nt(string idirname)
                     type_count[current_tid] += 1;
                 }
 
+                //out-edge count for types predicate
                 sp_pair.first = current_sid;
-                so_pair.second = 0;
+                sp_pair.second = 0;
                 spo_count_iter = spo_count.find(sp_pair);
                 if (spo_count_iter == spo_count.end()) {
                     sp_count[current_sid] = +1; // out-edge
@@ -129,6 +132,7 @@ void graph::prep_meta_nt(string idirname)
                     current_pid = p_id;
                     p_id++;
                     pid_to_str.push_back(predict);
+                    po_count[current_pid] = 0; // in-edge
                 } else {
                     current_pid = str_to_pid_iter->second;
                 }
@@ -141,13 +145,16 @@ void graph::prep_meta_nt(string idirname)
                     str_to_sid_iter = str_to_sid.find(object);
                     if (str_to_sid_iter == str_to_sid.end()) {
                         str_to_sid[object] = spo_id;
-                        current_oid = 0;
+                        current_oid = spo_id;
                         spo_id++;
                         sid_to_str.push_back(object);
+                        op_count[current_oid] = 0;;//in-edges count
+                    } else {
+                        current_oid = str_to_sid_iter->second;
                     }
                 //}
 
-                //
+                //out-edge counts for spo table for predicates
                 sp_pair.first = current_sid;
                 sp_pair.second = current_pid;
                 spo_count_iter = spo_count.find(sp_pair);
@@ -158,7 +165,7 @@ void graph::prep_meta_nt(string idirname)
                     spo_count[sp_pair] += 1;
                 }
 
-                //
+                //in-edge counts for spo table for predicates
                 op_pair.first = current_oid;
                 op_pair.second = current_pid;
                 ops_count_iter = ops_count.find(op_pair);
@@ -168,15 +175,17 @@ void graph::prep_meta_nt(string idirname)
                 } else {
                     ops_count[op_pair] += 1;
                 }
+
+                po_pair.first = current_pid;
+                po_pair.second = current_oid;
+                pos_count_iter = pos_count.find(po_pair);
+                if (pos_count_iter == pos_count.end()) {
+                    po_count[current_pid] += 1;
+                    pos_count[po_pair] = 1;
+                } else {
+                    pos_count[po_pair] += 1;
+                }
             } 
-            
-            pos_count_iter = pos_count.find(po_pair);
-            if (pos_count_iter == pos_count.end()) {
-                po_count[current_pid] += 1;
-                pos_count[po_pair] = 1;
-            } else {
-                pos_count[po_pair] += 1;
-            }
 
         }
     }
