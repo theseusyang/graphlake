@@ -70,30 +70,4 @@ public:
 
 };
 
-btree_node_t * init()
-{
-    return NULL;
-}
-
-void traverse(btree_node_t *p)
-{
-    return;
-}
-
-void sort(int *p, int n)
-{
-    return ;
-}
-
-int split_child(btree_node_t *x, int i)
-{
-    return 0;
-}
-
-void insert(int a)
-{
-    return ;
-}
-
-
 #endif

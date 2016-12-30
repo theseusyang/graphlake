@@ -1,6 +1,6 @@
 CC=g++
-CFLAGS=-g -Wall -march=native -fopenmp
-SRC=main.cpp
+CFLAGS=-g -Wall  -std=gnu++11  -march=native -fopenmp
+SRC=main.cpp util.cpp
 HEADER=graph.h btree.h
 
 DEPS=$(SRC) $(HEADER)

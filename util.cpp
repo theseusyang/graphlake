@@ -1,59 +1,94 @@
+#include <vector>
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <dirent.h>
+#include <assert.h>
+#include <string>
+#include "graph.h"
 #include "util.h"
+#include <map>
+
+#define unordered_map map
+
+using namespace std;
+
+
+static int 
+is_literal(string str) {
+       return ('<' != str[0]);
+}
 
 void graph::prep_meta_nt(string idirname)
 {
     string type = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
    
     //spo
+    vector<string> sid_to_str;
     unordered_map<string, int32_t> str_to_sid;
     unordered_map<string, int32_t>::iterator  str_to_sid_iter;
-    vector<string> sid_to_str;
-    vector<int32_t> sp_count;//in-edges and out-edges count
+
+    vector<int32_t> sp_count;//out-edges count
+    vector<int32_t> op_count;//in-edges count
+    
     //For each subject- predicate pair, how many objects.
     unordered_map<sp_pair_t, int32_t> spo_count;
+    unordered_map<sp_pair_t, int32_t>::iterator spo_count_iter;
     
-    //For each object, predicate pair, how many subjects.
+    
+    //For each object-predicate pair, how many subjects.
     unordered_map<op_pair_t, int32_t> ops_count;
+    unordered_map<op_pair_t, int32_t>::iterator ops_count_iter;
 
     
     //POS
-    unordered_map<string, int> str_to_pid;
     vector<string> pid_to_str;
-    vector<int> os_count;
-    //For each object, predicate pair, how many subjects.
+    unordered_map<string, int> str_to_pid;
+    unordered_map<string, int>::iterator str_to_pid_iter;
+    vector<int> po_count;
+
+    //For each predicate-object pair, how many subjects.
     unordered_map<po_pair_t, int> pos_count;
+    unordered_map<po_pair_t, int>::iterator pos_count_iter;
     
     str_to_pid[type] = 0;
-    pid_str[0] = type;
+    pid_to_str[0] = type;
     
     //TS
-    unordered_map<string, int> str_to_tid;
+    unordered_map<string, int32_t> str_to_tid;
+    unordered_map<string, int32_t>::iterator str_to_tid_iter;
     vector<string> tid_to_str;
-    vector<int> type_count;
+    vector<int32_t> type_count;
 
     struct dirent *ptr;
     DIR *dir;
-    dir=opendir(idirname);
+    dir = opendir(idirname.c_str());
     
     int spo_id = 0;//IRI subjects/object
-    int obj_id = 0; // literal objects
+    //int obj_id = 0; // literal objects
     int p_id = 0;//predicate id
     int t_id = 0;//type id
+
+    sp_pair_t sp_pair;
+    duet_t so_pair;
+    po_pair_t po_pair;
+    op_pair_t op_pair;
     
     int file_count = 1;
     while (NULL != (ptr = readdir(dir))) {
         if (ptr->d_name[0] == '.')
             continue;
+        //cout << "No." << count << ", loading " << ptr->d_name << endl;
+        
         ifstream file((idirname + "/" + string(ptr->d_name)).c_str());
-        cout << "No." << count<< ", loading " << ptr->d_name<<endl;
         file_count++;
         
         string subject, predict, object, useless_dot;
-        int32_t current_sid, current_pid, current_oid;
+        int32_t current_sid, current_pid, current_oid = 0, current_tid;
         
         while (file >> subject >> predict >> object >> useless_dot) {
             
-            str_to_sid_iter = str_to_sid_iter.find(subject);
+            str_to_sid_iter = str_to_sid.find(subject);
             if (str_to_sid_iter == str_to_sid.end()) {
                 assert(is_literal(subject));
     			str_to_sid[subject] = spo_id;
@@ -61,23 +96,31 @@ void graph::prep_meta_nt(string idirname)
                 spo_id++;
                 sid_to_str.push_back(subject);
     		} else {
-                current_sid = *str_to_sid_iter;
+                current_sid = str_to_sid_iter->second;
             }
 
 
             if (predict == type) { //type case
-                str_to_tid_iter = str_to_tid_iter.find(object);
+                str_to_tid_iter = str_to_tid.find(object);
                 if (str_to_tid_iter == str_to_tid.end()) {
         			str_to_tid[object] = t_id;
                     t_id++;
                     tid_to_str.push_back(object);
                     type_count[current_tid] = 1;
                 } else {
-                    current_tid = *str_to_tid_iter;
-                    ++type_count[current_tid];
+                    current_tid = str_to_tid_iter->second;
+                    type_count[current_tid] += 1;
                 }
 
-                st
+                sp_pair.first = current_sid;
+                so_pair.second = 0;
+                spo_count_iter = spo_count.find(sp_pair);
+                if (spo_count_iter == spo_count.end()) {
+                    sp_count[current_sid] = +1; // out-edge
+                    spo_count[sp_pair] = 1;
+                } else {
+                    spo_count[sp_pair] += 1;
+                }
 
             } else { //predicate case.
                 str_to_pid_iter = str_to_pid.find(predict);
@@ -87,37 +130,56 @@ void graph::prep_meta_nt(string idirname)
                     p_id++;
                     pid_to_str.push_back(predict);
                 } else {
-                    current_pid = *str_to_pid_iter;
+                    current_pid = str_to_pid_iter->second;
                 }
 
-                if (is_literal(object)) {
-                    ++obj_id;
+                //object handling
+                //if (is_literal(object)) {
+                //    ++obj_id;
 
-                } else {
+                //} else {
                     str_to_sid_iter = str_to_sid.find(object);
                     if (str_to_sid_iter == str_to_sid.end()) {
-                        str_to_id[object] = spo_id;
+                        str_to_sid[object] = spo_id;
+                        current_oid = 0;
                         spo_id++;
                         sid_to_str.push_back(object);
                     }
+                //}
+
+                //
+                sp_pair.first = current_sid;
+                sp_pair.second = current_pid;
+                spo_count_iter = spo_count.find(sp_pair);
+                if (spo_count_iter == spo_count.end()) {
+                    sp_count[current_sid] = +1; // out-edge
+                    spo_count[sp_pair] = 1;
+                } else {
+                    spo_count[sp_pair] += 1;
+                }
+
+                //
+                op_pair.first = current_oid;
+                op_pair.second = current_pid;
+                ops_count_iter = ops_count.find(op_pair);
+                if (ops_count_iter == ops_count.end()) {
+                    op_count[current_oid] = +1; // in-edge
+                    ops_count[op_pair] = 1;
+                } else {
+                    ops_count[op_pair] += 1;
                 }
             } 
+            
+            pos_count_iter = pos_count.find(po_pair);
+            if (pos_count_iter == pos_count.end()) {
+                po_count[current_pid] += 1;
+                pos_count[po_pair] = 1;
+            } else {
+                pos_count[po_pair] += 1;
+            }
+
         }
     }
 
-    {
-        ofstream f_normal((string(argv[2])+"/str_normal").c_str());
-        for(int i=0;i<normal_str.size();i++){
-            f_normal<<normal_str[i]<<"\t"<<str_to_id[normal_str[i]]<<endl;
-        }
-    }
-    {
-        ofstream f_index((string(argv[2])+"/str_index").c_str());
-        for(int i=0;i<index_str.size();i++){
-            f_index<<index_str[i]<<"\t"<<str_to_id[index_str[i]]<<endl;
-        }
-    }
-    cout<<"sizeof str_to_id="<<str_to_id.size()<<endl;
-    cout<<"sizeof normal_str="<<normal_str.size()<<endl;
-    cout<<"sizeof index_str="<<index_str.size()<<endl;
+    cout<<"sizeof str_to_id="<<str_to_sid.size()<<endl;
 }

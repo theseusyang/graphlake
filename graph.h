@@ -1,9 +1,13 @@
 #ifndef __GRAPH_H_
 #define __GRAPH_H_
 
-
+//#include <unordered_map>
+#include <string>
+#include <stdint.h>
 
 #include "btree.h"
+
+using namespace std;
 
 typedef int32_t literal_id_t;
 typedef char* literal_t;
@@ -16,17 +20,17 @@ typedef int32_t o_t;
 class btree_node;
 
 //HashTable/KV-store for literal to ID mapping
-typedef unordered_map<string, literal_id_t> literal2id_t
+//typedef unordered_map<string, literal_id_t> literal2id_t;
 //class literal2id_t { };
 
-literal2id_t	literal2id;
+//literal2id_t	literal2id;
 
 //plain array for ID to literal mapping
-class id2literal_t {
+/*class id2literal_t {
 };
 
 id2literal_t	id2literal; 
-
+*/
 //B-tree/hashtable for adjacency list
 class adj_index {
 	//Some S/0 might have more than one O/S for same P.
@@ -60,8 +64,6 @@ typedef struct __po_t {
 } po_t;
 
 
-po_t*		spo;
-int32_t     count_spo;
 
 //predicate indices. As per our analysis, we need second index on O only. 
 //This second index will help in specially FILTER queries 
@@ -80,18 +82,21 @@ typedef struct __so_indirect {
 	so_t* os; //B-tree/Hashtable key = object.
 } so_indirect_t;
 
-so_indirect_t*		pos;
 
 
 //Type indices. As per our analysis, we don't need any second index.
 //XXX:Let's see if we need second index or not.
 //XXX: This could be stored as bitmap as well as almost every S 
 //will have a type.
-s_t** ts; //This could be S or O but only those O which are S as well.
 
 
 class graph {
-
-}
+    po_t*		spo;
+    s_t** ts; //This could be S or O but only those O which are S as well.
+    so_indirect_t*		pos;
+    int32_t     count_spo;
+    
+    void prep_meta_nt(string idirname);
+};
 
 #endif
