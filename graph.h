@@ -91,11 +91,13 @@ typedef struct __so_indirect {
 
 
 class graph {
+private:
     po_t*		spo;
     s_t** ts; //This could be S or O but only those O which are S as well.
     so_indirect_t*		pos;
     int32_t     count_spo;
-    
+
+public:    
     void prep_meta_nt(string idirname);
 };
 
