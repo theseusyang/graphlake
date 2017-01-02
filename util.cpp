@@ -108,10 +108,10 @@ void graph::prep_meta_nt(string idirname)
                     current_tid = t_id;
                     t_id++;
                     tid_to_str.push_back(object);
-                    type_count[current_tid] = 1;
+                    type_count[current_tid] = 1; //type initilaization
                 } else {
                     current_tid = str_to_tid_iter->second;
-                    type_count[current_tid] += 1;
+                    type_count[current_tid] += 1; // type increment
                 }
 
                 //out-edge count for types predicate
@@ -119,7 +119,7 @@ void graph::prep_meta_nt(string idirname)
                 sp_pair.second = 0;
                 spo_count_iter = spo_count.find(sp_pair);
                 if (spo_count_iter == spo_count.end()) {
-                    sp_count[current_sid] = +1; // out-edge
+                    sp_count[current_sid] = +1; // out-edges increments
                     spo_count[sp_pair] = 1;
                 } else {
                     spo_count[sp_pair] += 1;
@@ -132,55 +132,61 @@ void graph::prep_meta_nt(string idirname)
                     current_pid = p_id;
                     p_id++;
                     pid_to_str.push_back(predict);
-                    po_count[current_pid] = 0; // in-edge
+                    po_count[current_pid] = 0; // predicate initialization
                 } else {
                     current_pid = str_to_pid_iter->second;
                 }
 
                 //object handling
-                //if (is_literal(object)) {
-                //    ++obj_id;
+                if (is_literal(object)) {
+                    //out-edges-yes
+                    //in-edges- no
+                    //PO - yes
+                    //POS - yes
+                    //++obj_id;
 
-                //} else {
+                } else {
                     str_to_sid_iter = str_to_sid.find(object);
                     if (str_to_sid_iter == str_to_sid.end()) {
                         str_to_sid[object] = spo_id;
                         current_oid = spo_id;
                         spo_id++;
                         sid_to_str.push_back(object);
-                        op_count[current_oid] = 0;;//in-edges count
+                        op_count[current_oid] = 0;//in-edges initialization
                     } else {
                         current_oid = str_to_sid_iter->second;
                     }
-                //}
+
+                    //in-edge counts for spo table for predicates
+                    op_pair.first = current_oid;
+                    op_pair.second = current_pid;
+                    ops_count_iter = ops_count.find(op_pair);
+                    if (ops_count_iter == ops_count.end()) {
+                        op_count[current_oid] = +1; // in-edges increment
+                        ops_count[op_pair] = 1;
+                    } else {
+                        ops_count[op_pair] += 1;
+                    }
+                }
 
                 //out-edge counts for spo table for predicates
                 sp_pair.first = current_sid;
                 sp_pair.second = current_pid;
                 spo_count_iter = spo_count.find(sp_pair);
                 if (spo_count_iter == spo_count.end()) {
-                    sp_count[current_sid] = +1; // out-edge
+                    sp_count[current_sid] = +1; // out-edges increment
                     spo_count[sp_pair] = 1;
                 } else {
                     spo_count[sp_pair] += 1;
                 }
 
-                //in-edge counts for spo table for predicates
-                op_pair.first = current_oid;
-                op_pair.second = current_pid;
-                ops_count_iter = ops_count.find(op_pair);
-                if (ops_count_iter == ops_count.end()) {
-                    op_count[current_oid] = +1; // in-edge
-                    ops_count[op_pair] = 1;
-                } else {
-                    ops_count[op_pair] += 1;
-                }
 
+                //POS table 
                 po_pair.first = current_pid;
                 po_pair.second = current_oid;
                 pos_count_iter = pos_count.find(po_pair);
                 if (pos_count_iter == pos_count.end()) {
-                    po_count[current_pid] += 1;
+                    po_count[current_pid] += 1; //predicate increment
                     pos_count[po_pair] = 1;
                 } else {
                     pos_count[po_pair] += 1;
