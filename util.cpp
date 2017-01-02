@@ -65,7 +65,7 @@ void graph::prep_meta_nt(string idirname)
     dir = opendir(idirname.c_str());
     
     int spo_id = 0;//IRI subjects/object
-    //int obj_id = 0; // literal objects
+    int literal_id = 0; // literal objects
     int p_id = 0;//predicate id
     int t_id = 0;//type id
 
@@ -137,15 +137,24 @@ void graph::prep_meta_nt(string idirname)
                     current_pid = str_to_pid_iter->second;
                 }
 
-                //object handling
-                if (is_literal(object)) {
+                //object handling. XXX blank node handling pending.
+                if (is_literal(object)) { //literal objects
                     //out-edges-yes
                     //in-edges- no
                     //PO - yes
                     //POS - yes
-                    //++obj_id;
+                    str_to_sid_iter = str_to_sid.find(object);
+                    if (str_to_sid_iter == str_to_sid.end()) {
+                        ++literal_id;
+                        str_to_sid[object] = spo_id;
+                        current_oid = spo_id;
+                        spo_id++;
+                        sid_to_str.push_back(object);
+                    } else {
+                        current_oid = spo_id;
+                    }
 
-                } else {
+                } else { // IRI objects
                     str_to_sid_iter = str_to_sid.find(object);
                     if (str_to_sid_iter == str_to_sid.end()) {
                         str_to_sid[object] = spo_id;
