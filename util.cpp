@@ -22,7 +22,10 @@ is_literal(string str) {
 void graph::prep_meta_nt(string idirname)
 {
     string type = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
-    map<int32_t, string> literal_to_str;
+    
+    vector<string> literal_to_str;
+    //As 0th index is useless due to negative index
+    literal_to_str.push_back("literal");
     map<string, int32_t> str_to_literal;
     map<string, int32_t>::iterator  str_to_literal_iter;
    
@@ -67,9 +70,9 @@ void graph::prep_meta_nt(string idirname)
     DIR *dir;
     dir = opendir(idirname.c_str());
     
-    int spo_id = 0;//IRI subjects/object
-    int literal_id = 0; // literal objects
-    int p_id = 0;//predicate id
+    int32_t spo_id = 0;//IRI subjects/object
+    int32_t literal_id = -1; // literal objects. Grows negative
+    int32_t p_id = 0;//predicate id
     int t_id = 0;//type id
 
     sp_pair_t sp_pair;
@@ -145,26 +148,18 @@ void graph::prep_meta_nt(string idirname)
                     str_to_literal_iter = str_to_literal.find(object);
                     if (str_to_literal_iter == str_to_literal.end()) {
                         str_to_literal[object] = literal_id;
-                        ++literal_id;
+                        literal_to_str.push_back(object);
+                        current_oid = literal_id;
+                        --literal_id;
+                    } else {
+                        current_oid = str_to_literal_iter->second;
                     }
-                }
-/*
-                    //out-edges-yes
-                    //in-edges- no
+                    //SPO out-edges -> yes
+                    //SPO in-edges -> no
                     //PO - yes
                     //POS - yes
-                    str_to_sid_iter = str_to_sid.find(object);
-                    if (str_to_sid_iter == str_to_sid.end()) {
-                        ++literal_id;
-                        str_to_sid[object] = spo_id;
-                        current_oid = spo_id;
-                        spo_id++;
-                        sid_to_str.push_back(object);
-                    } else {
-                        current_oid = spo_id;
-                    }
 
-                } else {*/ // IRI objects
+                } else { // IRI objects
                     str_to_sid_iter = str_to_sid.find(object);
                     if (str_to_sid_iter == str_to_sid.end()) {
                         str_to_sid[object] = spo_id;
@@ -186,7 +181,7 @@ void graph::prep_meta_nt(string idirname)
                     } else {
                         ops_count[op_pair] += 1;
                     }
-               // }
+                }
 
                 //out-edge counts for spo table for predicates
                 sp_pair.first = current_sid;
