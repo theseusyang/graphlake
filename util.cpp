@@ -111,7 +111,6 @@ void graph::prep_meta_nt(string idirname)
                     current_tid = t_id;
                     t_id++;
                     tid_to_str.push_back(object);
-                    //type_count[current_tid] = 1; //type initilaization
                     type_count.push_back(1); //type initilaization
                 } else {
                     current_tid = str_to_tid_iter->second;
@@ -136,7 +135,6 @@ void graph::prep_meta_nt(string idirname)
                     current_pid = p_id;
                     p_id++;
                     pid_to_str.push_back(predict);
-                    //po_count[current_pid] = 0; 
                     po_count.push_back(0); // predicate initialization
                 } else {
                     current_pid = str_to_pid_iter->second;
@@ -145,10 +143,10 @@ void graph::prep_meta_nt(string idirname)
                 if (is_literal(object)) { //literal objects
                     str_to_literal_iter = str_to_literal.find(object);
                     if (str_to_literal_iter == str_to_literal.end()) {
+                        str_to_literal[object] = literal_id;
                         ++literal_id;
                     }
                 }
-                    
 /*
                     //out-edges-yes
                     //in-edges- no
@@ -172,7 +170,6 @@ void graph::prep_meta_nt(string idirname)
                         current_oid = spo_id;
                         spo_id++;
                         sid_to_str.push_back(object);
-                        //op_count[current_oid] = 0;
                         sp_count.push_back(make_pair(0, 0));//in-edges initialization
                     } else {
                         current_oid = str_to_sid_iter->second;
@@ -183,7 +180,7 @@ void graph::prep_meta_nt(string idirname)
                     op_pair.second = current_pid;
                     ops_count_iter = ops_count.find(op_pair);
                     if (ops_count_iter == ops_count.end()) {
-                        sp_count[current_oid].second = +1; // in-edges increment
+                        sp_count[current_oid].second += 1; // in-edges increment
                         ops_count[op_pair] = 1;
                     } else {
                         ops_count[op_pair] += 1;
@@ -195,7 +192,7 @@ void graph::prep_meta_nt(string idirname)
                 sp_pair.second = current_pid;
                 spo_count_iter = spo_count.find(sp_pair);
                 if (spo_count_iter == spo_count.end()) {
-                    sp_count[current_sid].first = +1; // out-edges increment
+                    sp_count[current_sid].first += 1; // out-edges increment
                     spo_count[sp_pair] = 1;
                 } else {
                     spo_count[sp_pair] += 1;
@@ -220,8 +217,6 @@ void graph::prep_meta_nt(string idirname)
     cout << endl << endl;
     cout << "spo_id " << spo_id << endl;
     cout << "literal_id " << literal_id << endl;
-    cout << "str_to_sid = " << str_to_sid.size() << endl; 
-    cout << "sid_to_str = " << sid_to_str.size() << endl;
 
     int sp_count_size = sp_count.size();
     int in_edge_count = 0;
@@ -232,8 +227,8 @@ void graph::prep_meta_nt(string idirname)
     int both = 0;
     cout << "sp_count = " << sp_count_size << endl;
     for (int i = 0 ; i < sp_count_size; ++i ) {
-        in_edge_count += sp_count[i].first;
-        out_edge_count += sp_count[i].second;
+        out_edge_count += sp_count[i].first;
+        in_edge_count += sp_count[i].second;
         if (sp_count[i].first != 0 && sp_count[i].second == 0) {
             ++only_out_edge;
         } else if (sp_count[i].first == 0 && sp_count[i].second != 0) {
@@ -261,15 +256,43 @@ void graph::prep_meta_nt(string idirname)
         total_edges += spo_count_iter->second;
     }
     cout << "total_edges = " << total_edges << endl;
-
+    
     cout << "ops_count = " << ops_count.size() << endl;
+    total_edges = 0;
+    for (ops_count_iter = ops_count.begin(); 
+         ops_count_iter != ops_count.end(); 
+         ++ops_count_iter) {
+        total_edges += ops_count_iter->second;
+    }
+    cout << "total_edges = " << total_edges << endl;
+
+
     cout << endl << endl;
-    cout << "pid_to_str " << pid_to_str.size() << endl;
-    cout << "str_to_pid " << str_to_pid.size() << endl;
-    cout << "po_count "   << po_count.size() << endl;
+    
+    cout << "po_count (except type) "   << po_count.size() << endl;
+    int po_total = 0;
+    for (unsigned int i  = 0; i < po_count.size(); ++i ) {
+        po_total += po_count[i];
+    }
+    cout << "po total = " << po_total << endl;
+    
     cout << "pos_count "   << pos_count.size() << endl;
+    total_edges = 0;
+    for (pos_count_iter = pos_count.begin(); 
+         pos_count_iter != pos_count.end();
+         ++pos_count_iter) {
+        total_edges += pos_count_iter->second;
+    }
+    cout << "total_edges = " << total_edges << endl;
+    
     cout << endl << endl;
-    cout << "str_to_tid " << str_to_tid.size() << endl;
-    cout << "tid_to_str " << tid_to_str.size() << endl;
+    
     cout << "type_count " << type_count.size() << endl;
+    int total_type = 0;
+    for (unsigned int i = 0; i < type_count.size(); ++i) {
+        total_type += type_count[i]; 
+    }
+    cout << "total type = " << total_type << endl;
+
+
 }
