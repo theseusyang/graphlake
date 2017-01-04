@@ -22,6 +22,7 @@ is_literal(string str) {
 void graph::prep_meta_nt(string idirname)
 {
     string type = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    map<int32_t, string> literal_to_str;
     map<string, int32_t> str_to_literal;
     map<string, int32_t>::iterator  str_to_literal_iter;
    
@@ -43,13 +44,13 @@ void graph::prep_meta_nt(string idirname)
 
     //POS
     vector<string> pid_to_str;
-    map<string, int> str_to_pid;
-    map<string, int>::iterator str_to_pid_iter;
-    vector<int> po_count;//in-edges count 
+    map<string, int32_t> str_to_pid;
+    map<string, int32_t>::iterator str_to_pid_iter;
+    vector<int32_t> po_count;//in-edges count 
 
     //For each predicate-object pair, how many subjects.
-    map<po_pair_t, int> pos_count;
-    map<po_pair_t, int>::iterator pos_count_iter;
+    map<po_pair_t, int32_t> pos_count;
+    map<po_pair_t, int32_t>::iterator pos_count_iter;
     
     str_to_pid[type] = 0;
     pid_to_str.push_back(type);
@@ -122,7 +123,7 @@ void graph::prep_meta_nt(string idirname)
                 sp_pair.second = 0;
                 spo_count_iter = spo_count.find(sp_pair);
                 if (spo_count_iter == spo_count.end()) {
-                    sp_count[current_sid].first = +1; // out-edges increments
+                    sp_count[current_sid].first += 1; // out-edges increments
                     spo_count[sp_pair] = 1; //initalization
                 } else {
                     spo_count[sp_pair] += 1;
@@ -213,7 +214,8 @@ void graph::prep_meta_nt(string idirname)
 
         }
     }
-
+    /*****************************************************************************************/
+    //Printing the stats
     cout << endl << endl;
     cout << "spo_id " << spo_id << endl;
     cout << "literal_id " << literal_id << endl;
@@ -294,5 +296,6 @@ void graph::prep_meta_nt(string idirname)
     }
     cout << "total type = " << total_type << endl;
 
-
+    /****************************************************************************************/
+    //Preparing the representation
 }
