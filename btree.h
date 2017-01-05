@@ -15,6 +15,8 @@ typedef struct __pair_t {
     value_t value; //subject/object
 } pair_t;
 
+#define inner_keys_count 31
+#define leaf_keys_count  28
 
 //It seems that order-32/order-64 B-tree is faster than other configuration.
 // due to locality (L1 and prefetching).
@@ -30,18 +32,19 @@ class inner_node_t {
     btree_node_t* btree_node[32]; // 256 Byte
 };
 
-//256 bytes
-//Some bits in key[0] has special meaning
+//128 bytes
+//bits in key[MSB] has special meaning
 class leaf_node_t {
-    key_t       key[31];
-    value_t     value[31];
+    key_t       key[28]; //60 might be better
+    value_t*     pvalue;//Many keys will have more than one value.
     leaf_node_t* next;
 };
 
 class btree_t {
     private:
         inner_node_t* inner_node;//the root node.
-        leaf_node_t* next; //so that all leaf nodes could be traversed easily.
+        //First leaf node, so that all leaf nodes could be traversed easily.
+        leaf_node_t* next; 
 
 public:
     inline void init() {}
@@ -64,7 +67,10 @@ public:
     inline status_t
     remove(pair_t pair)
     { return 0;}
-
+    
+    inline status_t 
+    initial_setup(int level_count, int leaf_count) 
+    {return 0;};
     //split
     //traverse
 

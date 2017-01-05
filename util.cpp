@@ -293,4 +293,72 @@ void graph::prep_meta_nt(string idirname)
 
     /****************************************************************************************/
     //Preparing the representation
+    spo = new po_t[spo_id];
+    spo_count_iter = spo_count.begin();
+    int32_t out_degree = 0;
+    int32_t in_degree = 0;
+    int32_t leaf_count = 0;
+    int32_t level_count = 0;
+    for (int32_t i = 0; i < spo_id; ++i ) {
+        out_degree = sp_count[i].first;
+        in_degree = sp_count[i].second;
+        spo[i].out_degree = out_degree;
+        spo[i].in_degree  = in_degree;
+
+        //out-edges
+        if (out_degree == 1) {
+            //spo[i].out_edge = 
+        } else if (out_degree <= leaf_keys_count) {
+            spo[i].out_edges = new leaf_node_t;
+        } else {
+            spo[i].out_edges_tree = new btree_t;
+            leaf_count = ceil(out_degree/leaf_keys_count);
+            //based on total elements, we might have more levels in the B+ tree;
+            level_count = 0;
+            //set up the whole tree.
+            spo[i].out_edges_tree->initial_setup(level_count, leaf_count);
+        }
+
+        //in-edges
+        //Types
+        //Predicates
+    }
+    //now populate the B+ tree
+    closedir(dir);
+    file_count = 0;
+    dir = opendir(idirname.c_str());
+    int literal = 0;
+    while (NULL != (ptr = readdir(dir))) {
+        if (ptr->d_name[0] == '.')
+            continue;
+        //cout << "No." << count << ", loading " << ptr->d_name << endl;
+        
+        ifstream file((idirname + "/" + string(ptr->d_name)).c_str());
+        file_count++;
+        
+        
+        while (file >> subject >> predict >> object >> useless_dot) {
+            current_sid = str_to_sid[subject];
+            current_pid = str_to_pid[predict];
+            literal = is_literal(object);
+            if (literal) {
+                current_oid = str_to_literal[object];
+            } else {
+                current_oid = str_to_sid[object];
+            }
+
+            //insert to out-edges
+
+            if (0 == current_pid) {
+                //Insert to type
+            } else if (literal) {
+                //insert to predicate
+            } else {
+                //insert to in-edge
+                //insert to predicate
+                //
+            }
+        }
+    }
+    
 }
