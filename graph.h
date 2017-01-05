@@ -31,13 +31,52 @@ class btree_node;
 
 id2literal_t	id2literal; 
 */
-//B-tree/hashtable for adjacency list
-class adj_index {
-	//Some S/0 might have more than one O/S for same P.
-	//Such as publication and author relashionship.
-	//Here one professor/student can have multiple publication and
-	//same publication could have multiple authors.
-	
+
+/*B-tree/hashtable for adjacency list 
+ * Some S/0 might have more than one O/S for same P.
+ * Such as publication and author relashionship.
+ * Here one professor/student can have multiple publication and
+ * same publication could have multiple authors.
+*/	
+class edges_t {
+private:
+	degree_t degree;//Will contain flag, if required
+	union {
+        btree_t* edges_tree;//many PO
+        leaf_node_t* edges;//upto 32 PO
+        pair_t edge; //just one PO
+    };
+
+public:
+    //allocate spaces now so that bulk insert can go fast.
+    inline status_t 
+    initial_setup (int degree)
+    {
+        return 0;
+    }
+    inline status_t 
+    initial_insert(key_t key, value_t value)
+    { return 0; }
+    
+    inline status_t 
+    initial_insert(pair_t pair)
+    { return 0 ; }
+    
+    inline value_t 
+    search(key_t key) {return 0;}
+
+    inline status_t
+    insert(key_t key, value_t value)
+    { return 0;}
+
+    
+    inline status_t
+    remove(key_t key, value_t value)
+    { return 0;}
+
+    inline status_t
+    remove(pair_t pair)
+    { return 0;}
 };
 
 /*Top level CSR format (similar to begpos in CSR). A plain array. 
@@ -49,21 +88,9 @@ class adj_index {
 	Flag
 */
 typedef struct __po_t {
-	union {
-        btree_t* out_edges_tree;//many PO
-        leaf_node_t* out_edges;//upto 32 PO
-        pair_t out_edge; //just one PO
-    };
-    union {
-	    btree_t* in_edges_tree; //many PO
-        leaf_node_t* in_edges;//upto 32 PO
-        pair_t in_edge; //just one PO
-    };
-	degree_t out_degree;//Will contain flag, if required
-	degree_t in_degree;//Will contain flag, if required
+    edges_t out_edges;
+    edges_t in_edges;
 } po_t;
-
-
 
 //predicate indices. As per our analysis, we need second index on O only. 
 //This second index will help in specially FILTER queries 
@@ -72,15 +99,9 @@ typedef struct __po_t {
 //Also, note that, the size of adjacency list of each one is going to be very big,
 //as number of predicates are small while number of triples are like billions.
 
-typedef struct __so_t {
-	o_t o;
-	s_t s;
-} so_t;
-
-typedef struct __so_indirect {
-	int32_t count;
-	so_t* os; //B-tree/Hashtable key = object.
-} so_indirect_t;
+typedef struct __os_t {
+    edges_t edges;
+} os_t;
 
 
 
@@ -89,13 +110,61 @@ typedef struct __so_indirect {
 //XXX: This could be stored as bitmap as well as almost every S 
 //will have a type.
 
+typedef struct __adj_t {
+    private:
+	degree_t in_degree;//Will contain flag, if required
+    //XXX: arranging only keys, not key-value.
+    union {
+	    btree_t* in_edges_tree; //many PO
+        leaf_node_t* in_edges;//upto 32 PO
+        pair_t in_edge; //just one PO
+    };
+
+    public: 
+    //allocate spaces now so that bulk insert can go fast.
+    inline status_t 
+    initial_setup (int degree)
+    {
+        return 0;
+    }
+    inline status_t 
+    initial_insert(key_t value)
+    { return 0; }
+    
+    inline value_t 
+    search(key_t key) {return 0;}
+
+    inline status_t
+    insert(key_t value)
+    { return 0;}
+
+    
+    inline status_t
+    remove(key_t value)
+    { return 0;}
+
+    inline status_t
+    remove(pair_t pair)
+    { return 0;}
+} adj_t;
+
+typedef struct __ts_t {
+    adj_t plain_edges;
+    
+} ts_t;
+
 
 class graph {
 private:
     po_t*		spo;
-    s_t** ts; //This could be S or O but only those O which are S as well.
-    so_indirect_t*		pos;
+    os_t*       pos;
+    ts_t*       ts; //This could be S or O but only those O which are S as well.
+    
     int32_t     count_spo;
+    int32_t     count_pos;
+    int32_t     count_type;
+
+    //string mappers
 
 public:    
     void prep_meta_nt(string idirname);

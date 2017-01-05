@@ -294,36 +294,37 @@ void graph::prep_meta_nt(string idirname)
     /****************************************************************************************/
     //Preparing the representation
     spo = new po_t[spo_id];
-    spo_count_iter = spo_count.begin();
+    pos = new os_t[p_id];
+    ts = new ts_t[t_id];
+
     int32_t out_degree = 0;
     int32_t in_degree = 0;
-    int32_t leaf_count = 0;
-    int32_t level_count = 0;
+    int32_t degree = 0;
+    //int32_t leaf_count = 0;
+    //int32_t level_count = 0;
     for (int32_t i = 0; i < spo_id; ++i ) {
         out_degree = sp_count[i].first;
         in_degree = sp_count[i].second;
-        spo[i].out_degree = out_degree;
-        spo[i].in_degree  = in_degree;
 
         //out-edges
-        if (out_degree == 1) {
-            //spo[i].out_edge = 
-        } else if (out_degree <= leaf_keys_count) {
-            spo[i].out_edges = new leaf_node_t;
-        } else {
-            spo[i].out_edges_tree = new btree_t;
-            leaf_count = ceil(out_degree/leaf_keys_count);
-            //based on total elements, we might have more levels in the B+ tree;
-            level_count = 0;
-            //set up the whole tree.
-            spo[i].out_edges_tree->initial_setup(level_count, leaf_count);
-        }
-
+        spo[i].out_edges.initial_setup(out_degree);
         //in-edges
-        //Types
-        //Predicates
+        spo[i].in_edges.initial_setup(in_degree);
+
     }
-    //now populate the B+ tree
+
+    //Predicates
+    for (int32_t i = 0; i < p_id; ++i ) {
+        degree = po_count[i];
+        pos[i].edges.initial_setup(degree);
+    }
+    //Types
+    for (int32_t i = 0; i < t_id; ++i) {
+        degree = type_count[i];
+        ts[i].plain_edges.initial_setup(degree);
+    }
+
+    //now populate the B+ trees
     closedir(dir);
     file_count = 0;
     dir = opendir(idirname.c_str());
@@ -348,17 +349,21 @@ void graph::prep_meta_nt(string idirname)
             }
 
             //insert to out-edges
+            spo[current_sid].out_edges.initial_insert(current_pid, current_oid);
 
             if (0 == current_pid) {
                 //Insert to type
+                ts[current_oid].plain_edges.initial_insert(current_sid);
             } else if (literal) {
                 //insert to predicate
+                pos[current_pid].edges.initial_insert(current_oid, current_sid);
             } else {
                 //insert to in-edge
+                spo[current_oid].in_edges.initial_insert(current_pid, current_sid);
                 //insert to predicate
-                //
+                pos[current_pid].edges.initial_insert(current_oid, current_sid);
             }
         }
     }
-    
 }
+
