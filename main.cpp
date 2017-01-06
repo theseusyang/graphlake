@@ -13,24 +13,26 @@ using namespace std;
 
 graph* g;
 
+
 int main(int argc, char* argv[])
 {
 	const struct option longopts[] =
 	{
 		{"version",   no_argument,        0, 'v'},
 		{"help",      no_argument,        0, 'h'},
-		{"ifile",     required_argument,  0, 'i'},
+		{"idir",      required_argument,  0, 'i'},
 		{"convert",   required_argument,  0, 'c'},
-
+		{"qfile",     required_argument,  0, 'q'},
 		{0,			  0,				  0,  0},
 	};
 
 	int o;
 	int index = 0;
 	string idir;
+    string queryfile;
     int convert = -1;
     g = new graph; 
-	while ((o = getopt_long(argc, argv, "i:c:vh", longopts, &index)) != -1) {
+	while ((o = getopt_long(argc, argv, "i:c:q:vh", longopts, &index)) != -1) {
 		switch(o) {
 			case 'v':
 				cout << "1.0" << endl;
@@ -45,6 +47,9 @@ int main(int argc, char* argv[])
             case 'c':
                 convert = atoi(optarg);
 				break;
+            case 'q':
+                queryfile = optarg;
+               break; 
 			default:
                 break;
 		}
@@ -57,5 +62,7 @@ int main(int argc, char* argv[])
         default:
             break;
     }
+
+    g->run_query(queryfile);
     return 0;
 }

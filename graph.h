@@ -4,6 +4,8 @@
 //#include <unordered_map>
 #include <string>
 #include <stdint.h>
+#include <map>
+#include <vector>
 
 #include "btree.h"
 
@@ -16,21 +18,6 @@ typedef int32_t index_t;
 typedef int32_t degree_t;
 typedef int32_t s_t;
 typedef int32_t o_t;
-
-class btree_node;
-
-//HashTable/KV-store for literal to ID mapping
-//typedef unordered_map<string, literal_id_t> literal2id_t;
-//class literal2id_t { };
-
-//literal2id_t	literal2id;
-
-//plain array for ID to literal mapping
-/*class id2literal_t {
-};
-
-id2literal_t	id2literal; 
-*/
 
 /*B-tree/hashtable for adjacency list 
  * Some S/0 might have more than one O/S for same P.
@@ -158,16 +145,45 @@ class graph {
 private:
     po_t*		spo;
     os_t*       pos;
-    ts_t*       ts; //This could be S or O but only those O which are S as well.
+
+    //This could be S or O but only those O which are S as well.
+    //Literal and type objects are not valid S.
+    ts_t*       ts; 
     
     int32_t     count_spo;
     int32_t     count_pos;
     int32_t     count_type;
 
     //string mappers
+    //XXX will be replaced soon.
+    vector<string> literal_to_str;
+    map<string, int32_t> str_to_literal;
+    
+    vector<string> sid_to_str;
+    map<string, int32_t> str_to_sid;
+
+    vector<string> pid_to_str;
+    map<string, int32_t> str_to_pid;
+    
+    vector<string> tid_to_str;
+    map<string, int32_t> str_to_tid;
+    
 
 public:    
     void prep_meta_nt(string idirname);
+    status_t run_query(string queryfile);
 };
 
+//HashTable/KV-store for literal to ID mapping
+//typedef unordered_map<string, literal_id_t> literal2id_t;
+//class literal2id_t { };
+
+//literal2id_t	literal2id;
+
+//plain array for ID to literal mapping
+/*class id2literal_t {
+};
+
+id2literal_t	id2literal; 
+*/
 #endif

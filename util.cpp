@@ -1,4 +1,3 @@
-#include <vector>
 #include <algorithm>
 #include <fstream>
 #include <iostream>
@@ -7,12 +6,8 @@
 #include <string>
 #include "graph.h"
 #include "util.h"
-#include <map>
-
-#define unordered_map map
 
 using namespace std;
-
 
 static int 
 is_literal(string str) {
@@ -23,15 +18,11 @@ void graph::prep_meta_nt(string idirname)
 {
     string type = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
     
-    vector<string> literal_to_str;
     //As 0th index is useless due to negative index
     literal_to_str.push_back("literal");
-    map<string, int32_t> str_to_literal;
     map<string, int32_t>::iterator  str_to_literal_iter;
    
     //spo
-    vector<string> sid_to_str;
-    map<string, int32_t> str_to_sid;
     map<string, int32_t>::iterator  str_to_sid_iter;
 
     vector<duet_t> sp_count;//in/out edges count
@@ -46,8 +37,6 @@ void graph::prep_meta_nt(string idirname)
     map<op_pair_t, int32_t>::iterator ops_count_iter;
 
     //POS
-    vector<string> pid_to_str;
-    map<string, int32_t> str_to_pid;
     map<string, int32_t>::iterator str_to_pid_iter;
     vector<int32_t> po_count;//in-edges count 
 
@@ -60,9 +49,7 @@ void graph::prep_meta_nt(string idirname)
 
 
     //TS
-    map<string, int32_t> str_to_tid;
     map<string, int32_t>::iterator str_to_tid_iter;
-    vector<string> tid_to_str;
     vector<int32_t> type_count;//in-edges count
     
 
@@ -80,7 +67,7 @@ void graph::prep_meta_nt(string idirname)
     po_pair_t po_pair;
     op_pair_t op_pair;
         
-    string subject, predict, object, useless_dot;
+    string subject, predicate, object, useless_dot;
     int32_t current_sid, current_pid, current_oid = 0, current_tid;
     
     int file_count = 1;
@@ -93,7 +80,7 @@ void graph::prep_meta_nt(string idirname)
         file_count++;
         
         
-        while (file >> subject >> predict >> object >> useless_dot) {
+        while (file >> subject >> predicate >> object >> useless_dot) {
             
             str_to_sid_iter = str_to_sid.find(subject);
             if (str_to_sid_iter == str_to_sid.end()) {
@@ -107,8 +94,7 @@ void graph::prep_meta_nt(string idirname)
                 current_sid = str_to_sid_iter->second;
             }
 
-
-            if (predict == type) { //type case
+            if (predicate == type) { //type case
                 str_to_tid_iter = str_to_tid.find(object);
                 if (str_to_tid_iter == str_to_tid.end()) {
         			str_to_tid[object] = t_id;
@@ -133,12 +119,12 @@ void graph::prep_meta_nt(string idirname)
                 }
 
             } else { //predicate case.
-                str_to_pid_iter = str_to_pid.find(predict);
+                str_to_pid_iter = str_to_pid.find(predicate);
                 if (str_to_pid_iter == str_to_pid.end()) {
-                    str_to_pid[predict] = p_id;
+                    str_to_pid[predicate] = p_id;
                     current_pid = p_id;
                     p_id++;
-                    pid_to_str.push_back(predict);
+                    pid_to_str.push_back(predicate);
                     po_count.push_back(0); // predicate initialization
                 } else {
                     current_pid = str_to_pid_iter->second;
@@ -206,7 +192,6 @@ void graph::prep_meta_nt(string idirname)
                     pos_count[po_pair] += 1;
                 }
             } 
-
         }
     }
     /*****************************************************************************************/
@@ -332,15 +317,13 @@ void graph::prep_meta_nt(string idirname)
     while (NULL != (ptr = readdir(dir))) {
         if (ptr->d_name[0] == '.')
             continue;
-        //cout << "No." << count << ", loading " << ptr->d_name << endl;
         
         ifstream file((idirname + "/" + string(ptr->d_name)).c_str());
         file_count++;
         
-        
-        while (file >> subject >> predict >> object >> useless_dot) {
+        while (file >> subject >> predicate >> object >> useless_dot) {
             current_sid = str_to_sid[subject];
-            current_pid = str_to_pid[predict];
+            current_pid = str_to_pid[predicate];
             literal = is_literal(object);
             if (literal) {
                 current_oid = str_to_literal[object];
@@ -365,5 +348,12 @@ void graph::prep_meta_nt(string idirname)
             }
         }
     }
+}
+
+status_t 
+graph::run_query(string queryfile)
+{
+    ifstream qfile(queryfile);
+    return 0;
 }
 
