@@ -3,6 +3,7 @@
 
 
 #include "Sparql11Listener.h"
+#include "Sparql11Visitor.h"
 
 #include "Sparql11Parser.h"
 
@@ -56,6 +57,14 @@ void Sparql11Parser::QueryUnitContext::exitRule(tree::ParseTreeListener *listene
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitQueryUnit(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::QueryUnitContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitQueryUnit(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::QueryUnitContext* Sparql11Parser::queryUnit() {
@@ -121,6 +130,14 @@ void Sparql11Parser::QueryContext::exitRule(tree::ParseTreeListener *listener) {
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitQuery(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::QueryContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitQuery(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::QueryContext* Sparql11Parser::query() {
@@ -210,6 +227,14 @@ void Sparql11Parser::PrologueContext::exitRule(tree::ParseTreeListener *listener
     parserListener->exitPrologue(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::PrologueContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitPrologue(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::PrologueContext* Sparql11Parser::prologue() {
   PrologueContext *_localctx = _tracker.createInstance<PrologueContext>(_ctx, getState());
   enterRule(_localctx, 4, Sparql11Parser::RulePrologue);
@@ -280,6 +305,14 @@ void Sparql11Parser::BaseDeclContext::exitRule(tree::ParseTreeListener *listener
     parserListener->exitBaseDecl(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::BaseDeclContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitBaseDecl(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::BaseDeclContext* Sparql11Parser::baseDecl() {
   BaseDeclContext *_localctx = _tracker.createInstance<BaseDeclContext>(_ctx, getState());
   enterRule(_localctx, 6, Sparql11Parser::RuleBaseDecl);
@@ -337,6 +370,14 @@ void Sparql11Parser::PrefixDeclContext::exitRule(tree::ParseTreeListener *listen
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitPrefixDecl(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::PrefixDeclContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitPrefixDecl(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::PrefixDeclContext* Sparql11Parser::prefixDecl() {
@@ -412,6 +453,14 @@ void Sparql11Parser::SelectQueryContext::exitRule(tree::ParseTreeListener *liste
     parserListener->exitSelectQuery(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::SelectQueryContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitSelectQuery(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::SelectQueryContext* Sparql11Parser::selectQuery() {
   SelectQueryContext *_localctx = _tracker.createInstance<SelectQueryContext>(_ctx, getState());
   enterRule(_localctx, 10, Sparql11Parser::RuleSelectQuery);
@@ -484,6 +533,14 @@ void Sparql11Parser::SubSelectContext::exitRule(tree::ParseTreeListener *listene
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitSubSelect(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::SubSelectContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitSubSelect(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::SubSelectContext* Sparql11Parser::subSelect() {
@@ -589,6 +646,14 @@ void Sparql11Parser::SelectClauseContext::exitRule(tree::ParseTreeListener *list
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitSelectClause(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::SelectClauseContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitSelectClause(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::SelectClauseContext* Sparql11Parser::selectClause() {
@@ -736,6 +801,14 @@ void Sparql11Parser::ConstructQueryContext::exitRule(tree::ParseTreeListener *li
     parserListener->exitConstructQuery(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::ConstructQueryContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitConstructQuery(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::ConstructQueryContext* Sparql11Parser::constructQuery() {
   ConstructQueryContext *_localctx = _tracker.createInstance<ConstructQueryContext>(_ctx, getState());
   enterRule(_localctx, 16, Sparql11Parser::RuleConstructQuery);
@@ -828,6 +901,14 @@ void Sparql11Parser::DescribeQueryContext::exitRule(tree::ParseTreeListener *lis
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitDescribeQuery(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::DescribeQueryContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitDescribeQuery(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::DescribeQueryContext* Sparql11Parser::describeQuery() {
@@ -949,6 +1030,14 @@ void Sparql11Parser::AskQueryContext::exitRule(tree::ParseTreeListener *listener
     parserListener->exitAskQuery(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::AskQueryContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitAskQuery(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::AskQueryContext* Sparql11Parser::askQuery() {
   AskQueryContext *_localctx = _tracker.createInstance<AskQueryContext>(_ctx, getState());
   enterRule(_localctx, 20, Sparql11Parser::RuleAskQuery);
@@ -1017,6 +1106,14 @@ void Sparql11Parser::DatasetClauseContext::exitRule(tree::ParseTreeListener *lis
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitDatasetClause(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::DatasetClauseContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitDatasetClause(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::DatasetClauseContext* Sparql11Parser::datasetClause() {
@@ -1088,6 +1185,14 @@ void Sparql11Parser::DefaultGraphClauseContext::exitRule(tree::ParseTreeListener
     parserListener->exitDefaultGraphClause(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::DefaultGraphClauseContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitDefaultGraphClause(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::DefaultGraphClauseContext* Sparql11Parser::defaultGraphClause() {
   DefaultGraphClauseContext *_localctx = _tracker.createInstance<DefaultGraphClauseContext>(_ctx, getState());
   enterRule(_localctx, 24, Sparql11Parser::RuleDefaultGraphClause);
@@ -1141,6 +1246,14 @@ void Sparql11Parser::NamedGraphClauseContext::exitRule(tree::ParseTreeListener *
     parserListener->exitNamedGraphClause(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::NamedGraphClauseContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitNamedGraphClause(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::NamedGraphClauseContext* Sparql11Parser::namedGraphClause() {
   NamedGraphClauseContext *_localctx = _tracker.createInstance<NamedGraphClauseContext>(_ctx, getState());
   enterRule(_localctx, 26, Sparql11Parser::RuleNamedGraphClause);
@@ -1190,6 +1303,14 @@ void Sparql11Parser::SourceSelectorContext::exitRule(tree::ParseTreeListener *li
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitSourceSelector(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::SourceSelectorContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitSourceSelector(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::SourceSelectorContext* Sparql11Parser::sourceSelector() {
@@ -1243,6 +1364,14 @@ void Sparql11Parser::WhereClauseContext::exitRule(tree::ParseTreeListener *liste
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitWhereClause(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::WhereClauseContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitWhereClause(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::WhereClauseContext* Sparql11Parser::whereClause() {
@@ -1313,6 +1442,14 @@ void Sparql11Parser::SolutionModifierContext::exitRule(tree::ParseTreeListener *
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitSolutionModifier(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::SolutionModifierContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitSolutionModifier(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::SolutionModifierContext* Sparql11Parser::solutionModifier() {
@@ -1407,6 +1544,14 @@ void Sparql11Parser::GroupClauseContext::exitRule(tree::ParseTreeListener *liste
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitGroupClause(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::GroupClauseContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitGroupClause(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::GroupClauseContext* Sparql11Parser::groupClause() {
@@ -1520,6 +1665,14 @@ void Sparql11Parser::GroupConditionContext::exitRule(tree::ParseTreeListener *li
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitGroupCondition(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::GroupConditionContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitGroupCondition(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::GroupConditionContext* Sparql11Parser::groupCondition() {
@@ -1648,6 +1801,14 @@ void Sparql11Parser::HavingClauseContext::exitRule(tree::ParseTreeListener *list
     parserListener->exitHavingClause(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::HavingClauseContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitHavingClause(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::HavingClauseContext* Sparql11Parser::havingClause() {
   HavingClauseContext *_localctx = _tracker.createInstance<HavingClauseContext>(_ctx, getState());
   enterRule(_localctx, 38, Sparql11Parser::RuleHavingClause);
@@ -1733,6 +1894,14 @@ void Sparql11Parser::HavingConditionContext::exitRule(tree::ParseTreeListener *l
     parserListener->exitHavingCondition(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::HavingConditionContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitHavingCondition(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::HavingConditionContext* Sparql11Parser::havingCondition() {
   HavingConditionContext *_localctx = _tracker.createInstance<HavingConditionContext>(_ctx, getState());
   enterRule(_localctx, 40, Sparql11Parser::RuleHavingCondition);
@@ -1792,6 +1961,14 @@ void Sparql11Parser::OrderClauseContext::exitRule(tree::ParseTreeListener *liste
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitOrderClause(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::OrderClauseContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitOrderClause(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::OrderClauseContext* Sparql11Parser::orderClause() {
@@ -1899,6 +2076,14 @@ void Sparql11Parser::OrderConditionContext::exitRule(tree::ParseTreeListener *li
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitOrderCondition(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::OrderConditionContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitOrderCondition(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::OrderConditionContext* Sparql11Parser::orderCondition() {
@@ -2051,6 +2236,14 @@ void Sparql11Parser::LimitOffsetClausesContext::exitRule(tree::ParseTreeListener
     parserListener->exitLimitOffsetClauses(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::LimitOffsetClausesContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitLimitOffsetClauses(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::LimitOffsetClausesContext* Sparql11Parser::limitOffsetClauses() {
   LimitOffsetClausesContext *_localctx = _tracker.createInstance<LimitOffsetClausesContext>(_ctx, getState());
   enterRule(_localctx, 46, Sparql11Parser::RuleLimitOffsetClauses);
@@ -2138,6 +2331,14 @@ void Sparql11Parser::LimitClauseContext::exitRule(tree::ParseTreeListener *liste
     parserListener->exitLimitClause(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::LimitClauseContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitLimitClause(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::LimitClauseContext* Sparql11Parser::limitClause() {
   LimitClauseContext *_localctx = _tracker.createInstance<LimitClauseContext>(_ctx, getState());
   enterRule(_localctx, 48, Sparql11Parser::RuleLimitClause);
@@ -2191,6 +2392,14 @@ void Sparql11Parser::OffsetClauseContext::exitRule(tree::ParseTreeListener *list
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitOffsetClause(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::OffsetClauseContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitOffsetClause(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::OffsetClauseContext* Sparql11Parser::offsetClause() {
@@ -2290,6 +2499,14 @@ void Sparql11Parser::BindingsClauseContext::exitRule(tree::ParseTreeListener *li
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitBindingsClause(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::BindingsClauseContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitBindingsClause(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::BindingsClauseContext* Sparql11Parser::bindingsClause() {
@@ -2447,6 +2664,14 @@ void Sparql11Parser::BindingValueContext::exitRule(tree::ParseTreeListener *list
     parserListener->exitBindingValue(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::BindingValueContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitBindingValue(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::BindingValueContext* Sparql11Parser::bindingValue() {
   BindingValueContext *_localctx = _tracker.createInstance<BindingValueContext>(_ctx, getState());
   enterRule(_localctx, 54, Sparql11Parser::RuleBindingValue);
@@ -2548,6 +2773,14 @@ void Sparql11Parser::UpdateUnitContext::exitRule(tree::ParseTreeListener *listen
     parserListener->exitUpdateUnit(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::UpdateUnitContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitUpdateUnit(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::UpdateUnitContext* Sparql11Parser::updateUnit() {
   UpdateUnitContext *_localctx = _tracker.createInstance<UpdateUnitContext>(_ctx, getState());
   enterRule(_localctx, 56, Sparql11Parser::RuleUpdateUnit);
@@ -2607,6 +2840,14 @@ void Sparql11Parser::UpdateContext::exitRule(tree::ParseTreeListener *listener) 
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitUpdate(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::UpdateContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitUpdate(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::UpdateContext* Sparql11Parser::update() {
@@ -2697,6 +2938,14 @@ void Sparql11Parser::Update1Context::exitRule(tree::ParseTreeListener *listener)
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitUpdate1(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::Update1Context::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitUpdate1(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::Update1Context* Sparql11Parser::update1() {
@@ -2814,6 +3063,14 @@ void Sparql11Parser::LoadContext::exitRule(tree::ParseTreeListener *listener) {
     parserListener->exitLoad(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::LoadContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitLoad(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::LoadContext* Sparql11Parser::load() {
   LoadContext *_localctx = _tracker.createInstance<LoadContext>(_ctx, getState());
   enterRule(_localctx, 62, Sparql11Parser::RuleLoad);
@@ -2884,6 +3141,14 @@ void Sparql11Parser::ClearContext::exitRule(tree::ParseTreeListener *listener) {
     parserListener->exitClear(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::ClearContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitClear(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::ClearContext* Sparql11Parser::clear() {
   ClearContext *_localctx = _tracker.createInstance<ClearContext>(_ctx, getState());
   enterRule(_localctx, 64, Sparql11Parser::RuleClear);
@@ -2952,6 +3217,14 @@ void Sparql11Parser::DropContext::exitRule(tree::ParseTreeListener *listener) {
     parserListener->exitDrop(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::DropContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitDrop(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::DropContext* Sparql11Parser::drop() {
   DropContext *_localctx = _tracker.createInstance<DropContext>(_ctx, getState());
   enterRule(_localctx, 66, Sparql11Parser::RuleDrop);
@@ -3018,6 +3291,14 @@ void Sparql11Parser::CreateContext::exitRule(tree::ParseTreeListener *listener) 
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitCreate(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::CreateContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitCreate(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::CreateContext* Sparql11Parser::create() {
@@ -3092,6 +3373,14 @@ void Sparql11Parser::InsertDataContext::exitRule(tree::ParseTreeListener *listen
     parserListener->exitInsertData(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::InsertDataContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitInsertData(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::InsertDataContext* Sparql11Parser::insertData() {
   InsertDataContext *_localctx = _tracker.createInstance<InsertDataContext>(_ctx, getState());
   enterRule(_localctx, 70, Sparql11Parser::RuleInsertData);
@@ -3155,6 +3444,14 @@ void Sparql11Parser::DeleteDataContext::exitRule(tree::ParseTreeListener *listen
     parserListener->exitDeleteData(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::DeleteDataContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitDeleteData(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::DeleteDataContext* Sparql11Parser::deleteData() {
   DeleteDataContext *_localctx = _tracker.createInstance<DeleteDataContext>(_ctx, getState());
   enterRule(_localctx, 72, Sparql11Parser::RuleDeleteData);
@@ -3214,6 +3511,14 @@ void Sparql11Parser::DeleteWhereContext::exitRule(tree::ParseTreeListener *liste
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitDeleteWhere(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::DeleteWhereContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitDeleteWhere(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::DeleteWhereContext* Sparql11Parser::deleteWhere() {
@@ -3295,6 +3600,14 @@ void Sparql11Parser::ModifyContext::exitRule(tree::ParseTreeListener *listener) 
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitModify(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::ModifyContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitModify(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::ModifyContext* Sparql11Parser::modify() {
@@ -3399,6 +3712,14 @@ void Sparql11Parser::DeleteClauseContext::exitRule(tree::ParseTreeListener *list
     parserListener->exitDeleteClause(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::DeleteClauseContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitDeleteClause(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::DeleteClauseContext* Sparql11Parser::deleteClause() {
   DeleteClauseContext *_localctx = _tracker.createInstance<DeleteClauseContext>(_ctx, getState());
   enterRule(_localctx, 78, Sparql11Parser::RuleDeleteClause);
@@ -3452,6 +3773,14 @@ void Sparql11Parser::InsertClauseContext::exitRule(tree::ParseTreeListener *list
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitInsertClause(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::InsertClauseContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitInsertClause(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::InsertClauseContext* Sparql11Parser::insertClause() {
@@ -3511,6 +3840,14 @@ void Sparql11Parser::UsingClauseContext::exitRule(tree::ParseTreeListener *liste
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitUsingClause(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::UsingClauseContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitUsingClause(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::UsingClauseContext* Sparql11Parser::usingClause() {
@@ -3586,6 +3923,14 @@ void Sparql11Parser::GraphRefContext::exitRule(tree::ParseTreeListener *listener
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitGraphRef(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::GraphRefContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitGraphRef(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::GraphRefContext* Sparql11Parser::graphRef() {
@@ -3666,6 +4011,14 @@ void Sparql11Parser::GraphRefAllContext::exitRule(tree::ParseTreeListener *liste
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitGraphRefAll(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::GraphRefAllContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitGraphRefAll(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::GraphRefAllContext* Sparql11Parser::graphRefAll() {
@@ -3759,6 +4112,14 @@ void Sparql11Parser::QuadPatternContext::exitRule(tree::ParseTreeListener *liste
     parserListener->exitQuadPattern(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::QuadPatternContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitQuadPattern(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::QuadPatternContext* Sparql11Parser::quadPattern() {
   QuadPatternContext *_localctx = _tracker.createInstance<QuadPatternContext>(_ctx, getState());
   enterRule(_localctx, 88, Sparql11Parser::RuleQuadPattern);
@@ -3818,6 +4179,14 @@ void Sparql11Parser::QuadDataContext::exitRule(tree::ParseTreeListener *listener
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitQuadData(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::QuadDataContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitQuadData(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::QuadDataContext* Sparql11Parser::quadData() {
@@ -3891,6 +4260,14 @@ void Sparql11Parser::QuadsContext::exitRule(tree::ParseTreeListener *listener) {
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitQuads(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::QuadsContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitQuads(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::QuadsContext* Sparql11Parser::quads() {
@@ -4037,6 +4414,14 @@ void Sparql11Parser::QuadsNotTriplesContext::exitRule(tree::ParseTreeListener *l
     parserListener->exitQuadsNotTriples(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::QuadsNotTriplesContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitQuadsNotTriples(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::QuadsNotTriplesContext* Sparql11Parser::quadsNotTriples() {
   QuadsNotTriplesContext *_localctx = _tracker.createInstance<QuadsNotTriplesContext>(_ctx, getState());
   enterRule(_localctx, 94, Sparql11Parser::RuleQuadsNotTriples);
@@ -4100,6 +4485,14 @@ void Sparql11Parser::TriplesTemplateContext::exitRule(tree::ParseTreeListener *l
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitTriplesTemplate(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::TriplesTemplateContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitTriplesTemplate(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::TriplesTemplateContext* Sparql11Parser::triplesTemplate() {
@@ -4201,6 +4594,14 @@ void Sparql11Parser::GroupGraphPatternContext::exitRule(tree::ParseTreeListener 
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitGroupGraphPattern(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::GroupGraphPatternContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitGroupGraphPattern(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::GroupGraphPatternContext* Sparql11Parser::groupGraphPattern() {
@@ -4319,6 +4720,14 @@ void Sparql11Parser::GroupGraphPatternSubContext::exitRule(tree::ParseTreeListen
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitGroupGraphPatternSub(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::GroupGraphPatternSubContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitGroupGraphPatternSub(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::GroupGraphPatternSubContext* Sparql11Parser::groupGraphPatternSub() {
@@ -4462,6 +4871,14 @@ void Sparql11Parser::TriplesBlockContext::exitRule(tree::ParseTreeListener *list
     parserListener->exitTriplesBlock(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::TriplesBlockContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitTriplesBlock(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::TriplesBlockContext* Sparql11Parser::triplesBlock() {
   TriplesBlockContext *_localctx = _tracker.createInstance<TriplesBlockContext>(_ctx, getState());
   enterRule(_localctx, 102, Sparql11Parser::RuleTriplesBlock);
@@ -4571,6 +4988,14 @@ void Sparql11Parser::GraphPatternNotTriplesContext::exitRule(tree::ParseTreeList
     parserListener->exitGraphPatternNotTriples(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::GraphPatternNotTriplesContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitGraphPatternNotTriples(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::GraphPatternNotTriplesContext* Sparql11Parser::graphPatternNotTriples() {
   GraphPatternNotTriplesContext *_localctx = _tracker.createInstance<GraphPatternNotTriplesContext>(_ctx, getState());
   enterRule(_localctx, 104, Sparql11Parser::RuleGraphPatternNotTriples);
@@ -4669,6 +5094,14 @@ void Sparql11Parser::OptionalGraphPatternContext::exitRule(tree::ParseTreeListen
     parserListener->exitOptionalGraphPattern(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::OptionalGraphPatternContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitOptionalGraphPattern(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::OptionalGraphPatternContext* Sparql11Parser::optionalGraphPattern() {
   OptionalGraphPatternContext *_localctx = _tracker.createInstance<OptionalGraphPatternContext>(_ctx, getState());
   enterRule(_localctx, 106, Sparql11Parser::RuleOptionalGraphPattern);
@@ -4726,6 +5159,14 @@ void Sparql11Parser::GraphGraphPatternContext::exitRule(tree::ParseTreeListener 
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitGraphGraphPattern(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::GraphGraphPatternContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitGraphGraphPattern(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::GraphGraphPatternContext* Sparql11Parser::graphGraphPattern() {
@@ -4789,6 +5230,14 @@ void Sparql11Parser::ServiceGraphPatternContext::exitRule(tree::ParseTreeListene
     parserListener->exitServiceGraphPattern(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::ServiceGraphPatternContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitServiceGraphPattern(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::ServiceGraphPatternContext* Sparql11Parser::serviceGraphPattern() {
   ServiceGraphPatternContext *_localctx = _tracker.createInstance<ServiceGraphPatternContext>(_ctx, getState());
   enterRule(_localctx, 110, Sparql11Parser::RuleServiceGraphPattern);
@@ -4844,6 +5293,14 @@ void Sparql11Parser::MinusGraphPatternContext::exitRule(tree::ParseTreeListener 
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitMinusGraphPattern(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::MinusGraphPatternContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitMinusGraphPattern(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::MinusGraphPatternContext* Sparql11Parser::minusGraphPattern() {
@@ -4907,6 +5364,14 @@ void Sparql11Parser::GroupOrUnionGraphPatternContext::exitRule(tree::ParseTreeLi
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitGroupOrUnionGraphPattern(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::GroupOrUnionGraphPatternContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitGroupOrUnionGraphPattern(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::GroupOrUnionGraphPatternContext* Sparql11Parser::groupOrUnionGraphPattern() {
@@ -4975,6 +5440,14 @@ void Sparql11Parser::FilterContext::exitRule(tree::ParseTreeListener *listener) 
     parserListener->exitFilter(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::FilterContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitFilter(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::FilterContext* Sparql11Parser::filter() {
   FilterContext *_localctx = _tracker.createInstance<FilterContext>(_ctx, getState());
   enterRule(_localctx, 116, Sparql11Parser::RuleFilter);
@@ -5032,6 +5505,14 @@ void Sparql11Parser::ConstraintContext::exitRule(tree::ParseTreeListener *listen
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitConstraint(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::ConstraintContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitConstraint(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::ConstraintContext* Sparql11Parser::constraint() {
@@ -5133,6 +5614,14 @@ void Sparql11Parser::FunctionCallContext::exitRule(tree::ParseTreeListener *list
     parserListener->exitFunctionCall(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::FunctionCallContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitFunctionCall(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::FunctionCallContext* Sparql11Parser::functionCall() {
   FunctionCallContext *_localctx = _tracker.createInstance<FunctionCallContext>(_ctx, getState());
   enterRule(_localctx, 120, Sparql11Parser::RuleFunctionCall);
@@ -5214,6 +5703,14 @@ void Sparql11Parser::ArgListContext::exitRule(tree::ParseTreeListener *listener)
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitArgList(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::ArgListContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitArgList(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::ArgListContext* Sparql11Parser::argList() {
@@ -5345,6 +5842,14 @@ void Sparql11Parser::ExpressionListContext::exitRule(tree::ParseTreeListener *li
     parserListener->exitExpressionList(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::ExpressionListContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitExpressionList(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::ExpressionListContext* Sparql11Parser::expressionList() {
   ExpressionListContext *_localctx = _tracker.createInstance<ExpressionListContext>(_ctx, getState());
   enterRule(_localctx, 124, Sparql11Parser::RuleExpressionList);
@@ -5446,6 +5951,14 @@ void Sparql11Parser::ConstructTemplateContext::exitRule(tree::ParseTreeListener 
     parserListener->exitConstructTemplate(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::ConstructTemplateContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitConstructTemplate(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::ConstructTemplateContext* Sparql11Parser::constructTemplate() {
   ConstructTemplateContext *_localctx = _tracker.createInstance<ConstructTemplateContext>(_ctx, getState());
   enterRule(_localctx, 126, Sparql11Parser::RuleConstructTemplate);
@@ -5535,6 +6048,14 @@ void Sparql11Parser::ConstructTriplesContext::exitRule(tree::ParseTreeListener *
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitConstructTriples(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::ConstructTriplesContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitConstructTriples(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::ConstructTriplesContext* Sparql11Parser::constructTriples() {
@@ -5638,6 +6159,14 @@ void Sparql11Parser::TriplesSameSubjectContext::exitRule(tree::ParseTreeListener
     parserListener->exitTriplesSameSubject(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::TriplesSameSubjectContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitTriplesSameSubject(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::TriplesSameSubjectContext* Sparql11Parser::triplesSameSubject() {
   TriplesSameSubjectContext *_localctx = _tracker.createInstance<TriplesSameSubjectContext>(_ctx, getState());
   enterRule(_localctx, 130, Sparql11Parser::RuleTriplesSameSubject);
@@ -5726,6 +6255,14 @@ void Sparql11Parser::PropertyListNotEmptyContext::exitRule(tree::ParseTreeListen
     parserListener->exitPropertyListNotEmpty(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::PropertyListNotEmptyContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitPropertyListNotEmpty(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::PropertyListNotEmptyContext* Sparql11Parser::propertyListNotEmpty() {
   PropertyListNotEmptyContext *_localctx = _tracker.createInstance<PropertyListNotEmptyContext>(_ctx, getState());
   enterRule(_localctx, 132, Sparql11Parser::RulePropertyListNotEmpty);
@@ -5804,6 +6341,14 @@ void Sparql11Parser::PropertyListContext::exitRule(tree::ParseTreeListener *list
     parserListener->exitPropertyList(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::PropertyListContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitPropertyList(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::PropertyListContext* Sparql11Parser::propertyList() {
   PropertyListContext *_localctx = _tracker.createInstance<PropertyListContext>(_ctx, getState());
   enterRule(_localctx, 134, Sparql11Parser::RulePropertyList);
@@ -5878,6 +6423,14 @@ void Sparql11Parser::ObjectListContext::exitRule(tree::ParseTreeListener *listen
     parserListener->exitObjectList(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::ObjectListContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitObjectList(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::ObjectListContext* Sparql11Parser::objectList() {
   ObjectListContext *_localctx = _tracker.createInstance<ObjectListContext>(_ctx, getState());
   enterRule(_localctx, 136, Sparql11Parser::RuleObjectList);
@@ -5940,6 +6493,14 @@ void Sparql11Parser::ObjectContext::exitRule(tree::ParseTreeListener *listener) 
     parserListener->exitObject(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::ObjectContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitObject(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::ObjectContext* Sparql11Parser::object() {
   ObjectContext *_localctx = _tracker.createInstance<ObjectContext>(_ctx, getState());
   enterRule(_localctx, 138, Sparql11Parser::RuleObject);
@@ -5991,6 +6552,14 @@ void Sparql11Parser::VerbContext::exitRule(tree::ParseTreeListener *listener) {
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitVerb(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::VerbContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitVerb(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::VerbContext* Sparql11Parser::verb() {
@@ -6073,6 +6642,14 @@ void Sparql11Parser::TriplesSameSubjectPathContext::exitRule(tree::ParseTreeList
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitTriplesSameSubjectPath(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::TriplesSameSubjectPathContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitTriplesSameSubjectPath(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::TriplesSameSubjectPathContext* Sparql11Parser::triplesSameSubjectPath() {
@@ -6169,6 +6746,14 @@ void Sparql11Parser::PropertyListNotEmptyPathContext::exitRule(tree::ParseTreeLi
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitPropertyListNotEmptyPath(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::PropertyListNotEmptyPathContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitPropertyListNotEmptyPath(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::PropertyListNotEmptyPathContext* Sparql11Parser::propertyListNotEmptyPath() {
@@ -6297,6 +6882,14 @@ void Sparql11Parser::PropertyListPathContext::exitRule(tree::ParseTreeListener *
     parserListener->exitPropertyListPath(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::PropertyListPathContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitPropertyListPath(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::PropertyListPathContext* Sparql11Parser::propertyListPath() {
   PropertyListPathContext *_localctx = _tracker.createInstance<PropertyListPathContext>(_ctx, getState());
   enterRule(_localctx, 146, Sparql11Parser::RulePropertyListPath);
@@ -6359,6 +6952,14 @@ void Sparql11Parser::VerbPathContext::exitRule(tree::ParseTreeListener *listener
     parserListener->exitVerbPath(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::VerbPathContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitVerbPath(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::VerbPathContext* Sparql11Parser::verbPath() {
   VerbPathContext *_localctx = _tracker.createInstance<VerbPathContext>(_ctx, getState());
   enterRule(_localctx, 148, Sparql11Parser::RuleVerbPath);
@@ -6408,6 +7009,14 @@ void Sparql11Parser::VerbSimpleContext::exitRule(tree::ParseTreeListener *listen
     parserListener->exitVerbSimple(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::VerbSimpleContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitVerbSimple(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::VerbSimpleContext* Sparql11Parser::verbSimple() {
   VerbSimpleContext *_localctx = _tracker.createInstance<VerbSimpleContext>(_ctx, getState());
   enterRule(_localctx, 150, Sparql11Parser::RuleVerbSimple);
@@ -6455,6 +7064,14 @@ void Sparql11Parser::PathContext::exitRule(tree::ParseTreeListener *listener) {
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitPath(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::PathContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitPath(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::PathContext* Sparql11Parser::path() {
@@ -6516,6 +7133,14 @@ void Sparql11Parser::PathAlternativeContext::exitRule(tree::ParseTreeListener *l
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitPathAlternative(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::PathAlternativeContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitPathAlternative(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::PathAlternativeContext* Sparql11Parser::pathAlternative() {
@@ -6592,6 +7217,14 @@ void Sparql11Parser::PathSequenceContext::exitRule(tree::ParseTreeListener *list
     parserListener->exitPathSequence(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::PathSequenceContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitPathSequence(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::PathSequenceContext* Sparql11Parser::pathSequence() {
   PathSequenceContext *_localctx = _tracker.createInstance<PathSequenceContext>(_ctx, getState());
   enterRule(_localctx, 156, Sparql11Parser::RulePathSequence);
@@ -6658,6 +7291,14 @@ void Sparql11Parser::PathEltContext::exitRule(tree::ParseTreeListener *listener)
     parserListener->exitPathElt(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::PathEltContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitPathElt(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::PathEltContext* Sparql11Parser::pathElt() {
   PathEltContext *_localctx = _tracker.createInstance<PathEltContext>(_ctx, getState());
   enterRule(_localctx, 158, Sparql11Parser::RulePathElt);
@@ -6722,6 +7363,14 @@ void Sparql11Parser::PathEltOrInverseContext::exitRule(tree::ParseTreeListener *
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitPathEltOrInverse(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::PathEltOrInverseContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitPathEltOrInverse(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::PathEltOrInverseContext* Sparql11Parser::pathEltOrInverse() {
@@ -6823,6 +7472,14 @@ void Sparql11Parser::PathModContext::exitRule(tree::ParseTreeListener *listener)
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitPathMod(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::PathModContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitPathMod(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::PathModContext* Sparql11Parser::pathMod() {
@@ -6986,6 +7643,14 @@ void Sparql11Parser::PathPrimaryContext::exitRule(tree::ParseTreeListener *liste
     parserListener->exitPathPrimary(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::PathPrimaryContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitPathPrimary(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::PathPrimaryContext* Sparql11Parser::pathPrimary() {
   PathPrimaryContext *_localctx = _tracker.createInstance<PathPrimaryContext>(_ctx, getState());
   enterRule(_localctx, 164, Sparql11Parser::RulePathPrimary);
@@ -7094,6 +7759,14 @@ void Sparql11Parser::PathNegatedPropertySetContext::exitRule(tree::ParseTreeList
     parserListener->exitPathNegatedPropertySet(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::PathNegatedPropertySetContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitPathNegatedPropertySet(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::PathNegatedPropertySetContext* Sparql11Parser::pathNegatedPropertySet() {
   PathNegatedPropertySetContext *_localctx = _tracker.createInstance<PathNegatedPropertySetContext>(_ctx, getState());
   enterRule(_localctx, 166, Sparql11Parser::RulePathNegatedPropertySet);
@@ -7199,6 +7872,14 @@ void Sparql11Parser::PathOneInPropertySetContext::exitRule(tree::ParseTreeListen
     parserListener->exitPathOneInPropertySet(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::PathOneInPropertySetContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitPathOneInPropertySet(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::PathOneInPropertySetContext* Sparql11Parser::pathOneInPropertySet() {
   PathOneInPropertySetContext *_localctx = _tracker.createInstance<PathOneInPropertySetContext>(_ctx, getState());
   enterRule(_localctx, 168, Sparql11Parser::RulePathOneInPropertySet);
@@ -7294,6 +7975,14 @@ void Sparql11Parser::IntegerContext::exitRule(tree::ParseTreeListener *listener)
     parserListener->exitInteger(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::IntegerContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitInteger(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::IntegerContext* Sparql11Parser::integer() {
   IntegerContext *_localctx = _tracker.createInstance<IntegerContext>(_ctx, getState());
   enterRule(_localctx, 170, Sparql11Parser::RuleInteger);
@@ -7345,6 +8034,14 @@ void Sparql11Parser::TriplesNodeContext::exitRule(tree::ParseTreeListener *liste
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitTriplesNode(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::TriplesNodeContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitTriplesNode(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::TriplesNodeContext* Sparql11Parser::triplesNode() {
@@ -7421,6 +8118,14 @@ void Sparql11Parser::BlankNodePropertyListContext::exitRule(tree::ParseTreeListe
     parserListener->exitBlankNodePropertyList(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::BlankNodePropertyListContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitBlankNodePropertyList(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::BlankNodePropertyListContext* Sparql11Parser::blankNodePropertyList() {
   BlankNodePropertyListContext *_localctx = _tracker.createInstance<BlankNodePropertyListContext>(_ctx, getState());
   enterRule(_localctx, 174, Sparql11Parser::RuleBlankNodePropertyList);
@@ -7484,6 +8189,14 @@ void Sparql11Parser::CollectionContext::exitRule(tree::ParseTreeListener *listen
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitCollection(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::CollectionContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitCollection(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::CollectionContext* Sparql11Parser::collection() {
@@ -7575,6 +8288,14 @@ void Sparql11Parser::GraphNodeContext::exitRule(tree::ParseTreeListener *listene
     parserListener->exitGraphNode(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::GraphNodeContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitGraphNode(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::GraphNodeContext* Sparql11Parser::graphNode() {
   GraphNodeContext *_localctx = _tracker.createInstance<GraphNodeContext>(_ctx, getState());
   enterRule(_localctx, 178, Sparql11Parser::RuleGraphNode);
@@ -7641,6 +8362,14 @@ void Sparql11Parser::VarOrTermContext::exitRule(tree::ParseTreeListener *listene
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitVarOrTerm(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::VarOrTermContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitVarOrTerm(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::VarOrTermContext* Sparql11Parser::varOrTerm() {
@@ -7734,6 +8463,14 @@ void Sparql11Parser::VarOrIriRefContext::exitRule(tree::ParseTreeListener *liste
     parserListener->exitVarOrIriRef(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::VarOrIriRefContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitVarOrIriRef(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::VarOrIriRefContext* Sparql11Parser::varOrIriRef() {
   VarOrIriRefContext *_localctx = _tracker.createInstance<VarOrIriRefContext>(_ctx, getState());
   enterRule(_localctx, 182, Sparql11Parser::RuleVarOrIriRef);
@@ -7805,6 +8542,14 @@ void Sparql11Parser::VariableContext::exitRule(tree::ParseTreeListener *listener
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitVariable(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::VariableContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitVariable(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::VariableContext* Sparql11Parser::variable() {
@@ -7896,6 +8641,14 @@ void Sparql11Parser::GraphTermContext::exitRule(tree::ParseTreeListener *listene
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitGraphTerm(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::GraphTermContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitGraphTerm(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::GraphTermContext* Sparql11Parser::graphTerm() {
@@ -8020,6 +8773,14 @@ void Sparql11Parser::ExpressionContext::exitRule(tree::ParseTreeListener *listen
     parserListener->exitExpression(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::ExpressionContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitExpression(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::ExpressionContext* Sparql11Parser::expression() {
   ExpressionContext *_localctx = _tracker.createInstance<ExpressionContext>(_ctx, getState());
   enterRule(_localctx, 188, Sparql11Parser::RuleExpression);
@@ -8079,6 +8840,14 @@ void Sparql11Parser::ConditionalOrExpressionContext::exitRule(tree::ParseTreeLis
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitConditionalOrExpression(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::ConditionalOrExpressionContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitConditionalOrExpression(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::ConditionalOrExpressionContext* Sparql11Parser::conditionalOrExpression() {
@@ -8155,6 +8924,14 @@ void Sparql11Parser::ConditionalAndExpressionContext::exitRule(tree::ParseTreeLi
     parserListener->exitConditionalAndExpression(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::ConditionalAndExpressionContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitConditionalAndExpression(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::ConditionalAndExpressionContext* Sparql11Parser::conditionalAndExpression() {
   ConditionalAndExpressionContext *_localctx = _tracker.createInstance<ConditionalAndExpressionContext>(_ctx, getState());
   enterRule(_localctx, 192, Sparql11Parser::RuleConditionalAndExpression);
@@ -8215,6 +8992,14 @@ void Sparql11Parser::ValueLogicalContext::exitRule(tree::ParseTreeListener *list
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitValueLogical(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::ValueLogicalContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitValueLogical(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::ValueLogicalContext* Sparql11Parser::valueLogical() {
@@ -8304,6 +9089,14 @@ void Sparql11Parser::RelationalExpressionContext::exitRule(tree::ParseTreeListen
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitRelationalExpression(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::RelationalExpressionContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitRelationalExpression(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::RelationalExpressionContext* Sparql11Parser::relationalExpression() {
@@ -8436,6 +9229,14 @@ void Sparql11Parser::NumericExpressionContext::exitRule(tree::ParseTreeListener 
     parserListener->exitNumericExpression(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::NumericExpressionContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitNumericExpression(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::NumericExpressionContext* Sparql11Parser::numericExpression() {
   NumericExpressionContext *_localctx = _tracker.createInstance<NumericExpressionContext>(_ctx, getState());
   enterRule(_localctx, 198, Sparql11Parser::RuleNumericExpression);
@@ -8543,6 +9344,14 @@ void Sparql11Parser::AdditiveExpressionContext::exitRule(tree::ParseTreeListener
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitAdditiveExpression(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::AdditiveExpressionContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitAdditiveExpression(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::AdditiveExpressionContext* Sparql11Parser::additiveExpression() {
@@ -8731,6 +9540,14 @@ void Sparql11Parser::MultiplicativeExpressionContext::exitRule(tree::ParseTreeLi
     parserListener->exitMultiplicativeExpression(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::MultiplicativeExpressionContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitMultiplicativeExpression(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::MultiplicativeExpressionContext* Sparql11Parser::multiplicativeExpression() {
   MultiplicativeExpressionContext *_localctx = _tracker.createInstance<MultiplicativeExpressionContext>(_ctx, getState());
   enterRule(_localctx, 202, Sparql11Parser::RuleMultiplicativeExpression);
@@ -8823,6 +9640,14 @@ void Sparql11Parser::UnaryExpressionContext::exitRule(tree::ParseTreeListener *l
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitUnaryExpression(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::UnaryExpressionContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitUnaryExpression(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::UnaryExpressionContext* Sparql11Parser::unaryExpression() {
@@ -8987,6 +9812,14 @@ void Sparql11Parser::PrimaryExpressionContext::exitRule(tree::ParseTreeListener 
     parserListener->exitPrimaryExpression(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::PrimaryExpressionContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitPrimaryExpression(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::PrimaryExpressionContext* Sparql11Parser::primaryExpression() {
   PrimaryExpressionContext *_localctx = _tracker.createInstance<PrimaryExpressionContext>(_ctx, getState());
   enterRule(_localctx, 206, Sparql11Parser::RulePrimaryExpression);
@@ -9142,6 +9975,14 @@ void Sparql11Parser::BrackettedExpressionContext::exitRule(tree::ParseTreeListen
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitBrackettedExpression(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::BrackettedExpressionContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitBrackettedExpression(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::BrackettedExpressionContext* Sparql11Parser::brackettedExpression() {
@@ -9315,6 +10156,14 @@ void Sparql11Parser::BuiltInCallContext::exitRule(tree::ParseTreeListener *liste
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitBuiltInCall(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::BuiltInCallContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitBuiltInCall(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::BuiltInCallContext* Sparql11Parser::builtInCall() {
@@ -9695,6 +10544,14 @@ void Sparql11Parser::RegexExpressionContext::exitRule(tree::ParseTreeListener *l
     parserListener->exitRegexExpression(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::RegexExpressionContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitRegexExpression(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::RegexExpressionContext* Sparql11Parser::regexExpression() {
   RegexExpressionContext *_localctx = _tracker.createInstance<RegexExpressionContext>(_ctx, getState());
   enterRule(_localctx, 212, Sparql11Parser::RuleRegexExpression);
@@ -9769,6 +10626,14 @@ void Sparql11Parser::ExistsFuncContext::exitRule(tree::ParseTreeListener *listen
     parserListener->exitExistsFunc(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::ExistsFuncContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitExistsFunc(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::ExistsFuncContext* Sparql11Parser::existsFunc() {
   ExistsFuncContext *_localctx = _tracker.createInstance<ExistsFuncContext>(_ctx, getState());
   enterRule(_localctx, 214, Sparql11Parser::RuleExistsFunc);
@@ -9826,6 +10691,14 @@ void Sparql11Parser::NotExistsFuncContext::exitRule(tree::ParseTreeListener *lis
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitNotExistsFunc(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::NotExistsFuncContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitNotExistsFunc(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::NotExistsFuncContext* Sparql11Parser::notExistsFunc() {
@@ -9939,6 +10812,14 @@ void Sparql11Parser::AggregateContext::exitRule(tree::ParseTreeListener *listene
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitAggregate(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::AggregateContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitAggregate(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::AggregateContext* Sparql11Parser::aggregate() {
@@ -10220,6 +11101,14 @@ void Sparql11Parser::IriRefOrFunctionContext::exitRule(tree::ParseTreeListener *
     parserListener->exitIriRefOrFunction(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::IriRefOrFunctionContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitIriRefOrFunction(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::IriRefOrFunctionContext* Sparql11Parser::iriRefOrFunction() {
   IriRefOrFunctionContext *_localctx = _tracker.createInstance<IriRefOrFunctionContext>(_ctx, getState());
   enterRule(_localctx, 220, Sparql11Parser::RuleIriRefOrFunction);
@@ -10288,6 +11177,14 @@ void Sparql11Parser::RdfLiteralContext::exitRule(tree::ParseTreeListener *listen
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitRdfLiteral(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::RdfLiteralContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitRdfLiteral(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::RdfLiteralContext* Sparql11Parser::rdfLiteral() {
@@ -10424,6 +11321,14 @@ void Sparql11Parser::NumericLiteralContext::exitRule(tree::ParseTreeListener *li
     parserListener->exitNumericLiteral(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::NumericLiteralContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitNumericLiteral(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::NumericLiteralContext* Sparql11Parser::numericLiteral() {
   NumericLiteralContext *_localctx = _tracker.createInstance<NumericLiteralContext>(_ctx, getState());
   enterRule(_localctx, 224, Sparql11Parser::RuleNumericLiteral);
@@ -10511,6 +11416,14 @@ void Sparql11Parser::NumericLiteralUnsignedContext::exitRule(tree::ParseTreeList
     parserListener->exitNumericLiteralUnsigned(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::NumericLiteralUnsignedContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitNumericLiteralUnsigned(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::NumericLiteralUnsignedContext* Sparql11Parser::numericLiteralUnsigned() {
   NumericLiteralUnsignedContext *_localctx = _tracker.createInstance<NumericLiteralUnsignedContext>(_ctx, getState());
   enterRule(_localctx, 226, Sparql11Parser::RuleNumericLiteralUnsigned);
@@ -10577,6 +11490,14 @@ void Sparql11Parser::NumericLiteralPositiveContext::exitRule(tree::ParseTreeList
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitNumericLiteralPositive(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::NumericLiteralPositiveContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitNumericLiteralPositive(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::NumericLiteralPositiveContext* Sparql11Parser::numericLiteralPositive() {
@@ -10647,6 +11568,14 @@ void Sparql11Parser::NumericLiteralNegativeContext::exitRule(tree::ParseTreeList
     parserListener->exitNumericLiteralNegative(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::NumericLiteralNegativeContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitNumericLiteralNegative(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::NumericLiteralNegativeContext* Sparql11Parser::numericLiteralNegative() {
   NumericLiteralNegativeContext *_localctx = _tracker.createInstance<NumericLiteralNegativeContext>(_ctx, getState());
   enterRule(_localctx, 230, Sparql11Parser::RuleNumericLiteralNegative);
@@ -10709,6 +11638,14 @@ void Sparql11Parser::BooleanLiteralContext::exitRule(tree::ParseTreeListener *li
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitBooleanLiteral(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::BooleanLiteralContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitBooleanLiteral(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::BooleanLiteralContext* Sparql11Parser::booleanLiteral() {
@@ -10782,6 +11719,14 @@ void Sparql11Parser::StringContext::exitRule(tree::ParseTreeListener *listener) 
     parserListener->exitString(this);
 }
 
+
+antlrcpp::Any Sparql11Parser::StringContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitString(this);
+  else
+    return visitor->visitChildren(this);
+}
+
 Sparql11Parser::StringContext* Sparql11Parser::string() {
   StringContext *_localctx = _tracker.createInstance<StringContext>(_ctx, getState());
   enterRule(_localctx, 234, Sparql11Parser::RuleString);
@@ -10845,6 +11790,14 @@ void Sparql11Parser::IriRefContext::exitRule(tree::ParseTreeListener *listener) 
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitIriRef(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::IriRefContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitIriRef(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::IriRefContext* Sparql11Parser::iriRef() {
@@ -10916,6 +11869,14 @@ void Sparql11Parser::PrefixedNameContext::exitRule(tree::ParseTreeListener *list
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitPrefixedName(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::PrefixedNameContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitPrefixedName(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::PrefixedNameContext* Sparql11Parser::prefixedName() {
@@ -10991,6 +11952,14 @@ void Sparql11Parser::BlankNodeContext::exitRule(tree::ParseTreeListener *listene
   auto parserListener = dynamic_cast<Sparql11Listener *>(listener);
   if (parserListener != nullptr)
     parserListener->exitBlankNode(this);
+}
+
+
+antlrcpp::Any Sparql11Parser::BlankNodeContext::accept(tree::ParseTreeVisitor *visitor) {
+  if (auto parserVisitor = dynamic_cast<Sparql11Visitor*>(visitor))
+    return parserVisitor->visitBlankNode(this);
+  else
+    return visitor->visitChildren(this);
 }
 
 Sparql11Parser::BlankNodeContext* Sparql11Parser::blankNode() {
