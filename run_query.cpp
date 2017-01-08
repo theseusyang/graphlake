@@ -15,5 +15,6 @@ graph::run_query(string queryfile)
 	Sparql11Parser parser(&tokens);
 	tree::ParseTree* tree =  parser.queryUnit();
 	std::cout << tree->toStringTree(&parser) << std::endl;
+	//std::cout << tree->getText() << std::endl;
     return 0;
 }
