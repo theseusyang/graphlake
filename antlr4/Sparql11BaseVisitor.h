@@ -307,15 +307,11 @@ public:
     return visitChildren(ctx);
   }
 
+  virtual antlrcpp::Any visitVerbPathOrSimple(Sparql11Parser::VerbPathOrSimpleContext *ctx) override {
+    return visitChildren(ctx);
+  }
+
   virtual antlrcpp::Any visitPropertyListPath(Sparql11Parser::PropertyListPathContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual antlrcpp::Any visitVerbPath(Sparql11Parser::VerbPathContext *ctx) override {
-    return visitChildren(ctx);
-  }
-
-  virtual antlrcpp::Any visitVerbSimple(Sparql11Parser::VerbSimpleContext *ctx) override {
     return visitChildren(ctx);
   }
 

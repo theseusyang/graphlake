@@ -10,10 +10,9 @@ SRC=main.cpp \
 	query_transform.cpp\
 	query_triplewithfilter.cpp\
 	query_triple.cpp\
-	antlr4/Sparql11BaseListener.cpp\
+	query_visitor.cpp\
 	antlr4/Sparql11BaseVisitor.cpp\
 	antlr4/Sparql11Lexer.cpp\
-	antlr4/Sparql11Listener.cpp\
 	antlr4/Sparql11Parser.cpp\
 	antlr4/Sparql11Visitor.cpp\
 
@@ -26,6 +25,7 @@ HEADER=graph.h \
 	query_transform.h\
 	query_triplewithfilter.h\
 	query_triple.h\
+	query_visitor.h\
 
 INCLUDES= -Iantlr4/include -Iantlr4
 LIBDIRS= -Lantlr4/lib

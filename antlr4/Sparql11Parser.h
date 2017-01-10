@@ -60,21 +60,21 @@ public:
     RuleConstructTriples = 64, RuleTriplesSameSubject = 65, RulePropertyListNotEmpty = 66, 
     RulePropertyList = 67, RuleObjectList = 68, RuleObject = 69, RuleVerb = 70, 
     RuleTriplesSameSubjectPath = 71, RulePropertyListNotEmptyPath = 72, 
-    RulePropertyListPath = 73, RuleVerbPath = 74, RuleVerbSimple = 75, RulePath = 76, 
-    RulePathAlternative = 77, RulePathSequence = 78, RulePathElt = 79, RulePathEltOrInverse = 80, 
-    RulePathMod = 81, RulePathPrimary = 82, RulePathNegatedPropertySet = 83, 
-    RulePathOneInPropertySet = 84, RuleInteger = 85, RuleTriplesNode = 86, 
-    RuleBlankNodePropertyList = 87, RuleCollection = 88, RuleGraphNode = 89, 
-    RuleVarOrTerm = 90, RuleVarOrIriRef = 91, RuleVariable = 92, RuleGraphTerm = 93, 
-    RuleExpression = 94, RuleConditionalOrExpression = 95, RuleConditionalAndExpression = 96, 
-    RuleValueLogical = 97, RuleRelationalExpression = 98, RuleNumericExpression = 99, 
-    RuleAdditiveExpression = 100, RuleMultiplicativeExpression = 101, RuleUnaryExpression = 102, 
-    RulePrimaryExpression = 103, RuleBrackettedExpression = 104, RuleBuiltInCall = 105, 
-    RuleRegexExpression = 106, RuleExistsFunc = 107, RuleNotExistsFunc = 108, 
-    RuleAggregate = 109, RuleIriRefOrFunction = 110, RuleRdfLiteral = 111, 
-    RuleNumericLiteral = 112, RuleNumericLiteralUnsigned = 113, RuleNumericLiteralPositive = 114, 
-    RuleNumericLiteralNegative = 115, RuleBooleanLiteral = 116, RuleString = 117, 
-    RuleIriRef = 118, RulePrefixedName = 119, RuleBlankNode = 120
+    RuleVerbPathOrSimple = 73, RulePropertyListPath = 74, RulePath = 75, 
+    RulePathAlternative = 76, RulePathSequence = 77, RulePathElt = 78, RulePathEltOrInverse = 79, 
+    RulePathMod = 80, RulePathPrimary = 81, RulePathNegatedPropertySet = 82, 
+    RulePathOneInPropertySet = 83, RuleInteger = 84, RuleTriplesNode = 85, 
+    RuleBlankNodePropertyList = 86, RuleCollection = 87, RuleGraphNode = 88, 
+    RuleVarOrTerm = 89, RuleVarOrIriRef = 90, RuleVariable = 91, RuleGraphTerm = 92, 
+    RuleExpression = 93, RuleConditionalOrExpression = 94, RuleConditionalAndExpression = 95, 
+    RuleValueLogical = 96, RuleRelationalExpression = 97, RuleNumericExpression = 98, 
+    RuleAdditiveExpression = 99, RuleMultiplicativeExpression = 100, RuleUnaryExpression = 101, 
+    RulePrimaryExpression = 102, RuleBrackettedExpression = 103, RuleBuiltInCall = 104, 
+    RuleRegexExpression = 105, RuleExistsFunc = 106, RuleNotExistsFunc = 107, 
+    RuleAggregate = 108, RuleIriRefOrFunction = 109, RuleRdfLiteral = 110, 
+    RuleNumericLiteral = 111, RuleNumericLiteralUnsigned = 112, RuleNumericLiteralPositive = 113, 
+    RuleNumericLiteralNegative = 114, RuleBooleanLiteral = 115, RuleString = 116, 
+    RuleIriRef = 117, RulePrefixedName = 118, RuleBlankNode = 119
   };
 
   Sparql11Parser(antlr4::TokenStream *input);
@@ -160,9 +160,8 @@ public:
   class VerbContext;
   class TriplesSameSubjectPathContext;
   class PropertyListNotEmptyPathContext;
+  class VerbPathOrSimpleContext;
   class PropertyListPathContext;
-  class VerbPathContext;
-  class VerbSimpleContext;
   class PathContext;
   class PathAlternativeContext;
   class PathSequenceContext;
@@ -1285,10 +1284,8 @@ public:
     virtual size_t getRuleIndex() const override;
     std::vector<ObjectListContext *> objectList();
     ObjectListContext* objectList(size_t i);
-    std::vector<VerbPathContext *> verbPath();
-    VerbPathContext* verbPath(size_t i);
-    std::vector<VerbSimpleContext *> verbSimple();
-    VerbSimpleContext* verbSimple(size_t i);
+    std::vector<VerbPathOrSimpleContext *> verbPathOrSimple();
+    VerbPathOrSimpleContext* verbPathOrSimple(size_t i);
     std::vector<antlr4::tree::TerminalNode *> SEMICOLON();
     antlr4::tree::TerminalNode* SEMICOLON(size_t i);
 
@@ -1297,6 +1294,19 @@ public:
   };
 
   PropertyListNotEmptyPathContext* propertyListNotEmptyPath();
+
+  class  VerbPathOrSimpleContext : public antlr4::ParserRuleContext {
+  public:
+    VerbPathOrSimpleContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    PathContext *path();
+    VariableContext *variable();
+
+    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
+   
+  };
+
+  VerbPathOrSimpleContext* verbPathOrSimple();
 
   class  PropertyListPathContext : public antlr4::ParserRuleContext {
   public:
@@ -1309,30 +1319,6 @@ public:
   };
 
   PropertyListPathContext* propertyListPath();
-
-  class  VerbPathContext : public antlr4::ParserRuleContext {
-  public:
-    VerbPathContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    PathContext *path();
-
-    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-   
-  };
-
-  VerbPathContext* verbPath();
-
-  class  VerbSimpleContext : public antlr4::ParserRuleContext {
-  public:
-    VerbSimpleContext(antlr4::ParserRuleContext *parent, size_t invokingState);
-    virtual size_t getRuleIndex() const override;
-    VariableContext *variable();
-
-    virtual antlrcpp::Any accept(antlr4::tree::ParseTreeVisitor *visitor) override;
-   
-  };
-
-  VerbSimpleContext* verbSimple();
 
   class  PathContext : public antlr4::ParserRuleContext {
   public:

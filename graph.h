@@ -7,17 +7,11 @@
 #include <map>
 #include <vector>
 
+#include "typedef.h"
 #include "btree.h"
 
 using namespace std;
 
-typedef int32_t literal_id_t;
-typedef char* literal_t;
-
-typedef int32_t index_t;
-typedef int32_t degree_t;
-typedef int32_t s_t;
-typedef int32_t o_t;
 
 /*B-tree/hashtable for adjacency list 
  * Some S/0 might have more than one O/S for same P.
@@ -167,7 +161,10 @@ private:
     
     vector<string> tid_to_str;
     map<string, int32_t> str_to_tid;
-    
+   
+public:
+	inline 	s_t 
+	find_str2sid(string str) {return -1;}
 
 public:    
     void prep_meta_nt(string idirname);
