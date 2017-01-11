@@ -165,11 +165,9 @@ public:
 
     virtual antlrcpp::Any visitPropertyListNotEmptyPath(Sparql11Parser::PropertyListNotEmptyPathContext *context) = 0;
 
+    virtual antlrcpp::Any visitVerbPathOrSimple(Sparql11Parser::VerbPathOrSimpleContext *context) = 0;
+
     virtual antlrcpp::Any visitPropertyListPath(Sparql11Parser::PropertyListPathContext *context) = 0;
-
-    virtual antlrcpp::Any visitVerbPath(Sparql11Parser::VerbPathContext *context) = 0;
-
-    virtual antlrcpp::Any visitVerbSimple(Sparql11Parser::VerbSimpleContext *context) = 0;
 
     virtual antlrcpp::Any visitPath(Sparql11Parser::PathContext *context) = 0;
 

@@ -350,10 +350,3 @@ void graph::prep_meta_nt(string idirname)
     }
 }
 
-status_t 
-graph::run_query(string queryfile)
-{
-    ifstream qfile(queryfile);
-    return 0;
-}
-

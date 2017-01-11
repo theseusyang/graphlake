@@ -645,22 +645,27 @@ triplesSameSubjectPath
 propertyListNotEmptyPath
   :
   (
-    verbPath
-    | verbSimple
+	verbPathOrSimple
   )
   objectList
   (
     SEMICOLON
     (
       (
-        verbPath
-        | verbSimple
+        verbPathOrSimple
       )
       objectList
     )?
   )*
   ;
 
+/* Added by Pradeep */
+verbPathOrSimple
+  :
+  path
+  |variable
+  ;
+	
 /* sparql 1.1 r74 */
 
 propertyListPath
@@ -669,19 +674,19 @@ propertyListPath
   ;
 
 /* sparql 1.1 r75 */
-
+/*
 verbPath
   :
   path
   ;
-
+*/
 /* sparql 1.1 r76 */
-
+/*
 verbSimple
   :
   variable
   ;
-
+*/
 /* sparql 1.1 r77 */
 
 path

@@ -7,17 +7,11 @@
 #include <map>
 #include <vector>
 
+#include "typedef.h"
 #include "btree.h"
 
 using namespace std;
 
-typedef int32_t literal_id_t;
-typedef char* literal_t;
-
-typedef int32_t index_t;
-typedef int32_t degree_t;
-typedef int32_t s_t;
-typedef int32_t o_t;
 
 /*B-tree/hashtable for adjacency list 
  * Some S/0 might have more than one O/S for same P.
@@ -167,7 +161,47 @@ private:
     
     vector<string> tid_to_str;
     map<string, int32_t> str_to_tid;
-    
+   
+public:
+	inline 	s_t 
+	find_str2sid(string str) 
+	{
+		map<string, int32_t>::iterator str_to_sid_iter = str_to_sid.find(str);
+		if (str_to_sid.end() != str_to_sid_iter) {
+			return str_to_sid_iter->second;
+		}	
+
+		return -1;
+	}
+	inline p_t
+	find_str2pred(string str) 
+	{
+		map<string, int32_t>::iterator str_to_pid_iter = str_to_pid.find(str);
+		if (str_to_pid.end() != str_to_pid_iter) {
+			return str_to_pid_iter->second;
+		}
+		return -1;
+	}
+	
+	inline o_t
+	find_str2type(string str) 
+	{
+		map<string, int32_t>::iterator str_to_tid_iter = str_to_tid.find(str);
+		if (str_to_tid.end() != str_to_tid_iter) {
+			return str_to_tid_iter->second;
+		}
+		return -1;
+	}
+	
+	inline o_t
+	find_str2literalid(string str) 
+	{
+		map<string, int32_t>::iterator str_to_literal_iter = str_to_literal.find(str);
+		if (str_to_literal.end() != str_to_literal_iter) {
+			return str_to_literal_iter->second;
+		}
+		return 0;
+	}
 
 public:    
     void prep_meta_nt(string idirname);
