@@ -4,5 +4,8 @@
 
 class query_union: public query_node
 {
-	status_t execute();
+public:
+	virtual status_t execute();
+	virtual void to_string();
+
 };

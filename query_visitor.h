@@ -33,7 +33,9 @@ public:
   
 	virtual antlrcpp::Any 
 	visitObjectList(Sparql11Parser::ObjectListContext *ctx); 
-  
+ 
+public:
+	void print_whereclause();	
 private:
 	query_node* where_clause;
 	query_node* last_node;

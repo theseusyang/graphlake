@@ -9,6 +9,7 @@ class query_triple: public query_node
 public:
 	query_triple() {sub_id = pred_id = obj_id = flag = -1;};
 	virtual status_t execute();
+	virtual void to_string();
 	inline void set_sub(s_t s_id) { sub_id = s_id;}
 	inline void set_obj(s_t o_id) { obj_id = o_id;}
 	inline void set_pred(p_t p_id) { pred_id = p_id; }

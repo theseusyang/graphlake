@@ -1,11 +1,17 @@
 #ifndef __QUERY_NODE_H_
 #define __QUERY_NODE_H_
 
-#include <memory>
+#include <iostream>
+#include <string>
+
+using std::cout;
+using std::string;
+using std::endl;
+
 
 typedef int32_t status_t;
 
-using std::unique_ptr;
+//using std::unique_ptr;
 typedef int32_t idata;
 
 class query_node {
@@ -17,7 +23,24 @@ public:
 	}
 
 public:
-	virtual status_t execute()=0; 
+	virtual status_t execute() = 0; 
+	//virtual string get_text() = 0;
+
+	virtual inline void  to_string() { };
+/*		cout <<  get_text() << "(";
+	{
+		query_node* node = get_child();
+		if (node) {
+			node->to_string();
+		}
+		node = get_sibling();
+		while (node) {
+			node->to_string();
+			node = node->get_sibling();
+		}
+		cout << ")";
+	}
+*/
 	
 	inline query_node* get_child() {return child;}
 
@@ -48,10 +71,9 @@ public:
 		}
 		place->sibling = node;
 	}
+
 private:
 	query_node* sibling;
 	query_node* child;
-
-
 };
 #endif

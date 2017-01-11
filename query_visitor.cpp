@@ -158,3 +158,8 @@ query_visitor::visitObjectList(Sparql11Parser::ObjectListContext *ctx)
 	}	
 	return 0;
 }
+	
+void query_visitor::print_whereclause()
+{
+	where_clause->to_string();
+}
