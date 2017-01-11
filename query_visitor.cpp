@@ -96,7 +96,7 @@ query_visitor::visitVerbPathOrSimple(Sparql11Parser::VerbPathOrSimpleContext *ct
 		triple->set_pred(0);
 	} else if ('<' == first_char) {//IRI, can be type or pred
 		p_t p_id = g->find_str2pred(pred);
-		assert(p_id = -1);
+		assert(p_id != -1);
 		triple->set_pred(p_id);
 	} else if ('?' == first_char || '$' == first_char) {//variable
 		var2id_iter = var2id.find(pred);
@@ -149,11 +149,11 @@ query_visitor::visitObjectList(Sparql11Parser::ObjectListContext *ctx)
 		//
 	} else if (first_char == '<' ) {//IRI object
 		o_id = g->find_str2sid(obj);
-		assert(-1 == o_id);
+		assert(-1 != o_id);
 		triple->set_obj(o_id);	
 	} else { //literal object
 		o_id = g->find_str2literalid(obj);
-		assert(0 == o_id);
+		assert(0 != o_id);
 		triple->set_obj(o_id);
 	}	
 	return 0;
