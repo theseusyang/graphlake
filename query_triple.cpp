@@ -14,12 +14,11 @@ query_triple::to_string()
 	if (node) {
 		node->to_string();
 	}
-	cout << sub_id << " " << pred_id << " " << obj_id << endl;
+	cout << sub_id << " " << pred_id << " " << obj_id << ")" << endl;
 	node = get_sibling();
 	while (node) {
 		node->to_string();
 		node = node->get_sibling();
 	}
-	cout << ")";
 
 }

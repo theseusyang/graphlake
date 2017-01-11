@@ -41,8 +41,8 @@ query_visitor::visitTriplesSameSubjectPath(Sparql11Parser::TriplesSameSubjectPat
 	query_triple* triple = new query_triple;
 	query_node* prev_node = last_node;
 	assert(last_node);
-	last_node = triple;
 	last_node->add_child(triple);
+	last_node = triple;
 	visitChildren(ctx);
 	last_node = prev_node;
 	return 0;

@@ -13,11 +13,11 @@ query_union::to_string()
 	if (node) {
 		node->to_string();
 	}
+	cout << ")";
 	node = get_sibling();
 	while (node) {
 		node->to_string();
 		node = node->get_sibling();
 	}
-	cout << ")";
 
 }

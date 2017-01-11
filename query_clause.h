@@ -19,7 +19,7 @@ class query_whereclause : public query_node
 			node->to_string();
 			node = node->get_sibling();
 		}
-		cout << ")";
+		cout << ")" << endl;
 	}
 };
 

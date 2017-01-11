@@ -48,11 +48,12 @@ public:
 
 	inline void add_child(query_node* node)
 	{
-		query_node* place = child;
-		if (0 == place) {
-			place = node;
+		if (0 == child) {
+			child = node;
 			return;
 		}
+		
+		query_node* place = child;
 		while(0 != place->sibling) {
 			place = place->sibling;
 		}
@@ -61,11 +62,11 @@ public:
 
 	inline void add_sibling(query_node* node)
 	{
-		query_node* place = sibling;
-		if ( 0 == place) {
-			place = node;
+		if ( 0 == sibling) {
+			sibling = node;
 			return;
 		}
+		query_node* place = sibling;
 		while(0 != place->sibling) {
 			place = place->sibling;
 		}
