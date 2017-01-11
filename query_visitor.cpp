@@ -67,8 +67,9 @@ query_visitor::visitVarOrTerm(Sparql11Parser::VarOrTermContext *ctx)
 			++varid;
 		} else {
 			triple->set_sub(var2id_iter->second);
-
 		}
+		//XXX: set the flag to denote that it is a variable
+
 	} else if ('<' == first_char) {//IRI
 		s_t s_id = g->find_str2sid(sub);
 		assert(s_id != -1);
@@ -78,4 +79,81 @@ query_visitor::visitVarOrTerm(Sparql11Parser::VarOrTermContext *ctx)
 	}
 
 	return 0;//let's not visit children
+}
+  
+antlrcpp::Any 
+query_visitor::visitVerbPathOrSimple(Sparql11Parser::VerbPathOrSimpleContext *ctx) 
+{
+	//last_node must be a triple
+	query_triple* triple = dynamic_cast<query_triple*>(last_node);
+	
+	//Get the text
+	string pred = ctx->getText();
+	//If it is a literal, IRI ref or variable.
+	char first_char = pred[0];
+	if (pred == "a") {
+		triple->set_pred(0);
+	} else if ('<' == first_char) {
+		p_t p_id = g->find_str2pred(pred);
+		assert(p_id = -1);
+		triple->set_pred(p_id);
+	} else if ('?' == first_char || '$' == first_char) {
+		var2id_iter = var2id.find(pred);
+		if (var2id_iter == var2id.end()) {
+			var2id[pred] = varid;
+			id2var.push_back(pred);
+			triple->set_pred(varid);
+			++varid;
+		} else {
+			triple->set_sub(var2id_iter->second);
+		}
+		//XXX: set the flag to denote that it is a variable
+		//
+	} else {
+		// XXX: colon handling pending
+		assert(0);
+	}
+	
+	return 0;//let's not visit children
+}
+	
+antlrcpp::Any 
+query_visitor::visitObjectList(Sparql11Parser::ObjectListContext *ctx)
+{
+	//last_node must be a triple
+	query_triple* triple = dynamic_cast<query_triple*>(last_node);
+	
+	//Get the text
+	string obj = ctx->getText();
+	char first_char = obj[0];
+	
+	//object id will depend on the current predicate id.
+	p_t p_id = triple->get_pred();
+	s_t o_id;
+
+	if (p_id == 0) {//type
+		o_id = g->find_str2type(obj);
+		triple->set_obj(o_id);
+	} else if ('?' == first_char || '$' == first_char) {
+		var2id_iter = var2id.find(obj);
+		if (var2id_iter == var2id.end()) {
+			var2id[obj] = varid;
+			id2var.push_back(obj);
+			triple->set_obj(varid);
+			++varid;
+		} else {
+			triple->set_obj(var2id_iter->second);
+		}
+		//XXX: set the flag to denote that it is a variable
+		//
+	} else if (first_char == '<' ) {//IRI
+		o_id = g->find_str2sid(obj);
+		assert(-1 == o_id);
+		triple->set_obj(o_id);	
+	} else { //literal
+		o_id = g->find_str2literalid(obj);
+		assert(0 == o_id);
+		triple->set_obj(o_id);
+	}	
+	return 0;
 }

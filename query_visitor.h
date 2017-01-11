@@ -28,6 +28,12 @@ public:
 	virtual antlrcpp::Any 
 	visitVarOrTerm(Sparql11Parser::VarOrTermContext *ctx); 
   
+	virtual antlrcpp::Any 
+	visitVerbPathOrSimple(Sparql11Parser::VerbPathOrSimpleContext *ctx);
+  
+	virtual antlrcpp::Any 
+	visitObjectList(Sparql11Parser::ObjectListContext *ctx); 
+  
 private:
 	query_node* where_clause;
 	query_node* last_node;

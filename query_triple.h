@@ -12,6 +12,7 @@ public:
 	inline void set_sub(s_t s_id) { sub_id = s_id;}
 	inline void set_obj(s_t o_id) { obj_id = o_id;}
 	inline void set_pred(p_t p_id) { pred_id = p_id; }
+	inline p_t get_pred() {return pred_id; }
 
 protected:
 	//Variables will be assinged an id. Flag will distinguish it.

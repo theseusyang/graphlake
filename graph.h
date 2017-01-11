@@ -165,6 +165,13 @@ private:
 public:
 	inline 	s_t 
 	find_str2sid(string str) {return -1;}
+	inline p_t
+	find_str2pred(string str) {return -1;}
+	inline o_t
+	find_str2type(string str) {return -1;}
+	inline o_t
+	find_str2literalid(string str) {return -1;}
+
 
 public:    
     void prep_meta_nt(string idirname);
