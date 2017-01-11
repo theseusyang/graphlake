@@ -91,13 +91,14 @@ query_visitor::visitVerbPathOrSimple(Sparql11Parser::VerbPathOrSimpleContext *ct
 	string pred = ctx->getText();
 	//If it is a literal, IRI ref or variable.
 	char first_char = pred[0];
-	if (pred == "a") {
+
+	if (pred == "a") {//type
 		triple->set_pred(0);
-	} else if ('<' == first_char) {
+	} else if ('<' == first_char) {//IRI, can be type or pred
 		p_t p_id = g->find_str2pred(pred);
 		assert(p_id = -1);
 		triple->set_pred(p_id);
-	} else if ('?' == first_char || '$' == first_char) {
+	} else if ('?' == first_char || '$' == first_char) {//variable
 		var2id_iter = var2id.find(pred);
 		if (var2id_iter == var2id.end()) {
 			var2id[pred] = varid;
@@ -131,10 +132,10 @@ query_visitor::visitObjectList(Sparql11Parser::ObjectListContext *ctx)
 	p_t p_id = triple->get_pred();
 	s_t o_id;
 
-	if (p_id == 0) {//type
+	if (p_id == 0) {//type object
 		o_id = g->find_str2type(obj);
 		triple->set_obj(o_id);
-	} else if ('?' == first_char || '$' == first_char) {
+	} else if ('?' == first_char || '$' == first_char) {//variable
 		var2id_iter = var2id.find(obj);
 		if (var2id_iter == var2id.end()) {
 			var2id[obj] = varid;
@@ -146,11 +147,11 @@ query_visitor::visitObjectList(Sparql11Parser::ObjectListContext *ctx)
 		}
 		//XXX: set the flag to denote that it is a variable
 		//
-	} else if (first_char == '<' ) {//IRI
+	} else if (first_char == '<' ) {//IRI object
 		o_id = g->find_str2sid(obj);
 		assert(-1 == o_id);
 		triple->set_obj(o_id);	
-	} else { //literal
+	} else { //literal object
 		o_id = g->find_str2literalid(obj);
 		assert(0 == o_id);
 		triple->set_obj(o_id);
