@@ -19,7 +19,7 @@ using namespace std;
  * Here one professor/student can have multiple publication and
  * same publication could have multiple authors.
 */	
-class edges_t {
+class labeled_edges_t {
 private:
 	degree_t degree;//Will contain flag, if required
 	union {
@@ -60,45 +60,21 @@ public:
     { return 0;}
 };
 
-/*Top level CSR format (similar to begpos in CSR). A plain array. 
-  Each elements contain:
-	B-tree/hashtable of in-edges
-	in-degree information
-	B-tree/hashtable of out-edges
-	out-degree information
-	Flag
-*/
-typedef struct __po_t {
-    edges_t out_edges;
-    edges_t in_edges;
-} po_t;
-
-//predicate indices. As per our analysis, we need second index on O only. 
-//This second index will help in specially FILTER queries 
-//So, it is more like a CSR representation. However, to support dynamic rdf graph,
-// we will manage it each adj list separatly. 
-//Also, note that, the size of adjacency list of each one is going to be very big,
-//as number of predicates are small while number of triples are like billions.
-
-typedef struct __os_t {
-    edges_t edges;
-} os_t;
+//in-edges list and out-edges list.
+typedef struct __dedges_t {
+    labeled_edges_t out_edges;
+    labeled_edges_t in_edges;
+} d_labeled_edges_t;
 
 
-
-//Type indices. As per our analysis, we don't need any second index.
-//XXX:Let's see if we need second index or not.
-//XXX: This could be stored as bitmap as well as almost every S 
-//will have a type.
-
-typedef struct __adj_t {
+class unlabeled_edges_t {
     private:
-	degree_t in_degree;//Will contain flag, if required
+	degree_t degree;//Will contain flag, if required
     //XXX: arranging only keys, not key-value.
     union {
-	    btree_t* in_edges_tree; //many PO
-        leaf_node_t* in_edges;//upto 32 PO
-        pair_t in_edge; //just one PO
+	    btree_t* in_edges_tree;//many edges 
+        leaf_node_t* in_edges;//upto 32 edges
+        pair_t in_edge; //just 2 edges
     };
 
     public: 
@@ -127,12 +103,43 @@ typedef struct __adj_t {
     inline status_t
     remove(pair_t pair)
     { return 0;}
-} adj_t;
+} ;
 
-typedef struct __ts_t {
-    adj_t plain_edges;
-    
-} ts_t;
+//in-edges list and out-edges list.
+struct d_unlabeled_edges_t {
+    unlabeled_edges_t out_edges;
+    unlabeled_edges_t in_edges;
+} ;
+
+
+/*SPO/OPS: Top level CSR format (similar to begpos in CSR). A plain array. 
+  Each elements contain:
+	B-tree/hashtable of in-edges
+	in-degree information
+	B-tree/hashtable of out-edges
+	out-degree information
+	Flag
+*/
+
+typedef d_unlabeled_edges_t po_t;
+
+//PSO/POS: predicate indices. As per our analysis, we need second index on O only. 
+//This second index will help in specially FILTER queries 
+//So, it is more like a CSR representation. However, to support dynamic rdf graph,
+// we will manage it each adj list separatly. 
+//Also, note that, the size of adjacency list of each one is going to be very big,
+//as number of predicates are small while number of triples are like billions.
+
+typedef d_labeled_edges_t os_t;
+
+
+//Type indices. As per our analysis, we don't need any second index.
+//XXX:Let's see if we need second index or not.
+//XXX: This could be stored as bitmap as well as almost every S 
+//will have a type.
+
+
+typedef unlabeled_edges_t ts_t;
 
 
 class graph {

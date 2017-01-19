@@ -38,11 +38,15 @@ void graph::prep_meta_nt(string idirname)
 
     //POS
     map<string, int32_t>::iterator str_to_pid_iter;
-    vector<int32_t> po_count;//in-edges count 
+    vector<duet_t> po_count;//in-edges count 
 
     //For each predicate-object pair, how many subjects.
     map<po_pair_t, int32_t> pos_count;
     map<po_pair_t, int32_t>::iterator pos_count_iter;
+    
+	//For each predicate-object pair, how many subjects.
+    map<ps_pair_t, int32_t> pso_count;
+    map<ps_pair_t, int32_t>::iterator pso_count_iter;
     
     str_to_pid[type] = 0;
     pid_to_str.push_back(type);
@@ -65,6 +69,7 @@ void graph::prep_meta_nt(string idirname)
     sp_pair_t sp_pair;
     duet_t so_pair;
     po_pair_t po_pair;
+    ps_pair_t ps_pair;
     op_pair_t op_pair;
         
     string subject, predicate, object, useless_dot;
@@ -125,11 +130,12 @@ void graph::prep_meta_nt(string idirname)
                     current_pid = p_id;
                     p_id++;
                     pid_to_str.push_back(predicate);
-                    po_count.push_back(0); // predicate initialization
+                    po_count.push_back(make_pair(0,0)); // predicate initialization
                 } else {
                     current_pid = str_to_pid_iter->second;
                 }
-                //object handling. XXX blank node handling pending.
+                
+				//object handling. XXX blank node handling pending.
                 if (is_literal(object)) { //literal objects
                     str_to_literal_iter = str_to_literal.find(object);
                     if (str_to_literal_iter == str_to_literal.end()) {
@@ -186,10 +192,21 @@ void graph::prep_meta_nt(string idirname)
                 po_pair.second = current_oid;
                 pos_count_iter = pos_count.find(po_pair);
                 if (pos_count_iter == pos_count.end()) {
-                    po_count[current_pid] += 1; //predicate increment
+                    po_count[current_pid].second += 1; //predicate increment
                     pos_count[po_pair] = 1;
                 } else {
                     pos_count[po_pair] += 1;
+                }
+
+                //PSO table
+				ps_pair.first = current_pid;
+                ps_pair.second = current_pid;
+                pso_count_iter = pos_count.find(ps_pair);
+                if (pos_count_iter == pos_count.end()) {
+                    po_count[current_pid].first += 1; //predicate increment
+                    pso_count[ps_pair] = 1;
+                } else {
+                    pso_count[ps_pair] += 1;
                 }
             } 
         }
@@ -254,7 +271,7 @@ void graph::prep_meta_nt(string idirname)
     cout << "po_count (except type) "   << po_count.size() << endl;
     int po_total = 0;
     for (unsigned int i  = 0; i < po_count.size(); ++i ) {
-        po_total += po_count[i];
+        po_total += po_count[i].second;
     }
     cout << "po total = " << po_total << endl;
     
@@ -300,13 +317,15 @@ void graph::prep_meta_nt(string idirname)
 
     //Predicates
     for (int32_t i = 0; i < p_id; ++i ) {
-        degree = po_count[i];
-        pos[i].edges.initial_setup(degree);
+        out_degree = po_count[i].first;
+        in_degree = po_count[i].second;
+        pos[i].out_edges.initial_setup(out_degree);
+        pos[i].in_edges.initial_setup(in_degree);
     }
     //Types
     for (int32_t i = 0; i < t_id; ++i) {
         degree = type_count[i];
-        ts[i].plain_edges.initial_setup(degree);
+        ts[i].initial_setup(degree);
     }
 
     //now populate the B+ trees
@@ -332,21 +351,21 @@ void graph::prep_meta_nt(string idirname)
             }
 
             //insert to out-edges
-            spo[current_sid].out_edges.initial_insert(current_pid, current_oid);
+            spo[current_sid].out_edges.initial_insert(current_pid);
 
             if (0 == current_pid) {
                 //Insert to type
-                ts[current_oid].plain_edges.initial_insert(current_sid);
+                ts[current_oid].initial_insert(current_sid);
             } else if (literal) {
                 //insert to predicate
-                pos[current_pid].edges.initial_insert(current_oid, current_sid);
+                pos[current_pid].in_edges.initial_insert(current_oid, current_sid);
             } else {
                 //insert to in-edge
-                spo[current_oid].in_edges.initial_insert(current_pid, current_sid);
+                spo[current_oid].in_edges.initial_insert(current_pid);
                 //insert to predicate
-                pos[current_pid].edges.initial_insert(current_oid, current_sid);
+                pos[current_pid].out_edges.initial_insert(current_sid, current_oid);
             }
         }
     }
-}
 
+}

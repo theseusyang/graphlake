@@ -73,7 +73,35 @@ public:
     {return 0;};
     //split
     //traverse
+};
 
+/**************************/
+//Only Key B-Tree
+class kbtree_t {
+	private:
+        inner_node_t* inner_node;//the root node.
+        //First leaf node, so that all leaf nodes could be traversed easily.
+        leaf_node_t* next; 
+public:
+    inline void init() {}
+
+    inline int 
+    search(key_t key) {return 0;}
+
+    inline status_t
+    insert(key_t key)
+    { return 0;}
+
+    
+    inline status_t
+    remove(key_t key)
+    { return 0;}
+    
+    inline status_t 
+    initial_setup(int level_count, int leaf_count) 
+    {return 0;};
+    //split
+    //traverse
 };
 
 #endif

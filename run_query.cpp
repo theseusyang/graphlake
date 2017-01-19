@@ -11,6 +11,7 @@ status_t
 graph::run_query(string queryfile)
 {
 	ANTLRFileStream input(queryfile);
+	//input.setUcaseLA(input, ANTLR4_FALSE);
 	Sparql11Lexer lexer(&input);
 	CommonTokenStream tokens(&lexer);
 	Sparql11Parser parser(&tokens);
@@ -18,7 +19,7 @@ graph::run_query(string queryfile)
 	query_visitor visitor;
 	visitor.visit(tree);
 	visitor.print_whereclause();
-	//std::cout << tree->toStringTree(&parser) << std::endl;
+	std::cout << tree->toStringTree(&parser) << std::endl;
 	//std::cout << tree->getText() << std::endl;
 
     return 0;

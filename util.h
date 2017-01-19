@@ -16,6 +16,7 @@ typedef struct __duet_t {
 typedef duet_t sp_pair_t ;
 typedef duet_t op_pair_t ;
 typedef duet_t po_pair_t ;
+typedef duet_t ps_pair_t ;
 
 
 #endif
