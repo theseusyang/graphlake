@@ -1,0 +1,98 @@
+#pragma once
+
+#include "type.h"
+#include "btree.h"
+
+class labeled_edges_t {
+private:
+	degree_t degree;//Will contain flag, if required
+	
+	//make it cacheline friendly.
+	// will be used in case of one key 
+	// 
+	key_t key; 
+	union {
+        btree_t* edges_tree;//many PO
+        leaf_node_t* edges;//upto 32 PO
+        value_t* edge; //just one PO
+		value_t  value[2];
+    };
+
+public:
+    //allocate spaces now so that bulk insert can go fast.
+    status_t initial_setup (degree_t a_degree);
+    
+	inline status_t 
+    initial_insert(key_t key, value_t value)
+    { return 0; }
+    
+    inline status_t 
+    initial_insert(pair_t pair)
+    { return 0 ; }
+    
+    inline value_t 
+    search(key_t key) {return 0;}
+
+    inline status_t
+    insert(key_t key, value_t value)
+    { return 0;}
+
+    
+    inline status_t
+    remove(key_t key, value_t value)
+    { return 0;}
+
+    inline status_t
+    remove(pair_t pair)
+    { return 0;}
+};
+
+//in-edges list and out-edges list.
+typedef struct __dedges_t {
+    labeled_edges_t out_edges;
+    labeled_edges_t in_edges;
+} d_labeled_edges_t;
+
+
+//XXX: arranging only keys, not key-value.
+class unlabeled_edges_t {
+private:
+	degree_t degree;//Will contain flag, if required
+	//Making it cacheline friendly
+	key_t key;
+    union {
+	    kbtree_t* edges_tree;//many edges 
+        leaf_node_t* edges;//upto 32 edges
+        key_t in_edge; //just 2 edges
+    };
+
+public: 
+    //allocate spaces now so that bulk insert can go fast.
+    status_t initial_setup (int a_degree);
+    
+	inline status_t 
+    initial_insert(key_t value)
+    { return 0; }
+    
+    inline value_t 
+    search(key_t key) {return 0;}
+
+    inline status_t
+    insert(key_t value)
+    { return 0;}
+
+    
+    inline status_t
+    remove(key_t value)
+    { return 0;}
+
+    inline status_t
+    remove(pair_t pair)
+    { return 0;}
+} ;
+
+//in-edges list and out-edges list.
+struct d_unlabeled_edges_t {
+    unlabeled_edges_t out_edges;
+    unlabeled_edges_t in_edges;
+} ;

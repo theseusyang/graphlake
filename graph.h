@@ -3,12 +3,10 @@
 
 //#include <unordered_map>
 #include <string>
-#include <stdint.h>
 #include <map>
 #include <vector>
 
-#include "typedef.h"
-#include "btree.h"
+#include "edges.h"
 
 using namespace std;
 
@@ -19,97 +17,6 @@ using namespace std;
  * Here one professor/student can have multiple publication and
  * same publication could have multiple authors.
 */	
-class labeled_edges_t {
-private:
-	degree_t degree;//Will contain flag, if required
-	union {
-        btree_t* edges_tree;//many PO
-        leaf_node_t* edges;//upto 32 PO
-        pair_t edge; //just one PO
-    };
-
-public:
-    //allocate spaces now so that bulk insert can go fast.
-    inline status_t 
-    initial_setup (int degree)
-    {
-        return 0;
-    }
-    inline status_t 
-    initial_insert(key_t key, value_t value)
-    { return 0; }
-    
-    inline status_t 
-    initial_insert(pair_t pair)
-    { return 0 ; }
-    
-    inline value_t 
-    search(key_t key) {return 0;}
-
-    inline status_t
-    insert(key_t key, value_t value)
-    { return 0;}
-
-    
-    inline status_t
-    remove(key_t key, value_t value)
-    { return 0;}
-
-    inline status_t
-    remove(pair_t pair)
-    { return 0;}
-};
-
-//in-edges list and out-edges list.
-typedef struct __dedges_t {
-    labeled_edges_t out_edges;
-    labeled_edges_t in_edges;
-} d_labeled_edges_t;
-
-
-class unlabeled_edges_t {
-    private:
-	degree_t degree;//Will contain flag, if required
-    //XXX: arranging only keys, not key-value.
-    union {
-	    btree_t* in_edges_tree;//many edges 
-        leaf_node_t* in_edges;//upto 32 edges
-        pair_t in_edge; //just 2 edges
-    };
-
-    public: 
-    //allocate spaces now so that bulk insert can go fast.
-    inline status_t 
-    initial_setup (int degree)
-    {
-        return 0;
-    }
-    inline status_t 
-    initial_insert(key_t value)
-    { return 0; }
-    
-    inline value_t 
-    search(key_t key) {return 0;}
-
-    inline status_t
-    insert(key_t value)
-    { return 0;}
-
-    
-    inline status_t
-    remove(key_t value)
-    { return 0;}
-
-    inline status_t
-    remove(pair_t pair)
-    { return 0;}
-} ;
-
-//in-edges list and out-edges list.
-struct d_unlabeled_edges_t {
-    unlabeled_edges_t out_edges;
-    unlabeled_edges_t in_edges;
-} ;
 
 
 /*SPO/OPS: Top level CSR format (similar to begpos in CSR). A plain array. 

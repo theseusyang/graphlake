@@ -1,7 +1,7 @@
 #pragma once
 
 #include "query_node.h"
-#include "typedef.h"
+#include "type.h"
 
 class query_triple: public query_node
 {

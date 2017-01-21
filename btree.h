@@ -6,17 +6,13 @@
  *
  */
 
-typedef int32_t flag_t;
-typedef int32_t key_t;
-typedef int32_t value_t;
-typedef int32_t status_t;
-typedef struct __pair_t {
-    key_t key; // predicate
-    value_t value; //subject/object
-} pair_t;
+#include "type.h"
 
-#define inner_keys_count 31
-#define leaf_keys_count  28
+#define inner_keys 31
+#define leaf_keys  28
+
+#define kinner_keys 31
+#define kleaf_keys  30
 
 //It seems that order-32/order-64 B-tree is faster than other configuration.
 // due to locality (L1 and prefetching).
@@ -27,6 +23,7 @@ class btree_node_t {
 
 //768 bytes.. 128 byte for key
 class inner_node_t {
+public:
     flag_t      flag;    // 4 Byte
     key_t       key[31]; // 124 Bytes
     btree_node_t* btree_node[32]; // 256 Byte
@@ -35,7 +32,9 @@ class inner_node_t {
 //128 bytes
 //bits in key[MSB] has special meaning
 class leaf_node_t {
+public:
     key_t       key[28]; //60 might be better
+	//XXX
     value_t*     pvalue;//Many keys will have more than one value.
     leaf_node_t* next;
 };
@@ -77,11 +76,28 @@ public:
 
 /**************************/
 //Only Key B-Tree
+
+//768 bytes.. 128 byte for key
+class kinner_node_t {
+public:
+    flag_t      flag;    // 4 Byte
+    key_t       key[31]; // 124 Bytes
+    void*		value[32]; // 256 Byte
+};
+
+//128 bytes
+//bits in key[MSB] has special meaning
+class kleaf_node_t {
+public:
+    key_t		key[30]; //62 might be better
+    kleaf_node_t* next;
+};
+
 class kbtree_t {
-	private:
-        inner_node_t* inner_node;//the root node.
+public:
+        kinner_node_t* inner_node;//the root node.
         //First leaf node, so that all leaf nodes could be traversed easily.
-        leaf_node_t* next; 
+        kleaf_node_t* next; 
 public:
     inline void init() {}
 
