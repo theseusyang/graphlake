@@ -3,6 +3,9 @@
 #include "type.h"
 #include "btree.h"
 
+
+#define inplace_knode 4
+
 class labeled_edges_t {
 private:
 	degree_t degree;//Will contain flag, if required
@@ -54,17 +57,12 @@ typedef struct __dedges_t {
 } d_labeled_edges_t;
 
 
-//XXX: arranging only keys, not key-value.
+/*
+
+//arranging only keys, not key-value.
 class unlabeled_edges_t {
 private:
-	degree_t degree;//Will contain flag, if required
-	//Making it cacheline friendly
-	key_t key;
-    union {
-	    kbtree_t* edges_tree;//many edges 
-        leaf_node_t* edges;//upto 32 edges
-        key_t in_edge; //just 2 edges
-    };
+	kbtree_t  btree;
 
 public: 
     //allocate spaces now so that bulk insert can go fast.
@@ -77,9 +75,7 @@ public:
     inline value_t 
     search(key_t key) {return 0;}
 
-    inline status_t
-    insert(key_t value)
-    { return 0;}
+    status_t insert(key_t value);
 
     
     inline status_t
@@ -90,6 +86,9 @@ public:
     remove(pair_t pair)
     { return 0;}
 } ;
+*/
+
+typedef kbtree_t unlabeled_edges_t;
 
 //in-edges list and out-edges list.
 struct d_unlabeled_edges_t {

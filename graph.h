@@ -46,7 +46,7 @@ typedef d_labeled_edges_t os_t;
 //will have a type.
 
 
-typedef unlabeled_edges_t ts_t;
+typedef kbtree_t ts_t;
 
 
 class graph {

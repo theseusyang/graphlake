@@ -9,9 +9,11 @@
 #include "type.h"
 
 #define inner_keys 31
+#define inner_values 32
 #define leaf_keys  28
 
 #define kinner_keys 31
+#define kinner_values 32
 #define kleaf_keys  30
 
 //It seems that order-32/order-64 B-tree is faster than other configuration.
@@ -43,7 +45,7 @@ class btree_t {
     private:
         inner_node_t* inner_node;//the root node.
         //First leaf node, so that all leaf nodes could be traversed easily.
-        leaf_node_t* next; 
+        leaf_node_t* leaf_node; 
 
 public:
     inline void init() {}
@@ -68,7 +70,7 @@ public:
     { return 0;}
     
     inline status_t 
-    initial_setup(int level_count, int leaf_count) 
+    initial_setup(degree_t degree) 
     {return 0;};
     //split
     //traverse
@@ -80,42 +82,52 @@ public:
 //768 bytes.. 128 byte for key
 class kinner_node_t {
 public:
-    flag_t      flag;    // 4 Byte
-    key_t       key[31]; // 124 Bytes
-    void*		value[32]; // 256 Byte
+	uint8_t		level; //1 byte
+	uint8_t		count; // 1 bytes. 5 bits would be enough
+    uint16_t    unused;  // 2 Byte
+    key_t       keys[31]; // 124 Bytes
+    void*		values[32]; // 256 Byte
 };
 
 //128 bytes
-//bits in key[MSB] has special meaning
 class kleaf_node_t {
 public:
-    key_t		key[30]; //62 might be better
+	uint8_t		count;//One byte. 5 bit would be enough
+	uint8_t		sorted;//one bit will be sufficient
+	uint16_t	unused;//2 bytes
+    key_t		keys[29]; //62 might be better
     kleaf_node_t* next;
 };
 
 class kbtree_t {
 public:
-        kinner_node_t* inner_node;//the root node.
-        //First leaf node, so that all leaf nodes could be traversed easily.
-        kleaf_node_t* next; 
+	degree_t degree;
+	int32_t unused;
+	union{
+		struct {
+			kinner_node_t* inner_node;//the root node.
+			
+			//First leaf node, so that all leaf nodes could be traversed easily.
+			kleaf_node_t* leaf_node; 
+		} btree;
+		key_t inplace_keys[4];
+	};
 public:
     inline void init() {}
 
     inline int 
     search(key_t key) {return 0;}
-
-    inline status_t
-    insert(key_t key)
-    { return 0;}
+	
+    status_t insert(key_t key);
+    status_t initial_insert(key_t key) {return 0;};
 
     
     inline status_t
     remove(key_t key)
     { return 0;}
     
-    inline status_t 
-    initial_setup(int level_count, int leaf_count) 
-    {return 0;};
+    status_t 
+    initial_setup(degree_t degree); 
     //split
     //traverse
 };
