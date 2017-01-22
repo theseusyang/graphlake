@@ -8,10 +8,12 @@
 
 #include "type.h"
 
+
 #define inner_keys 31
 #define inner_values 32
 #define leaf_keys  28
 
+#define kinplace_keys 4
 #define kinner_keys 31
 #define kinner_values 32
 #define kleaf_keys  30
@@ -126,9 +128,10 @@ public:
     remove(key_t key)
     { return 0;}
     
-    status_t 
-    initial_setup(degree_t degree); 
-    //split
+    status_t initial_setup(degree_t degree); 
+    status_t split_leaf(kleaf_node_t* leaf_node1, key_t key);
+    void insert_in_leaf(kleaf_node_t* leaf_node1, key_t key);
+    void insert_inplace(key_t key);
     //traverse
 };
 
