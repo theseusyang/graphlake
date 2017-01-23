@@ -122,9 +122,7 @@ public:
 public:
     inline void init() {}
 
-    inline int 
-    search(key_t key) {return 0;}
-	
+    int search(key_t key); 
     status_t insert(key_t key);
     status_t initial_insert(key_t key) {return 0;};
 
@@ -134,7 +132,8 @@ public:
     { return 0;}
     
     status_t initial_setup(degree_t degree); 
-    
+
+private:	
 	void insert_inplace(key_t key);
     status_t split_leaf(kleaf_node_t* leaf_node1, key_t key, split_info_t* split_info);
     status_t split_innernode(kinner_node_t* leaf_node1, int i, split_info_t* split_info);

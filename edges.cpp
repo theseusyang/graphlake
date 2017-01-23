@@ -313,6 +313,7 @@ kbtree_t::insert(key_t key)
 	++degree;
 
 	if (count < inplace_knode) {
+		insert_inplace(key);
 	} else if (count < kleaf_keys) {
 		insert_in_leaf(btree.leaf_node, key);
 	} else if (count == kleaf_keys) {
@@ -336,4 +337,50 @@ kbtree_t::insert(key_t key)
 	}
 
 	return 0;
+}
+    
+//non-zero return means found.
+int 
+kbtree_t::search(key_t key)
+{
+	int count = degree;
+	int		i = 0;
+
+	if (count <= inplace_knode) {
+		while (i < count && key > inplace_keys[i]) {
+			++i;
+		}
+		return (key == inplace_keys[i]);
+
+	} else if (count <= kleaf_keys) {
+		//Now we have leaf node with us.
+		kleaf_node_t* leaf_node = btree.leaf_node;
+		int			  key_count = leaf_node->count;
+		
+		while (i < key_count && key > leaf_node->keys[i]) {
+			++i;
+		}
+		return (key == leaf_node->keys[i]);
+	} else {
+		kinner_node_t*	tmp_inner_node = btree.inner_node;
+		int		level	= tmp_inner_node->level;
+		
+		while (level >= 1) {
+			while (i < tmp_inner_node->count && key > tmp_inner_node->keys[i]) {
+				++i;
+			}
+			tmp_inner_node = (kinner_node_t*)tmp_inner_node->values[i];
+			--level;
+			i = 0;
+		}
+		
+		//Now we have leaf node with us.
+		kleaf_node_t* leaf_node = (kleaf_node_t*)(tmp_inner_node);
+		int			  key_count = leaf_node->count;
+		
+		while (i < key_count && key > leaf_node->keys[i]) {
+			++i;
+		}
+		return (key == leaf_node->keys[i]);
+	}
 }
