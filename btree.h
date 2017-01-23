@@ -18,6 +18,11 @@
 #define kinner_values 32
 #define kleaf_keys  30
 
+typedef struct __split_info_t {
+	key_t key;
+	void* value;
+}split_info_t;
+
 //It seems that order-32/order-64 B-tree is faster than other configuration.
 // due to locality (L1 and prefetching).
 
@@ -129,9 +134,13 @@ public:
     { return 0;}
     
     status_t initial_setup(degree_t degree); 
-    status_t split_leaf(kleaf_node_t* leaf_node1, key_t key);
+    
+	void insert_inplace(key_t key);
+    status_t split_leaf(kleaf_node_t* leaf_node1, key_t key, split_info_t* split_info);
+    status_t split_innernode(kinner_node_t* leaf_node1, int i, split_info_t* split_info);
     void insert_in_leaf(kleaf_node_t* leaf_node1, key_t key);
-    void insert_inplace(key_t key);
+	status_t insert_traverse(kinner_node_t* root, key_t key);
+
     //traverse
 };
 

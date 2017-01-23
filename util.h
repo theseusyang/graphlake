@@ -7,6 +7,7 @@
 using namespace std;
 
 typedef pair<int32_t, int32_t> duet_t;
+
 /*
 typedef struct __duet_t {
     int32_t first;
