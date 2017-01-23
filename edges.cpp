@@ -275,8 +275,8 @@ kbtree_t::insert_traverse(kinner_node_t* root, key_t key)
 		while (top > 0) {
 			--top;
 			tmp_inner_node = kstack[top].inner_node;
-			count = tmp_inner_node->count;
 			i = kstack[top].i;
+			count = tmp_inner_node->count;
 			if (count == kinner_keys) { //split this higher node as well.
 				split_innernode(tmp_inner_node, i, &split_info);
 
@@ -284,10 +284,21 @@ kbtree_t::insert_traverse(kinner_node_t* root, key_t key)
 				memmove(tmp_inner_node->keys + i + 1, tmp_inner_node->keys + i, (count - i)*sizeof(key_t));
 				tmp_inner_node->keys[i] = split_info.key;
 				tmp_inner_node->values[i] = split_info.value;
-				break;
+				return 0;
 			}
 		}
 		//If we did not return above, we need to create an additional level now
+		kinner_node_t* new_root = (kinner_node_t*) malloc(sizeof(kinner_node_t));
+		
+		new_root->count = 1;
+		new_root->level = 1;
+		new_root->keys[0] = split_info.key;
+		new_root->values[0] = btree.inner_node;
+		new_root->values[1] = split_info.value;
+		
+		//set up the hihger node pointers
+		btree.inner_node = new_root;
+		return 0;
 
 	} else {
 		insert_in_leaf(leaf_node, key);
