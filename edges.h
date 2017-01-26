@@ -23,7 +23,7 @@ private:
 
 public:
     //allocate spaces now so that bulk insert can go fast.
-    status_t initial_setup (degree_t a_degree);
+    status_t initial_setup (degree_t a_degree) {return 0;};
     
 	inline status_t 
     initial_insert(key_t key, value_t value)

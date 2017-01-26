@@ -2,7 +2,8 @@ CC=g++
 CFLAGS=-g -Wall  -std=gnu++11  -march=native -fopenmp
 SRC=main.cpp \
 	util.cpp\
-	edges.cpp\
+	btree.cpp\
+	kbtree.cpp\
 	run_query.cpp\
 	query_union.cpp\
 	query_intersection.cpp\
@@ -19,6 +20,7 @@ SRC=main.cpp \
 
 HEADER=graph.h \
 	btree.h\
+	kbtree.h\
 	edges.h\
 	query_union.h\
 	query_intersection.h\
