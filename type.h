@@ -25,3 +25,4 @@ typedef struct __pair_t {
 #define keyExist 1 
 #define keyvalueExist 2
 #define splitLeaf	3
+#define keyNotFound	4

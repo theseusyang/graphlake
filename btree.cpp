@@ -10,21 +10,21 @@ btree_t::insert_inplace1(key_t key, value_t value)
 {
 	//First insertion
 	assert(degree == 0);
-	pair.key = key;
-	pair.value = value;
+	btree.pair.key = key;
+	btree.pair.value = value;
 	return 0;
 }
 
 status_t 
 btree_t::insert_inplace2(key_t key, value_t value)
 {
-	assert(pair.key == key);
+	assert(btree.pair.key == key);
 	if (0 == value_count) {
-		if (pair.value == value) return 1;//duplicate entry
+		if (btree.pair.value == value) return 1;//duplicate entry
 		values[0] = (kbtree_t*)malloc(sizeof(kbtree_t));
-		values[0]->insert(pair.value);
+		values[0]->insert(btree.pair.value);
 		values[0]->insert(value);
-		pair.value = 0;
+		btree.pair.value = 0;
 		value_count = 1;
 	} else if (1 == value_count) {
 		return values[0]->insert(value);
@@ -43,7 +43,7 @@ btree_t::insert_in_leaf1(leaf_node_t* leaf_node1, key_t key, value_t value)
 		++i;
 	}
 
-	if ((i < count) && (key == leaf_node->keys[i])) {//key exists
+	if ((i < count) && (key == leaf_node1->keys[i])) {//key exists
 		int vindex = 0;
 		if (leaf_node1->flag & (1 << i)) {//more than one value is prsent
 			vindex = leaf_node1->values[i];
@@ -90,7 +90,7 @@ btree_t::insert_in_leaf2(leaf_node_t* leaf_node1, key_t key, value_t value, spli
 		split_leaf(leaf_node1, key, value, i, split_info);
 		return splitLeaf;
 
-	} else if (key == leaf_node->keys[i]) {//key exists
+	} else if (key == leaf_node1->keys[i]) {//key exists
 		int vindex = 0;
 		if (leaf_node1->flag & (1 << i)) {//more than one value is prsent
 			vindex = leaf_node1->values[i];
@@ -115,7 +115,7 @@ btree_t::insert_in_leaf2(leaf_node_t* leaf_node1, key_t key, value_t value, spli
 		leaf_node1->count += 1;
 
 		//Flag update
-		leaf_node->flag = (leaf_node1->flag & ~((1 << i) -1)) + 
+		leaf_node1->flag = (leaf_node1->flag & ~((1 << i) -1)) + 
 							(1 << i) + 
 							(leaf_node1->flag & ((1 << i) -1));
 		return 0;
@@ -132,14 +132,14 @@ btree_t::insert(key_t key, value_t value)
 
 	if (count < inline_keys) {
 		ret = insert_inplace1(key, value);
-	} else if (count == inline_keys && pair.key == key ) {
+	} else if (count == inline_keys && btree.pair.key == key ) {
 		//same key but one more edge
 		ret = insert_inplace2(key, value);
 	} else if (count < leaf_keys) {
-		ret = insert_in_leaf1(leaf_node, key, value);
+		ret = insert_in_leaf1(btree.leaf_node, key, value);
 	} else if (count == leaf_keys) {
 		split_info_t split_info;
-		ret = insert_in_leaf2(leaf_node, key, value, &split_info);
+		ret = insert_in_leaf2(btree.leaf_node, key, value, &split_info);
 		if (ret == splitLeaf) {
 			//setup the higher level keys and pointers
 			inner_node_t* tmp_inner_node = (inner_node_t*) malloc(sizeof(inner_node_t));
@@ -147,15 +147,15 @@ btree_t::insert(key_t key, value_t value)
 			tmp_inner_node->count = 1;
 			tmp_inner_node->level = 1;
 			tmp_inner_node->keys[0] = split_info.key;
-			tmp_inner_node->values[0] = leaf_node;
+			tmp_inner_node->values[0] = btree.leaf_node;
 			tmp_inner_node->values[1] = split_info.value;
 			
 			//set up the hihger node pointers
-			inner_node = tmp_inner_node;
+			btree.inner_node = tmp_inner_node;
 			ret = 0;
 		}
 	} else { //Some hihger level node already exists
-		ret = insert_traverse(inner_node, key, value);
+		ret = insert_traverse(btree.inner_node, key, value);
 	}
 	
 	degree += (ret == 0);
@@ -218,15 +218,15 @@ btree_t::insert_traverse(inner_node_t* root, key_t key, value_t value)
 		new_root->count = 1;
 		new_root->level = 1;
 		new_root->keys[0] = split_info.key;
-		new_root->values[0] = inner_node;
+		new_root->values[0] = btree.inner_node;
 		new_root->values[1] = split_info.value;
 		
 		//set up the hihger node pointers
-		inner_node = new_root;
+		btree.inner_node = new_root;
 		return 0;
 
 	} else {
-		insert_in_leaf1(leaf_node, key, value);
+		insert_in_leaf1(btree.leaf_node, key, value);
 	}
 	return 0;
 }
@@ -304,5 +304,72 @@ btree_t::split_innernode(inner_node_t* inner_node1, int i, split_info_t* split_i
 		
 	}
 
+	return 0;
+}
+
+status_t 
+btree_t::search(key_t key, kbtree_t* result)
+{
+	int count = degree;
+	int		i = 0;
+
+	if (count <= inline_keys) {
+		if (key != btree.pair.key) {
+			return keyNotFound;
+		}
+
+		if (0 == value_count) {
+			result->deep_copy(key, btree.pair.value);
+		} else {
+			assert (1 == value_count);
+			result->shallow_copy(key, values[0]);
+		}
+
+	} else if (count <= kleaf_keys) {
+		//Now we have leaf node with us.
+		leaf_node_t* leaf_node = btree.leaf_node;
+		int			 key_count = leaf_node->count;
+		
+		while (i < key_count && key > leaf_node->keys[i]) {
+			++i;
+		}
+		if (i == key_count) return keyNotFound;
+		//assert(key == leaf_node->keys[i]);
+		if (leaf_node->flag & (1 << i)) {
+			result->shallow_copy(key, values[leaf_node->values[i]]);
+		} else {
+			result->deep_copy(key, leaf_node->values[i]);
+		}
+	
+	} else {
+		inner_node_t*	tmp_inner_node = btree.inner_node;
+		int		level	= tmp_inner_node->level;
+		
+		while (level >= 1) {
+			while (i < tmp_inner_node->count && key > tmp_inner_node->keys[i]) {
+				++i;
+			}
+			tmp_inner_node = (inner_node_t*)tmp_inner_node->values[i];
+			--level;
+			i = 0;
+		}
+		
+		//Now we have leaf node with us.
+		leaf_node_t* leaf_node = (leaf_node_t*)(tmp_inner_node);
+		int			 key_count = leaf_node->count;
+		
+		i = 0;	
+		while (i < key_count && key > leaf_node->keys[i]) {
+			++i;
+		}
+		
+		if (i == key_count) return keyNotFound;
+		//assert(key == leaf_node->keys[i]);
+		if (leaf_node->flag & (1 << i)) {
+			result->shallow_copy(key, values[leaf_node->values[i]]);
+		} else {
+			result->deep_copy(key, leaf_node->values[i]);
+		}
+	}
 	return 0;
 }

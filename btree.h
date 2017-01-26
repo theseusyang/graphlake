@@ -56,14 +56,13 @@ class btree_t {
 			inner_node_t* inner_node;//the root node.
 			leaf_node_t*  leaf_node;
 			pair_t		  pair;
-		};
+		}btree;
 		kbtree_t** values;
 
 public:
     inline void init() {}
 
-    inline value_t 
-    search(key_t key) {return 0;}
+    status_t search(key_t key, kbtree_t* result);
 
     status_t insert(key_t key, value_t value);
     

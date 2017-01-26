@@ -9,8 +9,8 @@
 
 #define kinner_keys 31
 #define kinner_values 32
-#define kleaf_keys  30
-#define kinline_keys 4
+#define kleaf_keys  31
+#define kinline_keys 2 
 
 
 typedef struct __traverse_info_t {
@@ -45,8 +45,7 @@ public:
 	uint8_t		count;//One byte. 5 bit would be enough
 	uint8_t		sorted;//one bit will be sufficient
 	uint16_t	unused;//2 bytes
-    key_t		keys[29]; //62 might be better
-    kleaf_node_t* next;
+    key_t		keys[31]; //62 might be better
 };
 
 class kbtree_t {
@@ -54,17 +53,14 @@ public:
 	degree_t degree;
 	int32_t unused;
 	union{
-		struct {
 			kinner_node_t* inner_node;//the root node.
-			
 			//First leaf node, so that all leaf nodes could be traversed easily.
 			kleaf_node_t* leaf_node; 
-		} btree;
-		key_t inplace_keys[4];
-	};
+			key_t inplace_keys[2];
+	} btree;
 public:
     inline void init() {}
-    int search(key_t key); 
+    status_t search(key_t key); 
     status_t insert(key_t key);
     status_t initial_insert(key_t key) {return 0;};
 
@@ -82,5 +78,23 @@ private:
     status_t insert_in_leaf(kleaf_node_t* leaf_node1, key_t key);
 	status_t insert_traverse(kinner_node_t* root, key_t key);
 
+public: 
+	inline void
+	deep_copy(key_t key, value_t value) {
+		degree = 1;
+		btree.inplace_keys[0] = value;
+		unused = key;
+	}
+	inline void
+	shallow_copy(key_t key, kbtree_t* value) {
+		degree = value->degree;
+		unused = key;
+		btree.leaf_node = value->btree.leaf_node;
+	}
     //traverse
 };
+
+//search result, only value tree;
+typedef kbtree_t res_t; 
+
+

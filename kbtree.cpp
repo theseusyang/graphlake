@@ -152,8 +152,8 @@ kbtree_t::split_leaf(kleaf_node_t* leaf_node1, key_t key, split_info_t* split_in
 	}
 
 	//establish the sibling relationship
-	leaf_node2->next = leaf_node1->next;
-	leaf_node1->next = leaf_node2;
+	//leaf_node2->next = leaf_node1->next;
+	//leaf_node1->next = leaf_node2;
 
 	split_info->key = leaf_node2->keys[0];
 	split_info->value = leaf_node2;
@@ -188,12 +188,12 @@ kbtree_t::insert_inplace(key_t key)
 	int i	  = 0;
 	assert(count < kinline_keys);
 
-	while (i < count && key > inplace_keys[i]) {
+	while (i < count && key > btree.inplace_keys[i]) {
 		++i;
 	}
-	if(i == count || key != inplace_keys[i]) {
-		memmove(inplace_keys + i + 1, inplace_keys + i, (count - i)*sizeof(key_t));
-		inplace_keys[i] = key;
+	if(i == count || key != btree.inplace_keys[i]) {
+		memmove(btree.inplace_keys + i + 1, btree.inplace_keys + i, (count - i)*sizeof(key_t));
+		btree.inplace_keys[i] = key;
 		return 0;
 	}
 
@@ -206,19 +206,19 @@ kbtree_t::split_inplace(key_t key)
 {
 	int count = degree;
 	int i = 0;
-	while(i < count && key > inplace_keys[i]) {
+	while(i < count && key > btree.inplace_keys[i]) {
 		++i;
 	}
-	if (i < count && key == inplace_keys[i]) {
+	if (i < count && key == btree.inplace_keys[i]) {
 		return keyExist;
 	}
 	
 	kleaf_node_t* leaf_node = (kleaf_node_t*)malloc(sizeof(kleaf_node_t));
 	leaf_node->count = degree + 1;
 	leaf_node->sorted = 1;
-	memcpy(leaf_node->keys, inplace_keys, i*sizeof(key_t));
+	memcpy(leaf_node->keys, btree.inplace_keys, i*sizeof(key_t));
 	leaf_node->keys[i] = key;
-	memcpy(leaf_node->keys + i + 1, inplace_keys + i, (degree - i)*sizeof(key_t));
+	memcpy(leaf_node->keys + i + 1, btree.inplace_keys + i, (degree - i)*sizeof(key_t));
 	btree.leaf_node = leaf_node;
 	return 0;
 }
@@ -364,18 +364,18 @@ kbtree_t::insert(key_t key)
 	return 0;
 }
     
-//non-zero return means found.
-int 
+//zero return means found.
+status_t
 kbtree_t::search(key_t key)
 {
 	int count = degree;
 	int		i = 0;
 
 	if (count <= kinline_keys) {
-		while (i < count && key > inplace_keys[i]) {
+		while (i < count && key > btree.inplace_keys[i]) {
 			++i;
 		}
-		return (key == inplace_keys[i]);
+		return (key == btree.inplace_keys[i]);
 
 	} else if (count <= kleaf_keys) {
 		//Now we have leaf node with us.
@@ -406,6 +406,6 @@ kbtree_t::search(key_t key)
 		while (i < key_count && key > leaf_node->keys[i]) {
 			++i;
 		}
-		return (key == leaf_node->keys[i]);
+		return !(key == leaf_node->keys[i]);
 	}
 }
