@@ -75,11 +75,11 @@ public:
     status_t initial_setup(degree_t degree); 
 
 private:	
-	void insert_inplace(key_t key);
+	status_t insert_inplace(key_t key);
 	status_t split_inplace(key_t key); 
     status_t split_leaf(kleaf_node_t* leaf_node1, key_t key, split_info_t* split_info);
     status_t split_innernode(kinner_node_t* leaf_node1, int i, split_info_t* split_info);
-    void insert_in_leaf(kleaf_node_t* leaf_node1, key_t key);
+    status_t insert_in_leaf(kleaf_node_t* leaf_node1, key_t key);
 	status_t insert_traverse(kinner_node_t* root, key_t key);
 
     //traverse

@@ -127,6 +127,10 @@ kbtree_t::split_leaf(kleaf_node_t* leaf_node1, key_t key, split_info_t* split_in
 		++i;
 	}
 
+	if (i < count && leaf_node1->keys[i] == key) {
+		return keyExist;
+	}
+
 	//Lets break the first leaf in half
 	int half = (count >> 1);
 	if ( i <= half) { //If new key in the first half
@@ -157,7 +161,7 @@ kbtree_t::split_leaf(kleaf_node_t* leaf_node1, key_t key, split_info_t* split_in
 	return 0;
 }
 
-void 
+status_t 
 kbtree_t::insert_in_leaf(kleaf_node_t* leaf_node1, key_t key)
 {
 	int		count = leaf_node1->count;
@@ -167,14 +171,19 @@ kbtree_t::insert_in_leaf(kleaf_node_t* leaf_node1, key_t key)
 	while (i < count && key > leaf_node1->keys[i]) {
 		++i;
 	}
+	if (i < count && leaf_node1->keys[i] == key) {
+		return keyExist;
+	}
+
 	memmove(leaf_node1 + i + 1, leaf_node1 + i, (count - i )*sizeof(key_t));
 	leaf_node1->keys[i] = key;
 	leaf_node1->count += 1;
 
-	return;
+	return 0;
 }
 
-void kbtree_t::insert_inplace(key_t key)
+status_t 
+kbtree_t::insert_inplace(key_t key)
 {	int count = degree;
 	int i	  = 0;
 	assert(count < kinline_keys);
@@ -182,11 +191,36 @@ void kbtree_t::insert_inplace(key_t key)
 	while (i < count && key > inplace_keys[i]) {
 		++i;
 	}
-	memmove(inplace_keys + i + 1, inplace_keys + i, (count - i)*sizeof(key_t));
-	inplace_keys[i] = key;
+	if(i == count || key != inplace_keys[i]) {
+		memmove(inplace_keys + i + 1, inplace_keys + i, (count - i)*sizeof(key_t));
+		inplace_keys[i] = key;
+		return 0;
+	}
 
 	//increment will be done in caller function.
-	return ;
+	return keyExist;
+}
+
+status_t 
+kbtree_t::split_inplace(key_t key) 
+{
+	int count = degree;
+	int i = 0;
+	while(i < count && key > inplace_keys[i]) {
+		++i;
+	}
+	if (i < count && key == inplace_keys[i]) {
+		return keyExist;
+	}
+	
+	kleaf_node_t* leaf_node = (kleaf_node_t*)malloc(sizeof(kleaf_node_t));
+	leaf_node->count = degree + 1;
+	leaf_node->sorted = 1;
+	memcpy(leaf_node->keys, inplace_keys, i*sizeof(key_t));
+	leaf_node->keys[i] = key;
+	memcpy(leaf_node->keys + i + 1, inplace_keys + i, (degree - i)*sizeof(key_t));
+	btree.leaf_node = leaf_node;
+	return 0;
 }
 
 //second argument is in/out both
@@ -229,6 +263,7 @@ kbtree_t::split_innernode(kinner_node_t* inner_node1, int i, split_info_t* split
 status_t 
 kbtree_t::insert_traverse(kinner_node_t* root, key_t key)
 {
+	status_t ret = 0;
 	kinner_node_t*	tmp_inner_node = root;
 	traverse_info	kstack[8];
 
@@ -256,7 +291,7 @@ kbtree_t::insert_traverse(kinner_node_t* root, key_t key)
 	if (key_count == kleaf_keys) {
 		split_info_t split_info;
 		int count = 0;
-		split_leaf(leaf_node, key, &split_info);
+		if (0 != (ret = split_leaf(leaf_node, key, &split_info))) return ret;
 		
 		//XXX
 		while (top > 0) {
@@ -287,48 +322,26 @@ kbtree_t::insert_traverse(kinner_node_t* root, key_t key)
 		btree.inner_node = new_root;
 		return 0;
 
-	} else {
-		insert_in_leaf(leaf_node, key);
-	}
-	return 0;
-}
-
-status_t 
-kbtree_t::split_inplace(key_t key) 
-{
-	int i = 0;
-	while(i < degree && key > inplace_keys[i]) {
-		++i;
-	}
-	if (i == degree && key == inplace_keys[i]) {
-		return keyExist;
-	}
+	} 
 	
-	kleaf_node_t* leaf_node = (kleaf_node_t*)malloc(sizeof(kleaf_node_t));
-	leaf_node->count = degree + 1;
-	leaf_node->sorted = 1;
-	memcpy(leaf_node->keys, inplace_keys, i*sizeof(key_t));
-	leaf_node->keys[i] = key;
-	memcpy(leaf_node->keys + i + 1, inplace_keys + i, (degree - i)*sizeof(key_t));
-	btree.leaf_node = leaf_node;
-	return 0;
+	return insert_in_leaf(leaf_node, key);
 }
 
 status_t 
 kbtree_t::insert(key_t key)
 {
 	int count = degree;
-	++degree;
+	status_t ret = 0;
 
 	if (count < kinline_keys) {
-		insert_inplace(key);
+		ret = insert_inplace(key);
 	} else if (count == kinline_keys) {
-		split_inplace(key);
+		ret = split_inplace(key);
 	} else if (count < kleaf_keys) {
-		insert_in_leaf(btree.leaf_node, key);
+		ret = insert_in_leaf(btree.leaf_node, key);
 	} else if (count == kleaf_keys) {
 		split_info_t split_info;
-		split_leaf(btree.leaf_node, key, &split_info);
+		if (0 != (ret = split_leaf(btree.leaf_node, key, &split_info))) return ret;
 	
 		//setup the higher level keys and pointers
 		kinner_node_t* tmp_inner_node = (kinner_node_t*) malloc(sizeof(kinner_node_t));
@@ -341,11 +354,13 @@ kbtree_t::insert(key_t key)
 		
 		//set up the hihger node pointers
 		btree.inner_node = tmp_inner_node;
+		ret = 0;
 	
 	} else {//Some hihger level node already exists
-		insert_traverse(btree.inner_node, key);
+		ret = insert_traverse(btree.inner_node, key);
 	}
 
+	degree += (ret == 0);
 	return 0;
 }
     
