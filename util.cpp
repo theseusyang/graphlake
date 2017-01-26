@@ -4,7 +4,7 @@
 #include <dirent.h>
 #include <assert.h>
 #include <string>
-#include "graph.h"
+#include "rdf.h"
 #include "util.h"
 
 using namespace std;

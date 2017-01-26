@@ -2,7 +2,7 @@
 #include "query_triple.h"
 #include "query_clause.h"
 #include "query_union.h"
-#include "graph.h"
+#include "rdf.h"
 
 extern graph* g;
 

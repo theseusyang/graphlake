@@ -3,7 +3,7 @@
 #include <getopt.h>
 #include <stdlib.h>
 
-#include "graph.h"
+#include "rdf.h"
 
 #define no_argument 0
 #define required_argument 1 

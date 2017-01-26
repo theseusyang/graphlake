@@ -1,6 +1,6 @@
 
 
-#include "graph.h"
+#include "rdf.h"
 #include "Sparql11Lexer.h"
 #include "Sparql11Parser.h"
 #include "query_visitor.h"

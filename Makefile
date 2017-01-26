@@ -18,7 +18,7 @@ SRC=main.cpp \
 	antlr4/Sparql11Parser.cpp\
 	antlr4/Sparql11Visitor.cpp\
 
-HEADER=graph.h \
+HEADER=rdf.h \
 	btree.h\
 	kbtree.h\
 	edges.h\
