@@ -141,14 +141,13 @@ kbtree_t::split_leaf(kleaf_node_t* leaf_node1, key_t key, split_info_t* split_in
 		leaf_node1->keys[i] = key;
 		leaf_node1->count = half + 1;
 
-	} else {//new key in second half
+	} else { //new key in second half
 		memcpy(leaf_node2->keys, leaf_node1->keys + half, (i-half)*sizeof(key_t));
 		leaf_node2->keys[i-half] = key;
 		memcpy(leaf_node2->keys + i - half + 1, leaf_node1->keys + i, (count - i)*sizeof(key_t));
 		leaf_node2->count = count - half + 1;
 		
 		leaf_node1->count = half;
-		
 	}
 
 	//establish the sibling relationship
@@ -178,27 +177,33 @@ kbtree_t::insert_in_leaf(kleaf_node_t* leaf_node1, key_t key)
 	memmove(leaf_node1 + i + 1, leaf_node1 + i, (count - i )*sizeof(key_t));
 	leaf_node1->keys[i] = key;
 	leaf_node1->count += 1;
+	unused = min(unused, key);
 
 	return 0;
 }
 
 status_t 
 kbtree_t::insert_inplace(key_t key)
-{	int count = degree;
+{	
+	int count = degree;
 	int i	  = 0;
-	assert(count < kinline_keys);
-
-	while (i < count && key > btree.inplace_keys[i]) {
-		++i;
+	key_t min_key = key;
+	
+	if (count == 0) {
+		unused = key;
+		btree.inplace_keys[0] = key;
+	} else if (count == 1) {
+		if (unused == key) {
+			return keyExist;
+		} else {
+			btree.inplace_keys[1] = key;
+			unused = min(unused, key);
+		}
+	} else { //time to split
+		return split_inplace(key);
 	}
-	if(i == count || key != btree.inplace_keys[i]) {
-		memmove(btree.inplace_keys + i + 1, btree.inplace_keys + i, (count - i)*sizeof(key_t));
-		btree.inplace_keys[i] = key;
-		return 0;
-	}
 
-	//increment will be done in caller function.
-	return keyExist;
+	return 0;
 }
 
 status_t 
@@ -220,6 +225,7 @@ kbtree_t::split_inplace(key_t key)
 	leaf_node->keys[i] = key;
 	memcpy(leaf_node->keys + i + 1, btree.inplace_keys + i, (degree - i)*sizeof(key_t));
 	btree.leaf_node = leaf_node;
+	unused = min(unused, key);
 	return 0;
 }
 
@@ -228,7 +234,9 @@ status_t
 kbtree_t::split_innernode(kinner_node_t* inner_node1, int i, split_info_t* split_info)
 {
 	kinner_node_t* inner_node2 = (kinner_node_t*)malloc(sizeof(kinner_node_t));
-	int count = inner_node2->count;
+	inner_node2->level = inner_node1->level;
+
+	int count = inner_node1->count;
 	key_t key = split_info->key;
 	void* value = split_info->value;
 	
@@ -236,10 +244,11 @@ kbtree_t::split_innernode(kinner_node_t* inner_node1, int i, split_info_t* split
 	int half = (count >> 1);
 	if (i <= half) { //If new key in the first half
 		memcpy(inner_node2->keys, inner_node1->keys + half, (count - half)*sizeof(key_t));
-		memcpy(inner_node2->values, inner_node1->values + half, (count + 1 - half)*sizeof(void*));
+		memcpy(inner_node2->values, inner_node1->values + half, (count - half)*sizeof(void*));
 		inner_node2->count = count - half;
 
 		memmove(inner_node1->keys + i+1, inner_node1->keys + i, (half - i)*sizeof(key_t));
+		memmove(inner_node1->values + i+1, inner_node1->values + i, (half - i)*sizeof(void*));
 		inner_node1->keys[i] = key;
 		inner_node1->values[i] = value;
 		inner_node1->count = half + 1;
@@ -254,8 +263,11 @@ kbtree_t::split_innernode(kinner_node_t* inner_node1, int i, split_info_t* split
 		inner_node2->count = count - half + 1;
 		
 		inner_node1->count = half;
-		
 	}
+
+	//link the nodes
+
+
 
 	return 0;
 }
@@ -269,19 +281,23 @@ kbtree_t::insert_traverse(kinner_node_t* root, key_t key)
 
 	int		level	= tmp_inner_node->level;
 	int		top		= 0;
-	int		i		= 0;
+	int		i		= 1;
 
 	while (level >= 1) {
-		while (i < tmp_inner_node->count && key > tmp_inner_node->keys[i]) {
+		//inner node scanning
+		while (i < tmp_inner_node->count && key >= tmp_inner_node->keys[i]) {
 			++i;
 		}
+
+		--i;
+		if (key == tmp_inner_node->keys[i]) return keyExist;
 
 		kstack[top].inner_node = tmp_inner_node;
 		kstack[top].i = i;
 		tmp_inner_node = (kinner_node_t*)tmp_inner_node->values[i];
 		++top;
 		--level;
-		i = 0;
+		i = 1;
 	}
 	
 	//Now we have leaf node with us.
@@ -304,6 +320,7 @@ kbtree_t::insert_traverse(kinner_node_t* root, key_t key)
 
 			} else { //insert the new key in the higher node
 				memmove(tmp_inner_node->keys + i + 1, tmp_inner_node->keys + i, (count - i)*sizeof(key_t));
+				memmove(tmp_inner_node->values + i + 1, tmp_inner_node->values + i, (count - i)*sizeof(void*));
 				tmp_inner_node->keys[i] = split_info.key;
 				tmp_inner_node->values[i] = split_info.value;
 				return 0;
@@ -314,8 +331,9 @@ kbtree_t::insert_traverse(kinner_node_t* root, key_t key)
 		
 		new_root->count = 1;
 		new_root->level = 1;
-		new_root->keys[0] = split_info.key;
+		new_root->keys[0] = btree.inner_node->keys[0];
 		new_root->values[0] = btree.inner_node;
+		new_root->keys[1] = split_info.key;
 		new_root->values[1] = split_info.value;
 		
 		//set up the hihger node pointers
@@ -335,8 +353,6 @@ kbtree_t::insert(key_t key)
 
 	if (count < kinline_keys) {
 		ret = insert_inplace(key);
-	} else if (count == kinline_keys) {
-		ret = split_inplace(key);
 	} else if (count < kleaf_keys) {
 		ret = insert_in_leaf(btree.leaf_node, key);
 	} else if (count == kleaf_keys) {
@@ -348,7 +364,8 @@ kbtree_t::insert(key_t key)
 		
 		tmp_inner_node->count = 1;
 		tmp_inner_node->level = 1;
-		tmp_inner_node->keys[0] = split_info.key;
+		tmp_inner_node->keys[0] = btree.leaf_node.keys[0];
+		tmp_inner_node->keys[1] = split_info.key;
 		tmp_inner_node->values[0] = btree.leaf_node;
 		tmp_inner_node->values[1] = split_info.value;
 		
@@ -375,7 +392,7 @@ kbtree_t::search(key_t key)
 		while (i < count && key > btree.inplace_keys[i]) {
 			++i;
 		}
-		return (key == btree.inplace_keys[i]);
+		return !(key == btree.inplace_keys[i]);
 
 	} else if (count <= kleaf_keys) {
 		//Now we have leaf node with us.
@@ -385,15 +402,24 @@ kbtree_t::search(key_t key)
 		while (i < key_count && key > leaf_node->keys[i]) {
 			++i;
 		}
-		return (key == leaf_node->keys[i]);
+		return !(key == leaf_node->keys[i]);
 	} else {
 		kinner_node_t*	tmp_inner_node = btree.inner_node;
 		int		level	= tmp_inner_node->level;
-		
+				
+		i = 1;
 		while (level >= 1) {
-			while (i < tmp_inner_node->count && key > tmp_inner_node->keys[i]) {
+			//inner node scanning
+			while (i < tmp_inner_node->count && key >= tmp_inner_node->keys[i]) {
 				++i;
 			}
+			
+			//in case, above loop just keeps executing, we will be having i = count, so -- needed
+			//Also, due to our key structures, we need to do -- for other cases.
+			--i;
+			if (key == tmp_inner_node->keys[i]) return 0;
+			if (i == 0 && key < tmp_inner_node->keys[i]) return keyNotFound;
+
 			tmp_inner_node = (kinner_node_t*)tmp_inner_node->values[i];
 			--level;
 			i = 0;
@@ -403,6 +429,7 @@ kbtree_t::search(key_t key)
 		kleaf_node_t* leaf_node = (kleaf_node_t*)(tmp_inner_node);
 		int			  key_count = leaf_node->count;
 		
+		//leaf node scanning
 		while (i < key_count && key > leaf_node->keys[i]) {
 			++i;
 		}

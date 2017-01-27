@@ -36,7 +36,8 @@ public:
 	uint8_t		count; // 1 bytes. 5 bits would be enough
     uint16_t    unused;  // 2 Byte
     key_t       keys[31]; // 124 Bytes
-    void*		values[32]; // 256 Byte
+	kinner_node_t* next;
+    void*		values[31]; // 256 Byte
 };
 
 //128 bytes
