@@ -1,13 +1,55 @@
 #include <omp.h>
+#include <sys/stat.h>
 #include <algorithm>
 #include <iostream>
+#include <unistd.h>
+#include <string>
+#include <fstream>
+#include <assert.h>
+
+#include "wtime.h"
 #include "graph.h"
 
 using std::cout;
 using std::endl;
+using std::string;
 
 using std::sort;
 using std::min;
+
+ugraph_t* g = 0;
+
+
+void ugraph_t::csr_from_file(string csrfile, vertex_t vert_count, csr_t* data)
+{
+
+	string file = csrfile + ".beg_pos";
+    struct stat st_count;
+    stat(file.c_str(), &st_count);
+    assert(st_count.st_size == vert_count +1);
+	
+	FILE* f = fopen(file.c_str(),"rb");
+    assert(f != 0);
+    data->beg_pos = (index_t*) malloc(st_count.st_size);
+    assert(data->beg_pos);
+    fread(data->beg_pos, sizeof(index_t), vert_count + 1, f);
+    fclose(f);
+
+	index_t edge_count = data->beg_pos[vert_count];
+	file = csrfile + ".adj";
+    struct stat st_edge;
+    stat(file.c_str(), &st_edge);
+    assert(st_edge.st_size == sizeof(vertex_t)*edge_count);
+    
+    f = fopen(file.c_str(), "rb");
+    assert(f != 0);
+    data->adj_list = (vertex_t*) malloc(st_edge.st_size);
+    assert(data->adj_list);
+    fread(data->adj_list, sizeof(vertex_t), edge_count , f);
+    fclose(f);
+	
+	data->vert_count = vert_count;
+}
 
 //It will not do a deep copy, memory will be used.
 void
@@ -199,5 +241,61 @@ ugraph_t::pagerank(int iteration_count)
 
 int main(int argc, char* argv[])
 {
+	g = new ugraph_t;
+	g->init(argc, argv);
 	return 0;
+}
+
+void ugraph_t::init(int argc, char* argv[])
+{
+    int o;
+    int job = 0;
+    uint32_t scale;
+    int c = 0;
+    string inputfile;
+	vertex_t vert_count;
+	int arg = -1;
+    
+	while ((o = getopt (argc, argv, "s:o:hi:j:c:m:v:a:")) != -1) {
+        switch(o) {
+            case 's': //scale
+                scale = atoi(optarg);
+                vert_count = (1L << scale);
+                break;
+            case 'v'://vert count
+				sscanf(optarg, "%ld", &vert_count);
+                break;
+            case 'i':
+                inputfile = optarg;
+                break;
+            case 'j':
+                job = atoi(optarg);
+                break;
+            case 'h':
+                cout << "Coming soon" << endl;
+                return;
+            case 'a':
+                arg = atoi(optarg);
+                break;
+            default:
+               assert(0); 
+        }
+    }
+
+	csr_t data;
+	csr_from_file(inputfile, vert_count, &data);
+	init_from_csr(&data, true);
+    double start, end;
+  
+    switch(job) {
+    case 0:
+            start = mywtime();
+            bfs(arg);
+            end = mywtime();
+            cout << "BFS time = " << end-start << endl;
+            break;    
+    default:
+            assert(0);
+    }
+	return ;
 }
