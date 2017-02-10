@@ -1,9 +1,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <algorithm>
 
 #include "kbtree.h"
 
+using std::min;
 
 kinner_node_t*
 create_higher_inner_node(kinner_node_t** inner_node, int count, int level)
@@ -364,7 +366,7 @@ kbtree_t::insert(key_t key)
 		
 		tmp_inner_node->count = 1;
 		tmp_inner_node->level = 1;
-		tmp_inner_node->keys[0] = btree.leaf_node.keys[0];
+		tmp_inner_node->keys[0] = btree.leaf_node->keys[0];
 		tmp_inner_node->keys[1] = split_info.key;
 		tmp_inner_node->values[0] = btree.leaf_node;
 		tmp_inner_node->values[1] = split_info.value;
