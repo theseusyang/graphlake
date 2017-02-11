@@ -1,0 +1,2 @@
+graph : graph.h graph.cpp kbtree.h kbtree.cpp
+	g++ -g graph.cpp kbtree.cpp -o graph

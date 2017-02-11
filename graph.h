@@ -34,6 +34,9 @@ public:
 public:	
 	void pagerank(int iteration_count);
 	void bfs(vertex_t root);
+	index_t tc();
 
+private:
+	index_t intersection(vertex_t v1, vertex_t v2);	
 	ucsr_t udata;
 };

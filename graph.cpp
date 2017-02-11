@@ -226,7 +226,6 @@ ugraph_t::pagerank(int iteration_count)
 	}
 
 	kinner_node_t*	inner_node = 0;
-	kleaf_node_t*	leaf_node = 0;
 	rank_t			rank = 0.0;
 	vertex_t*		nebrs = 0;
 	int				count = 0;
@@ -325,6 +324,7 @@ void ugraph_t::init(int argc, char* argv[])
 	csr_from_file(inputfile, vert_count, &data);
 	init_from_csr(&data, true);
     double start, end;
+	index_t tc_count = 0;
   
     switch(job) {
     case 0:
@@ -339,8 +339,71 @@ void ugraph_t::init(int argc, char* argv[])
             end = mywtime();
             cout << "PageRank time = " << end-start << endl;
             break;    
+    case 2:
+            start = mywtime();
+            tc();
+            end = mywtime();
+            cout << "TC time = " << end-start << endl;
+            cout << "TC Count = " << tc_count << endl;
+            break;    
     default:
             assert(0);
     }
 	return ;
+}
+
+index_t ugraph_t::tc()
+{
+	vertex_t vert_count = udata.vert_count;
+	adj_list_t* adj_list   = udata.adj_list;
+	
+	vertex_t v1, v2;
+	degree_t degree;
+	kinner_node_t*	inner_node = 0;
+	vertex_t*		nebrs = 0;
+	int				count = 0;
+	index_t			tc_count = 0;
+
+	for(vertex_t v = 0; v < vert_count; ++v) {
+		degree = udata.adj_list[v].degree;
+		if (degree <= kinline_keys) {//Path 1:
+			nebrs = adj_list[v].btree.inplace_keys;
+			count = degree;
+			for (int j = 0; j < count; ++j) {
+				v1 = v;
+				v2 = nebrs[j];
+				tc_count += intersection(v1, v2);
+			}
+
+		} else if (degree <= kleaf_keys) {//Path 2;
+			nebrs = adj_list[v].btree.leaf_node->keys;
+			count = adj_list[v].btree.leaf_node->count;
+			for (int j = 0; j < count; ++j) {
+				v1 = v;
+				v2 = nebrs[j];
+				tc_count += intersection(v1, v2);
+			}
+
+		} else {//Path 3:
+			inner_node = udata.adj_list[v].btree.inner_node;
+			while (inner_node) {
+				for (int i = 0; i < inner_node->count; ++i) {
+					nebrs = ((kleaf_node_t*)inner_node->values[i])->keys;
+					count = ((kleaf_node_t*)inner_node->values[i])->count;
+					for (int j = 0; j < count; ++j) {
+						v1 = v;
+						v2 = nebrs[j];
+						tc_count += intersection(v1, v2);
+
+					}
+				}
+				inner_node = inner_node->next;
+			}
+		}
+	}
+}
+
+index_t ugraph_t::intersection(vertex_t v1, vertex_t v2)
+{
+	return 0;
 }
