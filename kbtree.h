@@ -8,7 +8,7 @@
 #include "type.h"
 
 #define kinner_keys 31
-#define kinner_values 32
+#define kinner_values 31
 #define kleaf_keys  31
 #define kinline_keys 2 
 

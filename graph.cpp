@@ -4,6 +4,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <string>
+#include <cstring>
 #include <fstream>
 #include <assert.h>
 
@@ -26,7 +27,7 @@ void ugraph_t::csr_from_file(string csrfile, vertex_t vert_count, csr_t* data)
 	string file = csrfile + ".beg_pos";
     struct stat st_count;
     stat(file.c_str(), &st_count);
-    assert(st_count.st_size == vert_count +1);
+    assert(st_count.st_size == (vert_count +1)*sizeof(index_t));
 	
 	FILE* f = fopen(file.c_str(),"rb");
     assert(f != 0);
@@ -71,30 +72,64 @@ ugraph_t::init_from_csr(csr_t* data, int sorted)
 	for (vertex_t i = 0; i < vert_count; ++i) {
 		degree = data->beg_pos[i + 1] - data->beg_pos[i];
 		l_adj_list = data->adj_list + data->beg_pos[i];
+		adj_list[i].degree = degree;
+		
 		if (!sorted) sort(l_adj_list, l_adj_list + degree);
+		
 		if (degree <= kinline_keys) {
 			for (degree_t j = 0; j < degree; ++j) {
 				adj_list[i].btree.inplace_keys[j] = l_adj_list[j];
 			}
 		} else if (degree <= kleaf_keys) {
-			adj_list[i].btree.leaf_node = (kleaf_node_t*)l_adj_list;
+			adj_list[i].btree.leaf_node = (kleaf_node_t*)malloc(sizeof(kleaf_node_t));
+			adj_list[i].btree.leaf_node->count = degree;
+			memcpy(adj_list[i].btree.leaf_node->keys, 
+				   l_adj_list, 
+				   degree*sizeof(vertex_t));
+			
 		} else {
-			leaf_count = degree/kleaf_keys; + (0 != degree % kleaf_keys);
-			level1_count = leaf_count/kinner_values + (0 != leaf_count/kinner_values);
-			kleaf_node_t* leaf_node = (kleaf_node_t*)l_adj_list;
+			leaf_count = degree/kleaf_keys + (0 != degree % kleaf_keys);
+			level1_count = leaf_count/kinner_values + (0 != leaf_count % kinner_values);
+			
 			kinner_node_t* inner_node = (kinner_node_t*)malloc(sizeof(kinner_node_t));
 			udata.adj_list[i].btree.inner_node = inner_node;
-			kinner_node_t* prev = inner_node;
+			
+			degree_t remaining = degree;
+			int remaining_leaf = leaf_count;
+			degree_t count = kleaf_keys;
+			int inner_count = kinner_keys;
+			kinner_node_t* prev = 0;
+			kleaf_node_t* leaf_node = 0;
+			
 			for (int j = 0; j < level1_count; ++j) {
-				for (int k = 0; k < leaf_count; ++k) {
+				inner_count = min(kinner_keys, remaining_leaf);
+				remaining_leaf -= inner_count;
+				inner_node->count = inner_count;
+				inner_node->level = 1;
+			
+				for (int k = 0; k < inner_count; ++k) {
+				
+					leaf_node = (kleaf_node_t*)malloc(sizeof(kleaf_node_t));
+					count = min(kleaf_keys, remaining);
+					remaining -= count;
+					
+					leaf_node->count  = count;
+					leaf_node->sorted = 1;
+					
+					memcpy(leaf_node->keys,
+						   l_adj_list, count*sizeof(vertex_t));
+
 					inner_node->values[k] = leaf_node;
 					inner_node->keys[k] = leaf_node->keys[0];
-					leaf_node += kleaf_keys;
+					
+					l_adj_list += count;
 				}
+
 				prev = inner_node;
 				inner_node = (kinner_node_t*)malloc(sizeof(kinner_node_t));
 				prev->next = inner_node;
 			}
+
 			//delete last allocation and the link
 			free(inner_node);
 			prev->next = 0;
@@ -109,21 +144,22 @@ ugraph_t::bfs(vertex_t root)
 	vertex_t	degree	   = 0;
 	adj_list_t* adj_list   = udata.adj_list;
 	
-	int* status = 0; //XXX
+	uint8_t* status = (uint8_t*)calloc(sizeof(uint8_t), vert_count); //XXX
 	//default status = INF
 	
 	kinner_node_t*	inner_node = 0;
-	kleaf_node_t*	leaf_node = 0;
 	vertex_t*		nebrs = 0; 
-	int				level = 0;
+	int				level = 1;
 	int				count = 0;
 	vertex_t		frontier = 0;
+
+	status[root] = 1;
 	
-	while(frontier) {
+	do {
 		frontier = 0;
 
 		for (vertex_t v = 0; v < udata.vert_count; ++v) {
-			if (status[v] == level) continue;
+			if (status[v] != level) continue;
 	
 			//based on degree, we need to take alternate paths
 			degree = adj_list[v].degree;
@@ -132,7 +168,7 @@ ugraph_t::bfs(vertex_t root)
 				vertex_t* nebrs = adj_list[v].btree.inplace_keys;
 				count = degree;
 				for (int j = 0; j < count; ++j) {
-					if (status[nebrs[j]] == level) {
+					if (status[nebrs[j]] == 0) {
 						status[nebrs[j]] = level + 1;
 						++frontier;
 					}
@@ -141,8 +177,8 @@ ugraph_t::bfs(vertex_t root)
 			} else if (degree <= kleaf_keys) {//Path 2;
 				nebrs = adj_list[v].btree.leaf_node->keys;
 				count = adj_list[v].btree.leaf_node->count;
-				for (int j = 0; j < leaf_node->count; ++j) {
-					if (status[nebrs[j]] == level) {
+				for (int j = 0; j < count; ++j) {
+					if (status[nebrs[j]] == 0) {
 						status[nebrs[j]] = level + 1;
 						++frontier;
 					}
@@ -154,8 +190,8 @@ ugraph_t::bfs(vertex_t root)
 					for (int i = 0; i < inner_node->count; ++i) {
 						nebrs = ((kleaf_node_t*)inner_node->values[i])->keys;
 						count = ((kleaf_node_t*)inner_node->values[i])->count;
-						for (int j = 0; j < leaf_node->count; ++j) {
-							if (status[nebrs[j]] == level) {
+						for (int j = 0; j < count; ++j) {
+							if (status[nebrs[j]] == 0 ) {
 								status[nebrs[j]] = level + 1;
 								++frontier;
 							}
@@ -164,11 +200,11 @@ ugraph_t::bfs(vertex_t root)
 					inner_node = inner_node->next;
 				}
 			}
-			//end path
-			cout << "Level Count = " << level << " Frontier Count = " << frontier << endl;
-
 		}
-	}
+		//end path
+		cout << "Level Count = " << level << " Frontier Count = " << frontier << endl;
+		++level;
+	} while(frontier);
 }
 
 
