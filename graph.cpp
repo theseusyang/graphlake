@@ -214,10 +214,12 @@ ugraph_t::pagerank(int iteration_count)
 	vertex_t	vert_count = udata.vert_count;
 	vertex_t	degree	   = 0;
 	adj_list_t* adj_list   = udata.adj_list;
+	rank_t		inv_v_count= 1.0f/vert_count;
 	rank_t*		pr		   = (rank_t*)malloc(sizeof(rank_t)*vert_count);
 	rank_t*		inv_degree = (rank_t*)malloc(sizeof(rank_t)*vert_count);
 	
 	for (vertex_t v = 0; v < udata.vert_count; ++v) {
+		pr[v] = inv_v_count;
 		if (udata.adj_list[v].degree != 0) {
 			inv_degree[v] = 1.0f/udata.adj_list[v].degree;
 		}
@@ -230,7 +232,7 @@ ugraph_t::pagerank(int iteration_count)
 	int				count = 0;
 	
 	for (int iter_count = 0; iter_count < iteration_count; ++iter_count) {
-		for (vertex_t v = 0; v < udata.vert_count; ++v) {
+		for (vertex_t v = 0; v < vert_count; ++v) {
 			degree = adj_list[v].degree;
 			
 			//based on degree, we need to take alternate paths
@@ -273,6 +275,7 @@ ugraph_t::pagerank(int iteration_count)
 			pr[v] = rank;//XXX
 		}
 	}
+	cout << "PR[0] = " << pr[0] << endl;
 }
 
 int main(int argc, char* argv[])
@@ -329,6 +332,12 @@ void ugraph_t::init(int argc, char* argv[])
             bfs(arg);
             end = mywtime();
             cout << "BFS time = " << end-start << endl;
+            break;    
+    case 1:
+            start = mywtime();
+            pagerank(arg);
+            end = mywtime();
+            cout << "PageRank time = " << end-start << endl;
             break;    
     default:
             assert(0);
