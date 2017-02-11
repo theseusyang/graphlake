@@ -341,7 +341,7 @@ void ugraph_t::init(int argc, char* argv[])
             break;    
     case 2:
             start = mywtime();
-            tc();
+            tc_count = tc();
             end = mywtime();
             cout << "TC time = " << end-start << endl;
             cout << "TC Count = " << tc_count << endl;
@@ -401,9 +401,11 @@ index_t ugraph_t::tc()
 			}
 		}
 	}
+	return tc_count;
 }
 
 index_t ugraph_t::intersection(vertex_t v1, vertex_t v2)
 {
-	return 0;
+
+	return 1;
 }
