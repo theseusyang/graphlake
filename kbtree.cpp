@@ -462,108 +462,123 @@ int kbtree_t::intersection(kbtree_t* btree1, kbtree_t* btree2)
 		case 8:
 			return 0;
 		case 9:
-			insertion00(btree1, btree2);
+			btree1->intersection00(btree2);
 			break;
 
 		case 10:
-			intersection01(btree2, btree1);
+			btree2->intersection01(btree1);
 			break;
 		
 		case 12:
-			intersection02(btree2, btree1);
+			btree2->intersection02(btree1);
 			break;
 		
 		case 16:
 			return 0;
 		
 		case 17:
-			intersection01(btree1, btree2);
+			btree1->intersection01(btree2);
 			break;
 		
 		case 18:
-			intersection11(btree1, btree2);
+			btree1->intersection11(btree2);
 			break;
 		
 		case 20:
-			intersection12(btree2, btree1);
+			btree2->intersection12(btree1);
 			break;
 
 		case 32:
 			return 0;
 		
 		case 33:
-			intersection02(btree1, btree2);
+			btree1->intersection02(btree2);
 			break;
 
 		case 34:
-			intersection12(btree1, btree2);
+			btree1->intersection12(btree2);
 			break;
 
 		case 36:
-			intersecton22(btree1, btree2);
+			btree1->intersection22(btree2);
 		default:
 			assert(0);
 	}
 }
 
 int kbtree_t::intersection_leaf_leaf(degree_t count1, degree_t count2, 
-									 key_t* key1, key_t* key2)
+									 key_t* keys1, key_t* keys2)
 {
 	degree_t iter1	= 0;
 	degree_t iter2	= 0;
 	int		common	= 0;
+	key_t	key1;
+	key_t	key2;
 	
 	while (iter1 < count1 && iter2 < count2) {
 		key1 = keys1[iter1];
 		key2 = keys2[iter2];
 		iter1 += (key1 <= key2);
 		iter2 += (key1 >= key2);
-		common += (keys1 == key2);
+		common += (key1 == key2);
 	}
 	return common;
 }
 
 int kbtree_t::intersection00(kbtree_t* btree2)
 {
-	key_t* keys1	= inaplce_keys;
-	key_t* keys2	= btree2->inplace_keys;
+	key_t* keys1	= btree.inplace_keys;
+	key_t* keys2	= btree2->btree.inplace_keys;
 	degree_t count1 = degree;
 	degree_t count2 = btree2->degree;
-	return insersection_leaf_leaf(count1, count2, keys1, keys2);
+	return intersection_leaf_leaf(count1, count2, keys1, keys2);
 }
 
 int kbtree_t::intersection01(kbtree_t* btree2)
 {
-	key_t* keys1	= inaplce_keys;
-	key_t* keys2	= btree2->btree.leaf_node;
+	key_t* keys1	= btree.inplace_keys;
+	key_t* keys2	= btree2->btree.leaf_node->keys;
 	degree_t count1 = degree;
 	degree_t count2 = btree2->btree.leaf_node->count;
-	return insersection_leaf_leaf(count1, count2, keys1, keys2);
+	return intersection_leaf_leaf(count1, count2, keys1, keys2);
 }
 
 int kbtree_t::intersection11(kbtree_t* btree2)
 {
-	key_t* keys1	= btree1->btree.leaf_node;
-	key_t* keys2	= btree2->btree.leaf_node;
-	degree_t count1 = btree1->btree.leaf_node->count;
+	key_t* keys1	= btree.leaf_node->keys;
+	key_t* keys2	= btree2->btree.leaf_node->keys;
+	degree_t count1 = btree.leaf_node->count;
 	degree_t count2 = btree2->btree.leaf_node->count;
 	degree_t iter1	= 0;
 	degree_t iter2	= 0;
-	return insersection_leaf_leaf(count1, count2, keys1, keys2);
+	return intersection_leaf_leaf(count1, count2, keys1, keys2);
 }
 
 int kbtree_t::intersection02(kbtree_t* btree2)
 {
-	key_t* keys1	= btree1->btree.inplace_keys;
-	degree_t count1 = btree1->btree.leaf_node->count;
+	key_t* keys1	= btree.inplace_keys;
+	degree_t count1 = degree;
+	return intersection_leaf_inner(count1, keys1, btree2);
+}
+
+int kbtree_t::intersection12(kbtree_t* btree2)
+{
+	key_t* keys1	= btree.leaf_node->keys;
+	degree_t count1 = btree.leaf_node->count;
+	return intersection_leaf_inner(count1, keys1, btree2);
+}
+
+int kbtree_t::intersection_leaf_inner(degree_t count1,
+									 key_t* keys1, kbtree_t* btree2)
+{
 	degree_t iter1	= 0;
 	key_t	key1	= keys1[iter1];
 	
-	key_t* keys2	= 0
+	key_t* keys2	= 0;
 	degree_t count2 = 0;
 	degree_t iter2	= 0;
 	
-	kinner_node_t* tmp_inner_node = btree2.inner_node;
+	kinner_node_t* tmp_inner_node = btree2->btree.inner_node;
 	kleaf_node_t*  leaf_node  = 0;
 	traverse_info	kstack[8];
 	
@@ -580,7 +595,7 @@ int kbtree_t::intersection02(kbtree_t* btree2)
 		//Search in reverse order in the kstack to avoid repeating
 		while (top > 0) {
 			--top;
-			tmp_inner_node = (kinner_node_t*) kstack[top];
+			tmp_inner_node = (kinner_node_t*) kstack[top].inner_node;
 			i	= kstack[top].i;
 			key = kstack[top].key;
 
@@ -642,4 +657,11 @@ int kbtree_t::intersection02(kbtree_t* btree2)
 	}	
 	
 	return common;
+}
+
+int kbtree_t::intersection22(kbtree_t* btree2)
+{
+	degree_t count1;
+	degree_t count2;
+	return 0;	
 }

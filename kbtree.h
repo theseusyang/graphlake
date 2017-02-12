@@ -87,6 +87,21 @@ private:
     status_t insert_in_leaf(kleaf_node_t* leaf_node1, key_t key);
 	status_t insert_traverse(kinner_node_t* root, key_t key);
 
+	//Insertion related functions
+private:
+	int intersection00(kbtree_t* btree2);
+	int intersection01(kbtree_t* btree2);
+	int intersection11(kbtree_t* btree2);
+	int intersection02(kbtree_t* btree2);
+	int intersection12(kbtree_t* btree2);
+	int intersection22(kbtree_t* btree2);
+	static
+	int intersection_leaf_inner(degree_t count1, key_t* keys1, 
+								kbtree_t* btree2);
+	static
+	int intersection_leaf_leaf(degree_t count1, degree_t count2, 
+									 key_t* keys1, key_t* keys2);
+
 public: 
 	inline void
 	deep_copy(key_t key, value_t value) {
