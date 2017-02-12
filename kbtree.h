@@ -13,9 +13,16 @@
 #define kinline_keys 2 
 
 
-typedef struct __traverse_info_t {
-	void* inner_node;
+typedef struct __inserction_info_t {
+	key_t key;
 	int i;
+	void* inner_node;
+} inserction_info_t;
+
+typedef struct __traverse_info_t {
+	key_t key;
+	int i;
+	void* inner_node;
 } traverse_info;
 
 typedef struct __split_info_t {
@@ -32,8 +39,8 @@ typedef struct __split_info_t {
 //768 bytes.. 128 byte for key
 class kinner_node_t {
 public:
-	uint8_t		level; //1 byte
 	uint8_t		count; // 1 bytes. 5 bits would be enough
+	uint8_t		level; //1 byte
     uint16_t    unused;  // 2 Byte
     key_t       keys[31]; // 124 Bytes
 	kinner_node_t* next;
@@ -64,6 +71,7 @@ public:
     status_t search(key_t key); 
     status_t insert(key_t key);
     status_t initial_insert(key_t key) {return 0;};
+	static int intersection(kbtree_t* btree1, kbtree_t* btree2);
 
     inline status_t
     remove(key_t key)
