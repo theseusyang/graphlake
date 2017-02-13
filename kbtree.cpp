@@ -606,16 +606,15 @@ int kbtree_t::intersection_leaf_inner(degree_t count1,
 
 			assert (key1 < key);  //we are good.
 			++top; //Keep the last one, because we are good
+			level = tmp_inner_node->level -1; // Child's level
 			tmp_inner_node = (kinner_node_t*)tmp_inner_node->values[i];
-			level = tmp_inner_node->level;
-
 		}
 	
 		while (level >= 1) {
+			iter2 = 0;
 			//inner node scanning
 			keys2	= tmp_inner_node->keys;
 			count2	= tmp_inner_node->count;
-			iter2	= 0;
 			while (i < count2 && key1 >= keys2[i]) {
 				++i;
 			}
@@ -639,20 +638,20 @@ int kbtree_t::intersection_leaf_inner(degree_t count1,
 			tmp_inner_node = (kinner_node_t*)tmp_inner_node->values[i];
 			++top;
 			--level;
-			i = 0;
+			i = 1;
 		}
 
 		//Leaf Search
 		leaf_node = (kleaf_node_t*) (tmp_inner_node);
 		keys2	= leaf_node->keys;
 		count2	= leaf_node->count;
-		iter2	= 0;
+		//iter2	= 0; //Has been setup above
 		
 		while (iter2 < count2 && key1 >= keys2[iter2]) {
+			common += (key1 == keys2[iter2]);
 			++iter2;
 		}
 
-		common += (key1 == keys2[iter2 - 1]);
 		++iter1;
 	}	
 	
@@ -661,7 +660,64 @@ int kbtree_t::intersection_leaf_inner(degree_t count1,
 
 int kbtree_t::intersection22(kbtree_t* btree2)
 {
-	degree_t count1;
-	degree_t count2;
-	return 0;	
+	key_t	key1;
+	
+
+	degree_t count1 = 0;
+	degree_t count2 = 0;
+	
+	degree_t iter1	= 0;
+	degree_t iter2	= 0;
+	
+	kinner_node_t* inner_node1 = btree2->btree.inner_node;
+	kinner_node_t* inner_node2 = btree2->btree.inner_node;
+	kleaf_node_t*  leaf_node1  = 0;
+	kleaf_node_t*  leaf_node2  = 0;
+
+	traverse_info	kstack1[8];
+	traverse_info	kstack2[8];
+	int top1	= 0;
+	int top2	= 0;
+	
+	int	common	= 0;
+	int	i		= 1;
+	int leve1l	= inner_node1->level;
+	int level2	= inner_node2->level;
+	
+	key_t* keys1	= inner_node1->keys;
+	key_t* keys2	= inner_node2->keys;
+	
+	key_t	key;	
+	
+	while (iter1 < count1 - 1 && iter2 < count2 - 1) {
+		key1	= keys1[iter1];
+		key2	= keys2[iter2];
+
+		if (key1 == key2) { //case 0
+		} else if (key1 < key2 && next_key1 > key2) {//case 1
+		} else if (key2 < key1 && next_key2 > key1) {//case 2
+		} else {
+			iter1 += (key1 <= key2);
+			iter2 += (key2 <= key1);	
+		}
+	}
+
+	if ( iter1 == count1 -1 ) {
+		key1 = keys1[iter1];
+		while (iter2 < count2 ) {
+			key2 = keys2[iter2];
+			if (key1 >= key2) {//case4_1, priv_key2 till key2
+			}
+			++iter2;
+		}
+	} else {
+		key2 = keys2[iter2];
+		while (iter1 < count1) {
+			key1 = keys1[iter1];
+			if (key2 >=	key1) {//case 4_2, prev_key1 till key1
+			}
+		}
+	}
+
+	return common;
 }
