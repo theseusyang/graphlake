@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <limits.h>
 
 typedef int32_t literal_id_t;
 typedef char* literal_t;
@@ -20,6 +21,7 @@ typedef struct __pair_t {
     value_t value; //subject/object
 } pair_t;
 
+#define KEY_MAX INT_MAX
 
 #define success 0
 #define keyExist 1 

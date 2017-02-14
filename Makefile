@@ -4,6 +4,7 @@ SRC=main.cpp \
 	util.cpp\
 	btree.cpp\
 	kbtree.cpp\
+	intersection.cpp\
 	run_query.cpp\
 	query_union.cpp\
 	query_intersection.cpp\

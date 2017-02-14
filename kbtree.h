@@ -95,12 +95,6 @@ private:
 	int intersection02(kbtree_t* btree2);
 	int intersection12(kbtree_t* btree2);
 	int intersection22(kbtree_t* btree2);
-	static
-	int intersection_leaf_inner(degree_t count1, key_t* keys1, 
-								kbtree_t* btree2);
-	static
-	int intersection_leaf_leaf(degree_t count1, degree_t count2, 
-									 key_t* keys1, key_t* keys2);
 
 public: 
 	inline void
