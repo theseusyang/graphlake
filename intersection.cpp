@@ -4,8 +4,9 @@
 #include <algorithm>
 #include "kbtree.h"
 
-int intersection_leaf_leaf(degree_t count1, degree_t count2, 
-									 key_t* keys1, key_t* keys2)
+static int
+intersection_leaf_leaf(degree_t count1, degree_t count2, 
+					 key_t* keys1, key_t* keys2)
 {
 	degree_t iter1	= 0;
 	degree_t iter2	= 0;
@@ -23,8 +24,9 @@ int intersection_leaf_leaf(degree_t count1, degree_t count2,
 	return common;
 }
 
-int intersection_leaf_inner(degree_t count1,
-									 key_t* keys1, kbtree_t* btree2)
+static int
+intersection_leaf_inner(degree_t count1,
+					 key_t* keys1, kbtree_t* btree2)
 {
 	degree_t iter1	= 0;
 	key_t	key1	= keys1[iter1];
@@ -33,8 +35,8 @@ int intersection_leaf_inner(degree_t count1,
 	degree_t count2 = 0;
 	degree_t iter2	= 0;
 	
-	kinner_node_t* tmp_inner_node = btree2->btree.inner_node;
-	kleaf_node_t*  leaf_node  = 0;
+	kinner_node_t*	tmp_inner_node	= btree2->btree.inner_node;
+	kleaf_node_t*	leaf_node		= 0;
 	traverse_info	kstack[8];
 	
 	int	common	= 0;
@@ -65,8 +67,7 @@ int intersection_leaf_inner(degree_t count1,
 			tmp_inner_node = (kinner_node_t*)tmp_inner_node->values[i];
 		}
 	
-		while (level >= 1) {
-			iter2 = 0;
+		while (level > 0) {
 			//inner node scanning
 			keys2	= tmp_inner_node->keys;
 			count2	= tmp_inner_node->count;
@@ -78,35 +79,35 @@ int intersection_leaf_inner(degree_t count1,
 			//we will be having i = count, so -- needed
 			//Also, due to our key structures, we need to do -- for other cases.
 			--i;
-			if (i == 0 && key1 < keys2[i]) return keyNotFound;
-			if (key1 == keys2[i]) {
-				++common;
-				++iter1;
-				continue;
+			if ((key1 < keys2[i]) || (key1 == keys2[i])) { // 0th index and equal
+				common += (key1 == keys2[i]);
+				break;//XXX
 			}
-
+			
 			kstack[top].inner_node = tmp_inner_node;
 			//This overflow is fine.
 			kstack[top].key		   = keys2[i+1];
 			kstack[top].i		   = i;
 
-			tmp_inner_node = (kinner_node_t*)tmp_inner_node->values[i];
 			++top;
 			--level;
 			i = 1;
+			iter2 = 0;
 		}
 
 		//Leaf Search
-		leaf_node = (kleaf_node_t*) (tmp_inner_node);
-		keys2	= leaf_node->keys;
-		count2	= leaf_node->count;
-		//iter2	= 0; //Has been setup above
-		
-		while (iter2 < count2 && key1 >= keys2[iter2]) {
-			common += (key1 == keys2[iter2]);
-			++iter2;
-		}
+		if (0 == level) {
+			leaf_node = (kleaf_node_t*) (tmp_inner_node);
+			keys2	= leaf_node->keys;
+			count2	= leaf_node->count;
+			//iter2	= 0; //Has been setup above
+			
+			while (iter2 < count2 && key1 >= keys2[iter2]) {
+				common += (key1 == keys2[iter2]);
+				++iter2;
+			}
 
+		}
 		++iter1;
 	}	
 	
@@ -137,8 +138,6 @@ int kbtree_t::intersection11(kbtree_t* btree2)
 	key_t* keys2	= btree2->btree.leaf_node->keys;
 	degree_t count1 = btree.leaf_node->count;
 	degree_t count2 = btree2->btree.leaf_node->count;
-	degree_t iter1	= 0;
-	degree_t iter2	= 0;
 	return intersection_leaf_leaf(count1, count2, keys1, keys2);
 }
 

@@ -29,6 +29,7 @@ class ugraph_t {
 public:
 	void csr_from_file(string csrfile, vertex_t vert_count, csr_t *data);
 	void init_from_csr(csr_t* data, int sorted);
+	void init_from_csr2(csr_t* data, int sorted);
 	void init(int argc, char* argv[]);
 
 public:	
