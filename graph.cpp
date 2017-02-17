@@ -267,6 +267,7 @@ ugraph_t::bfs(vertex_t root)
 	vertex_t	vert_count = udata.vert_count;
 	vertex_t	degree	   = 0;
 	adj_list_t* adj_list   = udata.adj_list;
+	index_t		edge_count = (1<< 20);
 	
 	uint8_t* status = (uint8_t*)calloc(sizeof(uint8_t), vert_count); //XXX
 	//default status = INF
@@ -275,57 +276,114 @@ ugraph_t::bfs(vertex_t root)
 	vertex_t*		nebrs = 0; 
 	int				level = 1;
 	int				count = 0;
+	int				top_down = 1;
 	vertex_t		frontier = 0;
+	index_t			todo = 0;
 
 	status[root] = 1;
 	
 	do {
 		frontier = 0;
-
-		for (vertex_t v = 0; v < udata.vert_count; ++v) {
-			if (status[v] != level) continue;
-	
-			//based on degree, we need to take alternate paths
-			degree = adj_list[v].degree;
+		todo = 0;
+		if (top_down) {
+			for (vertex_t v = 0; v < udata.vert_count; ++v) {
+				if (status[v] != level) continue;
 		
-			if (degree <= kinline_keys) {//Path 1:
-				vertex_t* nebrs = adj_list[v].btree.inplace_keys;
-				count = degree;
-				for (int j = 0; j < count; ++j) {
-					if (status[nebrs[j]] == 0) {
-						status[nebrs[j]] = level + 1;
-						++frontier;
-					}
-				}
-
-			} else if (degree <= kleaf_keys) {//Path 2;
-				nebrs = adj_list[v].btree.leaf_node->keys;
-				count = adj_list[v].btree.leaf_node->count;
-				for (int j = 0; j < count; ++j) {
-					if (status[nebrs[j]] == 0) {
-						status[nebrs[j]] = level + 1;
-						++frontier;
-					}
-				}
-
-			} else {//Path 3:
-				inner_node = udata.adj_list[v].btree.inner_node;
-				while (inner_node) {
-					for (int i = 0; i < inner_node->count; ++i) {
-						nebrs = ((kleaf_node_t*)inner_node->values[i])->keys;
-						count = ((kleaf_node_t*)inner_node->values[i])->count;
-						for (int j = 0; j < count; ++j) {
-							if (status[nebrs[j]] == 0 ) {
-								status[nebrs[j]] = level + 1;
-								++frontier;
-							}
+				//based on degree, we need to take alternate paths
+				degree = adj_list[v].degree;
+				todo += degree;
+			
+				if (degree <= kinline_keys) {//Path 1:
+					vertex_t* nebrs = adj_list[v].btree.inplace_keys;
+					count = degree;
+					for (int j = 0; j < count; ++j) {
+						if (status[nebrs[j]] == 0) {
+							status[nebrs[j]] = level + 1;
+							++frontier;
 						}
 					}
-					inner_node = inner_node->next;
+
+				} else if (degree <= kleaf_keys) {//Path 2;
+					nebrs = adj_list[v].btree.leaf_node->keys;
+					count = adj_list[v].btree.leaf_node->count;
+					for (int j = 0; j < count; ++j) {
+						if (status[nebrs[j]] == 0) {
+							status[nebrs[j]] = level + 1;
+							++frontier;
+						}
+					}
+
+				} else {//Path 3:
+					inner_node = udata.adj_list[v].btree.inner_node;
+					while (inner_node) {
+						for (int i = 0; i < inner_node->count; ++i) {
+							nebrs = ((kleaf_node_t*)inner_node->values[i])->keys;
+							count = ((kleaf_node_t*)inner_node->values[i])->count;
+							for (int j = 0; j < count; ++j) {
+								if (status[nebrs[j]] == 0 ) {
+									status[nebrs[j]] = level + 1;
+									++frontier;
+								}
+							}
+						}
+						inner_node = inner_node->next;
+					}
+				}
+			}
+		} else {
+			for (vertex_t v = 0; v < udata.vert_count; ++v) {
+				if (status[v] != 0) continue;
+		
+				//based on degree, we need to take alternate paths
+				degree = adj_list[v].degree;
+				todo += degree;
+			
+				if (degree <= kinline_keys) {//Path 1:
+					vertex_t* nebrs = adj_list[v].btree.inplace_keys;
+					count = degree;
+					for (int j = 0; j < count; ++j) {
+						if (status[nebrs[j]] == level) {
+							status[v] = level + 1;
+							++frontier;
+							break;
+
+						}
+					}
+
+				} else if (degree <= kleaf_keys) {//Path 2;
+					nebrs = adj_list[v].btree.leaf_node->keys;
+					count = adj_list[v].btree.leaf_node->count;
+					for (int j = 0; j < count; ++j) {
+						if (status[nebrs[j]] == level) {
+							status[v] = level + 1;
+							++frontier;
+							break;
+						}
+					}
+
+				} else {//Path 3:
+					inner_node = udata.adj_list[v].btree.inner_node;
+					while (inner_node) {
+						for (int i = 0; i < inner_node->count; ++i) {
+							nebrs = ((kleaf_node_t*)inner_node->values[i])->keys;
+							count = ((kleaf_node_t*)inner_node->values[i])->count;
+							for (int j = 0; j < count; ++j) {
+								if (status[nebrs[j]] == 0 ) {
+									status[v] = level + 1;
+									++frontier;
+									break;
+								}
+							}
+						}
+						inner_node = inner_node->next;
+					}
 				}
 			}
 		}
-		//end path
+		if (todo >= 0.07*edge_count) {
+			top_down = false;
+		}
+	
 		cout << "Level Count = " << level << " Frontier Count = " << frontier << endl;
 		++level;
 	} while(frontier);
