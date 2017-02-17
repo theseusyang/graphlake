@@ -285,7 +285,9 @@ ugraph_t::bfs(vertex_t root)
 	do {
 		frontier = 0;
 		todo = 0;
+		double start = mywtime();
 		if (top_down) {
+			#pragma omp parallel for reduction (+:todo, +:frontier) schedule (static)
 			for (vertex_t v = 0; v < udata.vert_count; ++v) {
 				if (status[v] != level) continue;
 		
@@ -330,7 +332,8 @@ ugraph_t::bfs(vertex_t root)
 					}
 				}
 			}
-		} else {
+		} else { //bottom up
+			#pragma omp parallel for reduction (+:todo, +:frontier) schedule (static)
 			for (vertex_t v = 0; v < udata.vert_count; ++v) {
 				if (status[v] != 0) continue;
 		
@@ -380,11 +383,16 @@ ugraph_t::bfs(vertex_t root)
 				}
 			}
 		}
+		double end = mywtime();
+	
+		cout << " Top down = " << top_down << "\t";
+		cout << " Time = " << end - start << "\t";
+		cout << " Level Count = " << level << " Frontier Count = " << frontier;
+		cout << endl;
+		
 		if (todo >= 0.07*edge_count) {
 			top_down = false;
 		}
-	
-		cout << "Level Count = " << level << " Frontier Count = " << frontier << endl;
 		++level;
 	} while(frontier);
 }
