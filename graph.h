@@ -3,8 +3,10 @@
 #include <string>
 #include "kbtree.h"
 
+
 using std::string;
 
+#define NUM_THDS 24
 
 typedef int32_t vertex_t;
 typedef int64_t index_t;
@@ -24,6 +26,13 @@ typedef struct __ucsr_t {
 	vertex_t vert_count;
 } ucsr_t;
 
+typedef struct __mem_info_t {
+    kinner_node_t* inner_node_list;
+    kleaf_node_t* leaf_node_list;
+    index_t inner_count;
+    index_t leaf_count;
+    index_t unused[4];
+} mem_info_t;
 
 class ugraph_t {
 public:
@@ -34,10 +43,16 @@ public:
 
 public:	
 	void pagerank(int iteration_count);
+	void pagerank_async(int iteration_count);
 	void bfs(vertex_t root);
 	index_t tc();
 
 private:
 	index_t intersection(vertex_t v1, vertex_t v2);	
-	ucsr_t udata;
+    kleaf_node_t* alloc_leaf();
+    kinner_node_t* alloc_inner();
+
+private:    
+    ucsr_t udata;
+    mem_info_t mem_info[NUM_THDS];
 };

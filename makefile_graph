@@ -1,2 +1,2 @@
 graph : graph.h graph.cpp kbtree.h kbtree.cpp intersection.cpp
-	g++ -g graph.cpp kbtree.cpp intersection.cpp -o graph
+	g++ -g graph.cpp kbtree.cpp intersection.cpp -o graph -fopenmp
