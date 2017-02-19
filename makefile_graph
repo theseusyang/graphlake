@@ -1,2 +1,3 @@
-graph : graph.h graph.cpp kbtree.h kbtree.cpp intersection.cpp
-	g++ -g graph.cpp kbtree.cpp intersection.cpp -o graph -fopenmp
+CFLAGS=-O3
+graph : graph.h graph.cpp kbtree.h kbtree.cpp intersection.cpp makefile_graph bitmap.h
+	g++ $(CFLAGS) graph.cpp kbtree.cpp intersection.cpp -o graph -fopenmp

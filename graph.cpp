@@ -12,6 +12,7 @@
 
 #include "wtime.h"
 #include "graph.h"
+#include "bitmap.h"
 
 using std::cout;
 using std::endl;
@@ -20,7 +21,9 @@ using std::swap;
 using std::sort;
 using std::min;
 
-#define mem_leaf 16384 
+//16, 2MB huge pages
+#define mem_size 33554432
+#define mem_leaf 262144 
 #define mem_inner 2730 
 
 
@@ -30,7 +33,7 @@ ugraph_t* g = 0;
 int
 ugraph_t::csr_from_file(string csrfile, vertex_t vert_count, csr_t* data)
 {
-    int huge_page = 1;
+    int huge_page = 0;
 	string file = csrfile + ".beg_pos";
     struct stat st_count;
     stat(file.c_str(), &st_count);
@@ -53,15 +56,16 @@ ugraph_t::csr_from_file(string csrfile, vertex_t vert_count, csr_t* data)
     setbuf(f, 0);
     assert(f != 0);
 
+    /*
     data->adj_list = (vertex_t*)mmap(NULL, st_edge.st_size, 
                        PROT_READ|PROT_WRITE,
                        MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0 , 0);
     if (MAP_FAILED == data->adj_list) {
-        data->adj_list = (vertex_t*) malloc(st_edge.st_size);
         cout << "Huge page allocation failed" << endl;
         huge_page = 0;
-    }
+    }*/
 
+    data->adj_list = (vertex_t*) malloc(st_edge.st_size);
     assert(data->adj_list);
     fread(data->adj_list, sizeof(vertex_t), edge_count , f);
     fclose(f);
@@ -257,11 +261,12 @@ kleaf_node_t* ugraph_t::alloc_leaf()
     kleaf_node_t* leaf_node = mem_info[tid].leaf_node_list;
     
     if (mem_info[tid].leaf_count == mem_leaf) {
-        leaf_node = (kleaf_node_t*)mmap(NULL, (1<<20), 
+        leaf_node = (kleaf_node_t*)mmap(NULL, mem_size, 
                        PROT_READ|PROT_WRITE,
                        MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0 , 0);
         if (MAP_FAILED == leaf_node) {
             leaf_node = (kleaf_node_t*)calloc (mem_leaf, sizeof(kleaf_node_t));
+            cout << "leaf huge page failed" << endl;
         }
         mem_info[tid].leaf_count = 0;
         mem_info[tid].leaf_node_list = leaf_node;
@@ -283,6 +288,7 @@ kinner_node_t* ugraph_t::alloc_inner()
         
         if (MAP_FAILED == inner_node) {
             inner_node = (kinner_node_t*)calloc (mem_inner, sizeof(kinner_node_t));
+            cout << "inner huge page failed" << endl;
         }
         mem_info[tid].inner_count = 0;
         mem_info[tid].inner_node_list = inner_node;
@@ -425,9 +431,16 @@ ugraph_t::bfs(vertex_t root)
 	adj_list_t* adj_list   = udata.adj_list;
 	index_t		edge_count = (1<< 28);
 	
-	uint8_t* status = (uint8_t*)calloc(sizeof(uint8_t), vert_count); //XXX
+    uint8_t* status = (uint8_t*)mmap(NULL, vert_count, 
+                       PROT_READ|PROT_WRITE,
+                       MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0 , 0);
+    if (MAP_FAILED == status) {
+	    status = (uint8_t*)calloc(sizeof(uint8_t), vert_count);
+        cout << "bfs status array, huge page failed" << endl;
+    }
 	//default status = INF
-	
+    Bitmap bitmap(vert_count);
+
 	int				level = 1;
 	int				top_down = 1;
 	vertex_t		frontier = 0;
@@ -440,7 +453,7 @@ ugraph_t::bfs(vertex_t root)
 		todo = 0;
 		double start = mywtime();
 		if (top_down) {
-			#pragma omp parallel num_threads(24) reduction (+:todo) reduction(+:frontier)
+			#pragma omp parallel num_threads(NUM_THDS) reduction (+:todo) reduction(+:frontier)
             {
             kinner_node_t*	inner_node = 0;
             vertex_t*		nebrs   = 0; 
@@ -458,9 +471,12 @@ ugraph_t::bfs(vertex_t root)
 					vertex_t* nebrs = adj_list[v].btree.inplace_keys;
 					count = degree;
 					for (int j = 0; j < count; ++j) {
-						if (status[nebrs[j]] == 0) {
-							status[nebrs[j]] = level + 1;
-							++frontier;
+						if (bitmap.get_bit(nebrs[j]) == 0) {
+                            bitmap.set_bit(nebrs[j]);
+                            if (status[nebrs[j]] == 0) {
+							    status[nebrs[j]] = level + 1;
+							    ++frontier;
+                            }
 						}
 					}
 
@@ -468,9 +484,12 @@ ugraph_t::bfs(vertex_t root)
 					nebrs = adj_list[v].btree.leaf_node->keys;
 					count = adj_list[v].btree.leaf_node->count;
 					for (int j = 0; j < count; ++j) {
-						if (status[nebrs[j]] == 0) {
-							status[nebrs[j]] = level + 1;
-							++frontier;
+						if (bitmap.get_bit(nebrs[j]) == 0) {
+                            bitmap.set_bit(nebrs[j]);
+                            if (status[nebrs[j]] == 0) {
+							    status[nebrs[j]] = level + 1;
+							    ++frontier;
+                            }
 						}
 					}
 
@@ -481,10 +500,13 @@ ugraph_t::bfs(vertex_t root)
 							nebrs = ((kleaf_node_t*)inner_node->values[i])->keys;
 							count = ((kleaf_node_t*)inner_node->values[i])->count;
 							for (int j = 0; j < count; ++j) {
-								if (status[nebrs[j]] == 0 ) {
-									status[nebrs[j]] = level + 1;
-									++frontier;
-								}
+                                if (bitmap.get_bit(nebrs[j]) == 0) {
+                                    bitmap.set_bit(nebrs[j]);
+                                    if (status[nebrs[j]] == 0) {
+                                        status[nebrs[j]] = level + 1;
+                                        ++frontier;
+                                    }
+                                }
 							}
 						}
 						inner_node = inner_node->next;
@@ -493,7 +515,7 @@ ugraph_t::bfs(vertex_t root)
 			}
             }
 		} else { //bottom up
-			#pragma omp parallel num_threads(24) reduction (+:todo) reduction(+:frontier) 
+			#pragma omp parallel num_threads(NUM_THDS) reduction (+:todo) reduction(+:frontier) 
             {
             kinner_node_t*	inner_node = 0;
             vertex_t*		nebrs = 0; 
@@ -552,16 +574,18 @@ ugraph_t::bfs(vertex_t root)
         }
 		double end = mywtime();
 	
-		cout << " Top down = " << top_down << "\t";
+		cout << "Top down = " << top_down;
 		cout << " Level = " << level;
-		cout << " Time = " << end - start << "\t";
-        cout << " Frontier Count = " << frontier << "\t";
+		cout << " Time = " << end - start;
+        cout << " Frontier Count = " << frontier;
         cout << " ToDo = " << todo;
 		cout << endl;
 		
-		if (todo >= 0.03*edge_count || level >= 2) {
+		if (todo >= 0.03*edge_count) {
 			top_down = false;
-		}
+		} else {
+            top_down = true;
+        }
 		++level;
 	} while(frontier);
 }
