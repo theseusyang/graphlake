@@ -293,7 +293,7 @@ kleaf_node_t* ugraph_t::alloc_leaf()
                        MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0 , 0);
         if (MAP_FAILED == leaf_node) {
             leaf_node = (kleaf_node_t*)calloc (mem_leaf, sizeof(kleaf_node_t));
-            cout << "leaf huge page failed" << endl;
+            //cout << "leaf huge page failed" << endl;
         }
         mem_info[tid].leaf_count = 0;
         mem_info[tid].leaf_node_list = leaf_node;
@@ -315,7 +315,7 @@ kinner_node_t* ugraph_t::alloc_inner()
         
         if (MAP_FAILED == inner_node) {
             inner_node = (kinner_node_t*)calloc (mem_inner, sizeof(kinner_node_t));
-            cout << "inner huge page failed" << endl;
+            //cout << "inner huge page failed" << endl;
         }
         mem_info[tid].inner_count = 0;
         mem_info[tid].inner_node_list = inner_node;
