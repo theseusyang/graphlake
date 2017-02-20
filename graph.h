@@ -42,6 +42,10 @@ public:
 	void init_from_csr2(csr_t* data, int sorted);
 	void init(int argc, char* argv[]);
 
+private: 
+    vertex_t read_csr_adj(FILE* f, vertex_t v, index_t* beg_pos, vertex_t* buf); 
+    index_t* read_csr_begpos(string csrfile, vertex_t vert_count);
+
 public:	
 	void pagerank(int iteration_count);
 	void pagerank_async(int iteration_count);

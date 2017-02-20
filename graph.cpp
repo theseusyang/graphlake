@@ -73,41 +73,13 @@ ugraph_t::csr_from_file(string csrfile, vertex_t vert_count, csr_t* data)
 	data->vert_count = vert_count;
     return huge_page;
 }
-/*
-void foo ()
-{
-    index_t io_size = (1<<28);
-    vertex_t* buf = 0;
-    vertex_t* buf1 = 0;
-    vertex v = 0;
-    while (beg_pos[v+1] <= io_size && v < vert_count) {
-        ++v;
-    }
-        
-    struct io_event event;
-    io_context_t ctx = 0;
-    if (io_setup(1, &ctx) < 0) {
-        assert(0);
-    }
-    struct iocb* cb = (struct iocb*) malloc(sizeof(struct iocb));
-    index_t offset = 0;
-    index_t size = beg_pos[v];
-    io_prep_pread(cb, fd, buf, size, offset);
-    offset += size;
-    if (io_submit(ctx, 1, &cb)!= 1) {
-        assert(0);
-    }
-    if (1 != io_getevents(ctx, 1, 1, event, 0)) {
-        assert(0);
-    }
-}
-*/
 
 
-void
-ugraph_t::init_from_csr_pipelined(string csrfile, vertex_t vert_count, int sorted)
+// 1<<28
+#define io_size 268435456 
+
+index_t*  ugraph_t::read_csr_begpos(string csrfile, vertex_t vert_count)
 {
-	csr_t data;
     string file = csrfile + ".beg_pos";
     struct stat st_count;
     stat(file.c_str(), &st_count);
@@ -118,45 +90,61 @@ ugraph_t::init_from_csr_pipelined(string csrfile, vertex_t vert_count, int sorte
     index_t* beg_pos = (index_t*) malloc(st_count.st_size);
     assert(beg_pos);
     fread(beg_pos, sizeof(index_t), vert_count + 1, f);
-	index_t edge_count = beg_pos[vert_count];
     fclose(f);
-	
-    udata.adj_list = (adj_list_t*)mmap(NULL, sizeof(adj_list_t)*vert_count, 
+    return beg_pos;
+}
+vertex_t ugraph_t::read_csr_adj(FILE* f, vertex_t v, index_t* beg_pos, vertex_t* buf )
+{
+    index_t prior =  beg_pos[v];
+    vertex_t u = v;
+    while (beg_pos[u+1] - prior <= io_size && u < udata.vert_count) {
+        ++u;
+    }
+    index_t io_count = beg_pos[u] - prior;
+    assert(io_count <= io_size);
+    fread(buf, sizeof(vertex_t), io_count , f);
+    return u - v;
+}
+
+void
+ugraph_t::init_from_csr_pipelined(string csrfile, vertex_t vert_count, int sorted)
+{
+	csr_t data;
+    index_t* beg_pos = read_csr_begpos(csrfile, vert_count);
+    index_t edge_count = beg_pos[vert_count];
+    
+    // New format
+    adj_list_t* adj_list = (adj_list_t*)mmap(NULL, sizeof(adj_list_t)*vert_count, 
                        PROT_READ|PROT_WRITE,
                        MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_1GB, 0 , 0);
     
-    if (MAP_FAILED == udata.adj_list) {
-    	udata.adj_list = (adj_list_t*)malloc(sizeof(adj_list_t)*vert_count);
+    if (MAP_FAILED == adj_list) {
+    	adj_list = (adj_list_t*)malloc(sizeof(adj_list_t)*vert_count);
         cout << "Huge Page: udata.adj_list allocation failed " << endl;
     }
 
 	udata.vert_count	= vert_count;
+    udata.adj_list      = adj_list;
 
     //Read first chunk from csr adj list file
-    file = csrfile + ".adj";
+    string file = csrfile + ".adj";
     struct stat st_edge;
     stat(file.c_str(), &st_edge);
     assert(st_edge.st_size == sizeof(vertex_t)*edge_count);
-    f = fopen(file.c_str(), "rb");
+    
+    FILE* f = fopen(file.c_str(), "rb");
     assert(f != 0);
     setbuf(f, 0);
     
-    index_t io_size = (1<<28);
     index_t prior = 0;
     vertex_t* buf = (vertex_t*) calloc(sizeof(vertex_t), io_size);
     vertex_t* buf1 = (vertex_t*) calloc(sizeof(vertex_t), io_size);
     
     vertex_t u = 0, v = 0;
-    while (beg_pos[v+1] <= io_size && v < vert_count) {
-        ++v;
-    }
-    index_t io_count = beg_pos[v];
-    fread(buf1, sizeof(vertex_t), io_count , f);
+    v = read_csr_adj(f, v, beg_pos, buf1);
     data.beg_pos = beg_pos;
     data.adj_list = buf1;
         
-    adj_list_t* adj_list = udata.adj_list;
-
     do {
         vertex_t v1 = u;
         vertex_t v2 = v;
@@ -171,14 +159,11 @@ ugraph_t::init_from_csr_pipelined(string csrfile, vertex_t vert_count, int sorte
 
         #pragma omp master 
         {
+
             prior =  beg_pos[v];
-            u = v;
-            while (beg_pos[u+1] - prior <= io_size && u < vert_count) {
-                ++u;
+            if (v < vert_count) {
+                u = v + read_csr_adj(f, v, beg_pos, buf);
             }
-            io_count = beg_pos[u] - prior;
-            assert(io_count <= io_size);
-            fread(buf, sizeof(vertex_t), io_count , f);
         }
 
         #pragma omp for schedule (dynamic, 256)
