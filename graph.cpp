@@ -98,7 +98,46 @@ index_t*  ugraph_t::read_csr_begpos(string csrfile, vertex_t vert_count)
     fclose(f);
     return beg_pos;
 }
+
 /*
+vertex_t ugraph_t::read_csr_adj(int f, vertex_t v, index_t* beg_pos, vertex_t* buf)
+{
+    vertex_t        u = v;
+    
+    index_t     prior       = beg_pos[v];
+    index_t     offset      = LOWER_ALIGN(prior);
+    index_t     extra_read  = prior - offset;
+    
+    while (beg_pos[u+1] - offset <= io_size && u < udata.vert_count) {
+        ++u;
+    }
+
+    index_t io_count = UPPER_ALIGN(beg_pos[u]) - offset;
+    assert(io_count <= io_size);
+    index_t size = io_count*sizeof(vertex_t);
+    
+    struct io_event event;
+    io_context_t ctx = 0;
+    if (io_setup(1, &ctx) < 0) {
+        assert(0);
+    }
+   
+    struct iocb** cb = new struct iocb*[1]; 
+    cb[0] = new struct iocb;
+    io_prep_pread(cb[0], f, buf, size, offset);
+    if (1 != io_submit(ctx, 1, cb)) {
+        assert(0);
+    }
+
+    if (1 != io_getevents(ctx, 1, 1, &event, 0)) {
+        assert(0);
+    }
+    io_destroy(ctx);
+    free(cb[0]);
+    free(cb);
+
+    return u - v;
+}
 vertex_t ugraph_t::read_csr_adj(int f, vertex_t v, index_t* beg_pos, vertex_t* buf)
 {
     vertex_t        u = v;
@@ -147,6 +186,7 @@ vertex_t ugraph_t::read_csr_adj(int f, vertex_t v, index_t* beg_pos, vertex_t* b
 
     return u - v;
 }
+
 */
 
 vertex_t ugraph_t::read_csr_adj(FILE* f, vertex_t v, index_t* beg_pos, vertex_t* buf )
@@ -188,13 +228,13 @@ ugraph_t::init_from_csr_pipelined(string csrfile, vertex_t vert_count, int sorte
     stat(file.c_str(), &st_edge);
     assert(st_edge.st_size == sizeof(vertex_t)*edge_count);
     
+    
     FILE* f = fopen(file.c_str(), "rb");
     assert(f != 0);
     setbuf(f, 0);
-
+    
     //int f = open(file.c_str(), O_DIRECT|O_RDONLY);
     
-    index_t prior = 0;
     vertex_t* buf = 0;// = (vertex_t*) calloc(sizeof(vertex_t), io_size);
     vertex_t* buf1 = 0;// = (vertex_t*) calloc(sizeof(vertex_t), io_size);
     
@@ -208,6 +248,7 @@ ugraph_t::init_from_csr_pipelined(string csrfile, vertex_t vert_count, int sorte
         assert(0);
     }
 
+    index_t prior = 0;
     vertex_t u = 0, v = 0;
     v = read_csr_adj(f, v, beg_pos, buf1);
     data.beg_pos = beg_pos;
@@ -227,8 +268,6 @@ ugraph_t::init_from_csr_pipelined(string csrfile, vertex_t vert_count, int sorte
 
         #pragma omp master 
         {
-
-            prior =  beg_pos[v];
             if (v < vert_count) {
                 u = v + read_csr_adj(f, v, beg_pos, buf);
             }
@@ -301,12 +340,20 @@ ugraph_t::init_from_csr_pipelined(string csrfile, vertex_t vert_count, int sorte
             }
         }
         }
+        prior =  beg_pos[v];
         /*
         index_t extra_read = UPPER_ALIGN(prior) - prior;
         if (extra_read) {
             vertex_t* new_buf = buf + 128 - extra_read; 
             memcpy(new_buf, data.adj_list + prior, extra_read*sizeof(vertex_t));
             data.adj_list = new_buf - prior;
+        } else {
+            data.adj_list = buf - prior;
+        }*/
+        /*
+        index_t offset = LOWER_ALIGN(prior);
+        if (prior -  offset) {
+            data.adj_list = buf - offset;
         } else {
             data.adj_list = buf - prior;
         }*/
