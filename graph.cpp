@@ -9,6 +9,8 @@
 #include <assert.h>
 #include <sys/mman.h>
 #include <asm/mman.h>
+#include <fcntl.h>
+#include <libaio.h>
 
 #include "wtime.h"
 #include "graph.h"
@@ -77,6 +79,9 @@ ugraph_t::csr_from_file(string csrfile, vertex_t vert_count, csr_t* data)
 
 // 1<<28
 #define io_size 268435456 
+#define ALIGN_MASK 0xFFFFFFFFFFFF80
+#define UPPER_ALIGN(x) (((x) + 127) & ALIGN_MASK)
+#define LOWER_ALIGN(x) ((x) & ALIGN_MASK)
 
 index_t*  ugraph_t::read_csr_begpos(string csrfile, vertex_t vert_count)
 {
@@ -93,6 +98,57 @@ index_t*  ugraph_t::read_csr_begpos(string csrfile, vertex_t vert_count)
     fclose(f);
     return beg_pos;
 }
+/*
+vertex_t ugraph_t::read_csr_adj(int f, vertex_t v, index_t* beg_pos, vertex_t* buf)
+{
+    vertex_t        u = v;
+    
+    index_t     new_io_size = io_size;
+    index_t     prior       = beg_pos[v];
+    index_t     offset      = UPPER_ALIGN(prior);
+    index_t     extra_read  = offset - prior;
+    vertex_t*   new_buf     = buf;   
+    
+    //Last stage read some bytes extra
+    if (extra_read) {
+        prior += extra_read;
+        new_io_size = io_size - 128;
+        new_buf = buf + 128;
+    }
+    assert(prior == offset);
+
+    while (beg_pos[u+1] - prior <= new_io_size && u < udata.vert_count) {
+        ++u;
+    }
+
+    index_t io_count = UPPER_ALIGN(beg_pos[u]) - prior;
+    assert(io_count <= new_io_size);
+    index_t size = io_count*sizeof(vertex_t);
+    
+    struct io_event event;
+    io_context_t ctx = 0;
+    if (io_setup(1, &ctx) < 0) {
+        assert(0);
+    }
+   
+    struct iocb** cb = new struct iocb*[1]; 
+    cb[0] = new struct iocb;
+    io_prep_pread(cb[0], f, new_buf, size, offset);
+    if (1 != io_submit(ctx, 1, cb)) {
+        assert(0);
+    }
+
+    if (1 != io_getevents(ctx, 1, 1, &event, 0)) {
+        assert(0);
+    }
+    io_destroy(ctx);
+    free(cb[0]);
+    free(cb);
+
+    return u - v;
+}
+*/
+
 vertex_t ugraph_t::read_csr_adj(FILE* f, vertex_t v, index_t* beg_pos, vertex_t* buf )
 {
     index_t prior =  beg_pos[v];
@@ -135,11 +191,23 @@ ugraph_t::init_from_csr_pipelined(string csrfile, vertex_t vert_count, int sorte
     FILE* f = fopen(file.c_str(), "rb");
     assert(f != 0);
     setbuf(f, 0);
+
+    //int f = open(file.c_str(), O_DIRECT|O_RDONLY);
     
     index_t prior = 0;
-    vertex_t* buf = (vertex_t*) calloc(sizeof(vertex_t), io_size);
-    vertex_t* buf1 = (vertex_t*) calloc(sizeof(vertex_t), io_size);
+    vertex_t* buf = 0;// = (vertex_t*) calloc(sizeof(vertex_t), io_size);
+    vertex_t* buf1 = 0;// = (vertex_t*) calloc(sizeof(vertex_t), io_size);
     
+    if(posix_memalign((void**)&buf, 512 , io_size*sizeof(vertex_t))) {
+         perror("posix_memalign");
+        assert(0);
+    }
+    
+    if(posix_memalign((void**)&buf1, 512 , io_size*sizeof(vertex_t))) {
+         perror("posix_memalign");
+        assert(0);
+    }
+
     vertex_t u = 0, v = 0;
     v = read_csr_adj(f, v, beg_pos, buf1);
     data.beg_pos = beg_pos;
@@ -233,6 +301,15 @@ ugraph_t::init_from_csr_pipelined(string csrfile, vertex_t vert_count, int sorte
             }
         }
         }
+        /*
+        index_t extra_read = UPPER_ALIGN(prior) - prior;
+        if (extra_read) {
+            vertex_t* new_buf = buf + 128 - extra_read; 
+            memcpy(new_buf, data.adj_list + prior, extra_read*sizeof(vertex_t));
+            data.adj_list = new_buf - prior;
+        } else {
+            data.adj_list = buf - prior;
+        }*/
         data.adj_list = buf - prior;
         swap(buf, buf1);
         swap(v, u);

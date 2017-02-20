@@ -44,6 +44,7 @@ public:
 
 private: 
     vertex_t read_csr_adj(FILE* f, vertex_t v, index_t* beg_pos, vertex_t* buf); 
+    //vertex_t read_csr_adj(int f, vertex_t v, index_t* beg_pos, vertex_t* buf); 
     index_t* read_csr_begpos(string csrfile, vertex_t vert_count);
 
 public:	
