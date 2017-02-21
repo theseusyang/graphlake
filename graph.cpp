@@ -79,7 +79,7 @@ ugraph_t::csr_from_file(string csrfile, vertex_t vert_count, csr_t* data)
 
 // 1<<28
 //#define io_size 268435456 
-static const index_t io_size = (1L<<33);
+static const index_t io_size = (1L<<28);
 #define ALIGN_MASK 0xFFFFFFFFFFFFFF80
 #define UPPER_ALIGN(x) (((x) + 127) & ALIGN_MASK)
 #define LOWER_ALIGN(x) ((x) & ALIGN_MASK)
@@ -124,7 +124,7 @@ vertex_t ugraph_t::read_csr_adj(int f, vertex_t v, index_t* beg_pos, vertex_t* b
    
     struct iocb** cb = new struct iocb*[1]; 
     cb[0] = new struct iocb;
-    io_prep_pread(cb[0], f, buf, size, offset);
+    io_prep_pread(cb[0], f, buf, size, offset*sizeof(vertex_t));
     if (1 != io_submit(ctx, 1, cb)) {
         assert(0);
     }
@@ -132,6 +132,7 @@ vertex_t ugraph_t::read_csr_adj(int f, vertex_t v, index_t* beg_pos, vertex_t* b
     if (1 != io_getevents(ctx, 1, 1, &event, 0)) {
         assert(0);
     }
+    //cout << "Read from io " << buf[0] << " " << buf[1] << " " << buf[2] << endl;
     io_destroy(ctx);
     free(cb[0]);
     free(cb);
@@ -259,6 +260,11 @@ ugraph_t::init_from_csr_pipelined(string csrfile, vertex_t vert_count, int sorte
         vertex_t v1 = u;
         vertex_t v2 = v;
         cout << v1 << " " << v2 << endl;
+        /*
+        cout << data.adj_list[beg_pos[v1]] << " "  
+             << data.adj_list[beg_pos[v1 + 1]] << " "
+             << data.adj_list[beg_pos[v1 + 2]] << " " << endl;
+        */
         #pragma omp parallel num_threads(NUM_THDS)
         {
         vertex_t* l_adj_list = 0;
