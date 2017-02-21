@@ -93,7 +93,12 @@ index_t*  ugraph_t::read_csr_begpos(string csrfile, vertex_t vert_count)
 	
 	FILE* f = fopen(file.c_str(),"rb");
     assert(f != 0);
-    index_t* beg_pos = (index_t*) malloc(st_count.st_size);
+    index_t* beg_pos = (index_t*)mmap(NULL, st_count.st_size, 
+                       PROT_READ|PROT_WRITE,
+                       MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_1GB, 0 , 0);
+    if (MAP_FAILED == beg_pos) {
+        beg_pos = (index_t*) malloc(st_count.st_size);
+    }
     assert(beg_pos);
     fread(beg_pos, sizeof(index_t), vert_count + 1, f);
     fclose(f);
@@ -242,14 +247,27 @@ ugraph_t::init_from_csr_pipelined(string csrfile, vertex_t vert_count, int sorte
     vertex_t* buf = 0;// = (vertex_t*) calloc(sizeof(vertex_t), io_size);
     vertex_t* buf1 = 0;// = (vertex_t*) calloc(sizeof(vertex_t), io_size);
     
-    if(posix_memalign((void**)&buf, 512 , io_size*sizeof(vertex_t))) {
-         perror("posix_memalign");
-        assert(0);
+    buf = (vertex_t*)mmap(NULL, sizeof(vertex_t)*vert_count, 
+                       PROT_READ|PROT_WRITE,
+                       MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_1GB, 0 , 0);
+    
+    if (MAP_FAILED == buf) {
+        if(posix_memalign((void**)&buf, 512 , io_size*sizeof(vertex_t))) {
+             perror("posix_memalign");
+            assert(0);
+        }
     }
     
-    if(posix_memalign((void**)&buf1, 512 , io_size*sizeof(vertex_t))) {
-         perror("posix_memalign");
-        assert(0);
+    buf1 = (vertex_t*)mmap(NULL, sizeof(vertex_t)*vert_count, 
+                       PROT_READ|PROT_WRITE,
+                       MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_1GB, 0 , 0);
+    
+    if (MAP_FAILED == buf) {
+        if(posix_memalign((void**)&buf1, 512 , io_size*sizeof(vertex_t))) {
+             perror("posix_memalign");
+            assert(0);
+        }
+        cout << "1GB huge page for buf failed" << endl;
     }
 
     index_t prior = 0;
