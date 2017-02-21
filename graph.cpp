@@ -100,6 +100,7 @@ index_t*  ugraph_t::read_csr_begpos(string csrfile, vertex_t vert_count)
     return beg_pos;
 }
 
+/*
 vertex_t ugraph_t::read_csr_adj(int f, vertex_t v, index_t* beg_pos, vertex_t* buf)
 {
     vertex_t        u = v;
@@ -139,7 +140,8 @@ vertex_t ugraph_t::read_csr_adj(int f, vertex_t v, index_t* beg_pos, vertex_t* b
 
     return u - v;
 }
-/*
+*/
+
 vertex_t ugraph_t::read_csr_adj(int f, vertex_t v, index_t* beg_pos, vertex_t* buf)
 {
     vertex_t        u = v;
@@ -174,7 +176,7 @@ vertex_t ugraph_t::read_csr_adj(int f, vertex_t v, index_t* beg_pos, vertex_t* b
    
     struct iocb** cb = new struct iocb*[1]; 
     cb[0] = new struct iocb;
-    io_prep_pread(cb[0], f, new_buf, size, offset);
+    io_prep_pread(cb[0], f, new_buf, size, offset*sizeof(vertex_t));
     if (1 != io_submit(ctx, 1, cb)) {
         assert(0);
     }
@@ -188,7 +190,7 @@ vertex_t ugraph_t::read_csr_adj(int f, vertex_t v, index_t* beg_pos, vertex_t* b
 
     return u - v;
 }
-
+/*
 vertex_t ugraph_t::read_csr_adj(FILE* f, vertex_t v, index_t* beg_pos, vertex_t* buf )
 {
     index_t prior =  beg_pos[v];
@@ -348,7 +350,7 @@ ugraph_t::init_from_csr_pipelined(string csrfile, vertex_t vert_count, int sorte
         }
         }
         prior =  beg_pos[v];
-        /*
+        
         index_t extra_read = UPPER_ALIGN(prior) - prior;
         if (extra_read) {
             vertex_t* new_buf = buf + 128 - extra_read; 
@@ -356,14 +358,15 @@ ugraph_t::init_from_csr_pipelined(string csrfile, vertex_t vert_count, int sorte
             data.adj_list = new_buf - prior;
         } else {
             data.adj_list = buf - prior;
-        }*/
+        }
         
+        /*
         index_t offset = LOWER_ALIGN(prior);
         if (prior -  offset) {
             data.adj_list = buf - offset;
         } else {
             data.adj_list = buf - prior;
-        }
+        }*/
         //data.adj_list = buf - prior;
         swap(buf, buf1);
         swap(v, u);
