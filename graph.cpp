@@ -179,10 +179,11 @@ vertex_t ugraph_t::read_csr_adj(int f, vertex_t v, index_t* beg_pos, vertex_t* b
         assert(0);
     }
    
-    struct iocb** cb = new struct iocb*[1]; 
-    cb[0] = new struct iocb;
-    io_prep_pread(cb[0], f, new_buf, size, offset*sizeof(vertex_t));
-    if (1 != io_submit(ctx, 1, cb)) {
+    struct iocb cb;
+    struct iocb* pcb = &cb;
+     
+    io_prep_pread(pcb, f, new_buf, size, offset*sizeof(vertex_t));
+    if (1 != io_submit(ctx, 1, &pcb)) {
         assert(0);
     }
 
@@ -190,8 +191,6 @@ vertex_t ugraph_t::read_csr_adj(int f, vertex_t v, index_t* beg_pos, vertex_t* b
         assert(0);
     }
     io_destroy(ctx);
-    free(cb[0]);
-    free(cb);
 
     return u - v;
 }
@@ -210,6 +209,185 @@ vertex_t ugraph_t::read_csr_adj(FILE* f, vertex_t v, index_t* beg_pos, vertex_t*
 }
 */
 
+void
+ugraph_t::init_from_csr_pipelined_memory_eff(string csrfile, vertex_t vert_count, int sorted)
+{
+	csr_t data;
+    index_t* beg_pos = read_csr_begpos(csrfile, vert_count);
+    index_t edge_count = beg_pos[vert_count];
+    
+    // New format
+    adj_list_t* adj_list = (adj_list_t*)mmap(NULL, sizeof(adj_list_t)*vert_count, 
+                       PROT_READ|PROT_WRITE,
+                       MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_1GB, 0 , 0);
+    
+    if (MAP_FAILED == adj_list) {
+    	adj_list = (adj_list_t*)malloc(sizeof(adj_list_t)*vert_count);
+        cout << "Huge Page: udata.adj_list allocation failed " << endl;
+    }
+
+	udata.vert_count	= vert_count;
+    udata.adj_list      = adj_list;
+
+    //Read first chunk from csr adj list file
+    string file = csrfile + ".adj";
+    struct stat st_edge;
+    stat(file.c_str(), &st_edge);
+    assert(st_edge.st_size == sizeof(vertex_t)*edge_count);
+    
+/*    
+    FILE* f = fopen(file.c_str(), "rb");
+    assert(f != 0);
+    setbuf(f, 0);
+*/    
+    int f = open(file.c_str(), O_DIRECT|O_RDONLY);
+    
+    vertex_t* buf = 0;// = (vertex_t*) calloc(sizeof(vertex_t), io_size);
+    vertex_t* buf1 = 0;// = (vertex_t*) calloc(sizeof(vertex_t), io_size);
+    
+    buf = (vertex_t*)mmap(NULL, sizeof(vertex_t)*vert_count, 
+                       PROT_READ|PROT_WRITE,
+                       MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_1GB, 0 , 0);
+    
+    if (MAP_FAILED == buf) {
+        if(posix_memalign((void**)&buf, 512 , io_size*sizeof(vertex_t))) {
+             perror("posix_memalign");
+            assert(0);
+        }
+    }
+    
+    buf1 = (vertex_t*)mmap(NULL, sizeof(vertex_t)*vert_count, 
+                       PROT_READ|PROT_WRITE,
+                       MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_1GB, 0 , 0);
+    
+    if (MAP_FAILED == buf) {
+        if(posix_memalign((void**)&buf1, 512 , io_size*sizeof(vertex_t))) {
+             perror("posix_memalign");
+            assert(0);
+        }
+        cout << "1GB huge page for buf failed" << endl;
+    }
+
+    index_t prior = 0;
+    vertex_t u = 0, v = 0;
+    v = read_csr_adj(f, v, beg_pos, buf1);
+    data.beg_pos = beg_pos;
+    data.adj_list = buf1;
+        
+    do {
+        vertex_t v1 = u;
+        vertex_t v2 = v;
+        cout << v1 << " " << v2 << endl;
+        /*
+        cout << data.adj_list[beg_pos[v1]] << " "  
+             << data.adj_list[beg_pos[v1 + 1]] << " "
+             << data.adj_list[beg_pos[v1 + 2]] << " " << endl;
+        */
+        #pragma omp parallel num_threads(NUM_THDS)
+        {
+        vertex_t* l_adj_list = 0;
+        vertex_t degree = 0;
+        int leaf_count = 0;
+        int level1_count = 0;
+        int tid = 0;
+
+        #pragma omp master 
+        {
+            if (v < vert_count) {
+                u = v + read_csr_adj(f, v, beg_pos, buf);
+            }
+        }
+
+        #pragma omp for schedule (dynamic, 256)
+        for (vertex_t i = v1; i < v2; ++i) {
+            degree = data.beg_pos[i + 1] - data.beg_pos[i];
+            l_adj_list = data.adj_list + data.beg_pos[i];
+            adj_list[i].degree = degree;
+            
+            if (!sorted) sort(l_adj_list, l_adj_list + degree);
+            
+            if (degree <= kinline_keys) {
+                for (degree_t j = 0; j < degree; ++j) {
+                    adj_list[i].btree.inplace_keys[j] = l_adj_list[j];
+                }
+            } else if (degree <= kleaf_keys) {
+                adj_list[i].btree.leaf_node = alloc_leaf();
+                adj_list[i].btree.leaf_node->count = degree;
+                memcpy(adj_list[i].btree.leaf_node->keys, 
+                       l_adj_list, 
+                       degree*sizeof(vertex_t));
+                
+            } else {
+                leaf_count = degree/kleaf_keys + (0 != degree % kleaf_keys);
+                level1_count = leaf_count/kinner_values + (0 != leaf_count % kinner_values);
+                
+                kinner_node_t* inner_node = alloc_inner();
+                udata.adj_list[i].btree.inner_node = inner_node;
+                
+                degree_t remaining = degree;
+                int remaining_leaf = leaf_count;
+                degree_t count = kleaf_keys;
+                int inner_count = kinner_keys;
+                kinner_node_t* prev = 0;
+                kleaf_node_t* leaf_node = 0;
+                
+                for (int j = 0; j < level1_count; ++j) {
+                    inner_count = min(kinner_keys, remaining_leaf);
+                    remaining_leaf -= inner_count;
+                    inner_node->count = inner_count;
+                    inner_node->level = 1;
+                
+                    for (int k = 0; k < inner_count; ++k) {
+                        leaf_node = alloc_leaf();
+                        count = min(kleaf_keys, remaining);
+                        remaining -= count;
+                        
+                        leaf_node->count  = count;
+                        leaf_node->sorted = 1;
+                        
+                        memcpy(leaf_node->keys,
+                               l_adj_list, count*sizeof(vertex_t));
+
+                        inner_node->values[k] = leaf_node;
+                        inner_node->keys[k] = leaf_node->keys[0];
+                        
+                        l_adj_list += count;
+                    }
+
+                    prev = inner_node;
+                    if (j != level1_count) {
+                        inner_node = alloc_inner();
+                        prev->next = inner_node;
+                    } else {
+                        prev->next = 0;
+                    }
+                }
+            }
+        }
+        }
+        prior =  beg_pos[v];
+        
+        index_t extra_read = UPPER_ALIGN(prior) - prior;
+        if (extra_read) {
+            vertex_t* new_buf = buf + 128 - extra_read; 
+            memcpy(new_buf, data.adj_list + prior, extra_read*sizeof(vertex_t));
+            data.adj_list = new_buf - prior;
+        } else {
+            data.adj_list = buf - prior;
+        }
+        
+        /*
+        index_t offset = LOWER_ALIGN(prior);
+        if (prior -  offset) {
+            data.adj_list = buf - offset;
+        } else {
+            data.adj_list = buf - prior;
+        }*/
+        //data.adj_list = buf - prior;
+        swap(buf, buf1);
+        swap(v, u);
+    } while (u < vert_count);
+}
 
 void
 ugraph_t::init_from_csr_pipelined(string csrfile, vertex_t vert_count, int sorted)
@@ -537,128 +715,6 @@ kinner_node_t* ugraph_t::alloc_inner()
 }
 
 
-//It will not do a deep copy, memory will be used.
-void
-ugraph_t::init_from_csr2(csr_t* data, int sorted)
-{
-	vertex_t		vert_count = data->vert_count;
-	adj_list_t*		adj_list = (adj_list_t*)malloc(sizeof(adj_list_t)*vert_count);
-	
-	udata.vert_count	= vert_count;
-	udata.adj_list		= adj_list;
-
-	#pragma omp parallel
-	{
-	vertex_t degree = 0;
-	int leaf_count = 0;
-	vertex_t* l_adj_list = 0;
-	int level1_count = 0;
-	#pragma omp for
-	for (vertex_t i = 0; i < vert_count; ++i) {
-		degree = data->beg_pos[i + 1] - data->beg_pos[i];
-		l_adj_list = data->adj_list + data->beg_pos[i];
-		adj_list[i].degree = degree;
-		
-		if (!sorted) sort(l_adj_list, l_adj_list + degree);
-		
-		if (degree <= kinline_keys) {
-			for (degree_t j = 0; j < degree; ++j) {
-				adj_list[i].btree.inplace_keys[j] = l_adj_list[j];
-			}
-		} else if (degree <= kleaf_keys) {
-			adj_list[i].btree.leaf_node = (kleaf_node_t*)malloc(sizeof(kleaf_node_t));
-			adj_list[i].btree.leaf_node->count = degree;
-			memcpy(adj_list[i].btree.leaf_node->keys, 
-				   l_adj_list, 
-				   degree*sizeof(vertex_t));
-			
-		} else {
-			leaf_count = degree/kleaf_keys + (0 != degree % kleaf_keys);
-			level1_count = leaf_count/kinner_values + (0 != leaf_count % kinner_values);
-			
-			kinner_node_t* inner_node = (kinner_node_t*)malloc(sizeof(kinner_node_t));
-			udata.adj_list[i].btree.inner_node = inner_node;
-			
-			degree_t remaining = degree;
-			int remaining_leaf = leaf_count;
-			degree_t count = kleaf_keys;
-			int inner_count = kinner_keys;
-			kinner_node_t* prev = 0;
-			kleaf_node_t* leaf_node = 0;
-			
-			for (int j = 0; j < level1_count; ++j) {
-				inner_count = min(kinner_keys, remaining_leaf);
-				remaining_leaf -= inner_count;
-				inner_node->count = inner_count;
-				inner_node->level = 1;
-			
-				for (int k = 0; k < inner_count; ++k) {
-				
-					leaf_node = (kleaf_node_t*)malloc(sizeof(kleaf_node_t));
-					count = min(kleaf_keys, remaining);
-					remaining -= count;
-					
-					leaf_node->count  = count;
-					leaf_node->sorted = 1;
-					
-					memcpy(leaf_node->keys,
-						   l_adj_list, count*sizeof(vertex_t));
-
-					inner_node->values[k] = leaf_node;
-					inner_node->keys[k] = leaf_node->keys[0];
-					
-					l_adj_list += count;
-				}
-
-				prev = inner_node;
-				inner_node = (kinner_node_t*)malloc(sizeof(kinner_node_t));
-				prev->next = inner_node;
-			}
-
-			//delete last allocation and the link
-			free(inner_node);
-			prev->next = 0;
-		}
-
-		//Make higher node
-		degree_t level_count = level1_count;
-		while (level_count > kinner_values) {
-			degree_t remaining = level_count;
-			level_count = level_count/kinner_values + (0 != level_count % kinner_values);
-			kinner_node_t* tmp_inner_node = (kinner_node_t*)malloc(sizeof(kinner_node_t));
-			kinner_node_t* inner_node	  = udata.adj_list[i].btree.inner_node;
-			int			   level		  = inner_node->level + 1; 
-			
-			udata.adj_list[i].btree.inner_node = tmp_inner_node;
-			
-			kinner_node_t* prev = 0;
-			degree_t inner_count = kinner_keys;	
-			
-			for (int j = 0; j < level_count; ++j) {
-				inner_count = min(kinner_keys, remaining);
-				remaining -= inner_count;
-
-				tmp_inner_node->count = inner_count;
-				tmp_inner_node->level = level;
-			
-				for (int k = 0; k < inner_count; ++k) {
-					tmp_inner_node->values[k] = inner_node;
-					tmp_inner_node->keys[k] = inner_node->keys[0];
-					inner_node = inner_node->next;	
-				}
-
-				prev = tmp_inner_node;
-				tmp_inner_node = (kinner_node_t*)malloc(sizeof(kinner_node_t));
-				prev->next = tmp_inner_node;
-			}
-
-			//delete last allocation and the link
-			free(tmp_inner_node);
-			prev->next = 0;
-		}
-	}
-	}
-}
 
 void
 ugraph_t::bfs(vertex_t root)
@@ -1088,73 +1144,9 @@ void ugraph_t::init(int argc, char* argv[])
             end = mywtime();
             cout << "PageRank time = " << end-start << endl;
             break;    
-    case 3:
-            start = mywtime();
-            tc_count = tc();
-            end = mywtime();
-            cout << "TC time = " << end-start << endl;
-            cout << "TC Count = " << tc_count << endl;
-            break;    
     default:
             assert(0);
     }
 	return ;
 }
 
-index_t ugraph_t::tc()
-{
-	vertex_t vert_count = udata.vert_count;
-	adj_list_t* adj_list   = udata.adj_list;
-	
-	vertex_t v1, v2;
-	degree_t degree;
-	kinner_node_t*	inner_node = 0;
-	vertex_t*		nebrs = 0;
-	int				count = 0;
-	index_t			tc_count = 0;
-
-	for(vertex_t v = 0; v < vert_count; ++v) {
-		degree = udata.adj_list[v].degree;
-		if (degree <= kinline_keys) {//Path 1:
-			nebrs = adj_list[v].btree.inplace_keys;
-			count = degree;
-			for (int j = 0; j < count; ++j) {
-				v1 = v;
-				v2 = nebrs[j];
-				tc_count += intersection(v1, v2);
-			}
-
-		} else if (degree <= kleaf_keys) {//Path 2;
-			nebrs = adj_list[v].btree.leaf_node->keys;
-			count = adj_list[v].btree.leaf_node->count;
-			for (int j = 0; j < count; ++j) {
-				v1 = v;
-				v2 = nebrs[j];
-				tc_count += intersection(v1, v2);
-			}
-
-		} else {//Path 3:
-			inner_node = udata.adj_list[v].btree.inner_node;
-			while (inner_node) {
-				for (int i = 0; i < inner_node->count; ++i) {
-					nebrs = ((kleaf_node_t*)inner_node->values[i])->keys;
-					count = ((kleaf_node_t*)inner_node->values[i])->count;
-					for (int j = 0; j < count; ++j) {
-						v1 = v;
-						v2 = nebrs[j];
-						tc_count += intersection(v1, v2);
-
-					}
-				}
-				inner_node = inner_node->next;
-			}
-		}
-	}
-	return tc_count;
-}
-
-index_t ugraph_t::intersection(vertex_t v1, vertex_t v2)
-{
-
-	return 1;
-}

@@ -39,22 +39,20 @@ public:
 	int csr_from_file(string csrfile, vertex_t vert_count, csr_t *data);
 	void init_from_csr(csr_t* data, int sorted);
     void init_from_csr_pipelined(string csrfile, vertex_t vert_count, int sorted);
-	void init_from_csr2(csr_t* data, int sorted);
 	void init(int argc, char* argv[]);
 
 private: 
     //vertex_t read_csr_adj(FILE* f, vertex_t v, index_t* beg_pos, vertex_t* buf); 
     vertex_t read_csr_adj(int f, vertex_t v, index_t* beg_pos, vertex_t* buf); 
     index_t* read_csr_begpos(string csrfile, vertex_t vert_count);
+    void init_from_csr_pipelined_memory_eff(string csrfile, vertex_t vert_count, int sorted);
 
 public:	
 	void pagerank(int iteration_count);
 	void pagerank_async(int iteration_count);
 	void bfs(vertex_t root);
-	index_t tc();
 
 private:
-	index_t intersection(vertex_t v1, vertex_t v2);	
     kleaf_node_t* alloc_leaf();
     kinner_node_t* alloc_inner();
 
