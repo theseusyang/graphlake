@@ -1,0 +1,3 @@
+CFLAGS=-O3
+graph : graph_csr.h graph_csr.cpp makefile_csr bitmap.h
+	g++ $(CFLAGS) graph_csr.cpp  -o graph_csr -fopenmp -laio
