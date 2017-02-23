@@ -67,6 +67,7 @@ typedef struct __mem_info_t {
 class ugraph_t {
 
 private: 
+    int csr_from_file(string csrfile, vertex_t vert_count, csr_t* data);
     //vertex_t read_csr_adj(FILE* f, vertex_t v, index_t* beg_pos, vertex_t* buf); 
     vertex_t read_csr_adj(int f, vertex_t v, index_t* beg_pos, vertex_t* buf); 
     index_t* read_csr_begpos(string csrfile, vertex_t vert_count);
@@ -76,6 +77,7 @@ public:
 	//void pagerank(int iteration_count);
 	//void pagerank_async(int iteration_count);
 	void bfs(vertex_t root);
+	void bfs_csr(vertex_t root, csr_t* data);
 	
     void init(int argc, char* argv[]);
 

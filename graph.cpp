@@ -36,7 +36,66 @@ static const index_t io_size = (1L<<28);
 #define UPPER_ALIGN(x) (((x) + 127) & ALIGN_MASK)
 #define LOWER_ALIGN(x) ((x) & ALIGN_MASK)
 
+#define ALIGN_MASK_SZ 0xFFFFFFFFFFFFFE00
+#define UPPER_ALIGN_SZ(x) (((x) + 511) & ALIGN_MASK_SZ)
+#define LOWER_ALIGN_SZ(x) ((x) & ALIGN_MASK_SZ)
+
 ugraph_t* g = 0;
+
+int
+ugraph_t::csr_from_file(string csrfile, vertex_t vert_count, csr_t* data)
+{
+    int huge_page = 0;
+    string file = csrfile + ".beg_pos";
+    struct stat st_count;
+    stat(file.c_str(), &st_count);
+    assert(st_count.st_size == (vert_count +1)*sizeof(index_t));
+	
+	FILE* f = fopen(file.c_str(),"rb");
+    assert(f != 0);
+   
+    index_t* beg_pos = (index_t*)mmap(NULL, st_count.st_size, 
+                       PROT_READ|PROT_WRITE,
+                       MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0 , 0);
+    if (MAP_FAILED == beg_pos) {
+        beg_pos = (index_t*) malloc(st_count.st_size);
+        assert(beg_pos);
+    }
+    
+   // index_t* beg_pos = (index_t*) malloc(st_count.st_size);
+   // assert(beg_pos);
+    
+    fread(beg_pos, sizeof(index_t), vert_count + 1, f);
+    fclose(f);
+    data->beg_pos = beg_pos;
+    index_t edge_count = data->beg_pos[vert_count];
+	
+    file = csrfile + ".adj";
+    struct stat st_edge;
+    stat(file.c_str(), &st_edge);
+    assert(st_edge.st_size == sizeof(vertex_t)*edge_count);
+    
+    f = fopen(file.c_str(), "rb");
+    assert(f != 0);
+    setbuf(f, 0);
+
+    
+    data->adj_list = (vertex_t*)mmap(NULL, st_edge.st_size, 
+                       PROT_READ|PROT_WRITE,
+                       MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0 , 0);
+    if (MAP_FAILED == data->adj_list) {
+        cout << "Huge page allocation failed" << endl;
+        huge_page = 0;
+    }
+
+    //data->adj_list = (vertex_t*) malloc(st_edge.st_size);
+    assert(data->adj_list);
+    fread(data->adj_list, sizeof(vertex_t), edge_count , f);
+    fclose(f);
+	
+	data->vert_count = vert_count;
+    return huge_page;
+}
 
 index_t*  ugraph_t::read_csr_begpos(string csrfile, vertex_t vert_count)
 {
@@ -47,60 +106,74 @@ index_t*  ugraph_t::read_csr_begpos(string csrfile, vertex_t vert_count)
 	
 	FILE* f = fopen(file.c_str(),"rb");
     assert(f != 0);
+   
+    /*
     index_t* beg_pos = (index_t*)mmap(NULL, st_count.st_size, 
                        PROT_READ|PROT_WRITE,
-                       MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_1GB, 0 , 0);
+                       MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0 , 0);
     if (MAP_FAILED == beg_pos) {
         beg_pos = (index_t*) malloc(st_count.st_size);
+        assert(beg_pos);
     }
+    */
+
+    index_t* beg_pos = (index_t*) malloc(st_count.st_size);
     assert(beg_pos);
+    
     fread(beg_pos, sizeof(index_t), vert_count + 1, f);
     fclose(f);
     return beg_pos;
 }
 
 /*
-vertex_t ugraph_t::read_csr_adj(int f, vertex_t v, index_t* beg_pos, vertex_t* buf)
+index_t* ugraph_t::read_csr_begpos(string csrfile, vertex_t vert_count)
 {
-    vertex_t        u = v;
+    string file = csrfile + ".beg_pos";
+    struct stat st_count;
+    stat(file.c_str(), &st_count);
+    assert(st_count.st_size == (vert_count +1)*sizeof(index_t));
+	
+	int f = open(file.c_str(), O_DIRECT|O_RDONLY);
+    assert(f != -1);
     
-    index_t     prior       = beg_pos[v];
-    index_t     offset      = LOWER_ALIGN(prior);
-    index_t     extra_read  = prior - offset;
-    
-    while (beg_pos[u+1] - offset <= io_size && u < udata.vert_count) {
-        ++u;
-    }
 
-    index_t io_count = UPPER_ALIGN(beg_pos[u]) - offset;
-    assert(io_count <= io_size);
-    index_t size = io_count*sizeof(vertex_t);
-    
     struct io_event event;
     io_context_t ctx = 0;
     if (io_setup(1, &ctx) < 0) {
         assert(0);
     }
    
-    struct iocb** cb = new struct iocb*[1]; 
-    cb[0] = new struct iocb;
-    io_prep_pread(cb[0], f, buf, size, offset*sizeof(vertex_t));
-    if (1 != io_submit(ctx, 1, cb)) {
+    struct iocb cb;
+    struct iocb* pcb = &cb;
+    
+    index_t size = UPPER_ALIGN_SZ(st_count.st_size);
+    cout << st_count.st_size << " " << size << endl;
+    index_t* beg_pos = 0;
+    / *beg_pos = (index_t*)mmap(NULL, size, 
+                       PROT_READ|PROT_WRITE,
+                       MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_1GB, 0 , 0);
+    
+    if (MAP_FAILED == beg_pos) {* /
+        if(posix_memalign((void**)&beg_pos, 512 , size)) {
+            assert(0);
+        }
+    //}
+    io_prep_pread(pcb, f, beg_pos, size, 0);
+    if (1 != io_submit(ctx, 1, &pcb)) {
         assert(0);
     }
 
     if (1 != io_getevents(ctx, 1, 1, &event, 0)) {
         assert(0);
     }
-    //cout << "Read from io " << buf[0] << " " << buf[1] << " " << buf[2] << endl;
     io_destroy(ctx);
-    free(cb[0]);
-    free(cb);
-
-    return u - v;
+    close(f);
+    cout << beg_pos[0] << " " << beg_pos[1] << " " 
+            << beg_pos[vert_count - 1]<<  " "
+            << beg_pos[vert_count] << endl;
+    return beg_pos;
 }
 */
-
 vertex_t ugraph_t::read_csr_adj(int f, vertex_t v, index_t* beg_pos, vertex_t* buf)
 {
     vertex_t        u = v;
@@ -233,12 +306,8 @@ ugraph_t::init_from_csr(string csrfile, vertex_t vert_count, int sorted)
     do {
         vertex_t v1 = u;
         vertex_t v2 = v;
-        cout << v1 << " " << v2 << endl;
-        /*
-        cout << data.adj_list[beg_pos[v1]] << " "  
-             << data.adj_list[beg_pos[v1 + 1]] << " "
-             << data.adj_list[beg_pos[v1 + 2]] << " " << endl;
-        */
+        //cout << v1 << " " << v2 << endl;
+        
         #pragma omp parallel num_threads(NUM_THDS)
         {
         vertex_t* l_adj_list = 0;
@@ -309,6 +378,14 @@ ugraph_t::init_from_csr(string csrfile, vertex_t vert_count, int sorted)
         swap(buf, buf1);
         swap(v, u);
     } while (u < vert_count);
+    free(beg_pos);
+    if ( -1 == munmap(buf, io_size*sizeof(vertex_t))) {
+        free(buf);
+    }
+    if ( -1 == munmap(buf1, io_size*sizeof(vertex_t))) {
+        free(buf1);
+    }
+
 }
 
 kleaf_node_t* ugraph_t::alloc_leaf(index_t count)
@@ -361,7 +438,107 @@ kinner_node_t* ugraph_t::alloc_inner(index_t count)
     return (kinner_node_t*) malloc(sizeof(kcv_t)*count);
 }
 
+void
+ugraph_t::bfs_csr(vertex_t root, csr_t* data)
+{
+	vertex_t	vert_count = data->vert_count;
+	vertex_t*   adj_list   = data->adj_list;
+    index_t*    beg_pos    = data->beg_pos;
+	index_t		edge_count = (1<< 28);
+	
+    uint8_t* status = (uint8_t*)mmap(NULL, vert_count, 
+                       PROT_READ|PROT_WRITE,
+                       MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0 , 0);
+    if (MAP_FAILED == status) {
+	    status = (uint8_t*)calloc(sizeof(uint8_t), vert_count);
+        cout << "bfs status array, huge page failed" << endl;
+    }
+    Bitmap bitmap(vert_count);
 
+	int				level = 1;
+	int				top_down = 1;
+	vertex_t		frontier = 0;
+	index_t			todo = 0;
+
+	status[root] = 1;
+	
+	do {
+		frontier = 0;
+		todo = 0;
+		double start = mywtime();
+		if (top_down) {
+			#pragma omp parallel num_threads(NUM_THDS) reduction (+:todo) reduction(+:frontier)
+            {
+            vertex_t*		nebrs   = 0; 
+	        vertex_t	    degree	= 0;
+            index_t			count   = 0;
+            #pragma omp for schedule (guided) nowait
+			for (vertex_t v = 0; v < vert_count; ++v) {
+				if (status[v] != level) continue;
+		
+				//based on degree, we need to take alternate paths
+				count = beg_pos[v];
+                degree = beg_pos[v+1] - count;
+				todo += degree;
+
+				nebrs = adj_list + count;
+				count = degree;
+                for (int j = 0; j < count; ++j) {
+                    if (bitmap.get_bit(nebrs[j]) == 0) {
+                        bitmap.set_bit(nebrs[j]);
+                        if (status[nebrs[j]] == 0) {
+                            status[nebrs[j]] = level + 1;
+                            ++frontier;
+                        }
+                    }
+                }
+			}
+            }
+		} else { //bottom up
+			#pragma omp parallel num_threads(NUM_THDS) reduction (+:todo) reduction(+:frontier) 
+            {
+            vertex_t*		nebrs = 0; 
+	        vertex_t	    degree	   = 0;
+            index_t				count = 0;
+            #pragma omp for schedule (static)
+			for (vertex_t v = 0; v < vert_count; ++v) {
+				if (status[v] != 0) continue;
+		
+				//based on degree, we need to take alternate paths
+        
+                count  = beg_pos[v];
+                degree = beg_pos[v+1] - count;
+                nebrs  = adj_list + count;
+				todo += degree;
+                count  = degree;
+                for (int j = 0; j < count; ++j) {
+                    if (status[nebrs[j]] == level) {
+                        status[v] = level + 1;
+                        ++frontier;
+                        break;
+                    }
+                }
+			}
+		}
+        }
+		double end = mywtime();
+	
+		cout << "Top down = " << top_down;
+		cout << " Level = " << level;
+		cout << " Time = " << end - start;
+        cout << " Frontier Count = " << frontier;
+        cout << " ToDo = " << todo;
+		cout << endl;
+		
+		if (todo >= 0.03*edge_count || level == 2) {
+			top_down = false;
+		} else {
+            top_down = true;
+        }
+		++level;
+	} while(frontier);
+
+}
 
 void
 ugraph_t::bfs(vertex_t root)
@@ -742,29 +919,31 @@ void ugraph_t::init(int argc, char* argv[])
 	csr_t data;
     int huge_page = 0;
     double start, end;
-    start = mywtime();
-
-    start = mywtime();
-	init_from_csr(inputfile, vert_count, true);
-    end = mywtime();
-    cout << "Conversion time = " << end - start << endl;
-    
-    /*
-    if(huge_page) {
-        munmap(data.adj_list, data.beg_pos[vert_count]*sizeof(vertex_t));
-    } else {
-        free(data.adj_list);
-    }
-    */
 	index_t tc_count = 0;
   
     switch(job) {
     case 0:
-            start = mywtime();
-            bfs(arg);
-            end = mywtime();
-            cout << "BFS time = " << end-start << endl;
-            break;    
+        start = mywtime();
+        init_from_csr(inputfile, vert_count, true);
+        end = mywtime();
+        cout << "Conversion time = " << end - start << endl;
+        
+        start = mywtime();
+        bfs(arg);
+        end = mywtime();
+        cout << "BFS time = " << end-start << endl;
+        break;    
+    case 10:
+        start = mywtime();
+        csr_from_file(inputfile, vert_count, &data);
+        end = mywtime();
+        cout << "read time = " << end - start << endl;
+        
+        start = mywtime();
+        bfs_csr(arg, &data);
+        end = mywtime();
+        cout << "BFS CSR time = " << end-start << endl;
+        break;    
 /*    case 1:
             start = mywtime();
             pagerank(arg);
