@@ -24,8 +24,8 @@ private:
     int csr_from_file(string csrfile, vertex_t vert_count);
 
 public:	
-	//void pagerank(int iteration_count);
-	//void pagerank_async(int iteration_count);
+	void pagerank(int iteration_count);
+	void pagerank_async(int iteration_count);
 	void bfs(vertex_t root);
 	
     void init(int argc, char* argv[]);

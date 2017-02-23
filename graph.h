@@ -8,8 +8,8 @@ using std::string;
 
 #define NUM_THDS 24
 #define kinline_keys 2
-#define max_kleaf_keys 1024
-#define kleaf_keys 256
+#define max_kleaf_keys 4096
+#define kleaf_keys 1024
 
 typedef int32_t vertex_t;
 typedef int64_t index_t;
@@ -73,7 +73,7 @@ private:
 
 public:	
 	void pagerank(int iteration_count);
-	//void pagerank_async(int iteration_count);
+	void pagerank_async(int iteration_count);
 	void bfs(vertex_t root);
 	
     void init(int argc, char* argv[]);

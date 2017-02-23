@@ -234,76 +234,75 @@ ugraph_t::bfs(vertex_t root)
 
 }
 
-/*
 void
 ugraph_t::pagerank_async(int iteration_count)
 {
-	vertex_t	vert_count = udata.vert_count;
-	adj_list_t* adj_list   = udata.adj_list;
-	rank_t		inv_v_count= 1.0f/vert_count;
-	rank_t*		pr		   = (rank_t*)malloc(sizeof(rank_t)*vert_count);
-	rank_t*		inv_degree = (rank_t*)malloc(sizeof(rank_t)*vert_count);
+	vertex_t	vert_count  = data.vert_count;
+	vertex_t*   adj_list    = data.adj_list;
+    index_t*    beg_pos     = data.beg_pos;
+    rank_t*     pr          = 0;
+    rank_t*     prior_pr    = 0;
+    
+    /*pr = (rank_t*)mmap(NULL, sizeof(rank_t)*vert_count, 
+                       PROT_READ|PROT_WRITE,
+                       MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0 , 0);
+    if (MAP_FAILED == pr) {
+    }*/
+	    pr  = (rank_t*)malloc(sizeof(rank_t)*vert_count);
+        cout << "PR Huge page allocation failed" << endl;
+    
+    /*prior_pr = (rank_t*)mmap(NULL, sizeof(rank_t)*vert_count, 
+                       PROT_READ|PROT_WRITE,
+                       MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0 , 0);
+
+    if (MAP_FAILED == prior_pr) {
+    }*/
+	    prior_pr   = (rank_t*)malloc(sizeof(rank_t)*vert_count);
+        cout << "PR_PRIOR Huge page allocation failed" << endl;
 	
-	for (vertex_t v = 0; v < udata.vert_count; ++v) {
+	rank_t	inv_v_count = 1.0f/vert_count;
+	for (vertex_t v = 0; v < vert_count; ++v) {
 		pr[v] = inv_v_count;
-		if (udata.adj_list[v].degree != 0) {
-			inv_degree[v] = 1.0f/udata.adj_list[v].degree;
-		}
 	}
 
 	
 	for (int iter_count = 0; iter_count < iteration_count; ++iter_count) {
-        #pragma omp parallel num_threads(NUM_THDS)
+        double start = mywtime();
+        vertex_t high_degree = 0;
+        #pragma omp parallel num_threads(NUM_THDS) reduction(+:high_degree)
         {
-        kinner_node_t*	inner_node = 0;
-        rank_t			rank    = 0.0;
+        rank_t			rank    = 0.0f;
+        rank_t      inv_degree  = 0.0f;
         vertex_t*		nebrs   = 0;
-        int				count   = 0;
+        index_t			count   = 0;
         vertex_t	    degree  = 0;
+
         #pragma omp for schedule (static) 
 		for (vertex_t v = 0; v < vert_count; ++v) {
-			degree = adj_list[v].degree;
-			
-			//based on degree, we need to take alternate paths
-			
-			if (degree <= kinline_keys) {//Path 1:
-				nebrs = adj_list[v].btree.inplace_keys;
-				count = degree;
-				for (int j = 0; j < count; ++j) {
-					rank += pr[nebrs[j]];
-				}
-
-			} else if (degree <= kleaf_keys) {//Path 2;
-				nebrs = adj_list[v].btree.leaf_node->keys;
-				count = adj_list[v].btree.leaf_node->count;
-				for (int j = 0; j < count; ++j) {
-					rank += pr[nebrs[j]];
-				}
-
-			} else {//Path 3:
-				inner_node = udata.adj_list[v].btree.inner_node;
-				while (inner_node) {
-					for (int i = 0; i < inner_node->count; ++i) {
-						nebrs = ((kleaf_node_t*)inner_node->values[i])->keys;
-						count = ((kleaf_node_t*)inner_node->values[i])->count;
-						for (int j = 0; j < count; ++j) {
-							rank += pr[nebrs[j]];
-						}
-					}
-					inner_node = inner_node->next;
-				}
+            count = beg_pos[v];
+            nebrs = adj_list + count;
+            degree = beg_pos[v+1] - count;
+            if (degree == 0) continue;
+            inv_degree = 1.0f/degree;
+            count = degree;
+            high_degree += (degree > 4096);
+            rank = 0;
+            for (int j = 0; j < count; ++j) {
+                rank += prior_pr[nebrs[j]];
 			}
 
-			//end path
-
 			//if (iter_count != iteration_count - 1) {
-				rank = (0.15 + 0.85*rank)*inv_degree[v];
+				//rank = (0.15 + 0.85*rank)*inv_degree[v];
+				rank = (0.15 + 0.85*rank)*inv_degree;
 			//} else {
 			//	rank = (0.15 + 0.85*rank);
 			//}
 			pr[v] = rank;//XXX
 		}
         }
+        double end = mywtime();
+        cout << "Iteration Time = " << end - start << endl;
+        cout << "High degree count = " << high_degree << endl;
 	}
 	cout << "PR[0] = " << pr[0] << endl;
 }
@@ -311,80 +310,59 @@ ugraph_t::pagerank_async(int iteration_count)
 void
 ugraph_t::pagerank(int iteration_count)
 {
-	vertex_t	vert_count = udata.vert_count;
-	adj_list_t* adj_list   = udata.adj_list;
+	vertex_t	vert_count  = data.vert_count;
+	vertex_t*   adj_list    = data.adj_list;
+    index_t*    beg_pos     = data.beg_pos;
+    rank_t*     pr          = 0;
+    rank_t*     prior_pr    = 0;
     
-    rank_t* pr = (rank_t*)mmap(NULL, sizeof(rank_t)*vert_count, 
+    /*pr = (rank_t*)mmap(NULL, sizeof(rank_t)*vert_count, 
                        PROT_READ|PROT_WRITE,
                        MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0 , 0);
     if (MAP_FAILED == pr) {
+    }*/
 	    pr  = (rank_t*)malloc(sizeof(rank_t)*vert_count);
         cout << "PR Huge page allocation failed" << endl;
-    }
     
-    rank_t* prior_pr = (rank_t*)mmap(NULL, sizeof(rank_t)*vert_count, 
+    /*prior_pr = (rank_t*)mmap(NULL, sizeof(rank_t)*vert_count, 
                        PROT_READ|PROT_WRITE,
                        MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0 , 0);
 
     if (MAP_FAILED == prior_pr) {
+    }*/
 	    prior_pr   = (rank_t*)malloc(sizeof(rank_t)*vert_count);
         cout << "PR_PRIOR Huge page allocation failed" << endl;
-    }
 	
 	rank_t	inv_v_count = 1.0f/vert_count;
-	for (vertex_t v = 0; v < udata.vert_count; ++v) {
+	for (vertex_t v = 0; v < vert_count; ++v) {
 		prior_pr[v] = inv_v_count;
 	}
 
 	
 	for (int iter_count = 0; iter_count < iteration_count; ++iter_count) {
         double start = mywtime();
-        #pragma omp parallel num_threads(NUM_THDS)
+        vertex_t high_degree = 0;
+        #pragma omp parallel num_threads(NUM_THDS) reduction(+:high_degree)
         {
-        kinner_node_t*	inner_node = 0;
         rank_t			rank    = 0.0f;
         rank_t      inv_degree  = 0.0f;
         vertex_t*		nebrs   = 0;
-        int				count   = 0;
+        index_t			count   = 0;
         vertex_t	    degree  = 0;
+
         #pragma omp for schedule (static) 
 		for (vertex_t v = 0; v < vert_count; ++v) {
-            
-			degree = adj_list[v].degree;
+            count = beg_pos[v];
+            nebrs = adj_list + count;
+            degree = beg_pos[v+1] - count;
             if (degree == 0) continue;
             inv_degree = 1.0f/degree;
-			
-			//based on degree, we need to take alternate paths
-			
-			if (degree <= kinline_keys) {//Path 1:
-				nebrs = adj_list[v].btree.inplace_keys;
-				count = degree;
-				for (int j = 0; j < count; ++j) {
-					rank += prior_pr[nebrs[j]];
-				}
-
-			} else if (degree <= kleaf_keys) {//Path 2;
-				nebrs = adj_list[v].btree.leaf_node->keys;
-				count = adj_list[v].btree.leaf_node->count;
-				for (int j = 0; j < count; ++j) {
-					rank += prior_pr[nebrs[j]];
-				}
-
-			} else {//Path 3:
-				inner_node = udata.adj_list[v].btree.inner_node;
-				while (inner_node) {
-					for (int i = 0; i < inner_node->count; ++i) {
-						nebrs = ((kleaf_node_t*)inner_node->values[i])->keys;
-						count = ((kleaf_node_t*)inner_node->values[i])->count;
-						for (int j = 0; j < count; ++j) {
-							rank += prior_pr[nebrs[j]];
-						}
-					}
-					inner_node = inner_node->next;
-				}
+            count = degree;
+            high_degree += (degree > 4096);
+            rank = 0;
+            for (int j = 0; j < count; ++j) {
+                rank += prior_pr[nebrs[j]];
 			}
-
-			//end path
 
 			//if (iter_count != iteration_count - 1) {
 				//rank = (0.15 + 0.85*rank)*inv_degree[v];
@@ -398,10 +376,11 @@ ugraph_t::pagerank(int iteration_count)
         swap(pr, prior_pr);
         double end = mywtime();
         cout << "Iteration Time = " << end - start << endl;
+        cout << "High degree count = " << high_degree << endl;
 	}
 	cout << "PR[0] = " << pr[0] << endl;
 }
-*/
+
 int main(int argc, char* argv[])
 {
 	g = new ugraph_t;
@@ -449,20 +428,20 @@ void ugraph_t::init(int argc, char* argv[])
     int huge_page = 0;
     double start, end;
 	index_t tc_count = 0;
+    start = mywtime();
+    csr_from_file(inputfile, vert_count);
+    end = mywtime();
+    cout << "read time = " << end - start << endl;
   
     switch(job) {
     case 0:
-        start = mywtime();
-        csr_from_file(inputfile, vert_count);
-        end = mywtime();
-        cout << "read time = " << end - start << endl;
         
         start = mywtime();
         bfs(arg);
         end = mywtime();
         cout << "BFS CSR time = " << end-start << endl;
         break;    
-/*    case 1:
+    case 1:
             start = mywtime();
             pagerank(arg);
             end = mywtime();
@@ -473,7 +452,7 @@ void ugraph_t::init(int argc, char* argv[])
             pagerank_async(arg);
             end = mywtime();
             cout << "PageRank time = " << end-start << endl;
-            break;   */ 
+            break; 
     default:
             assert(0);
     }
