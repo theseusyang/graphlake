@@ -72,7 +72,7 @@ private:
     void init_from_csr(string csrfile, vertex_t vert_count, int sorted);
 
 public:	
-	//void pagerank(int iteration_count);
+	void pagerank(int iteration_count);
 	//void pagerank_async(int iteration_count);
 	void bfs(vertex_t root);
 	

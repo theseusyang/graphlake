@@ -606,6 +606,7 @@ ugraph_t::pagerank_async(int iteration_count)
 	}
 	cout << "PR[0] = " << pr[0] << endl;
 }
+*/
 
 void
 ugraph_t::pagerank(int iteration_count)
@@ -646,7 +647,7 @@ ugraph_t::pagerank(int iteration_count)
         vertex_t*		nebrs   = 0;
         int				count   = 0;
         vertex_t	    degree  = 0;
-        #pragma omp for schedule (static) 
+        #pragma omp for schedule (guided) nowait 
 		for (vertex_t v = 0; v < vert_count; ++v) {
             
 			degree = adj_list[v].degree;
@@ -662,24 +663,23 @@ ugraph_t::pagerank(int iteration_count)
 					rank += prior_pr[nebrs[j]];
 				}
 
-			} else if (degree <= kleaf_keys) {//Path 2;
-				nebrs = adj_list[v].btree.leaf_node->keys;
-				count = adj_list[v].btree.leaf_node->count;
+			} else if (degree <= max_kleaf_keys) {//Path 2;
+				nebrs = adj_list[v].btree.leaf_node;
+				count = degree;
 				for (int j = 0; j < count; ++j) {
 					rank += prior_pr[nebrs[j]];
 				}
 
 			} else {//Path 3:
-				inner_node = udata.adj_list[v].btree.inner_node;
-				while (inner_node) {
-					for (int i = 0; i < inner_node->count; ++i) {
-						nebrs = ((kleaf_node_t*)inner_node->values[i])->keys;
-						count = ((kleaf_node_t*)inner_node->values[i])->count;
-						for (int j = 0; j < count; ++j) {
-							rank += prior_pr[nebrs[j]];
-						}
-					}
-					inner_node = inner_node->next;
+                inner_node = adj_list[v].btree.inner_node;
+                index_t leaf_count = adj_list[v].leaf_count;
+                for (int i = 0; i < leaf_count; ++i) {
+                    nebrs = inner_node[i].value;
+                    count = inner_node[i].count;
+                    for (int j = 0; j < count; ++j) {
+                        //
+                        rank += prior_pr[nebrs[j]];
+                    }
 				}
 			}
 
@@ -700,7 +700,7 @@ ugraph_t::pagerank(int iteration_count)
 	}
 	cout << "PR[0] = " << pr[0] << endl;
 }
-*/
+
 int main(int argc, char* argv[])
 {
 	g = new ugraph_t;
@@ -749,26 +749,26 @@ void ugraph_t::init(int argc, char* argv[])
     int huge_page = 0;
     double start, end;
 	index_t tc_count = 0;
+        
+    start = mywtime();
+    init_from_csr(inputfile, vert_count, true);
+    end = mywtime();
+    cout << "Conversion time = " << end - start << endl;
   
     switch(job) {
     case 0:
-        start = mywtime();
-        init_from_csr(inputfile, vert_count, true);
-        end = mywtime();
-        cout << "Conversion time = " << end - start << endl;
-        
         start = mywtime();
         bfs(arg);
         end = mywtime();
         cout << "BFS time = " << end-start << endl;
         break;    
-/*    case 1:
+    case 1:
             start = mywtime();
             pagerank(arg);
             end = mywtime();
             cout << "PageRank time = " << end-start << endl;
             break;    
-    case 2:
+/*    case 2:
             start = mywtime();
             pagerank_async(arg);
             end = mywtime();
