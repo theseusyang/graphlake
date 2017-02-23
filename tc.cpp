@@ -177,6 +177,5 @@ index_t tc_t::tc()
 
 index_t tc_t::intersection(vertex_t v1, vertex_t v2)
 {
-
 	return 1;
 }

@@ -22,11 +22,14 @@ class ugraph_t {
 
 private: 
     int csr_from_file(string csrfile, vertex_t vert_count);
+    int rank_by_degree(string csrfile, vertex_t vert_count);
 
 public:	
 	void pagerank(int iteration_count);
 	void pagerank_async(int iteration_count);
 	void bfs(vertex_t root);
+    index_t tc();
+    index_t intersection(vertex_t v1, vertex_t v2);
 	
     void init(int argc, char* argv[]);
 
