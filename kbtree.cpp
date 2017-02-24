@@ -462,46 +462,39 @@ int kbtree_t::intersection(kbtree_t* btree1, kbtree_t* btree2)
 		case 8:
 			return 0;
 		case 9:
-			btree1->intersection00(btree2);
-			break;
+			return btree1->intersection00(btree2);
 
 		case 10:
-			btree2->intersection01(btree1);
-			break;
+			return btree2->intersection01(btree1);
 		
 		case 12:
-			btree2->intersection02(btree1);
-			break;
+			return btree2->intersection02(btree1);
 		
 		case 16:
 			return 0;
 		
 		case 17:
-			btree1->intersection01(btree2);
-			break;
+			return btree1->intersection01(btree2);
 		
 		case 18:
-			btree1->intersection11(btree2);
-			break;
+			return btree1->intersection11(btree2);
 		
 		case 20:
-			btree2->intersection12(btree1);
-			break;
+		    return	btree2->intersection12(btree1);
 
 		case 32:
 			return 0;
 		
 		case 33:
-			btree1->intersection02(btree2);
-			break;
+			return btree1->intersection02(btree2);
 
 		case 34:
-			btree1->intersection12(btree2);
-			break;
+			return btree1->intersection12(btree2);
 
 		case 36:
-			btree1->intersection22(btree2);
+			return btree1->intersection22(btree2);
 		default:
 			assert(0);
 	}
+    return 0;
 }

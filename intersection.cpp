@@ -218,6 +218,14 @@ intersection_inner_inner(int level, void* node1, void* node2, key_t max1, key_t 
 				common += intersection_inner_inner(new_level, inner_node1->values[iter1], 
 												   inner_node2->values[iter2], next_key1, next_key2,
 												   which_iter, prev_iter, done);
+				
+                if (which_iter) { // 1 means LHS
+					iter1 += ((next_key1 <= next_key2) || done);
+					iter2 += (next_key2 <= next_key1);	
+				} else {
+					iter2 += ((next_key2 <= next_key2) || done);
+					iter1 += (next_key1 <= next_key2);
+				}
 
 			} else if (key1 < key2 && next_key1 > key2) {//case 1
 				common += intersection_inner_inner(new_level, inner_node1->values[iter1], 
@@ -238,8 +246,10 @@ intersection_inner_inner(int level, void* node1, void* node2, key_t max1, key_t 
 												    which_iter, prev_iter, done);
 				if (which_iter) { // 1 means LHS
 					iter2 += ((next_key2 <= next_key2) || done);
+					iter1 += (next_key1 <= next_key2);
 				} else {
 					iter1 += ((next_key1 <= next_key2) || done);
+					iter2 += (next_key2 <= next_key1);	
 				}
 			} else {
 				iter1 += (next_key1 <= next_key2);
@@ -338,7 +348,7 @@ int equalize_inner(kinner_node_t* inner_node1, degree_t& iter1, kinner_node_t* i
 
 int kbtree_t::intersection22(kbtree_t* btree2)
 {
-	kinner_node_t* inner_node1 = btree2->btree.inner_node;
+	kinner_node_t* inner_node1 = btree.inner_node;
 	kinner_node_t* inner_node2 = btree2->btree.inner_node;
 	int level1 = inner_node1->level;
 	int level2 = inner_node2->level;
