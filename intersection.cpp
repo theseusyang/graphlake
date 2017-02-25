@@ -235,17 +235,17 @@ intersection_inner_inner(int level, void* node1, void* node2, key_t max1, key_t 
 					iter1 += ((next_key1 <= next_key2) || done);
 					iter2 += (next_key2 <= next_key1);	
 				} else {
-					iter2 += ((next_key2 <= next_key2) || done);
+					iter2 += ((next_key2 <= next_key1) || done);
 					iter1 += (next_key1 <= next_key2);
 				}
 
 			} else if (key2 < key1 && next_key2 > key1) {//case 2
 				which_iter = (next_key1 < next_key2);//1 means next_iter should be of key2 series.
 				common += intersection_inner_inner(new_level, inner_node2->values[iter2], 
-												   inner_node1->values[iter1], next_key1, next_key2,
+												   inner_node1->values[iter1], next_key2, next_key1,
 												    which_iter, prev_iter, done);
 				if (which_iter) { // 1 means LHS
-					iter2 += ((next_key2 <= next_key2) || done);
+					iter2 += ((next_key2 <= next_key1) || done);
 					iter1 += (next_key1 <= next_key2);
 				} else {
 					iter1 += ((next_key1 <= next_key2) || done);

@@ -1,3 +1,9 @@
-CFLAGS=-O3
+CFLAGS=-g
+
+all : graph tc
+
 graph : graph.h graph.cpp kbtree.h kbtree.cpp intersection.cpp makefile_graph bitmap.h
 	g++ $(CFLAGS) graph.cpp kbtree.cpp intersection.cpp  -o graph -fopenmp -laio
+
+tc : tc.h tc.cpp kbtree.h kbtree.cpp intersection.cpp makefile_graph
+	g++ $(CFLAGS) tc.cpp kbtree.cpp intersection.cpp  -o tc -fopenmp -laio

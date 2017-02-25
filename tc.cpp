@@ -231,6 +231,7 @@ index_t tc_t::tc()
 				v1 = v;
 				v2 = nebrs[j];
 				tc_count += intersection(v1, v2);
+                cout << v2 << " : " << tc_count << endl;
 			}
 
 		} else if (degree <= kleaf_keys) {//Path 2;
@@ -240,6 +241,7 @@ index_t tc_t::tc()
 				v1 = v;
 				v2 = nebrs[j];
 				tc_count += intersection(v1, v2);
+                cout << v2 << " : " << tc_count << endl;
 			}
 
 		} else {//Path 3:
@@ -252,6 +254,7 @@ index_t tc_t::tc()
 						v1 = v;
 						v2 = nebrs[j];
 						tc_count += intersection(v1, v2);
+                        cout << v2 << " : " << tc_count << endl;
 
 					}
 				}
@@ -265,7 +268,10 @@ index_t tc_t::tc()
 
 index_t tc_t::intersection(vertex_t v1, vertex_t v2)
 {
-    return adj_list_t::intersection(&udata.adj_list[v1], &udata.adj_list[v2]); 
+    adj_list_t* list1 = udata.adj_list + v1;
+    adj_list_t* list2 = udata.adj_list + v2;
+    cout << list1->degree << " " << list2->degree << endl;; 
+    return adj_list_t::intersection(list1, list2); 
 }
 
 int main(int argc, char* argv[])
