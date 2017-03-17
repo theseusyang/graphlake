@@ -2,6 +2,10 @@
 #include <string.h>
 #include <assert.h>
 #include <algorithm>
+#include <iostream>
+using std::cout;
+using std::endl;
+
 #include "kbtree.h"
 
 static int
@@ -172,7 +176,6 @@ static int
 intersection_inner_inner(int level, void* node1, void* node2, key_t max1, key_t max2,
 						 int which_iter, degree_t& past_iter, int& done)
 {
-
 	key_t*		keys1;
 	key_t*		keys2;
 	degree_t	count1;
@@ -189,7 +192,6 @@ intersection_inner_inner(int level, void* node1, void* node2, key_t max1, key_t 
 
 	//XXX use it to terminate early in the right side comparison 
 	degree_t	next_iter = 0;	//will apply to LHS iter
-	
 	degree_t	prev_iter = 0; //will apply to LHS iter
 	
 	int common = 0;
@@ -271,12 +273,16 @@ intersection_inner_inner(int level, void* node1, void* node2, key_t max1, key_t 
 			common += (key1 == key2);
 			iter1 += (key1 <= key2);
 			iter2 += (key2 <= key1);
+            /*
+            if (key1 == key2) {
+                cout << key1 << endl;
+            }*/
 		}
 	}
 
 	if (which_iter == 1) { 
 		done = (iter1 == count1);
-		past_iter = iter1;
+		past_iter = iter1; // we loose the prev_iter a depth below.
 	} else {
 		done = (iter2 == count2);
 		past_iter = iter2;
@@ -288,13 +294,14 @@ intersection_inner_inner(int level, void* node1, void* node2, key_t max1, key_t 
 }
 
 //inner_node1 has smaller depth
-int equalize_inner(kinner_node_t* inner_node1, degree_t& iter1, kinner_node_t* inner_node2, key_t max1, key_t max2)
+int equalize_inner(kinner_node_t* inner_node1, degree_t& iter1,
+                   kinner_node_t* inner_node2, 
+                   key_t max1, key_t max2)
 {
 	int level1 = inner_node1->level;
 	int level2 = inner_node2->level;
 	int level = level2 - level1;
 	int common = 0;
-	
 	
 	if (level > 0) {
 		key_t*		keys1	= inner_node1->keys;
@@ -306,7 +313,7 @@ int equalize_inner(kinner_node_t* inner_node1, degree_t& iter1, kinner_node_t* i
 		key_t		key2;
 		key_t		next_key1;
 		key_t		next_key2;
-		
+	
 		degree_t	iter2	= 0;
 
 		degree_t	prev_iter = 0; //will apply to LHS iter
@@ -315,35 +322,41 @@ int equalize_inner(kinner_node_t* inner_node1, degree_t& iter1, kinner_node_t* i
 		while (iter1 < count1 && iter2 < count2) {
 			key1 = keys1[iter1];
 			key2 = keys2[iter2];
+
 			next_key1 = (iter1+1 < count1) ? keys1[iter1+1]: max1;
-			next_key2 = (iter2+1 < count2) ? keys1[iter2+1]: max2;
+			next_key2 = (iter2+1 < count2) ? keys2[iter2+1]: max2;
 
 			if (key1 == key2) { //case 0
 				prev_iter = 0;
-				common += equalize_inner(inner_node1, iter1, 
-									   (kinner_node_t*)inner_node2->values[iter2],
-									   max1, next_key2);
+				common += equalize_inner(inner_node1, iter1,
+                                (kinner_node_t*)inner_node2->values[iter2],
+                                max1, next_key2);
+                ++iter2;	
 
 			} else if (key1 < key2 && next_key1 > key2) {//case 1
-				common += equalize_inner(inner_node1, iter1, 
-									   (kinner_node_t*)inner_node2->values[iter2], 
-									   max1, next_key2);
+				common += equalize_inner(inner_node1, iter1,
+								(kinner_node_t*)inner_node2->values[iter2], 
+								max1, next_key2);
+                ++iter2;	
 
 			} else if (key2 < key1 && next_key2 > key1) {//case 2
-				common += equalize_inner(inner_node1, iter1, 
-									   (kinner_node_t*)inner_node2->values[iter2],
-									   max1, next_key2);
+				common += equalize_inner(inner_node1, iter1,
+								(kinner_node_t*)inner_node2->values[iter2],
+								max1, next_key2);
+                ++iter2;	
 			} else {
 				iter1 += (next_key1 <= next_key2);
-				iter2 += (next_key2 <= next_key1);	
+				iter2 += (next_key2 <= next_key1);
 			}
+				
 		}
 	} else {
 		int done = 0;
-		return intersection_inner_inner(level1, inner_node1, 
-										inner_node2, max1, max2,
-										1, iter1, done);
+		common +=intersection_inner_inner(level1, inner_node1, inner_node2, 
+                                        max1, max2, 1, iter1, done);
+
 	}
+    return common;
 }
 
 int kbtree_t::intersection22(kbtree_t* btree2)

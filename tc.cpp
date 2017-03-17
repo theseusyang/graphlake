@@ -121,6 +121,7 @@ tc_t::init_from_csr2(string csrfile, vertex_t vert_count, int sorted)
 		} else {
 			leaf_count = n/kleaf_keys + (0 != n % kleaf_keys);
 			level1_count = leaf_count/kinner_values + (0 != leaf_count % kinner_values);
+            if (1261529 == i ) cout << leaf_count << " " << level1_count << endl;
 			
 			kinner_node_t* inner_node = (kinner_node_t*)malloc(sizeof(kinner_node_t));
 			adj_list[i].btree.inner_node = inner_node;
@@ -168,7 +169,7 @@ tc_t::init_from_csr2(string csrfile, vertex_t vert_count, int sorted)
 
             //Make higher node
             degree_t level_count = level1_count;
-            while (level_count > kinner_values) {
+            while (level_count > 1) {
                 degree_t remaining = level_count;
                 level_count = level_count/kinner_values + (0 != level_count % kinner_values);
                 kinner_node_t* tmp_inner_node = (kinner_node_t*)malloc(sizeof(kinner_node_t));
@@ -214,15 +215,15 @@ index_t tc_t::tc()
 	index_t			tc_count = 0;
 	
     
-    //#pragma omp parallel num_threads(NUM_THDS) reduction (+:tc_count)
+    #pragma omp parallel num_threads(NUM_THDS) reduction (+:tc_count)
     {
 	vertex_t v1, v2;
 	degree_t degree;
 	kinner_node_t*	inner_node = 0;
 	vertex_t*		nebrs = 0;
 	int				count = 0;
-    //#pragma omp for schedule (guided)
-	for(vertex_t v = 0; v < 1; ++v) {
+    #pragma omp for schedule (guided)
+	for(vertex_t v = 0; v < vert_count; ++v) {
 		degree = udata.adj_list[v].degree;
 		if (degree <= kinline_keys) {//Path 1:
 			nebrs = adj_list[v].btree.inplace_keys;
@@ -231,7 +232,7 @@ index_t tc_t::tc()
 				v1 = v;
 				v2 = nebrs[j];
 				tc_count += intersection(v1, v2);
-                cout << v2 << " : " << tc_count << endl;
+                //cout << v2 << " : " << tc_count << endl;
 			}
 
 		} else if (degree <= kleaf_keys) {//Path 2;
@@ -241,7 +242,7 @@ index_t tc_t::tc()
 				v1 = v;
 				v2 = nebrs[j];
 				tc_count += intersection(v1, v2);
-                cout << v2 << " : " << tc_count << endl;
+                //cout << v2 << " : " << tc_count << endl;
 			}
 
 		} else {//Path 3:
@@ -254,7 +255,7 @@ index_t tc_t::tc()
 						v1 = v;
 						v2 = nebrs[j];
 						tc_count += intersection(v1, v2);
-                        cout << v2 << " : " << tc_count << endl;
+                        //cout << v2 << " : " << tc_count << endl;
 
 					}
 				}
@@ -270,7 +271,7 @@ index_t tc_t::intersection(vertex_t v1, vertex_t v2)
 {
     adj_list_t* list1 = udata.adj_list + v1;
     adj_list_t* list2 = udata.adj_list + v2;
-    cout << list1->degree << " " << list2->degree << endl;; 
+    //cout << list1->degree << " " << list2->degree << endl;; 
     return adj_list_t::intersection(list1, list2); 
 }
 

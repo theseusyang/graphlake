@@ -168,6 +168,7 @@ int ugraph_t::rank_by_degree(string csrfile, vertex_t vert_count)
                 ++j;
             }
         }
+		sort(nebrs1, nebrs1 + j);
     }
 
     data.beg_pos = beg_pos1;
@@ -484,16 +485,18 @@ index_t ugraph_t::tc()
 	
 	index_t			tc_count = 0;
     
-    #pragma omp parallel for num_threads(NUM_THDS) schedule(static) reduction(+:tc_count)
-	for(vertex_t v = 0; v < vert_count; ++v) {
+    //#pragma omp parallel for num_threads(NUM_THDS) schedule(static) reduction(+:tc_count)
+	for(vertex_t v = 0; v < 1; ++v) {
         vertex_t* nebrs = adj_list + beg_pos[v];
         vertex_t degree =  beg_pos[v+1] - beg_pos[v];
+        cout << degree << endl;
 	    vertex_t v1, v2;
 
         for (int j = 0; j < degree; ++j) {
             v1 = v;
             v2 = nebrs[j];
             tc_count += intersection(v1, v2);
+            cout << v2 << " : " << tc_count << endl;
         }
 	}
 	return tc_count;
@@ -509,6 +512,8 @@ index_t ugraph_t::intersection(vertex_t v1, vertex_t v2)
     vertex_t icount1 = 0;
     vertex_t icount2 = 0;
     index_t tc = 0;
+    
+    cout << count1 << " " << count2 << endl; 
 
     while (icount1 < count1 && icount2 < count2) {
         vert1 = nebr1[icount1]; 
@@ -516,6 +521,7 @@ index_t ugraph_t::intersection(vertex_t v1, vertex_t v2)
         icount1 += (vert1 <= vert2);
         icount2 += (vert1 >= vert2);
         tc += (vert1 == vert2);
+        if (vert1 == vert2) cout << vert1 << endl;
     }
 	return tc;
 }
