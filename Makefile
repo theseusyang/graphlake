@@ -1,9 +1,14 @@
 CC=g++
 CFLAGS=-g -Wall  -std=gnu++11  -march=native -fopenmp
 SRC=main.cpp \
-	util.cpp\
-	btree.cpp\
-	kbtree.cpp\
+	graph.cpp\
+	ugraph.cpp\
+	dgraph.cpp\
+	many2one.cpp\
+	enumkv.cpp\
+	stringkv.cpp\
+	intkv.cpp\
+	nt_to_edge.cpp\
 	intersection.cpp\
 	run_query.cpp\
 	query_union.cpp\

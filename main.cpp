@@ -3,13 +3,13 @@
 #include <getopt.h>
 #include <stdlib.h>
 
-#include "rdf.h"
+#include "graph.h"
 
 #define no_argument 0
 #define required_argument 1 
 #define optional_argument 2
 
-using namespace std;
+//using namespace std;
 
 graph* g;
 
@@ -57,12 +57,12 @@ int main(int argc, char* argv[])
 
     switch (convert) {
         case 0:
-            g->prep_meta_nt(idir);
+            g->prep_graph(idir);
             break;
         default:
             break;
     }
 
-    g->run_query(queryfile);
+    //g->run_query(queryfile);
     return 0;
 }

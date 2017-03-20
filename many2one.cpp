@@ -3,11 +3,11 @@
 void many2one_t::batch_update(const string& src, const string& dst)
 {
     vid_t src_id, dst_id;
-    edge_t index = 0;
+    index_t index = 0;
     edge_t* edges = (edge_t*) buf;
 
-    map<string, vid_t> str2vid_iter = str2vid.find(src);
-    if (str2vid::end() == str2vid_iter) {
+    map<string, vid_t>::iterator str2vid_iter = str2vid.find(src);
+    if (str2vid.end() == str2vid_iter) {
         src_id = vert_count++;
         str2vid[src] = src_id;
     } else {
@@ -15,7 +15,7 @@ void many2one_t::batch_update(const string& src, const string& dst)
     }
 
     str2vid_iter = str2vid.find(dst);
-    if (str2vid::end() == str2vid_iter) {
+    if (str2vid.end() == str2vid_iter) {
         dst_id = vert_count++;
         str2vid[dst] = dst_id;
     } else {
@@ -48,7 +48,7 @@ void many2one_t::make_graph_baseline()
     index_t prefix_in = 0;
     for (vid_t j = 0; j < vert_count; ++j) {
         prev_in = beg_pos_in[j];
-        beg_pos_in[j] = prefix;
+        beg_pos_in[j] = prefix_in;
         prefix_in += prev_in;
     }
     beg_pos_in[vert_count] = prefix_in;
@@ -57,7 +57,7 @@ void many2one_t::make_graph_baseline()
     for (index_t i = 0; i < count; ++i) {
         src = edges[i].src_id;
         dst = edges[i].dst_id;
-        adj_list_in[begpos_in[dst]++] = src;
+        adj_list_in[beg_pos_in[dst]++] = src;
         kv_out[src] = dst;
     }
     
@@ -76,15 +76,15 @@ void many2one_t::store_graph_baseline(string dir)
     fclose(f);
     
     file = dir + p_name + ".adj_list_in";
-    FILE* f = fopen(file.c_str(), "wb");
+    f = fopen(file.c_str(), "wb");
     assert(f != 0);
     fwrite(adj_list_in, sizeof(vid_t), beg_pos_in[vert_count], f);
     fclose(f);
     
     file = dir + p_name + ".kv_out";
-    FILE* f = fopen(file.c_str(), "wb");
+    f = fopen(file.c_str(), "wb");
     assert(f != 0);
-    fwrite(kv_out, sizeof(vertex_t), vert_count, f);
+    fwrite(kv_out, sizeof(vid_t), vert_count, f);
     fclose(f);
 }
 

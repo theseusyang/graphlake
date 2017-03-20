@@ -1,12 +1,27 @@
 #pragma once
 
+#include <map>
+#include <string>
+#include <string.h>
+#include <stdint.h>
+#include <iostream>
+#include <stdlib.h>
+#include <assert.h>
+#include <fstream>
+
+
+using std::map;
+using std::cout;
+using std::endl;
+using std::string;
+
 
 inline char* gstrdup(const char* str) 
 {
     return strdup(str);
 }
 
-typedef uint32_t pid_t;
+typedef uint32_t propid_t;
 typedef uint32_t vid_t;
 typedef uint64_t index_t;
 
@@ -25,22 +40,16 @@ enum p_type {
     euint64,
     edate,
     elast
-}
+};
 
 class edge_t {
+public:
     vid_t src_id;
     vid_t dst_id;
 };
 
-map <string, vid_t> str2vid;
-vid_t vert_count = 0;
-
-map <string, pid_t> str2pid;
-p_info_t*       p_info;
-pid_t           p_count = 0;
-
 class p_info_t {
- protected:
+ public:
     char*       p_name;
     void*       buf;
     uint32_t    count;
@@ -50,8 +59,24 @@ class p_info_t {
     void populate_property(const char* property);
     virtual void batch_update(const string& src, const string& dst);
     virtual void make_graph_baseline();
-    virtual void store_graph_baseline();
+    virtual void store_graph_baseline(string dir);
 };
+
+class graph {
+public:
+    graph();
+    void prep_graph(string idirname);
+
+public:
+    p_info_t** p_info;
+    int       p_count;
+    map <string, propid_t> str2pid;
+
+};
+
+extern map <string, vid_t> str2vid;
+extern vid_t vert_count;
+extern graph* g;
 
 class ugraph_t: public p_info_t {
  protected:
@@ -61,7 +86,7 @@ class ugraph_t: public p_info_t {
  public:
     void batch_update(const string& src, const string& dst);
     void make_graph_baseline();
-    void store_graph_baseline();
+    void store_graph_baseline(string dir);
 };
 
 class dgraph_t: public p_info_t {
@@ -74,7 +99,7 @@ class dgraph_t: public p_info_t {
  public:
     void batch_update(const string& src, const string& dst);
     void make_graph_baseline();
-    void store_graph_baseline();
+    void store_graph_baseline(string dir);
 };
 
 class many2one_t: public p_info_t {
@@ -86,15 +111,15 @@ class many2one_t: public p_info_t {
  public:
     void batch_update(const string& src, const string& dst);
     void make_graph_baseline();
-    void store_graph_baseline();
+    void store_graph_baseline(string dir);
 };
 
 class enum8kv_t: public p_info_t {
 protected:
     int8_t*  kv_out;
     
-    index_t* beg_pos_in;
-    vid*     adj_list_in;
+    index_t*   beg_pos_in;
+    vid_t*     adj_list_in;
 
     //mapping between enum and string
     map<string, int8_t> str2enum;
@@ -107,7 +132,7 @@ protected:
     void populate_enum(const char* e); 
     void batch_update(const string& src, const string& dst);
     void make_graph_baseline();
-    void store_graph_baseline();
+    void store_graph_baseline(string dir);
 
 };
 
@@ -117,7 +142,7 @@ class int64kv_t: public p_info_t {
  public:
     void batch_update(const string& src, const string& dst);
     void make_graph_baseline();
-    void store_graph_baseline();
+    void store_graph_baseline(string dir);
 };
 
 
@@ -127,5 +152,5 @@ class stringkv_t: public p_info_t {
  public:
     void batch_update(const string& src, const string& dst);
     void make_graph_baseline();
-    void store_graph_baseline();
+    void store_graph_baseline(string dir);
 };

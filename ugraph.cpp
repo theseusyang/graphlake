@@ -1,21 +1,23 @@
 #include "graph.h"
 
 
-void p_info_t::populate_property(const char* property)
+void p_info_t::populate_property(const char* property_name)
 {
-    p_info[p_count] = this;
-    ++p_count;
-    str2pid[value] = p_count;
-    p_name = gstrdup(value);
+    g->p_info[g->p_count] = this;
+    g->p_count++;
+    g->str2pid[property_name] = g->p_count;
+    
+    p_name = gstrdup(property_name);
 }
 
 void ugraph_t::batch_update(const string& src, const string& dst)
 {
     vid_t src_id, dst_id;
-    edge_t index = 0;
+    index_t index = 0;
     edge_t* edges = (edge_t*) buf;
-    map<string, vid_t> str2vid_iter = str2vid.find(src);
-    if (str2vid::end() == str2vid_iter) {
+
+    map<string, vid_t>::iterator str2vid_iter = str2vid.find(src);
+    if (str2vid.end() == str2vid_iter) {
         src_id = vert_count++;
         str2vid[src] = src_id;
     } else {
@@ -23,7 +25,7 @@ void ugraph_t::batch_update(const string& src, const string& dst)
     }
 
     str2vid_iter = str2vid.find(dst);
-    if (str2vid::end() == str2vid_iter) {
+    if (str2vid.end() == str2vid_iter) {
         dst_id = vert_count++;
         str2vid[dst] = dst_id;
     } else {
@@ -34,7 +36,7 @@ void ugraph_t::batch_update(const string& src, const string& dst)
     edges[index].dst_id = dst_id;
 }
     
-void p_info_t::make_graph_baseline()
+void ugraph_t::make_graph_baseline()
 {
     vid_t src;
     vid_t dst;
@@ -64,8 +66,8 @@ void p_info_t::make_graph_baseline()
     for (index_t i = 0; i < count; ++i) {
         src = edges[i].src_id;
         dst = edges[i].dst_id;
-        adj_list[begpos[src]++] = dst;
-        adj_list[begpos[dst]++] = src;
+        adj_list[beg_pos[src]++] = dst;
+        adj_list[beg_pos[dst]++] = src;
     }
     
     //correcting beg pos
@@ -74,31 +76,17 @@ void p_info_t::make_graph_baseline()
     }
 }
 
-    
-void p_info_t::store_graph_baseline(string dir)
+void ugraph_t::store_graph_baseline(string dir)
 {
-    string file = dir + p_name + ".beg_pos_in";
+    string file = dir + p_name + ".beg_pos";
     FILE* f = fopen(file.c_str(), "wb");
     assert(f != 0);
-    fwrite(beg_pos_in, sizeof(index_t), vert_count + 1, f);
+    fwrite(beg_pos, sizeof(index_t), vert_count + 1, f);
     fclose(f);
     
-    file = dir + p_name + ".adj_list_in";
-    FILE* f = fopen(file.c_str(), "wb");
+    file = dir + p_name + ".adj_list";
+    f = fopen(file.c_str(), "wb");
     assert(f != 0);
-    fwrite(adj_list_in, sizeof(vid_t), beg_pos[vert_count], f);
-    fclose(f);
-    
-    file = dir + p_name + ".beg_pos_out";
-    FILE* f = fopen(file.c_str(), "wb");
-    assert(f != 0);
-    fwrite(beg_pos_out, sizeof(index_t), vert_count + 1, f);
-    fclose(f);
-    
-    file = dir + p_name + ".adj_list_out";
-    FILE* f = fopen(file.c_str(), "wb");
-    assert(f != 0);
-    fwrite(adj_list_out, sizeof(vid_t), beg_pos[vert_count], f);
+    fwrite(adj_list, sizeof(vid_t), beg_pos[vert_count], f);
     fclose(f);
 }
-

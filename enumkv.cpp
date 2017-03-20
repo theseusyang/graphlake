@@ -10,9 +10,9 @@ void enum8kv_t::batch_update(const string& src, const string& dst)
     vid_t src_id;
     int8_t dst_id;
     index_t index = 0;
-    label_int8_t* edges = (label_int64_t*) buf;
+    label_int8_t* edges = (label_int8_t*) buf;
 
-    map<string, vid_t> str2vid_iter = str2vid.find(src);
+    map<string, vid_t>::iterator str2vid_iter = str2vid.find(src);
     if (str2vid.end() == str2vid_iter) {
         src_id = vert_count++;
         str2vid[src] = src_id;
@@ -55,7 +55,7 @@ void enum8kv_t::make_graph_baseline()
     index_t prefix_in = 0;
     for (vid_t j = 0; j < vert_count; ++j) {
         prev_in = beg_pos_in[j];
-        beg_pos_in[j] = prefix;
+        beg_pos_in[j] = prefix_in;
         prefix_in += prev_in;
     }
     beg_pos_in[vert_count] = prefix_in;
@@ -64,7 +64,7 @@ void enum8kv_t::make_graph_baseline()
     for (index_t i = 0; i < count; ++i) {
         src = edges[i].src_id;
         dst = edges[i].dst_id;
-        adj_list_in[begpos_in[dst]++] = src;
+        adj_list_in[beg_pos_in[dst]++] = src;
         kv_out[src] = dst;
     }
     
@@ -74,7 +74,7 @@ void enum8kv_t::make_graph_baseline()
     }
 }
 
-void many2one_t::store_graph_baseline(string dir)
+void enum8kv_t::store_graph_baseline(string dir)
 {
     string file = dir + p_name + ".beg_pos_in";
     FILE* f = fopen(file.c_str(), "wb");
@@ -83,28 +83,28 @@ void many2one_t::store_graph_baseline(string dir)
     fclose(f);
     
     file = dir + p_name + ".adj_list_in";
-    FILE* f = fopen(file.c_str(), "wb");
+    f = fopen(file.c_str(), "wb");
     assert(f != 0);
     fwrite(adj_list_in, sizeof(vid_t), beg_pos_in[vert_count], f);
     fclose(f);
     
     file = dir + p_name + ".kv_out";
-    FILE* f = fopen(file.c_str(), "wb");
+    f = fopen(file.c_str(), "wb");
     assert(f != 0);
-    fwrite(kv_out, sizeof(vertex_t), vert_count, f);
+    fwrite(kv_out, sizeof(vid_t), vert_count, f);
     fclose(f);
 
     //XXX writing enum mapping is pending
 }
 
-void enumkv_t::init_enum(int enumcount)
+void enum8kv_t::init_enum(int enumcount)
 {
     max_count = enumcount;
     ecount = 0;
     enum2str = new char*[enumcount];
 }
 
-void enumkv_t::populate_enum(const char* e)
+void enum8kv_t::populate_enum(const char* e)
 {
     vid_t id = ecount++;
     str2enum[e] = id;

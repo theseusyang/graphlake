@@ -4,7 +4,7 @@
 typedef struct __label_string_t {
     vid_t src_id;
     char* dst_id;
-} label_int64_t;
+} label_string_t;
 
 void stringkv_t::batch_update(const string& src, const string& dst)
 {
@@ -48,6 +48,6 @@ void stringkv_t::store_graph_baseline(string dir)
     string file = dir + p_name + ".kv_out";
     FILE* f = fopen(file.c_str(), "wb");
     assert(f != 0);
-    fwrite(kv_out, sizeof(int64_t), vert_count + 1, f);
+    fwrite(kv_out, sizeof(int64_t), vert_count, f);
     fclose(f);
 }

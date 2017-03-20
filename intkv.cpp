@@ -12,7 +12,7 @@ void int64kv_t::batch_update(const string& src, const string& dst)
     index_t index = 0;
     label_int64_t* edges = (label_int64_t*) buf;
     map<string, vid_t>::iterator str2vid_iter = str2vid.find(src);
-    if (str2vid::end() == str2vid_iter) {
+    if (str2vid.end() == str2vid_iter) {
         src_id = vert_count++;
         str2vid[src] = src_id;
     } else {
@@ -41,11 +41,11 @@ void int64kv_t::make_graph_baseline()
 }
 
     
-void int64_t::store_graph_baseline(string dir)
+void int64kv_t::store_graph_baseline(string dir)
 {
     string file = dir + p_name + ".kv_out";
     FILE* f = fopen(file.c_str(), "wb");
     assert(f != 0);
-    fwrite(kv_out, sizeof(int64_t), vert_count + 1, f);
+    fwrite(kv_out, sizeof(int64_t), vert_count, f);
     fclose(f);
 }

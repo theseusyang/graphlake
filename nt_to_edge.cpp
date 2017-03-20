@@ -5,12 +5,13 @@
 #include <assert.h>
 #include <string>
 #include <map>
+#include "graph.h"
 
-using namespace std;
+using std::ifstream;
 
 void ontology_lubm()
 {
-    p_info_t* info = new info;
+    p_info_t* info = new p_info_t;
     info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#advisor>");
     info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#affiliatedOrganizationOf>");
     info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#affiliateOf>");
@@ -66,20 +67,20 @@ void graph::prep_graph(string idirname)
         
         ifstream file((idirname + "/" + string(ptr->d_name)).c_str());
         file_count++;
-        pid_t pid;
+        propid_t pid;
         while (file >> subject >> predicate >> object >> useless_dot) {
             pid = str2pid[predicate];
-            p_info[pid].batch_update(subject, object);
+            p_info[pid]->batch_update(subject, object);
         }
     }
 
     //make graph
     for (int i = 0; i < p_count; i++) {
-        p_info[pid]->make_graph_baseline();
+        p_info[i]->make_graph_baseline();
     }
 
     //Store graph
     for (int i = 0; i < p_count; i++) {
-        p_info[pid]->store_graph_baseline();
+        p_info[i]->store_graph_baseline(idirname);
     }
 }
