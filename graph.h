@@ -56,7 +56,7 @@ class ugraph_t: public p_info_t {
     void batch_update(const string& src, const string& dst);
     void make_graph_baseline();
     void store_graph_baseline();
-}
+};
 
 class dgraph_t: public p_info_t {
  protected:
@@ -69,7 +69,7 @@ class dgraph_t: public p_info_t {
     void batch_update(const string& src, const string& dst);
     void make_graph_baseline();
     void store_graph_baseline();
-}
+};
 
 class many2one_t: public p_info_t {
  protected:
@@ -83,33 +83,43 @@ class many2one_t: public p_info_t {
     void store_graph_baseline();
 };
 
-
-} 
-
-class enumgraph_t: public many2one_t {
+class enum8kv_t: public p_info_t {
 protected:
+    int8_t*  kv_out;
+    
+    index_t* beg_pos_in;
+    vid*     kv_in;
+
     //mapping between enum and string
-    map<string, vid_t> str2enum;
-    char** enum2str;
-    int     ecount;
-    int     max_count;
+    map<string, int8_t> str2enum;
+    char**      enum2str;
+    int16_t     ecount;
+    int16_t     max_count;
 
  public:
     void init_enum(int enumcount);
     void populate_enum(const char* e); 
     void batch_update(const string& src, const string& dst);
-    //void make_graph_baseline();
-    //void store_graph_baseline();
+    void make_graph_baseline();
+    void store_graph_baseline();
 
 };
 
-class int64kv: public p_info_t {
+class int64kv_t: public p_info_t {
  protected:
-    index_t* beg_pos;
-    vid_t*   adj_list;
-
+    int64_t* kv_out;
  public:
     void batch_update(const string& src, const string& dst);
     void make_graph_baseline();
     void store_graph_baseline();
-}
+};
+
+
+class stringkv_t: public p_info_t {
+ protected:
+    char* kv_out;
+ public:
+    void batch_update(const string& src, const string& dst);
+    void make_graph_baseline();
+    void store_graph_baseline();
+};
