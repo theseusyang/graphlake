@@ -1,5 +1,11 @@
 #pragma once
 
+
+inline char* gstrdup(const char* str) 
+{
+    return strdup(str);
+}
+
 typedef uint32_t pid_t;
 typedef uint32_t vid_t;
 typedef uint64_t index_t;
@@ -88,7 +94,7 @@ protected:
     int8_t*  kv_out;
     
     index_t* beg_pos_in;
-    vid*     kv_in;
+    vid*     adj_list_in;
 
     //mapping between enum and string
     map<string, int8_t> str2enum;
@@ -117,7 +123,7 @@ class int64kv_t: public p_info_t {
 
 class stringkv_t: public p_info_t {
  protected:
-    char* kv_out;
+    char** kv_out;
  public:
     void batch_update(const string& src, const string& dst);
     void make_graph_baseline();
