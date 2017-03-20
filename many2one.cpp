@@ -1,19 +1,11 @@
 #include "graph.h"
 
-
-void p_info_t::populate_property(const char* property)
-{
-    p_info[p_count] = this;
-    ++p_count;
-    str2pid[value] = p_count;
-    p_name = gstrdup(value);
-}
-
-void ugraph_t::batch_update(const string& src, const string& dst)
+void many2one_t::batch_update(const string& src, const string& dst)
 {
     vid_t src_id, dst_id;
     edge_t index = 0;
     edge_t* edges = (edge_t*) buf;
+
     map<string, vid_t> str2vid_iter = str2vid.find(src);
     if (str2vid::end() == str2vid_iter) {
         src_id = vert_count++;
@@ -29,53 +21,53 @@ void ugraph_t::batch_update(const string& src, const string& dst)
     } else {
         dst_id = str2vid_iter->second;
     }
+
     index = count++;
     edges[index].src_id = src_id; 
     edges[index].dst_id = dst_id;
 }
     
-void p_info_t::make_graph_baseline()
+void many2one_t::make_graph_baseline()
 {
     vid_t src;
     vid_t dst;
     edge_t* edges = (edge_t*) buf;
-    beg_pos = (index_t*)calloc(sizeof(index_t), vert_count);
-    adj_list = (vid_t*) calloc (sizeof(vid_t), 2*count);
+    beg_pos_in = (index_t*)calloc(sizeof(index_t), vert_count);
+    adj_list_in = (vid_t*) calloc (sizeof(vid_t), count);
+    kv_out = (vid_t*) calloc(sizeof(vid_t), vert_count);
 
     //estimate 
     for (index_t i = 0; i < count; ++i) {
         src = edges[i].src_id;
         dst = edges[i].dst_id;
-        beg_pos[src]++;
-        beg_pos[dst]++;
+        beg_pos_in[dst]++;
     }
 
     //prefix sum
-    index_t prev;
-    index_t prefix = 0;
+    index_t prev_in;
+    index_t prefix_in = 0;
     for (vid_t j = 0; j < vert_count; ++j) {
-        prev = beg_pos[j];
-        beg_pos[j] = prefix;
-        prefix += prev;
+        prev_in = beg_pos_in[j];
+        beg_pos_in[j] = prefix;
+        prefix_in += prev_in;
     }
-    beg_pos[vert_count] = prefix;
+    beg_pos_in[vert_count] = prefix_in;
     
     //populate
     for (index_t i = 0; i < count; ++i) {
         src = edges[i].src_id;
         dst = edges[i].dst_id;
-        adj_list[begpos[src]++] = dst;
-        adj_list[begpos[dst]++] = src;
+        adj_list_in[begpos_in[dst]++] = src;
+        kv_out[src] = dst;
     }
     
     //correcting beg pos
     for (vid_t j = vert_count; j > 0; j--) {
-        beg_pos[j] = beg_pos[j - 1];
+        beg_pos_in[j] = beg_pos_in[j - 1];
     }
 }
 
-    
-void p_info_t::store_graph_baseline(string dir)
+void many2one_t::store_graph_baseline(string dir)
 {
     string file = dir + p_name + ".beg_pos_in";
     FILE* f = fopen(file.c_str(), "wb");
@@ -86,19 +78,13 @@ void p_info_t::store_graph_baseline(string dir)
     file = dir + p_name + ".adj_list_in";
     FILE* f = fopen(file.c_str(), "wb");
     assert(f != 0);
-    fwrite(adj_list_in, sizeof(vid_t), beg_pos[vert_count], f);
+    fwrite(adj_list_in, sizeof(vid_t), beg_pos_in[vert_count], f);
     fclose(f);
     
-    file = dir + p_name + ".beg_pos_out";
+    file = dir + p_name + ".kv_out";
     FILE* f = fopen(file.c_str(), "wb");
     assert(f != 0);
-    fwrite(beg_pos_out, sizeof(index_t), vert_count + 1, f);
-    fclose(f);
-    
-    file = dir + p_name + ".adj_list_out";
-    FILE* f = fopen(file.c_str(), "wb");
-    assert(f != 0);
-    fwrite(adj_list_out, sizeof(vid_t), beg_pos[vert_count], f);
+    fwrite(kv_out, sizeof(vertex_t), vert_count, f);
     fclose(f);
 }
 

@@ -82,5 +82,4 @@ void graph::prep_graph(string idirname)
     for (int i = 0; i < p_count; i++) {
         p_info[pid]->store_graph_baseline();
     }
-
 }
