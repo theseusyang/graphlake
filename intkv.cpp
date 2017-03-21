@@ -27,6 +27,8 @@ void int64kv_t::batch_update(const string& src, const string& dst)
     
 void int64kv_t::make_graph_baseline()
 {
+    if (count == 0) return;
+
     vid_t src;
     int64_t dst;
     label_int64_t* edges = (label_int64_t*) buf;
@@ -43,6 +45,8 @@ void int64kv_t::make_graph_baseline()
     
 void int64kv_t::store_graph_baseline(string dir)
 {
+    if (count == 0) return;
+
     string file = dir + p_name + ".kv_out";
     FILE* f = fopen(file.c_str(), "wb");
     assert(f != 0);
@@ -92,6 +96,8 @@ void int8kv_t::make_graph_baseline()
 
 void int8kv_t::store_graph_baseline(string dir)
 {
+    if (count == 0) return;
+
     string file = dir + p_name + ".kv_out";
     FILE* f = fopen(file.c_str(), "wb");
     assert(f != 0);

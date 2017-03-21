@@ -2,6 +2,8 @@
 
 void many2one_t::make_graph_baseline()
 {
+    
+    if (count == 0) return;
     vid_t src;
     vid_t dst;
     edge_t* edges = (edge_t*) buf;
@@ -42,6 +44,8 @@ void many2one_t::make_graph_baseline()
 
 void many2one_t::store_graph_baseline(string dir)
 {
+    if (count == 0) return ;
+
     string file = dir + p_name + ".beg_pos_in";
     FILE* f = fopen(file.c_str(), "wb");
     assert(f != 0);
@@ -104,6 +108,8 @@ void one2many_t::make_graph_baseline()
 
 void one2many_t::store_graph_baseline(string dir)
 {
+    if (count == 0) return ;
+
     string file = dir + p_name + ".beg_pos_out";
     FILE* f = fopen(file.c_str(), "wb");
     assert(f != 0);
@@ -143,6 +149,8 @@ void one2one_t::make_graph_baseline()
 
 void one2one_t::store_graph_baseline(string dir)
 {
+    if (count == 0) return ;
+
     string file = dir + p_name + ".kv_in";
     FILE* f = fopen(file.c_str(), "wb");
     assert(f != 0);
@@ -209,6 +217,8 @@ void dgraph_t::make_graph_baseline()
     
 void dgraph_t::store_graph_baseline(string dir)
 {
+    if (count == 0) return ;
+
     string file = dir + p_name + ".beg_pos_in";
     FILE* f = fopen(file.c_str(), "wb");
     assert(f != 0);
@@ -277,6 +287,8 @@ void ugraph_t::make_graph_baseline()
 
 void ugraph_t::store_graph_baseline(string dir)
 {
+    if (count == 0) return ;
+
     string file = dir + p_name + ".beg_pos";
     FILE* f = fopen(file.c_str(), "wb");
     assert(f != 0);

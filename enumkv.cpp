@@ -41,6 +41,8 @@ void enum8kv_t::batch_update(const string& src, const string& dst)
     
 void enum8kv_t::make_graph_baseline()
 {
+    if (count == 0) return;
+
     vid_t src;
     int8_t dst;
     label_int8_t* edges = (label_int8_t*) buf;
@@ -81,6 +83,8 @@ void enum8kv_t::make_graph_baseline()
 
 void enum8kv_t::store_graph_baseline(string dir)
 {
+    if (count == 0) return;
+
     string file = dir + p_name + ".beg_pos_in";
     FILE* f = fopen(file.c_str(), "wb");
     assert(f != 0);

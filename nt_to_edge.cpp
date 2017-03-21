@@ -29,8 +29,11 @@ void graph::prep_graph(string idirname)
         file >> subject >> predicate >> object >> useless_dot;
         file >> subject >> predicate >> object >> useless_dot;
         propid_t pid;
+        map<string, propid_t>::iterator str2pid_iter;
         while (file >> subject >> predicate >> object >> useless_dot) {
-            pid = str2pid[predicate];
+            str2pid_iter = str2pid.find(predicate);
+            if (str2pid_iter == str2pid.end()) assert(0);
+            pid = str2pid_iter->second;
             p_info[pid]->batch_update(subject, object);
             ++nt_count;
         }
@@ -93,7 +96,7 @@ void ontology_lubm()
     
     //info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#researchProject>", "researchProject");
     
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#softwareDocumentation>", "softwareDocumentation");
+    //info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#softwareDocumentation>", "softwareDocumentation");
     
     info = new dgraph_t;
     info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#takesCourse>", "takesCourse");
@@ -139,6 +142,7 @@ void ontology_lubm()
     info = new int64kv_t;
     info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#officeNumber>", "officeNumber");
     
+    info = new stringkv_t;
     info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#researchInterest>", "researchInterest");
     
     info = new int64kv_t;

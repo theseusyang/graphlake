@@ -1,0 +1,28 @@
+CC=g++
+CFLAGS=-g -Wall  -std=gnu++11  -march=native -fopenmp
+SRC=main.cpp \
+	graph.cpp\
+	ugraph.cpp\
+	dgraph.cpp\
+	many2one.cpp\
+	enumkv.cpp\
+	stringkv.cpp\
+	intkv.cpp\
+	nt_to_edge.cpp\
+	intersection.cpp\
+
+HEADER=rdf.h \
+	btree.h\
+	kbtree.h\
+	edges.h\
+
+INCLUDES= -Iantlr4/include -Iantlr4
+LIBDIRS= -Lantlr4/lib
+
+DEPS=$(SRC) $(HEADER)
+
+grdf: $(DEPS)
+	$(CC) $(CFLAGS) $(INCLUDES) $(LIBDIRS) $(SRC)  -o grdf
+
+clean:
+	rm grdf *.o 

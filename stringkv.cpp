@@ -28,6 +28,8 @@ void stringkv_t::batch_update(const string& src, const string& dst)
     
 void stringkv_t::make_graph_baseline()
 {
+    if (count == 0) return;
+
     vid_t src;
     char* dst;
     label_string_t* edges = (label_string_t*) buf;
@@ -44,6 +46,8 @@ void stringkv_t::make_graph_baseline()
     
 void stringkv_t::store_graph_baseline(string dir)
 {
+    if (count == 0) return;
+
     //XXX it is wrong, we are writing the char*, not the string
     string file = dir + p_name + ".kv_out";
     FILE* f = fopen(file.c_str(), "wb");
