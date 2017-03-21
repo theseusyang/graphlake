@@ -52,11 +52,16 @@ is_literal(string str) {
 }
 
 
-void p_info_t::populate_property(const char* property_name)
+void p_info_t::populate_property(const char* longname, const char* property_name)
 {
     g->p_info[g->p_count] = this;
-    g->p_count++;
     g->str2pid[property_name] = g->p_count;
+    g->p_count++;
     
     p_name = gstrdup(property_name);
+    p_longname = gstrdup(longname);
+
+    buf = calloc(sizeof(vid_t), 1000000);
+    count = 0; 
+
 }

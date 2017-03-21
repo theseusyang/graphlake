@@ -5,6 +5,11 @@ typedef struct __label_int8_t {
     int8_t dst_id;
 } label_int8_t;
 
+enum8kv_t::enum8kv_t ()
+{
+    init_enum(256);
+}
+
 void enum8kv_t::batch_update(const string& src, const string& dst)
 {
     vid_t src_id;

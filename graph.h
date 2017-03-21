@@ -51,12 +51,13 @@ public:
 class p_info_t {
  public:
     char*       p_name;
+    char*       p_longname;
     void*       buf;
     uint32_t    count;
     uint32_t    flag;
 
  public:
-    void populate_property(const char* property);
+    void populate_property(const char* longname, const char* property_name);
     virtual void batch_update(const string& src, const string& dst);
     virtual void make_graph_baseline();
     virtual void store_graph_baseline(string dir);
@@ -147,6 +148,7 @@ protected:
     int16_t     max_count;
 
  public:
+    enum8kv_t();
     void init_enum(int enumcount);
     void populate_enum(const char* e); 
     void batch_update(const string& src, const string& dst);
