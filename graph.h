@@ -84,7 +84,6 @@ class ugraph_t: public p_info_t {
     vid_t*   adj_list;
 
  public:
-    void batch_update(const string& src, const string& dst);
     void make_graph_baseline();
     void store_graph_baseline(string dir);
 };
@@ -97,7 +96,6 @@ class dgraph_t: public p_info_t {
     vid_t*   adj_list_out;
 
  public:
-    void batch_update(const string& src, const string& dst);
     void make_graph_baseline();
     void store_graph_baseline(string dir);
 };
@@ -109,11 +107,32 @@ class many2one_t: public p_info_t {
     vid_t*   kv_out;
 
  public:
-    void batch_update(const string& src, const string& dst);
     void make_graph_baseline();
     void store_graph_baseline(string dir);
 };
 
+class one2one_t: public p_info_t {
+ protected:
+    vid_t*   kv_in;
+    vid_t*   kv_out;
+
+ public:
+    void make_graph_baseline();
+    void store_graph_baseline(string dir);
+};
+
+class one2many_t: public p_info_t {
+ protected:
+    index_t* beg_pos_out;
+    vid_t*   adj_list_out;
+    vid_t*   kv_in;
+
+ public:
+    void make_graph_baseline();
+    void store_graph_baseline(string dir);
+};
+
+/*------- labels */
 class enum8kv_t: public p_info_t {
 protected:
     int8_t*  kv_out;
@@ -145,6 +164,14 @@ class int64kv_t: public p_info_t {
     void store_graph_baseline(string dir);
 };
 
+class int8kv_t: public p_info_t {
+ protected:
+    uint8_t* kv_out;
+ public:
+    void batch_update(const string& src, const string& dst);
+    void make_graph_baseline();
+    void store_graph_baseline(string dir);
+};
 
 class stringkv_t: public p_info_t {
  protected:
