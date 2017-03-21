@@ -1,4 +1,47 @@
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <dirent.h>
+#include <assert.h>
+#include <string>
+#include <map>
 #include "graph.h"
+
+
+using std::ifstream;
+
+
+void graph::prep_graph(string idirname)
+{
+    struct dirent *ptr;
+    DIR *dir;
+    dir = opendir(idirname.c_str());
+    string subject, predicate, object, useless_dot;
+    int file_count = 1;
+    
+    //Read graph file
+    while (NULL != (ptr = readdir(dir))) {
+        if (ptr->d_name[0] == '.') continue;
+        
+        ifstream file((idirname + "/" + string(ptr->d_name)).c_str());
+        file_count++;
+        propid_t pid;
+        while (file >> subject >> predicate >> object >> useless_dot) {
+            pid = str2pid[predicate];
+            p_info[pid]->batch_update(subject, object);
+        }
+    }
+
+    //make graph
+    for (int i = 0; i < p_count; i++) {
+        p_info[i]->make_graph_baseline();
+    }
+
+    //Store graph
+    for (int i = 0; i < p_count; i++) {
+        p_info[i]->store_graph_baseline(idirname);
+    }
+}
 
 
 void ontology_lubm()
