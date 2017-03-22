@@ -2,7 +2,7 @@
 
 typedef struct __label_int8_t {
     vid_t src_id;
-    int8_t dst_id;
+    uint8_t dst_id;
 } label_int8_t;
 
 enum8kv_t::enum8kv_t ()
@@ -13,7 +13,7 @@ enum8kv_t::enum8kv_t ()
 void enum8kv_t::batch_update(const string& src, const string& dst)
 {
     vid_t src_id;
-    int8_t dst_id;
+    uint8_t dst_id;
     index_t index = 0;
     label_int8_t* edges = (label_int8_t*) buf;
 
@@ -25,7 +25,7 @@ void enum8kv_t::batch_update(const string& src, const string& dst)
         src_id = str2vid_iter->second;
     }
 
-    map<string, int8_t>::iterator str2enum_iter = str2enum.find(dst);
+    map<string, uint8_t>::iterator str2enum_iter = str2enum.find(dst);
     if (str2enum.end() == str2enum_iter) {
         dst_id = ecount++;
         str2enum[dst] = dst_id;
@@ -44,11 +44,11 @@ void enum8kv_t::make_graph_baseline()
     if (count == 0) return;
 
     vid_t src;
-    int8_t dst;
+    uint8_t dst;
     label_int8_t* edges = (label_int8_t*) buf;
     beg_pos_in = (index_t*)calloc(sizeof(index_t), vert_count);
     adj_list_in = (vid_t*) calloc (sizeof(vid_t), count);
-    kv_out = (int8_t*) calloc(sizeof(int8_t), vert_count);
+    kv_out = (uint8_t*) calloc(sizeof(uint8_t), vert_count);
 
     //estimate 
     for (index_t i = 0; i < count; ++i) {

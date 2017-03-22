@@ -28,12 +28,15 @@ typedef uint64_t index_t;
 enum p_type {
     edgraph, //directed graph
     emany2one, // directed graph many to one such as "advisor"
+    eone2one,
+    eone2many,
     eugraph, // undirected graph
     // All the label properties now
-    eenum,   // value is an enum, such as "type" property
+    eenum8,   // value is an enum, such as "type" property
     estring, // value is a string, such as "name"
     efloat,  // 
     edouble,
+    euint8,
     eint32,
     euint32,
     eint64,
@@ -66,7 +69,7 @@ class p_info_t {
 class graph {
 public:
     graph();
-    void prep_graph(string idirname);
+    void prep_graph(string idirname, string odirname);
 
 public:
     p_info_t** p_info;
@@ -136,13 +139,13 @@ class one2many_t: public p_info_t {
 /*------- labels */
 class enum8kv_t: public p_info_t {
 protected:
-    int8_t*  kv_out;
+    uint8_t*  kv_out;
     
     index_t*   beg_pos_in;
     vid_t*     adj_list_in;
 
     //mapping between enum and string
-    map<string, int8_t> str2enum;
+    map<string, uint8_t> str2enum;
     char**      enum2str;
     int16_t     ecount;
     int16_t     max_count;

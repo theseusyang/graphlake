@@ -56,6 +56,7 @@ void p_info_t::populate_property(const char* longname, const char* property_name
 {
     g->p_info[g->p_count] = this;
     g->str2pid[longname] = g->p_count;
+    flag = g->p_count;
     g->p_count++;
     
     p_name = gstrdup(property_name);

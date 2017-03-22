@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
     string queryfile;
     int convert = -1;
     g = new graph; 
-	while ((o = getopt_long(argc, argv, "i:c:q:vh", longopts, &index)) != -1) {
+	while ((o = getopt_long(argc, argv, "i:c:o:q:vh", longopts, &index)) != -1) {
 		switch(o) {
 			case 'v':
 				cout << "1.0" << endl;
@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
 				break;
 			case 'o':
 				odir = optarg;
-				cout << "output dir = " << idir << endl;
+				cout << "output dir = " << odir << endl;
 				break;
             case 'q':
                 queryfile = optarg;
@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
     switch (convert) {
         case 0:
             ontology_lubm();
-            g->prep_graph(idir);
+            g->prep_graph(idir, odir);
             break;
         default:
             break;

@@ -11,7 +11,7 @@
 using std::ifstream;
 
 
-void graph::prep_graph(string idirname)
+void graph::prep_graph(string idirname, string odirname)
 {
     struct dirent *ptr;
     DIR *dir;
@@ -46,15 +46,21 @@ void graph::prep_graph(string idirname)
 
     //Store graph
     for (int i = 0; i < p_count; i++) {
-        p_info[i]->store_graph_baseline(idirname);
+        p_info[i]->store_graph_baseline(odirname);
     }
 }
 
 
 void ontology_lubm()
 {
-    g->p_info = new p_info_t*[32];
-    p_info_t* info = new many2one_t;
+    p_info_t*  info = 0; 
+    g->p_info       = new p_info_t*[32];
+    
+    info = new enum8kv_t;
+    info->populate_property("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>", "type");
+    
+    
+    info = new many2one_t;
     info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#advisor>", "advisor");
     
     info = new many2one_t;
@@ -120,8 +126,6 @@ void ontology_lubm()
     
     
     /*********************************************/
-    info = new enum8kv_t;
-    info->populate_property("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>", "type");
     
     info = new stringkv_t;
     info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#publicationDate>", "publicationDate");
