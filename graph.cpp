@@ -17,10 +17,12 @@ void p_info_t::batch_update(const string& src, const string& dst)
     index_t index = 0;
     edge_t* edges = (edge_t*) buf;
 
+    //Can we type specific id allocation
     map<string, vid_t>::iterator str2vid_iter = str2vid.find(src);
     if (str2vid.end() == str2vid_iter) {
         src_id = vert_count++;
         str2vid[src] = src_id;
+        assert(0);
     } else {
         src_id = str2vid_iter->second;
     }
@@ -29,6 +31,7 @@ void p_info_t::batch_update(const string& src, const string& dst)
     if (str2vid.end() == str2vid_iter) {
         dst_id = vert_count++;
         str2vid[dst] = dst_id;
+        assert(0);
     } else {
         dst_id = str2vid_iter->second;
     }

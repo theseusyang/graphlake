@@ -15,11 +15,11 @@ void graph::prep_graph(string idirname, string odirname)
 {
     struct dirent *ptr;
     DIR *dir;
-    dir = opendir(idirname.c_str());
     string subject, predicate, object, useless_dot;
     int file_count = 0;
     
-    //Read graph file
+    //Read graph file for vertices
+    dir = opendir(idirname.c_str());
     while (NULL != (ptr = readdir(dir))) {
         if (ptr->d_name[0] == '.') continue;
         
@@ -32,12 +32,43 @@ void graph::prep_graph(string idirname, string odirname)
         map<string, propid_t>::iterator str2pid_iter;
         while (file >> subject >> predicate >> object >> useless_dot) {
             str2pid_iter = str2pid.find(predicate);
-            if (str2pid_iter == str2pid.end()) assert(0);
+            if (str2pid_iter == str2pid.end()) {
+                assert(0);
+            }
             pid = str2pid_iter->second;
-            p_info[pid]->batch_update(subject, object);
-            ++nt_count;
+            if( pid == 0) { // type
+                p_info[pid]->batch_update(subject, object);
+                ++nt_count;
+            }
         }
     }
+    closedir(dir);
+    
+    //Read graph file
+    dir = opendir(idirname.c_str());
+    while (NULL != (ptr = readdir(dir))) {
+        if (ptr->d_name[0] == '.') continue;
+        
+        ifstream file((idirname + "/" + string(ptr->d_name)).c_str());
+        int nt_count= 0;
+        file_count++;
+        file >> subject >> predicate >> object >> useless_dot;
+        file >> subject >> predicate >> object >> useless_dot;
+        propid_t pid;
+        map<string, propid_t>::iterator str2pid_iter;
+        while (file >> subject >> predicate >> object >> useless_dot) {
+            str2pid_iter = str2pid.find(predicate);
+            if (str2pid_iter == str2pid.end()) {
+                assert(0);
+            }
+            pid = str2pid_iter->second;
+            if (pid != 0) { //non-type
+                p_info[pid]->batch_update(subject, object);
+                ++nt_count;
+            }
+        }
+    }
+    closedir(dir);
 
     //make graph
     for (int i = 0; i < p_count; i++) {

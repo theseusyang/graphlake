@@ -22,11 +22,13 @@ inline char* gstrdup(const char* str)
 }
 
 typedef uint32_t propid_t;
-typedef uint32_t vid_t;
+typedef uint64_t vid_t;
+typedef uint32_t superid_t;
 typedef uint64_t index_t;
+typedef uint32_t type_t;
 
 enum p_type {
-    edgraph, //directed graph
+    edgraph, //directed graph, many to many.
     emany2one, // directed graph many to one such as "advisor"
     eone2one,
     eone2many,
@@ -137,6 +139,7 @@ class one2many_t: public p_info_t {
 };
 
 /*------- labels */
+
 class enum8kv_t: public p_info_t {
 protected:
     uint8_t*  kv_out;
@@ -158,6 +161,26 @@ protected:
     void make_graph_baseline();
     void store_graph_baseline(string dir);
 
+};
+
+class typekv_t: public p_info_t {
+ protected:
+    uint8_t*  kv_out;
+    
+    index_t*   beg_pos_in;
+    vid_t*     adj_list_in;
+
+    //mapping between enum and string
+    map<string, uint64_t> str2enum;
+    char**      enum2str;
+    int16_t     ecount;
+    int16_t     max_count;
+ public:
+    typekv_t();
+    void init_enum(int enumcount);
+    void batch_update(const string& src, const string& dst);
+    void make_graph_baseline();
+    void store_graph_baseline(string dir);
 };
 
 class int64kv_t: public p_info_t {
