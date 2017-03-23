@@ -35,7 +35,10 @@ void typekv_t::batch_update(const string& src, const string& dst)
     map<string, vid_t>::iterator str2vid_iter = str2vid.find(src);
     if (str2vid.end() == str2vid_iter) {
         src_id = super_id++;
+        ++vert_count;
         str2vid[src] = src_id;
+        //update the id
+        str2enum[dst] = super_id;
 
     } else {
         src_id = str2vid_iter->second;

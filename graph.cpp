@@ -17,7 +17,6 @@ void p_info_t::batch_update(const string& src, const string& dst)
     index_t index = 0;
     edge_t* edges = (edge_t*) buf;
 
-    //Can we type specific id allocation
     map<string, vid_t>::iterator str2vid_iter = str2vid.find(src);
     if (str2vid.end() == str2vid_iter) {
         src_id = vert_count++;
@@ -26,7 +25,9 @@ void p_info_t::batch_update(const string& src, const string& dst)
     } else {
         src_id = str2vid_iter->second;
     }
-
+    tid_t type_id = TO_TYPE(src_id);
+    flag1 |= (1L << type_id);
+    
     str2vid_iter = str2vid.find(dst);
     if (str2vid.end() == str2vid_iter) {
         dst_id = vert_count++;
@@ -35,6 +36,8 @@ void p_info_t::batch_update(const string& src, const string& dst)
     } else {
         dst_id = str2vid_iter->second;
     }
+    type_id = TO_TYPE(dst_id);
+    flag2 |= (1L << type_id);
 
     index = count++;
     edges[index].src_id = src_id; 
@@ -59,7 +62,6 @@ void p_info_t::populate_property(const char* longname, const char* property_name
 {
     g->p_info[g->p_count] = this;
     g->str2pid[longname] = g->p_count;
-    flag = g->p_count;
     g->p_count++;
     
     p_name = gstrdup(property_name);

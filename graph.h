@@ -58,8 +58,9 @@ class p_info_t {
     char*       p_name;
     char*       p_longname;
     void*       buf;
+    uint64_t    flag;
+    uint64_t    flag2;
     uint32_t    count;
-    uint32_t    flag;
 
  public:
     void populate_property(const char* longname, const char* property_name);

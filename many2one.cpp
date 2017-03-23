@@ -160,16 +160,8 @@ void one2one_t::store_graph_baseline(string dir)
     file = dir + p_name + ".kv_out";
     f = fopen(file.c_str(), "wb");
     assert(f != 0);
-    fwrite(kv_out, sizeof(vid_t), vert_count, f);
-    fclose(f);
-}
+    fwrite(kv_out, sizeof(vid_t), vert_count, f3);
 
-/**************************************/
-void dgraph_t::make_graph_baseline()
-{
-    vid_t src;
-    vid_t dst;
-    edge_t* edges = (edge_t*) buf;
     beg_pos_in = (index_t*)calloc(sizeof(index_t), vert_count);
     adj_list_in = (vid_t*) calloc (sizeof(vid_t), count);
     beg_pos_out = (index_t*)calloc(sizeof(index_t), vert_count);
