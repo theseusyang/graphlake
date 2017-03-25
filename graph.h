@@ -90,25 +90,15 @@ enum p_type {
     elast
 };
 
-class pinfo_t {
- public:
-    char*       p_name;
-    char*       p_longname;
-    void*       buf;
+class pgraph_t: public pinfo_t {
+  public:    
     uint64_t    flag1;
     uint64_t    flag2;
     uint8_t     flag1_count;
     uint8_t     flag2_count;
     uint16_t    unused;
-    uint32_t    count;
-
- public:
-    void populate_property(const char* longname, const char* property_name);
-    virtual void batch_update(const string& src, const string& dst);
-    virtual void make_graph_baseline();
-    virtual void store_graph_baseline(string dir);
-
- //graph specific functions 
+ 
+    //graph specific functions 
  public:
     sgraph_t* prep_sgraph(sflag_t ori_flag, tid_t flag_count);
     void calc_edge_count(sgraph_t* sgraph_out, sgraph_t* sgraph_in, 
@@ -133,9 +123,26 @@ class pinfo_t {
 
     skv_t* prep_skv(sflag_t ori_flag, tid_t flag_count);
     void store_skv(skv_t* skv, sflag_t flag, string dir, string postfix);
-    void fill_kv(skv_t* skv_out, skv_t* skv_in,
+    void fill_skv(skv_t* skv_out, skv_t* skv_in,
                         sflag_t flag1, sflag_t flag2,
                         edge_t* edges, index_t count);
+};
+
+/////////////////////////////////
+class pinfo_t {
+ public:
+    char*       p_name;
+    char*       p_longname;
+    void*       buf;
+    uint32_t    count;
+    
+
+ public:
+    void populate_property(const char* longname, const char* property_name);
+    virtual void batch_update(const string& src, const string& dst);
+    virtual void make_graph_baseline();
+    virtual void store_graph_baseline(string dir);
+
 };
 
 class graph {
@@ -161,7 +168,7 @@ extern graph* g;
 
 /******** graphs **************/
 
-class ugraph_t: public pinfo_t {
+class ugraph_t: public pgraph_t {
  protected:
     sgraph_t* sgraph;
 
@@ -170,7 +177,7 @@ class ugraph_t: public pinfo_t {
     void store_graph_baseline(string dir);
 };
 
-class dgraph_t: public pinfo_t {
+class dgraph_t: public graph_t {
  protected:
     //count is hidden in flag1 and flag2
     sgraph_t* sgraph_out;
@@ -180,7 +187,7 @@ class dgraph_t: public pinfo_t {
     void store_graph_baseline(string dir);
 };
 
-class many2one_t: public pinfo_t {
+class many2one_t: public pgraph_t {
  protected:
     skv_t*     skv_out;
     sgraph_t*  sgraph_in;
@@ -190,7 +197,7 @@ class many2one_t: public pinfo_t {
     void store_graph_baseline(string dir);
 };
 
-class one2one_t: public pinfo_t {
+class one2one_t: public pgraph_t {
  protected:
     skv_t*   skv_in;
     skv_t*   skv_out;
@@ -200,7 +207,7 @@ class one2one_t: public pinfo_t {
     void store_graph_baseline(string dir);
 };
 
-class one2many_t: public pinfo_t {
+class one2many_t: public pgraph_t {
  protected:
     sgraph_t*   sgraph_out;
     skv_t*      skv_in;
@@ -210,7 +217,7 @@ class one2many_t: public pinfo_t {
     void store_graph_baseline(string dir);
 };
 
-/*------- labels */
+/*----------- labels ------------------ */
 typedef enumkv_t<uint8_t> enum8kv_t;
 
 typedef struct __enum_info_t {
@@ -222,24 +229,6 @@ template <class T>
 class typekv_t: enumkv_t<T> {
  public:
     void batch_update(const string& src, const string& dst);
-};
-
-class int64kv_t: public pinfo_t {
- protected:
-    int64_t* kv_out;
- public:
-    void batch_update(const string& src, const string& dst);
-    void make_graph_baseline();
-    void store_graph_baseline(string dir);
-};
-
-class int8kv_t: public pinfo_t {
- protected:
-    uint8_t* kv_out;
- public:
-    void batch_update(const string& src, const string& dst);
-    void make_graph_baseline();
-    void store_graph_baseline(string dir);
 };
 
 class stringkv_t: public pinfo_t {

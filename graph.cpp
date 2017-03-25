@@ -15,8 +15,45 @@ v_id_t graph::get_type_scount(int type)
     return (typekv->vert_id);
 }
 
-//Applicable to mostly graphs, labels should be aware of it.
+/////////////////////////////////////////
 void pinfo_t::batch_update(const string& src, const string& dst)
+{
+    assert(0);
+}
+    
+void pinfo_t::make_graph_baseline()
+{
+    assert(0);
+}
+
+void pinfo_t::store_graph_baseline(string dir)
+{
+    assert(0);
+}
+
+static int 
+is_literal(string str) {
+       return ('<' != str[0]);
+}
+
+void pinfo_t::populate_property(const char* longname, const char* property_name)
+{
+    g->p_info[g->p_count] = this;
+    g->str2pid[longname] = g->p_count;
+    g->p_count++;
+    
+    p_name = gstrdup(property_name);
+    p_longname = gstrdup(longname);
+
+    buf = calloc(sizeof(vid_t), 1000000);
+    count = 0; 
+
+}
+
+
+/************* Semantic graphs  *****************/
+//Applicable to graphs only, labels should be aware of it.
+void pgraph_t::batch_update(const string& src, const string& dst)
 {
     vid_t src_id, dst_id;
     index_t index = 0;
@@ -48,42 +85,9 @@ void pinfo_t::batch_update(const string& src, const string& dst)
     edges[index].src_id = src_id; 
     edges[index].dst_id = dst_id;
 }
-    
-void pinfo_t::make_graph_baseline()
-{
-    assert(0);
-}
-
-void pinfo_t::store_graph_baseline(string dir)
-{
-    assert(0);
-}
-
-static int 
-is_literal(string str) {
-       return ('<' != str[0]);
-}
-
-
-void pinfo_t::populate_property(const char* longname, const char* property_name)
-{
-    g->p_info[g->p_count] = this;
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
-    
-    p_name = gstrdup(property_name);
-    p_longname = gstrdup(longname);
-
-    buf = calloc(sizeof(vid_t), 1000000);
-    count = 0; 
-
-}
-
-
-/************* Super graphs  *****************/
 
 //super bins memory allocation
-sgraph_t* pinfo_t::prep_sgraph(sflag_t ori_flag, tid_t flag_count)
+sgraph_t* pgraph_t::prep_sgraph(sflag_t ori_flag, tid_t flag_count)
 {
     sflag_t flag = ori_flag;
     sgraph_t* sgraph  = (sgraph_t*) calloc (sizeof(sgraph_t), flag_count);
@@ -101,7 +105,7 @@ sgraph_t* pinfo_t::prep_sgraph(sflag_t ori_flag, tid_t flag_count)
 }
 
 //estimate edge count
-void pinfo_t::calc_edge_count(sgraph_t* sgraph_out, sgraph_t* sgraph_in, 
+void pgraph_t::calc_edge_count(sgraph_t* sgraph_out, sgraph_t* sgraph_in, 
                         sflag_t flag1, sflag_t flag2, 
                         edge_t* edges, index_t count)
 {
@@ -129,7 +133,7 @@ void pinfo_t::calc_edge_count(sgraph_t* sgraph_out, sgraph_t* sgraph_in,
 }
 
 //estimate edge count
-void pinfo_t::calc_edge_count_out(sgraph_t* sgraph_out, sflag_t flag1, 
+void pgraph_t::calc_edge_count_out(sgraph_t* sgraph_out, sflag_t flag1, 
                                edge_t* edges, index_t count)
 {
     superid_t src, dst;
@@ -150,7 +154,7 @@ void pinfo_t::calc_edge_count_out(sgraph_t* sgraph_out, sflag_t flag1,
     }
 }
 //estimate edge count
-void pinfo_t::calc_edge_count_in(sgraph_t* sgraph_in, sflag_t flag2, 
+void pgraph_t::calc_edge_count_in(sgraph_t* sgraph_in, sflag_t flag2, 
                                edge_t* edges, index_t count)
 {
     superid_t src, dst;
@@ -171,7 +175,7 @@ void pinfo_t::calc_edge_count_in(sgraph_t* sgraph_in, sflag_t flag2,
 }
 
 //prefix sum, allocate adj list memory then reset the count
-void pinfo_t::prep_sgraph_internal(sgraph_t* sgraph, index_t edge_count, tid_t sgraph_count)
+void pgraph_t::prep_sgraph_internal(sgraph_t* sgraph, index_t edge_count, tid_t sgraph_count)
 {
     vid* adj_list = (vid_t*) calloc (sizeof(vid_t), edge_count);
     
@@ -190,7 +194,7 @@ void pinfo_t::prep_sgraph_internal(sgraph_t* sgraph, index_t edge_count, tid_t s
     }
 }
 
-void pinfo_t::fill_adj_list(sgraph_t* sgraph_out, sgraph_t* sgraph_in,
+void pgraph_t::fill_adj_list(sgraph_t* sgraph_out, sgraph_t* sgraph_in,
                            sflag_t flag1, sflag_t flag2,
                            edge_t* edges, index_t count)
 {
@@ -222,7 +226,7 @@ void pinfo_t::fill_adj_list(sgraph_t* sgraph_out, sgraph_t* sgraph_in,
     }
 }
 
-void pinfo_t::fill_adj_list_in(skv_t* skv_out, sgraph_t* sgraph_in, 
+void pgraph_t::fill_adj_list_in(skv_t* skv_out, sgraph_t* sgraph_in, 
                               sflag_t flag1, sflag_t flag2,
                            edge_t* edges, index_t count)
 {
@@ -254,7 +258,7 @@ void pinfo_t::fill_adj_list_in(skv_t* skv_out, sgraph_t* sgraph_in,
     }
 }
 
-void pinfo_t::fill_adj_list_out(sgraph_t* sgraph_out, skv_t* skv_in, 
+void pgraph_t::fill_adj_list_out(sgraph_t* sgraph_out, skv_t* skv_in, 
                                sflag_t flag1, sflag_t flag2,
                                edge_t* edges, index_t count)
 {
@@ -285,7 +289,7 @@ void pinfo_t::fill_adj_list_out(sgraph_t* sgraph_out, skv_t* skv_in,
     }
 }
 
-void pinfo_t::store_sgraph(sgraph_t* sgraph, sflag_t flag, string dir, string postfix)
+void pgraph_t::store_sgraph(sgraph_t* sgraph, sflag_t flag, string dir, string postfix)
 {
     //base name using relationship type
     string basefile = dir + p_name;
@@ -331,7 +335,7 @@ void pinfo_t::store_sgraph(sgraph_t* sgraph, sflag_t flag, string dir, string po
 
 /******************** super kv *************************/
 //super bins memory allocation
-skv_t* pinfo_t::prep_skv(sflag_t ori_flag, tid_t flag_count)
+skv_t* pgraph_t::prep_skv(sflag_t ori_flag, tid_t flag_count)
 {
     sflag_t flag = ori_flag;
     skv_t*  skv  = (skv_t*) calloc (sizeof(skv_t), flag_count);
@@ -348,7 +352,7 @@ skv_t* pinfo_t::prep_skv(sflag_t ori_flag, tid_t flag_count)
     return skv;
 }
 
-void pinfo_t::store_skv(skv_t* skv, sflag_t flag, string dir, string postfix)
+void pgraph_t::store_skv(skv_t* skv, sflag_t flag, string dir, string postfix)
 {
     //base name using relationship type
     string basefile = dir + p_name;
@@ -366,7 +370,7 @@ void pinfo_t::store_skv(skv_t* skv, sflag_t flag, string dir, string postfix)
     }
 }
 
-void pinfo_t::fill_kv(skv_t* skv_out, skv_t* skv_in, 
+void pgraph_t::fill_skv(skv_t* skv_out, skv_t* skv_in, 
                                sflag_t flag1, sflag_t flag2,
                                edge_t* edges, index_t count)
 {
