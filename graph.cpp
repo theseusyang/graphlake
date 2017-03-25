@@ -16,7 +16,7 @@ v_id_t graph::get_type_scount(int type)
 }
 
 //Applicable to mostly graphs, labels should be aware of it.
-void p_info_t::batch_update(const string& src, const string& dst)
+void pinfo_t::batch_update(const string& src, const string& dst)
 {
     vid_t src_id, dst_id;
     index_t index = 0;
@@ -49,12 +49,12 @@ void p_info_t::batch_update(const string& src, const string& dst)
     edges[index].dst_id = dst_id;
 }
     
-void p_info_t::make_graph_baseline()
+void pinfo_t::make_graph_baseline()
 {
     assert(0);
 }
 
-void p_info_t::store_graph_baseline(string dir)
+void pinfo_t::store_graph_baseline(string dir)
 {
     assert(0);
 }
@@ -65,7 +65,7 @@ is_literal(string str) {
 }
 
 
-void p_info_t::populate_property(const char* longname, const char* property_name)
+void pinfo_t::populate_property(const char* longname, const char* property_name)
 {
     g->p_info[g->p_count] = this;
     g->str2pid[longname] = g->p_count;
@@ -182,9 +182,9 @@ void pinfo_t::prep_sgraph_internal(sgraph_t* sgraph, index_t edge_count, tid_t s
     for(int i = 0; i < sgraph_count; i++) {
         beg_pos = sgraph[i];
         v_count = TO_VID(sgraph[i].super_id); 
-        for (vid_ j = 0; j < v_count1; ++j) {
-            beg_pos[j].adj_list = adj_list_out + prefix_out;
-            prefix_out += beg_pos[j].count;
+        for (vid_t j = 0; j < v_count1; ++j) {
+            beg_pos[j].adj_list = adj_list + prefix;
+            prefix += beg_pos[j].count;
             beg_pos[j].count = 0;
         }
     }
@@ -228,8 +228,9 @@ void pinfo_t::fill_adj_list_in(skv_t* skv_out, sgraph_t* sgraph_in,
 {
     superid_t src, dst;
     vid_t     vert1_id, vert2_id;
-    tid_t     type2_id;
-    sflag_t   flag2_mask;
+    tid_t     type1_id, type2_id;
+    sflag_t   flag1_mask, flag2_mask;
+    tid_t     src_index, dst_index;
     beg_pos_t* beg_pos_in = 0;
     
     for (index_t i = 0; i < count; ++i) {

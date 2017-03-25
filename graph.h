@@ -31,6 +31,45 @@ typedef uint64_t index_t;
 typedef uint32_t tid_t;
 typedef uint64_t sflag_t;
 
+
+class edge_t {
+public:
+    vid_t src_id;
+    vid_t dst_id;
+};
+
+//generic classes for label.
+template <class T>
+class  edgeT_t {
+    vid_t src_id;
+    T     dst_id;
+};
+
+template <class T>
+class lkv_t {
+    T* kv;
+    sid_t super_id;
+};
+
+typedef struct __beg_pos_t {
+public:
+    index_t  count;
+    vid_t*   adj_list;
+} beg_pos_t;
+
+typedef beg_pos_t lgraph_t;
+
+class skv_t {
+    sid_t super_id;
+    vid_t* kv;
+};
+
+class sgraph_t {
+public:
+    sid_t      super_id;
+    beg_pos_t* beg_pos;
+};
+
 enum p_type {
     edgraph, //directed graph, many to many.
     emany2one, // directed graph many to one such as "advisor"
@@ -50,30 +89,6 @@ enum p_type {
     edate,
     elast
 };
-
-class edge_t {
-public:
-    vid_t src_id;
-    vid_t dst_id;
-};
-
-typedef struct __beg_pos_t {
-public:
-    index_t  count;
-    vid_t*   adj_list;
-} beg_pos_t;
-
-class skv_t {
-    sid_t super_id;
-    vid_t* kv;
-};
-
-class sgraph_t {
-public:
-    sid_t      super_id;
-    beg_pos_t* beg_pos;
-};
-
 
 class pinfo_t {
  public:
@@ -196,52 +211,17 @@ class one2many_t: public pinfo_t {
 };
 
 /*------- labels */
-
-class enum8kv_t: public pinfo_t {
-protected:
-    skv_t*    kv_out;
-    sgraph_t* sgraph_in;
-
-    //mapping between enum and string
-    map<string, uint8_t> str2enum;
-    char**      enum2str;
-    int16_t     ecount;
-    int16_t     max_count;
-
- public:
-    enum8kv_t();
-    void init_enum(int enumcount);
-    void populate_enum(const char* e); 
-    void batch_update(const string& src, const string& dst);
-    void make_graph_baseline();
-    void store_graph_baseline(string dir);
-
-};
+typedef enumkv_t<uint8_t> enum8kv_t;
 
 typedef struct __enum_info_t {
     char* type_name;
     superid_t vert_id;
 } enum_info_t;
 
-class typekv_t: public pinfo_t {
- protected:
-    uint8_t*  kv_out;
-    
-    index_t*   beg_pos_in;
-    vid_t*     adj_list_in;
-
-    //mapping between enum and string
-    map<string, tid_t> str2enum;
-    enum_info_t*      enum_info;
-    int16_t     ecount;
-    int16_t     max_count;
+template <class T>
+class typekv_t: enumkv_t<T> {
  public:
-    typekv_t();
-    void init_enum(int enumcount);
     void batch_update(const string& src, const string& dst);
-    void make_graph_baseline();
-    void store_graph_baseline(string dir);
-
 };
 
 class int64kv_t: public pinfo_t {
