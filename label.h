@@ -1,56 +1,77 @@
+#pragma once
+
 #include "graph.h"
 
-
-typedef struct __label_int8_t {
+<class T>
+class  edgeT_t {
     vid_t src_id;
-    uint8_t dst_id;
-} label_int8_t;
+    T     dst_id;
+};
 
-void typekv_t::batch_update(const string& src, const string& dst)
+//generic label class.
+<class T>
+class lkv_t {
+    T* kv;
+    sid_t super_id;
+};
+
+<class T>
+class enumkv_t : public pinfo_t 
 {
-    vid_t       src_id;
-    tid_t       type_id;
-    index_t     index = 0;
-    vid_t       vert_id = 0;
+  protected:
+    lkv_t<T>* lkv_out; 
+    sgraph_t* sgraph_in;
+    
+    //mapping between enum and string
+    map<string, T> str2enum;
+    char**      enum2str;
+    T           ecount;
+    T           max_count;
 
-    label_int8_t* edges = (label_int8_t*) buf;
+  public:
+    void batch_update(const string& src, const string& dst);
+    void make_graph_baseline();
+    void store_graph_baseline(string dir);
+};
 
-    map<string, uint64_t>::iterator str2enum_iter = str2enum.find(dst);
-    if (str2enum.end() == str2enum_iter) {
-        type_id = ecount++;
-        vert_id = TO_SUPER(type_id);
-        str2enum[dst] = type_id;
-        enum_info[type_id].vert_id = vert_id; 
-        enum_info[type_id].type_name = gstrdup(dst.c_str());
-    } else {
-        type_id = str2enum_iter->second;
-        vert_id = enum_info[type_id].vert_id;
-    }
+template<class T>
+void enumkv_t<T>::batch_update(const string& src, const string& dst)
+{
+    vid_t src_id;
+    T     dst_id;
+    index_t index = 0;
+    edgeT_t<T>* edges = (edgeT_t*) buf;
 
-    //allocate class specific ids.
     map<string, vid_t>::iterator str2vid_iter = str2vid.find(src);
     if (str2vid.end() == str2vid_iter) {
-        src_id = vert_id++;
-        ++vert_count;
-        str2vid[src] = src_id;
-        //update the id
-        enum_info[dst].vert_id = vert_id;
+        assert(0);
     } else {
         src_id = str2vid_iter->second;
     }
 
+    map<string, T>::iterator str2enum_iter = str2enum.find(dst);
+    if (str2enum.end() == str2enum_iter) {
+        dst_id = ecount++;
+        str2enum[dst] = dst_id;
+        enum2str[dst_id] = gstrdup(dst.c_str());
+    } else {
+        dst_id = str2enum_iter->second;
+    }
+
     index = count++;
     edges[index].src_id = src_id; 
-    edges[index].dst_id = type_id;
+    edges[index].dst_id = dst_id;
 }
 
-void typekv_t::make_graph_baseline()
+template<class T>
+void enumkv_t<T>::make_graph_baseline()
 {
     if (count == 0) return;
 
     vid_t src;
-    uint8_t dst;
-    label_int8_t* edges = (label_int8_t*) buf;
+    T dst;
+    edgeT_t<T>* edges = (edgeT_t<T>*) buf;
+    
     beg_pos_in = (index_t*)calloc(sizeof(index_t), vert_count);
     adj_list_in = (vid_t*) calloc (sizeof(vid_t), count);
     kv_out = (uint8_t*) calloc(sizeof(uint8_t), vert_count);
@@ -86,7 +107,8 @@ void typekv_t::make_graph_baseline()
     }
 }
 
-void typekv_t::store_graph_baseline(string dir)
+template<class T>
+void enumkv_t<T>::store_graph_baseline(const string& src, const string& dst)
 {
     if (count == 0) return;
 
@@ -111,14 +133,24 @@ void typekv_t::store_graph_baseline(string dir)
     //XXX writing enum mapping is pending
 }
 
-typekv_t::typekv_t ()
-{
-    init_enum(256);
-}
-
-void typekv_t::init_enum(int enumcount)
+template <class T>
+void enumkv_t<T>::init_enum(int enumcount)
 {
     max_count = enumcount;
     ecount = 0;
     enum2str = new char*[enumcount];
+}
+
+template<class T>
+void enumkv_t<T>::populate_enum(const char* e)
+{
+    vid_t id = ecount++;
+    str2enum[e] = id;
+    enum2str[id] = gstrdup(e);
+}
+
+template<class T>
+enumkv_t<T>::enumkv_t()
+{
+    init_enum(256);
 }

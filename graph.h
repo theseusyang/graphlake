@@ -15,6 +15,9 @@ using std::cout;
 using std::endl;
 using std::string;
 
+#define TO_TID(sid) (sid >> 40)
+#define TO_VID(sid)  (sid & 0xffffffffff)
+#define TO_SUPER(tid) (super_id(tid) << 40)
 
 inline char* gstrdup(const char* str) 
 {
@@ -26,6 +29,7 @@ typedef uint64_t vid_t;
 typedef uint64_t superid_t;
 typedef uint64_t index_t;
 typedef uint32_t tid_t;
+typedef uint64_t sflag_t;
 
 enum p_type {
     edgraph, //directed graph, many to many.
@@ -70,7 +74,8 @@ public:
     beg_pos_t* beg_pos;
 };
 
-class p_info_t {
+
+class pinfo_t {
  public:
     char*       p_name;
     char*       p_longname;
@@ -128,7 +133,7 @@ public:
     super_id_t get_type_scount(int type);    
 
 public:
-    p_info_t** p_info;
+    pinfo_t** p_info;
     int       p_count;
     map <string, propid_t> str2pid;
 
@@ -141,7 +146,7 @@ extern graph* g;
 
 /******** graphs **************/
 
-class ugraph_t: public p_info_t {
+class ugraph_t: public pinfo_t {
  protected:
     sgraph_t* sgraph;
 
@@ -150,7 +155,7 @@ class ugraph_t: public p_info_t {
     void store_graph_baseline(string dir);
 };
 
-class dgraph_t: public p_info_t {
+class dgraph_t: public pinfo_t {
  protected:
     //count is hidden in flag1 and flag2
     sgraph_t* sgraph_out;
@@ -160,9 +165,9 @@ class dgraph_t: public p_info_t {
     void store_graph_baseline(string dir);
 };
 
-class many2one_t: public p_info_t {
+class many2one_t: public pinfo_t {
  protected:
-    vid_t*     kv_out;
+    skv_t*     skv_out;
     sgraph_t*  sgraph_in;
 
  public:
@@ -170,7 +175,7 @@ class many2one_t: public p_info_t {
     void store_graph_baseline(string dir);
 };
 
-class one2one_t: public p_info_t {
+class one2one_t: public pinfo_t {
  protected:
     skv_t*   skv_in;
     skv_t*   skv_out;
@@ -180,7 +185,7 @@ class one2one_t: public p_info_t {
     void store_graph_baseline(string dir);
 };
 
-class one2many_t: public p_info_t {
+class one2many_t: public pinfo_t {
  protected:
     sgraph_t*   sgraph_out;
     skv_t*      skv_in;
@@ -192,12 +197,10 @@ class one2many_t: public p_info_t {
 
 /*------- labels */
 
-class enum8kv_t: public p_info_t {
+class enum8kv_t: public pinfo_t {
 protected:
-    uint8_t*  kv_out;
-    
-    index_t*   beg_pos_in;
-    vid_t*     adj_list_in;
+    skv_t*    kv_out;
+    sgraph_t* sgraph_in;
 
     //mapping between enum and string
     map<string, uint8_t> str2enum;
@@ -220,7 +223,7 @@ typedef struct __enum_info_t {
     superid_t vert_id;
 } enum_info_t;
 
-class typekv_t: public p_info_t {
+class typekv_t: public pinfo_t {
  protected:
     uint8_t*  kv_out;
     
@@ -241,7 +244,7 @@ class typekv_t: public p_info_t {
 
 };
 
-class int64kv_t: public p_info_t {
+class int64kv_t: public pinfo_t {
  protected:
     int64_t* kv_out;
  public:
@@ -250,7 +253,7 @@ class int64kv_t: public p_info_t {
     void store_graph_baseline(string dir);
 };
 
-class int8kv_t: public p_info_t {
+class int8kv_t: public pinfo_t {
  protected:
     uint8_t* kv_out;
  public:
@@ -259,7 +262,7 @@ class int8kv_t: public p_info_t {
     void store_graph_baseline(string dir);
 };
 
-class stringkv_t: public p_info_t {
+class stringkv_t: public pinfo_t {
  protected:
     char** kv_out;
  public:
