@@ -1,295 +1,153 @@
 #include "graph.h"
 
-void many2one_t::make_graph_baseline()
+void dgraph_t::make_graph_baseline()
 {
-    
-    if (count == 0) return;
-    vid_t src;
-    vid_t dst;
-    edge_t* edges = (edge_t*) buf;
-    beg_pos_in = (index_t*)calloc(sizeof(index_t), vert_count);
-    adj_list_in = (vid_t*) calloc (sizeof(vid_t), count);
-    kv_out = (vid_t*) calloc(sizeof(vid_t), vert_count);
+    flag1_count = __builtin_popcountll(flag1);
+    flag2_count = __builtin_popcountll(flag2);
 
-    //estimate 
-    for (index_t i = 0; i < count; ++i) {
-        src = edges[i].src_id;
-        dst = edges[i].dst_id;
-        beg_pos_in[dst]++;
-    }
+    //super bins memory allocation
+    sgraph_out = prep_sgraph(flag1, flag1_count);    
+    sgraph_in  = prep_sgraph(flag2, flag2_count);
 
-    //prefix sum
-    index_t prev_in;
-    index_t prefix_in = 0;
-    for (vid_t j = 0; j < vert_count; ++j) {
-        prev_in = beg_pos_in[j];
-        beg_pos_in[j] = prefix_in;
-        prefix_in += prev_in;
-    }
-    beg_pos_in[vert_count] = prefix_in;
+    //estimate edge count
+    calc_edge_count(sgraph_out, sgraph_in, flag1, flag2, buf, count);
     
-    //populate
-    for (index_t i = 0; i < count; ++i) {
-        src = edges[i].src_id;
-        dst = edges[i].dst_id;
-        adj_list_in[beg_pos_in[dst]++] = src;
-        kv_out[src] = dst;
-    }
     
-    //correcting beg pos
-    for (vid_t j = vert_count; j > 0; j--) {
-        beg_pos_in[j] = beg_pos_in[j - 1];
-    }
+    //prefix sum then reset the count
+    prep_sgraph_internal(sgraph_out, count, flag1_count);
+    prep_sgraph_internal(sgraph_in, count, flag2_count);
+
+    //populate and get the original count back
+    fill_adj_list(sgraph_out, sgraph_in, flag1, flag2, buf, count);
 }
 
-void many2one_t::store_graph_baseline(string dir)
-{
-    if (count == 0) return ;
-
-    string file = dir + p_name + ".beg_pos_in";
-    FILE* f = fopen(file.c_str(), "wb");
-    assert(f != 0);
-    fwrite(beg_pos_in, sizeof(index_t), vert_count + 1, f);
-    fclose(f);
-    
-    file = dir + p_name + ".adj_list_in";
-    f = fopen(file.c_str(), "wb");
-    assert(f != 0);
-    fwrite(adj_list_in, sizeof(vid_t), beg_pos_in[vert_count], f);
-    fclose(f);
-    
-    file = dir + p_name + ".kv_out";
-    f = fopen(file.c_str(), "wb");
-    assert(f != 0);
-    fwrite(kv_out, sizeof(vid_t), vert_count, f);
-    fclose(f);
-}
-
-/*******************************************/
-void one2many_t::make_graph_baseline()
-{
-    vid_t src;
-    vid_t dst;
-    edge_t* edges = (edge_t*) buf;
-    beg_pos_out = (index_t*)calloc(sizeof(index_t), vert_count);
-    adj_list_out = (vid_t*) calloc (sizeof(vid_t), count);
-    kv_in = (vid_t*) calloc(sizeof(vid_t), vert_count);
-
-    //estimate 
-    for (index_t i = 0; i < count; ++i) {
-        src = edges[i].src_id;
-        dst = edges[i].dst_id;
-        beg_pos_out[src]++;
-    }
-
-    //prefix sum
-    index_t prev_out;
-    index_t prefix_out = 0;
-    for (vid_t j = 0; j < vert_count; ++j) {
-        prev_out = beg_pos_out[j];
-        beg_pos_out[j] = prefix_out;
-        prefix_out += prev_out;
-    }
-    beg_pos_out[vert_count] = prefix_out;
-    
-    //populate
-    for (index_t i = 0; i < count; ++i) {
-        src = edges[i].src_id;
-        dst = edges[i].dst_id;
-        adj_list_out[beg_pos_out[src]++] = dst;
-        kv_in[dst] = src;
-    }
-    
-    //correcting beg pos
-    for (vid_t j = vert_count; j > 0; j--) {
-        beg_pos_out[j] = beg_pos_out[j - 1];
-    }
-}
-
-void one2many_t::store_graph_baseline(string dir)
-{
-    if (count == 0) return ;
-
-    string file = dir + p_name + ".beg_pos_out";
-    FILE* f = fopen(file.c_str(), "wb");
-    assert(f != 0);
-    fwrite(beg_pos_out, sizeof(index_t), vert_count + 1, f);
-    fclose(f);
-    
-    file = dir + p_name + ".adj_list_out";
-    f = fopen(file.c_str(), "wb");
-    assert(f != 0);
-    fwrite(adj_list_out, sizeof(vid_t), beg_pos_out[vert_count], f);
-    fclose(f);
-    
-    file = dir + p_name + ".kv_in";
-    f = fopen(file.c_str(), "wb");
-    assert(f != 0);
-    fwrite(kv_in, sizeof(vid_t), vert_count, f);
-    fclose(f);
-}
-
-/************************************************/
-void one2one_t::make_graph_baseline()
-{
-    vid_t src;
-    vid_t dst;
-    edge_t* edges = (edge_t*) buf;
-    kv_in = (vid_t*) calloc(sizeof(vid_t), vert_count);
-    kv_out = (vid_t*) calloc(sizeof(vid_t), vert_count);
-
-    //populate
-    for (index_t i = 0; i < count; ++i) {
-        src = edges[i].src_id;
-        dst = edges[i].dst_id;
-        kv_in[dst] = src;
-        kv_out[src] = dst;
-    }
-}
-
-void one2one_t::store_graph_baseline(string dir)
-{
-    if (count == 0) return ;
-
-    string file = dir + p_name + ".kv_in";
-    FILE* f = fopen(file.c_str(), "wb");
-    assert(f != 0);
-    fwrite(kv_in, sizeof(vid_t), vert_count, f);
-    fclose(f);
-    
-    file = dir + p_name + ".kv_out";
-    f = fopen(file.c_str(), "wb");
-    assert(f != 0);
-    fwrite(kv_out, sizeof(vid_t), vert_count, f3);
-
-    beg_pos_in = (index_t*)calloc(sizeof(index_t), vert_count);
-    adj_list_in = (vid_t*) calloc (sizeof(vid_t), count);
-    beg_pos_out = (index_t*)calloc(sizeof(index_t), vert_count);
-    adj_list_out = (vid_t*) calloc (sizeof(vid_t), count);
-
-    //estimate 
-    for (index_t i = 0; i < count; ++i) {
-        src = edges[i].src_id;
-        dst = edges[i].dst_id;
-        beg_pos_out[src]++;
-        beg_pos_in[dst]++;
-    }
-
-    //prefix sum
-    index_t prev_in;
-    index_t prefix_in = 0;
-    index_t prev_out;
-    index_t prefix_out = 0;
-    for (vid_t j = 0; j < vert_count; ++j) {
-        prev_in = beg_pos_in[j];
-        beg_pos_in[j] = prefix_in;
-        prefix_in += prev_in;
-        prev_out = beg_pos_out[j];
-        beg_pos_out[j] = prefix_out;
-        prefix_out += prev_out;
-    }
-    beg_pos_in[vert_count] = prefix_in;
-    beg_pos_out[vert_count] = prefix_out;
-    
-    //populate
-    for (index_t i = 0; i < count; ++i) {
-        src = edges[i].src_id;
-        dst = edges[i].dst_id;
-        adj_list_in[beg_pos_in[dst]++] = src;
-        adj_list_out[beg_pos_out[src]++] = dst;
-    }
-    
-    //correcting beg pos
-    for (vid_t j = vert_count; j > 0; j--) {
-        beg_pos_in[j] = beg_pos_in[j - 1];
-        beg_pos_out[j] = beg_pos_out[j - 1];
-    }
-}
-
-    
 void dgraph_t::store_graph_baseline(string dir)
 {
     if (count == 0) return ;
-
-    string file = dir + p_name + ".beg_pos_in";
-    FILE* f = fopen(file.c_str(), "wb");
-    assert(f != 0);
-    fwrite(beg_pos_in, sizeof(index_t), vert_count + 1, f);
-    fclose(f);
-    
-    file = dir + p_name + ".adj_list_in";
-    f = fopen(file.c_str(), "wb");
-    assert(f != 0);
-    fwrite(adj_list_in, sizeof(vid_t), beg_pos_in[vert_count], f);
-    fclose(f);
-    
-    file = dir + p_name + ".beg_pos_out";
-    f = fopen(file.c_str(), "wb");
-    assert(f != 0);
-    fwrite(beg_pos_out, sizeof(index_t), vert_count + 1, f);
-    fclose(f);
-    
-    file = dir + p_name + ".adj_list_out";
-    f = fopen(file.c_str(), "wb");
-    assert(f != 0);
-    fwrite(adj_list_out, sizeof(vid_t), beg_pos_out[vert_count], f);
-    fclose(f);
+    string postfix = "out";
+    store_sgraph_out(sgraph_out, flag1, dir, postfix);
+    postfix = "in";
+    store_sgraph_in(sgraph_in,  flag2, dir, postfix);
 }
 
 /*******************************************/
 void ugraph_t::make_graph_baseline()
 {
-    vid_t src;
-    vid_t dst;
-    edge_t* edges = (edge_t*) buf;
-    beg_pos = (index_t*)calloc(sizeof(index_t), vert_count);
-    adj_list = (vid_t*) calloc (sizeof(vid_t), 2*count);
+    flag1 = flag1 | flag2;
+    flag2 = flag1;
 
-    //estimate 
-    for (index_t i = 0; i < count; ++i) {
-        src = edges[i].src_id;
-        dst = edges[i].dst_id;
-        beg_pos[src]++;
-        beg_pos[dst]++;
-    }
+    sflag_t flag = flag1;
+    flag_count = __builtin_popcountll(flag);
 
-    //prefix sum
-    index_t prev;
-    index_t prefix = 0;
-    for (vid_t j = 0; j < vert_count; ++j) {
-        prev = beg_pos[j];
-        beg_pos[j] = prefix;
-        prefix += prev;
-    }
-    beg_pos[vert_count] = prefix;
+    //super bins memory allocation
+    sgraph = prep_sgraph(flag, flag_count);    
+
+    //estimate edge count
+    calc_edge_count(sgraph, sgraph, flag, flag, buf, count);
     
-    //populate
-    for (index_t i = 0; i < count; ++i) {
-        src = edges[i].src_id;
-        dst = edges[i].dst_id;
-        adj_list[beg_pos[src]++] = dst;
-        adj_list[beg_pos[dst]++] = src;
-    }
     
-    //correcting beg pos
-    for (vid_t j = vert_count; j > 0; j--) {
-        beg_pos[j] = beg_pos[j - 1];
-    }
+    //prefix sum then reset the count
+    //Take symmetry into consideration
+    prep_sgraph_internal(sgraph_out, 2*count, flag_count);
+
+    //populate and get the original count back
+    fill_adj_list(sgraph_out, sgraph_in, flag, flag, buf, count);
 }
 
 void ugraph_t::store_graph_baseline(string dir)
 {
     if (count == 0) return ;
-
-    string file = dir + p_name + ".beg_pos";
-    FILE* f = fopen(file.c_str(), "wb");
-    assert(f != 0);
-    fwrite(beg_pos, sizeof(index_t), vert_count + 1, f);
-    fclose(f);
-    
-    file = dir + p_name + ".adj_list";
-    f = fopen(file.c_str(), "wb");
-    assert(f != 0);
-    fwrite(adj_list, sizeof(vid_t), beg_pos[vert_count], f);
-    fclose(f);
+    string postfix = "";
+    store_sgraph_out(sgraph_out, flag1, dir, postfix);
 }
+
+/***************************************/
+void many2one_t::make_graph_baseline()
+{
+    if (count == 0) return;
+    flag1_count = __builtin_popcountll(flag1);
+    flag2_count = __builtin_popcountll(flag2);
+
+    //super bins memory allocation
+    skv_out  = prep_skv(flag1, flag1_count);
+    sgraph_in  = prep_sgraph(flag2, flag2_count);
+
+    //estimate edge count
+    calc_edge_count_in(sgraph_in, flag2, buf, count);
+    
+    
+    //prefix sum then reset the count
+    prep_sgraph_internal(sgraph_in, count, flag2_count);
+
+    //populate and get the original count back
+    //handle kv_out as well.
+    fill_adj_list_in(skv_out, sgraph_in, flag1, flag2, buf, count);
+}
+
+void many2one_t::store_graph_baseline(string dir)
+{
+    if (count == 0) return ;
+    string postfix = "out";
+    store_skv(skv_out, flag1, dir, postfix);
+    postfix = "in";
+    store_sgraph(sgraph_in, flag2, dir, postfix);
+}
+
+/*******************************************/
+void one2many_t::make_graph_baseline()
+{
+    if (count == 0) return;
+    flag1_count = __builtin_popcountll(flag1);
+    flag2_count = __builtin_popcountll(flag2);
+
+    //super bins memory allocation
+    sgraph_out = prep_sgraph(flag1, flag1_count);
+    skv_in   = prep_skv(flag2, flag2_count);
+
+    //estimate edge count
+    calc_edge_count_out(sgraph_out, flag1, buf, count);
+    
+    
+    //prefix sum then reset the count
+    prep_sgraph_internal(sgraph_out, count, flag1_count);
+
+    //populate and get the original count back
+    //handle kv_in as well.
+    fill_adj_list_out(sgraph_out, skv_in, flag1, flag2, buf, count);
+}
+
+void one2many_t::store_graph_baseline(string dir)
+{
+    if (count == 0) return ;
+    string postfix = "out";
+    store_sgraph(sgraph_out, flag1, dir, postfix);
+    postfix = "in";
+    store_skv(skv_in, flag2, dir, postfix);
+
+}
+
+/************************************************/
+void one2one_t::make_graph_baseline()
+{
+    if (count == 0) return;
+    flag1_count = __builtin_popcountll(flag1);
+    flag2_count = __builtin_popcountll(flag2);
+
+    //super bins memory allocation
+    skv_out = prep_skv(flag1, flag1_count);
+    skv_in  = prep_skv(flag2, flag2_count);
+
+    //handle kv_out as well as kv_in.
+    fill_kv(skv_out, skv_in, flag1, flag2, buf, count);
+}
+
+void one2one_t::store_graph_baseline(string dir)
+{
+    if (count == 0) return ;
+    string postfix = "out";
+    store_skv(skv_out, flag1, dir, postfix);
+    postfix = "in";
+    store_skv(skv_in, flag2, dir, postfix);
+
+}
+

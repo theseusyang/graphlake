@@ -23,9 +23,9 @@ inline char* gstrdup(const char* str)
 
 typedef uint32_t propid_t;
 typedef uint64_t vid_t;
-typedef uint32_t superid_t;
+typedef uint64_t superid_t;
 typedef uint64_t index_t;
-typedef uint32_t type_t;
+typedef uint32_t tid_t;
 
 enum p_type {
     edgraph, //directed graph, many to many.
@@ -53,13 +53,33 @@ public:
     vid_t dst_id;
 };
 
+typedef struct __beg_pos_t {
+public:
+    index_t  count;
+    vid_t*   adj_list;
+} beg_pos_t;
+
+class skv_t {
+    sid_t super_id;
+    vid_t* kv;
+};
+
+class sgraph_t {
+public:
+    sid_t      super_id;
+    beg_pos_t* beg_pos;
+};
+
 class p_info_t {
  public:
     char*       p_name;
     char*       p_longname;
     void*       buf;
-    uint64_t    flag;
+    uint64_t    flag1;
     uint64_t    flag2;
+    uint8_t     flag1_count;
+    uint8_t     flag2_count;
+    uint16_t    unused;
     uint32_t    count;
 
  public:
@@ -67,12 +87,45 @@ class p_info_t {
     virtual void batch_update(const string& src, const string& dst);
     virtual void make_graph_baseline();
     virtual void store_graph_baseline(string dir);
+
+ //graph specific functions 
+ public:
+    sgraph_t* prep_sgraph(sflag_t ori_flag, tid_t flag_count);
+    void calc_edge_count(sgraph_t* sgraph_out, sgraph_t* sgraph_in, 
+                        sflag_t flag1, sflag_t flag2, 
+                        edge_t* edges, index_t count);
+    
+    void calc_edge_count_out(sgraph_t* sgraph_out, sflag_t flag1, 
+                               edge_t* edges, index_t count);
+    void calc_edge_count_in(sgraph_t* sgraph_in, sflag_t flag2, 
+                               edge_t* edges, index_t count);
+    void prep_sgraph_internal(sgraph_t* sgraph, index_t edge_count, tid_t sgraph_count);
+    void fill_adj_list(sgraph_t* sgraph_out, sgraph_t* sgraph_in,
+                           sflag_t flag1, sflag_t flag2,
+                           edge_t* edges, index_t count);
+    void fill_adj_list_in(skv_t* skv_out, sgraph_t* sgraph_in, 
+                              sflag_t flag1, sflag_t flag2,
+                           edge_t* edges, index_t count);
+    void fill_adj_list_out(sgraph_t* sgraph_out, skv_t* skv_in, 
+                               sflag_t flag1, sflag_t flag2,
+                               edge_t* edges, index_t count);
+    void store_sgraph(sgraph_t* sgraph, sflag_t flag, string dir, string postfix);
+
+    skv_t* prep_skv(sflag_t ori_flag, tid_t flag_count);
+    void store_skv(skv_t* skv, sflag_t flag, string dir, string postfix);
+    void fill_kv(skv_t* skv_out, skv_t* skv_in,
+                        sflag_t flag1, sflag_t flag2,
+                        edge_t* edges, index_t count);
 };
 
 class graph {
 public:
     graph();
     void prep_graph(string idirname, string odirname);
+
+
+public:
+    super_id_t get_type_scount(int type);    
 
 public:
     p_info_t** p_info;
@@ -85,10 +138,12 @@ extern map <string, vid_t> str2vid;
 extern vid_t vert_count;
 extern graph* g;
 
+
+/******** graphs **************/
+
 class ugraph_t: public p_info_t {
  protected:
-    index_t* beg_pos;
-    vid_t*   adj_list;
+    sgraph_t* sgraph;
 
  public:
     void make_graph_baseline();
@@ -97,11 +152,9 @@ class ugraph_t: public p_info_t {
 
 class dgraph_t: public p_info_t {
  protected:
-    index_t* beg_pos_in;
-    vid_t*   adj_list_in;
-    index_t* beg_pos_out;
-    vid_t*   adj_list_out;
-
+    //count is hidden in flag1 and flag2
+    sgraph_t* sgraph_out;
+    sgraph_t* sgraph_in; 
  public:
     void make_graph_baseline();
     void store_graph_baseline(string dir);
@@ -109,9 +162,8 @@ class dgraph_t: public p_info_t {
 
 class many2one_t: public p_info_t {
  protected:
-    index_t* beg_pos_in;
-    vid_t*   adj_list_in;
-    vid_t*   kv_out;
+    vid_t*     kv_out;
+    sgraph_t*  sgraph_in;
 
  public:
     void make_graph_baseline();
@@ -120,8 +172,8 @@ class many2one_t: public p_info_t {
 
 class one2one_t: public p_info_t {
  protected:
-    vid_t*   kv_in;
-    vid_t*   kv_out;
+    skv_t*   skv_in;
+    skv_t*   skv_out;
 
  public:
     void make_graph_baseline();
@@ -130,9 +182,8 @@ class one2one_t: public p_info_t {
 
 class one2many_t: public p_info_t {
  protected:
-    index_t* beg_pos_out;
-    vid_t*   adj_list_out;
-    vid_t*   kv_in;
+    sgraph_t*   sgraph_out;
+    skv_t*      skv_in;
 
  public:
     void make_graph_baseline();
@@ -164,6 +215,11 @@ protected:
 
 };
 
+typedef struct __enum_info_t {
+    char* type_name;
+    superid_t vert_id;
+} enum_info_t;
+
 class typekv_t: public p_info_t {
  protected:
     uint8_t*  kv_out;
@@ -172,8 +228,8 @@ class typekv_t: public p_info_t {
     vid_t*     adj_list_in;
 
     //mapping between enum and string
-    map<string, uint64_t> str2enum;
-    char**      enum2str;
+    map<string, tid_t> str2enum;
+    enum_info_t*      enum_info;
     int16_t     ecount;
     int16_t     max_count;
  public:
@@ -182,6 +238,7 @@ class typekv_t: public p_info_t {
     void batch_update(const string& src, const string& dst);
     void make_graph_baseline();
     void store_graph_baseline(string dir);
+
 };
 
 class int64kv_t: public p_info_t {

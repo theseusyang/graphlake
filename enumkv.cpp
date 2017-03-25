@@ -12,34 +12,32 @@ typedef struct __label_int8_t {
 void typekv_t::batch_update(const string& src, const string& dst)
 {
     vid_t       src_id;
-    superid_t   super_id;
     tid_t       type_id;
     index_t     index = 0;
-    vid_t       vert_id;
+    vid_t       vert_id = 0;
 
     label_int8_t* edges = (label_int8_t*) buf;
 
     map<string, uint64_t>::iterator str2enum_iter = str2enum.find(dst);
     if (str2enum.end() == str2enum_iter) {
         type_id = ecount++;
-        enum2str[type_id] = gstrdup(dst.c_str());
-        super_id = TO_SUPER(type_id);
-        str2enum[dst] = super_id;
+        vert_id = TO_SUPER(type_id);
+        str2enum[dst] = type_id;
+        enum_info[type_id].vert_id = vert_id; 
+        enum_info[type_id].type_name = gstrdup(dst.c_str());
     } else {
-        super_id = str2enum_iter->second;
-        type_id = TO_TYPE(super_id);
-        vert_id = TO_VID(super_id);
+        type_id = str2enum_iter->second;
+        vert_id = enum_info[type_id].vert_id;
     }
 
     //allocate class specific ids.
     map<string, vid_t>::iterator str2vid_iter = str2vid.find(src);
     if (str2vid.end() == str2vid_iter) {
-        src_id = super_id++;
+        src_id = vert_id++;
         ++vert_count;
         str2vid[src] = src_id;
         //update the id
-        str2enum[dst] = super_id;
-
+        enum_info[dst].vert_id = vert_id;
     } else {
         src_id = str2vid_iter->second;
     }
