@@ -123,7 +123,6 @@ void one2many_t::store_graph_baseline(string dir)
     store_sgraph(sgraph_out, flag1, dir, postfix);
     postfix = "in";
     store_skv(skv_in, flag2, dir, postfix);
-
 }
 
 /************************************************/
@@ -148,6 +147,5 @@ void one2one_t::store_graph_baseline(string dir)
     store_skv(skv_out, flag1, dir, postfix);
     postfix = "in";
     store_skv(skv_in, flag2, dir, postfix);
-
 }
 

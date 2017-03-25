@@ -51,10 +51,12 @@ void p_info_t::batch_update(const string& src, const string& dst)
     
 void p_info_t::make_graph_baseline()
 {
+    assert(0);
 }
 
 void p_info_t::store_graph_baseline(string dir)
 {
+    assert(0);
 }
 
 static int 
@@ -78,7 +80,7 @@ void p_info_t::populate_property(const char* longname, const char* property_name
 }
 
 
-/************* Super Bins *****************/
+/************* Super graphs  *****************/
 
 //super bins memory allocation
 sgraph_t* pinfo_t::prep_sgraph(sflag_t ori_flag, tid_t flag_count)
@@ -95,6 +97,7 @@ sgraph_t* pinfo_t::prep_sgraph(sflag_t ori_flag, tid_t flag_count)
         sgraph[i].beg_pos = (beg_pos_t*)calloc(sizeof(beg_pos_t), v_count);
         sgraph[i].super_id = super_id;
     } 
+    return sgraph;
 }
 
 //estimate edge count
@@ -186,7 +189,6 @@ void pinfo_t::prep_sgraph_internal(sgraph_t* sgraph, index_t edge_count, tid_t s
         }
     }
 }
-
 
 void pinfo_t::fill_adj_list(sgraph_t* sgraph_out, sgraph_t* sgraph_in,
                            sflag_t flag1, sflag_t flag2,
