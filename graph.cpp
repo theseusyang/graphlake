@@ -8,6 +8,7 @@ graph::graph()
 {
     p_info = 0;
     p_count = 0;
+    init_type(256);
 }
 sid_t graph::get_type_scount(int type)
 {
@@ -49,8 +50,8 @@ void graph::batch_update(const string& src, const string& dst)
         //update the id
         type_info[type_id].vert_id = vert_id;
     } else {
+        //dublicate entry XXX
         src_id = str2vid_iter->second;
-        assert(0);
     }
 }
 
@@ -91,6 +92,14 @@ void pinfo_t::populate_property(const char* longname, const char* property_name)
 
 
 /************* Semantic graphs  *****************/
+pgraph_t::pgraph_t()
+{
+    flag1 = 0;
+    flag2 = 0;
+    flag1_count = 0;
+    flag2_count = 0;
+}
+
 //Applicable to graphs only, labels should be aware of it.
 void pgraph_t::batch_update(const string& src, const string& dst)
 {

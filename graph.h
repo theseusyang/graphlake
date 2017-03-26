@@ -137,6 +137,9 @@ class pgraph_t: public pinfo_t {
  
     //graph specific functions 
     void batch_update(const string& src, const string& dst);
+ 
+ public:
+    pgraph_t();
  public:
     sgraph_t* prep_sgraph(sflag_t ori_flag, tid_t flag_count);
     skv_t* prep_skv(sflag_t ori_flag, tid_t flag_count);
