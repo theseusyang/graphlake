@@ -37,7 +37,7 @@ void graph::prep_graph(string idirname, string odirname)
             }
             pid = str2pid_iter->second;
             if( pid == 0) { // type
-                p_info[pid]->batch_update(subject, object);
+                g->batch_update(subject, object);
                 ++nt_count;
             }
         }
@@ -89,7 +89,6 @@ void ontology_lubm()
     
     info = new enum8kv_t;
     info->populate_property("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>", "type");
-    
     
     info = new many2one_t;
     info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#advisor>", "advisor");
@@ -164,8 +163,7 @@ void ontology_lubm()
     info = new stringkv_t;
     info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#softwareVersion>", "softwareVersion");
     
-    
-    info = new int8kv_t;
+    info = new uint8kv_t;
     info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#age>", "age");
     
     info = new stringkv_t;
@@ -174,17 +172,15 @@ void ontology_lubm()
     info = new stringkv_t;
     info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#name>", "name");
     
-    info = new int64kv_t;
+    info = new uint64kv_t;
     info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#officeNumber>", "officeNumber");
     
     info = new stringkv_t;
     info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#researchInterest>", "researchInterest");
     
-    info = new int64kv_t;
+    info = new uint64kv_t;
     info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#telephone>", "telephone");
     
     info = new stringkv_t;
     info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#title>", "title");
 }
-
-

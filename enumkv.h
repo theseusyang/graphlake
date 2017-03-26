@@ -2,12 +2,9 @@
 
 #include "graph.h"
 
-
-
 //generic enum class
 template <class T>
-class enumkv_t : public pinfo_t 
-{
+class enumkv_t : public pkv_t {
   protected:
     lkv_t<T>* lkv_out; 
     lgraph_t* lgraph_in;
@@ -19,9 +16,21 @@ class enumkv_t : public pinfo_t
     T           max_count;
 
   public:
+    enumkv_t();
+    void init_enum(int enumcount);
+    void populate_enum(const char* e);
     void batch_update(const string& src, const string& dst);
     void make_graph_baseline();
     void store_graph_baseline(string dir);
+
+  public:
+
+    lkv_t<T>* prep_lkv(sflag_t ori_flag, tid_t flag_count);
+
+    void fill_adj_list_kv(lkv_t<T>* lkv_out, lgraph_t* lgraph_in, 
+                 sflag_t flag1, edgeT_t<T>* edges, index_t count);
+
+    void store_lkv(lkv_t<T>* lkv_out, string dir, string postfix);
 };
 
 template<class T>
@@ -39,7 +48,7 @@ void enumkv_t<T>::batch_update(const string& src, const string& dst)
         src_id = str2vid_iter->second;
     }
     
-    tid_t type_id = TO_TYPE(src_id);
+    tid_t type_id = TO_TID(src_id);
     flag1 |= (1L << type_id);
 
     map<string, T>::iterator str2enum_iter = str2enum.find(dst);
@@ -69,17 +78,17 @@ void enumkv_t<T>::make_graph_baseline()
     
     //super bins memory allocation
     lkv_out  = prep_lkv(flag1, flag1_count);
-    lgraph_in = prep_lgraph();    
+    lgraph_in = prep_lgraph(ecount);    
 
     //estimate edge count
-    calc_edge_count_kv(lgraph_in, edges, count);
+    calc_edge_count(lgraph_in, edges, count);
     
     //prefix sum then reset the count
     prep_lgraph_internal(lgraph_in, count);
     
     //populate and get the original count back
     //handle kv_out as well.
-    fill_adj_list_kv(skv_out, sgraph_in, flag1, flag2, buf, count);
+    fill_adj_list_kv(lkv_out, lgraph_in, flag1, buf, count);
 }
 
 //super bins memory allocation
@@ -89,6 +98,8 @@ lkv_t<T>* enumkv_t<T>::prep_lkv(sflag_t ori_flag, tid_t flag_count)
     sflag_t flag = ori_flag;
     lkv_t<T>*  lkv  = (lkv_t<T>*) calloc (sizeof(lkv_t<T>), flag_count);
     tid_t      pos  = 0;
+    sid_t super_id;
+    vid_t v_count;
 
     for(tid_t i = 0; i < flag_count; i++) {
         pos = __builtin_ctz(flag);
@@ -102,48 +113,10 @@ lkv_t<T>* enumkv_t<T>::prep_lkv(sflag_t ori_flag, tid_t flag_count)
 }
 
 template<class T>
-beg_pos_t* enumkv_t<T>::prep_lgraph()
-{
-    beg_pos_t* lgraph  = (beg_pos_t*) calloc (sizeof(beg_pos_t), ecount);
-    return lgraph;
-}
-
-template<class T>
-void enumkv_t<T>::calc_edge_count_kv(beg_pos_t* lgraph_in, 
-                            edgeT_t<T>* edges, index_t count)
-{
-    superid_t src;
-    T  dst;
-    
-    for (index_t i = 0; i < count; ++i) {
-        src = edges[i].src_id;
-        dst = edges[i].dst_id;
-        lgraph_in[dst].count  += 1;
-    }
-}
-
-template<class T>
-void enumkv_t<T>::prep_lgraph_internal(beg_pos_t* lgraph_in, 
-                                            index_t edge_count)
-{
-    vid* adj_list = (vid_t*) calloc (sizeof(vid_t), edge_count);
-    
-    index_t     prefix = 0;
-    beg_pos_t*  beg_pos = lgraph_in;
-    vid_t       vcount = 0;
-    
-    for (vid_t j = 0; j < ecount1; ++j) {
-        beg_pos[j].adj_list = adj_list + prefix;
-        prefix += beg_pos[j].count;
-        beg_pos[j].count = 0;
-    }
-}
-
-template<class T>
-void enumkv_t<T>::fill_adj_list_kv(lkv_t* lkv_out, beg_pos_t* lgraph_in, 
+void enumkv_t<T>::fill_adj_list_kv(lkv_t<T>* lkv_out, lgraph_t* lgraph_in, 
                              sflag_t flag1, edgeT_t<T>* edges, index_t count)
 {
-    superid_t src;
+    sid_t src;
     T         dst;
     vid_t     vert1_id;
     tid_t     type1_id;
@@ -156,49 +129,19 @@ void enumkv_t<T>::fill_adj_list_kv(lkv_t* lkv_out, beg_pos_t* lgraph_in,
         dst = edges[i].dst_id;
         
         vert1_id = TO_VID(src);
-        type1_id = TO_TYPE(src) + 1;
-        flag1_mask = flag1 & ( (1L << type1_id) - 1)
+        type1_id = TO_TID(src) + 1;
+        flag1_mask = flag1 & ( (1L << type1_id) - 1);
         src_index = __builtin_popcountll(flag1_mask);
         
-        skv_out[src_index]->kv[vert1_id] = dst;
+        lkv_out[src_index]->kv[vert1_id] = dst;
         
         beg_pos_in[dst]->adj_list[beg_pos_in->count++] = src;
     }
 }
 
-template<class T>
-void enumkv_t<T>::store_lgraph(beg_pos_t* lgraph_in, 
-                                    string dir, string postfix)
-{
-    //base name using relationship type
-    string basefile = dir + p_name;
-    string file = baseline + "beg_pos";
-    FILE* f;
-    
-    /*
-    string file = dir + p_name + ".beg_pos_in";
-    FILE* f = fopen(file.c_str(), "wb");
-    assert(f != 0);
-    fwrite(beg_pos_in, sizeof(index_t), vert_count + 1, f);
-    fclose(f);
-    
-    file = dir + p_name + ".adj_list_in";
-    f = fopen(file.c_str(), "wb");
-    assert(f != 0);
-    fwrite(adj_list_in, sizeof(vid_t), beg_pos_in[vert_count], f);
-    fclose(f);
-    
-    file = dir + p_name + ".kv_out";
-    f = fopen(file.c_str(), "wb");
-    assert(f != 0);
-    fwrite(kv_out, sizeof(vid_t), vert_count, f);
-    fclose(f);
-    */
-}
 
 template<class T>
-void enumkv_t<T>::store_lgraph(beg_pos_t* lgraph_in, 
-                                    string dir, string postfix)
+void enumkv_t<T>::store_lkv(lkv_t<T>* lkv_out, string dir, string postfix)
 {
 }
 
@@ -233,43 +176,4 @@ template<class T>
 enumkv_t<T>::enumkv_t()
 {
     init_enum(256);
-}
-
-template <class T>
-void typekv_t<T>::batch_update(const string& src, const string& dst)
-{
-    vid_t       src_id;
-    tid_t       type_id;
-    index_t     index = 0;
-    vid_t       vert_id = 0;
-
-    edgeT_t<T>* edges = (edgeT_t<T>*) buf;
-
-    map<string, T>::iterator str2enum_iter = str2enum.find(dst);
-    if (str2enum.end() == str2enum_iter) {
-        type_id = ecount++;
-        vert_id = TO_SUPER(type_id);
-        str2enum[dst] = type_id;
-        enum_info[type_id].vert_id = vert_id; 
-        enum_info[type_id].type_name = gstrdup(dst.c_str());
-    } else {
-        type_id = str2enum_iter->second;
-        vert_id = enum_info[type_id].vert_id;
-    }
-
-    //allocate class specific ids.
-    map<string, vid_t>::iterator str2vid_iter = str2vid.find(src);
-    if (str2vid.end() == str2vid_iter) {
-        src_id = vert_id++;
-        ++vert_count;
-        str2vid[src] = src_id;
-        //update the id
-        enum_info[dst].vert_id = vert_id;
-    } else {
-        src_id = str2vid_iter->second;
-    }
-
-    index = count++;
-    edges[index].src_id = src_id; 
-    edges[index].dst_id = type_id;
 }

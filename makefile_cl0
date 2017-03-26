@@ -4,10 +4,8 @@ SRC=main.cpp \
 	graph.cpp\
 	ugraph.cpp\
 	dgraph.cpp\
-	many2one.cpp\
-	enumkv.cpp\
+	sgraph.cpp\
 	stringkv.cpp\
-	intkv.cpp\
 	nt_to_edge.cpp\
 	intersection.cpp\
 

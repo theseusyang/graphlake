@@ -1,3 +1,5 @@
+#pragma once
+
 #include "graph.h"
 
 
@@ -27,7 +29,7 @@ uint64_t atoT(string value)
 //generic number class
 //
 template <class T>
-class numkv_t : public pinfo_t 
+class numkv_t : public pkv_t 
 {
   protected:
     lkv_t<T>* lkv_out; 
@@ -36,6 +38,9 @@ class numkv_t : public pinfo_t
     void batch_update(const string& src, const string& dst);
     void make_graph_baseline();
     void store_graph_baseline(string dir);
+    lkv_t<T>* prep_lkv(sflag_t ori_flag, tid_t flag_count);
+    void fill_adj_list_kv(lkv_t<T>* lkv_out, sflag_t flag1,
+                              edgeT_t<T>* edges, index_t count);
 };
 
 template<class T>
@@ -53,7 +58,7 @@ void numkv_t<T>::batch_update(const string& src, const string& dst)
         src_id = str2vid_iter->second;
     }
     
-    tid_t type_id = TO_TYPE(src_id);
+    tid_t type_id = TO_TID(src_id);
     flag1 |= (1L << type_id);
 
     dst_id = atoT<T>(dst);
@@ -79,14 +84,15 @@ void numkv_t<T>::make_graph_baseline()
 
     //populate and get the original count back
     //handle kv_out as well.
-    fill_adj_list_kv(skv_out, flag1  buf, count);
+    //XXX 
+    //fill_adj_list_kv(lkv_out, flag1,  edges, count);
 }
 
 template<class T>
-void numkv_t<T>::fill_adj_list_kv(lkv_t* lkv_out, sflag_t flag1,
+void numkv_t<T>::fill_adj_list_kv(lkv_t<T>* lkv_out, sflag_t flag1,
                               edgeT_t<T>* edges, index_t count)
 {
-    superid_t src;
+    sid_t src;
     T dst;
     vid_t     vert1_id;
     tid_t     type1_id;
@@ -98,17 +104,16 @@ void numkv_t<T>::fill_adj_list_kv(lkv_t* lkv_out, sflag_t flag1,
         dst = edges[i].dst_id;
         
         vert1_id = TO_VID(src);
-        type1_id = TO_TYPE(src) + 1;
-        flag1_mask = flag1 & ( (1L << type1_id) - 1)
+        type1_id = TO_TID(src) + 1;
+        flag1_mask = flag1 & ( (1L << type1_id) - 1);
         src_index = __builtin_popcountll(flag1_mask);
         
-        skv_out[src_index]->kv[vert1_id] = dst;
-        
+        lkv_out[src_index]->kv[vert1_id] = dst;
     }
 }
 
 template <class T>
-void numkv_t::store_graph_baseline(string dir)
+void numkv_t<T>::store_graph_baseline(string dir)
 {
     if (count == 0) return;
 
@@ -119,4 +124,25 @@ void numkv_t::store_graph_baseline(string dir)
     fwrite(kv_out, sizeof(int64_t), vert_count, f);
     fclose(f);
     */
+}
+
+//super bins memory allocation
+template<class T>
+lkv_t<T>* numkv_t<T>::prep_lkv(sflag_t ori_flag, tid_t flag_count)
+{
+    sflag_t flag = ori_flag;
+    lkv_t<T>*  lkv  = (lkv_t<T>*) calloc (sizeof(lkv_t<T>), flag_count);
+    tid_t      pos  = 0;
+    sid_t      super_id;
+    vid_t      v_count;
+
+    for(tid_t i = 0; i < flag_count; i++) {
+        pos = __builtin_ctz(flag);
+        flag ^= (1L << pos);//reset that position
+        super_id = g->get_type_scount(pos);
+        v_count = TO_VID(super_id);
+        lkv[i].kv = (T*)calloc(sizeof(T), v_count);
+        lkv[i].super_id = super_id;
+    }
+    return lkv;
 }
