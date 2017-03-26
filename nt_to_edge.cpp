@@ -84,8 +84,8 @@ void graph::prep_graph(string idirname, string odirname)
 
 void ontology_lubm()
 {
-    p_info_t*  info = 0; 
-    g->p_info       = new p_info_t*[32];
+    pinfo_t*  info = 0; 
+    g->p_info       = new pinfo_t*[32];
     
     info = new enum8kv_t;
     info->populate_property("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>", "type");

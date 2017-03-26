@@ -223,6 +223,7 @@ class one2many_t: public pgraph_t {
 //generic classes for label.
 template <class T>
 class  edgeT_t {
+ public:
     vid_t src_id;
     T     dst_id;
 };
@@ -243,7 +244,7 @@ class pkv_t: public pinfo_t {
 
  public:
     lgraph_t* prep_lgraph(index_t ecount);
-    void prep_lgraph_internal(lgraph_t* lgraph_in, index_t edge_count);
+    void prep_lgraph_internal(lgraph_t* lgraph_in, index_t ecount, index_t edge_count);
     void store_lgraph(lgraph_t* lgraph_in, string dir, string postfix);
     void calc_edge_count(lgraph_t* lgraph_in, edge_t* edges, index_t count);
 };

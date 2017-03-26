@@ -51,7 +51,7 @@ void enumkv_t<T>::batch_update(const string& src, const string& dst)
     tid_t type_id = TO_TID(src_id);
     flag1 |= (1L << type_id);
 
-    map<string, T>::iterator str2enum_iter = str2enum.find(dst);
+    typename map<string, T>::iterator str2enum_iter = str2enum.find(dst);
     if (str2enum.end() == str2enum_iter) {
         dst_id = ecount++;
         str2enum[dst] = dst_id;
@@ -72,7 +72,6 @@ void enumkv_t<T>::make_graph_baseline()
 
     vid_t src;
     T dst;
-    edgeT_t<T>* edges = (edgeT_t<T>*) buf;
    
     flag1_count = __builtin_popcountll(flag1);
     
@@ -81,14 +80,16 @@ void enumkv_t<T>::make_graph_baseline()
     lgraph_in = prep_lgraph(ecount);    
 
     //estimate edge count
-    calc_edge_count(lgraph_in, edges, count);
+    edge_t* edges1 = (edge_t*) buf;
+    calc_edge_count(lgraph_in, edges1, count);
     
     //prefix sum then reset the count
-    prep_lgraph_internal(lgraph_in, count);
+    prep_lgraph_internal(lgraph_in, ecount, count);
     
     //populate and get the original count back
     //handle kv_out as well.
-    fill_adj_list_kv(lkv_out, lgraph_in, flag1, buf, count);
+    edgeT_t<T>* edges = (edgeT_t<T>*) buf;
+    fill_adj_list_kv(lkv_out, lgraph_in, flag1, edges, count);
 }
 
 //super bins memory allocation
@@ -133,9 +134,9 @@ void enumkv_t<T>::fill_adj_list_kv(lkv_t<T>* lkv_out, lgraph_t* lgraph_in,
         flag1_mask = flag1 & ( (1L << type1_id) - 1);
         src_index = __builtin_popcountll(flag1_mask);
         
-        lkv_out[src_index]->kv[vert1_id] = dst;
+        lkv_out[src_index].kv[vert1_id] = dst;
         
-        beg_pos_in[dst]->adj_list[beg_pos_in->count++] = src;
+        beg_pos_in[dst].adj_list[beg_pos_in->count++] = src;
     }
 }
 

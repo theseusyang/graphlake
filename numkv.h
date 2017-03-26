@@ -10,6 +10,7 @@ T atoT(string value)
     return (T)0;
 }
 
+/*
 template <>
 uint32_t atoT(string value)
 {
@@ -25,7 +26,7 @@ uint64_t atoT(string value)
     sscanf(value.c_str(), "%ld", &num);
     return num;
 }
-
+*/
 //generic number class
 //
 template <class T>
@@ -84,8 +85,7 @@ void numkv_t<T>::make_graph_baseline()
 
     //populate and get the original count back
     //handle kv_out as well.
-    //XXX 
-    //fill_adj_list_kv(lkv_out, flag1,  edges, count);
+    fill_adj_list_kv(lkv_out, flag1,  edges, count);
 }
 
 template<class T>
@@ -108,7 +108,7 @@ void numkv_t<T>::fill_adj_list_kv(lkv_t<T>* lkv_out, sflag_t flag1,
         flag1_mask = flag1 & ( (1L << type1_id) - 1);
         src_index = __builtin_popcountll(flag1_mask);
         
-        lkv_out[src_index]->kv[vert1_id] = dst;
+        lkv_out[src_index].kv[vert1_id] = dst;
     }
 }
 

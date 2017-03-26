@@ -47,7 +47,7 @@ void graph::batch_update(const string& src, const string& dst)
         ++vert_count;
         str2vid[src] = src_id;
         //update the id
-        type_info[dst].vert_id = vert_id;
+        type_info[type_id].vert_id = vert_id;
     } else {
         src_id = str2vid_iter->second;
         assert(0);
@@ -134,7 +134,7 @@ sgraph_t* pgraph_t::prep_sgraph(sflag_t ori_flag, tid_t flag_count)
     tid_t   pos = 0;
     sid_t super_id;
 
-    for(int i = 0; i < flag_count; i++) {
+    for(tid_t i = 0; i < flag_count; i++) {
         pos = __builtin_ctz(flag);
         flag ^= (1L << pos);//reset that position
         super_id = g->get_type_scount(pos);
@@ -177,7 +177,7 @@ void pgraph_t::calc_edge_count(sgraph_t* sgraph_out, sgraph_t* sgraph_in,
 void pgraph_t::calc_edge_count_out(sgraph_t* sgraph_out, sflag_t flag1, 
                                edge_t* edges, index_t count)
 {
-    sid_t src, dst;
+    sid_t     src;
     vid_t     vert1_id;
     tid_t     type1_id;
     sflag_t   flag1_mask;
@@ -185,7 +185,6 @@ void pgraph_t::calc_edge_count_out(sgraph_t* sgraph_out, sflag_t flag1,
 
     for (index_t i = 0; i < count; ++i) {
         src = edges[i].src_id;
-        dst = edges[i].dst_id;
         
         vert1_id = TO_VID(src);
         type1_id = TO_TID(src) + 1;
@@ -224,7 +223,7 @@ void pgraph_t::prep_sgraph_internal(sgraph_t* sgraph, index_t edge_count, tid_t 
     beg_pos_t*  beg_pos = 0;
     vid_t       v_count = 0;
     
-    for(int i = 0; i < sgraph_count; i++) {
+    for(tid_t i = 0; i < sgraph_count; i++) {
         beg_pos = sgraph[i].beg_pos;
         v_count = TO_VID(sgraph[i].super_id); 
         for (vid_t j = 0; j < v_count; ++j) {
@@ -334,6 +333,7 @@ void pgraph_t::fill_adj_list_out(sgraph_t* sgraph_out, skv_t* skv_in,
 
 void pgraph_t::store_sgraph(sgraph_t* sgraph, sflag_t flag, string dir, string postfix)
 {
+    /*
     vid_t v_count;
     //base name using relationship type
     string basefile = dir + p_name;
@@ -349,6 +349,8 @@ void pgraph_t::store_sgraph(sgraph_t* sgraph, sflag_t flag, string dir, string p
         assert(f != 0);
         fwrite(sgraph[i].beg_pos, sizeof(), v_count + 1);
     }
+
+    */
     
     /*
     string file = dir + p_name + ".beg_pos_in";
@@ -387,7 +389,7 @@ skv_t* pgraph_t::prep_skv(sflag_t ori_flag, tid_t flag_count)
     sid_t   super_id;
     vid_t   v_count;
 
-    for(int i = 0; i < flag_count; i++) {
+    for(tid_t i = 0; i < flag_count; i++) {
         pos = __builtin_ctz(flag);
         flag ^= (1L << pos);//reset that position
         super_id = g->get_type_scount(pos);
@@ -462,7 +464,6 @@ void pkv_t::prep_lgraph_internal(lgraph_t* lgraph_in, index_t ecount, index_t ed
     
     index_t     prefix = 0;
     beg_pos_t*  beg_pos = lgraph_in;
-    vid_t       vcount = 0;
     
     for (vid_t j = 0; j < ecount; ++j) {
         beg_pos[j].adj_list = adj_list + prefix;
@@ -484,11 +485,11 @@ void pkv_t::calc_edge_count(lgraph_t* lgraph_in, edge_t* edges, index_t count)
 void pkv_t::store_lgraph(lgraph_t* lgraph_in, string dir, string postfix)
 {
     //base name using relationship type
+    /*
     string basefile = dir + p_name;
     string file = basefile + "beg_pos";
     FILE* f;
     
-    /*
     string file = dir + p_name + ".beg_pos_in";
     FILE* f = fopen(file.c_str(), "wb");
     assert(f != 0);
