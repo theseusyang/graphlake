@@ -1,24 +1,23 @@
 #include "graph.h"
 
-
-typedef struct __label_string_t {
-    vid_t src_id;
-    char* dst_id;
-} label_string_t;
-
 void stringkv_t::batch_update(const string& src, const string& dst)
 {
     vid_t src_id;
     char* dst_id;
     index_t index = 0;
-    label_string_t* edges = (label_string_t*) buf;
+    edgeT_t<char*>* edges = (edgeT_t<char*>*) buf;
+
     map<string, vid_t>::iterator str2vid_iter = str2vid.find(src);
     if (str2vid.end() == str2vid_iter) {
         src_id = vert_count++;
         str2vid[src] = src_id;
+        assert(0);
     } else {
         src_id = str2vid_iter->second;
     }
+    
+    tid_t type_id = TO_TID(src_id);
+    flag1 |= (1L << type_id);
     
     dst_id = gstrdup(dst.c_str());
     index = count++;
@@ -74,7 +73,7 @@ void stringkv_t::fill_adj_list_kv(lkv_t<char*>* lkv_out, sflag_t flag1,
         vert1_id = TO_VID(src);
         type1_id = TO_TID(src) + 1;
         flag1_mask = flag1 & ( (1L << type1_id) - 1);
-        src_index = __builtin_popcountll(flag1_mask);
+        src_index = __builtin_popcountll(flag1_mask) - 1;
         
         lkv_out[src_index].kv[vert1_id] = dst;
     }

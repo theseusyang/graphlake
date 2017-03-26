@@ -100,7 +100,7 @@ void numkv_t<T>::fill_adj_list_kv(lkv_t<T>* lkv_out, sflag_t flag1,
         vert1_id = TO_VID(src);
         type1_id = TO_TID(src) + 1;
         flag1_mask = flag1 & ( (1L << type1_id) - 1);
-        src_index = __builtin_popcountll(flag1_mask);
+        src_index = __builtin_popcountll(flag1_mask) - 1;
         
         lkv_out[src_index].kv[vert1_id] = dst;
     }
