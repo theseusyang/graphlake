@@ -10,8 +10,7 @@ void dgraph_t::make_graph_baseline()
     sgraph_in  = prep_sgraph(flag2, flag2_count);
 
     //estimate edge count
-    edge_t* edges = (edge_t*)buf;
-    calc_edge_count(sgraph_out, sgraph_in, flag1, flag2, edges, count);
+    calc_edge_count(sgraph_out, sgraph_in);
     
     
     //prefix sum then reset the count
@@ -19,7 +18,7 @@ void dgraph_t::make_graph_baseline()
     prep_sgraph_internal(sgraph_in, count, flag2_count);
 
     //populate and get the original count back
-    fill_adj_list(sgraph_out, sgraph_in, flag1, flag2, edges, count);
+    fill_adj_list(sgraph_out, sgraph_in);
 }
 
 void dgraph_t::store_graph_baseline(string dir)
@@ -44,8 +43,7 @@ void ugraph_t::make_graph_baseline()
     sgraph = prep_sgraph(flag1, flag1_count);    
 
     //estimate edge count
-    edge_t* edges = (edge_t*)buf;
-    calc_edge_count(sgraph, sgraph, flag1, flag2, edges, count);
+    calc_edge_count(sgraph, sgraph);
     
     
     //prefix sum then reset the count
@@ -53,7 +51,7 @@ void ugraph_t::make_graph_baseline()
     prep_sgraph_internal(sgraph, 2*count, flag1_count);
 
     //populate and get the original count back
-    fill_adj_list(sgraph, sgraph, flag1, flag2, edges, count);
+    fill_adj_list(sgraph, sgraph);
 }
 
 void ugraph_t::store_graph_baseline(string dir)
@@ -75,8 +73,7 @@ void many2one_t::make_graph_baseline()
     sgraph_in  = prep_sgraph(flag2, flag2_count);
 
     //estimate edge count
-    edge_t* edges = (edge_t*)buf;
-    calc_edge_count_in(sgraph_in, flag2, edges, count);
+    calc_edge_count_in(sgraph_in);
     
     
     //prefix sum then reset the count
@@ -84,7 +81,7 @@ void many2one_t::make_graph_baseline()
 
     //populate and get the original count back
     //handle kv_out as well.
-    fill_adj_list_in(skv_out, sgraph_in, flag1, flag2, edges, count);
+    fill_adj_list_in(skv_out, sgraph_in);
 }
 
 void many2one_t::store_graph_baseline(string dir)
@@ -108,8 +105,7 @@ void one2many_t::make_graph_baseline()
     skv_in   = prep_skv(flag2, flag2_count);
 
     //estimate edge count
-    edge_t* edges = (edge_t*)buf;
-    calc_edge_count_out(sgraph_out, flag1, edges, count);
+    calc_edge_count_out(sgraph_out);
     
     
     //prefix sum then reset the count
@@ -117,7 +113,7 @@ void one2many_t::make_graph_baseline()
 
     //populate and get the original count back
     //handle kv_in as well.
-    fill_adj_list_out(sgraph_out, skv_in, flag1, flag2, edges, count);
+    fill_adj_list_out(sgraph_out, skv_in);
 }
 
 void one2many_t::store_graph_baseline(string dir)
@@ -141,8 +137,7 @@ void one2one_t::make_graph_baseline()
     skv_in  = prep_skv(flag2, flag2_count);
 
     //handle kv_out as well as kv_in.
-    edge_t* edges = (edge_t*)buf;
-    fill_skv(skv_out, skv_in, flag1, flag2, edges, count);
+    fill_skv(skv_out, skv_in);
 }
 
 void one2one_t::store_graph_baseline(string dir)

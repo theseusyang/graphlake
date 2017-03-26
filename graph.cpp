@@ -155,15 +155,14 @@ sgraph_t* pgraph_t::prep_sgraph(sflag_t ori_flag, tid_t flag_count)
 }
 
 //estimate edge count
-void pgraph_t::calc_edge_count(sgraph_t* sgraph_out, sgraph_t* sgraph_in, 
-                        sflag_t flag1, sflag_t flag2, 
-                        edge_t* edges, index_t count)
+void pgraph_t::calc_edge_count(sgraph_t* sgraph_out, sgraph_t* sgraph_in) 
 {
     sid_t src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     type1_id, type2_id;
     sflag_t   flag1_mask, flag2_mask;
     tid_t src_index, dst_index;
+    edge_t*   edges = (edge_t*) buf;  
     for (index_t i = 0; i < count; ++i) {
         src = edges[i].src_id;
         dst = edges[i].dst_id;
@@ -183,14 +182,15 @@ void pgraph_t::calc_edge_count(sgraph_t* sgraph_out, sgraph_t* sgraph_in,
 }
 
 //estimate edge count
-void pgraph_t::calc_edge_count_out(sgraph_t* sgraph_out, sflag_t flag1, 
-                               edge_t* edges, index_t count)
+void pgraph_t::calc_edge_count_out(sgraph_t* sgraph_out)
 {
     sid_t     src;
     vid_t     vert1_id;
     tid_t     type1_id;
     sflag_t   flag1_mask;
     tid_t     src_index;
+
+    edge_t*  edges = (edge_t*) buf;
 
     for (index_t i = 0; i < count; ++i) {
         src = edges[i].src_id;
@@ -204,14 +204,14 @@ void pgraph_t::calc_edge_count_out(sgraph_t* sgraph_out, sflag_t flag1,
     }
 }
 //estimate edge count
-void pgraph_t::calc_edge_count_in(sgraph_t* sgraph_in, sflag_t flag2, 
-                               edge_t* edges, index_t count)
+void pgraph_t::calc_edge_count_in(sgraph_t* sgraph_in)
 {
     sid_t src, dst;
     vid_t     vert2_id;
     tid_t     type2_id;
     sflag_t   flag2_mask;
     tid_t     dst_index;
+    edge_t*   edges = (edge_t*) buf;
     for (index_t i = 0; i < count; ++i) {
         src = edges[i].src_id;
         dst = edges[i].dst_id;
@@ -243,9 +243,7 @@ void pgraph_t::prep_sgraph_internal(sgraph_t* sgraph, index_t edge_count, tid_t 
     }
 }
 
-void pgraph_t::fill_adj_list(sgraph_t* sgraph_out, sgraph_t* sgraph_in,
-                           sflag_t flag1, sflag_t flag2,
-                           edge_t* edges, index_t count)
+void pgraph_t::fill_adj_list(sgraph_t* sgraph_out, sgraph_t* sgraph_in)
 {
     sid_t src, dst;
     vid_t     vert1_id, vert2_id;
@@ -254,6 +252,7 @@ void pgraph_t::fill_adj_list(sgraph_t* sgraph_out, sgraph_t* sgraph_in,
     tid_t     src_index, dst_index;
     beg_pos_t* beg_pos_out = 0;
     beg_pos_t* beg_pos_in = 0;
+    edge_t*    edges = (edge_t*) buf;
     
     for (index_t i = 0; i < count; ++i) {
         src = edges[i].src_id;
@@ -277,9 +276,7 @@ void pgraph_t::fill_adj_list(sgraph_t* sgraph_out, sgraph_t* sgraph_in,
     }
 }
 
-void pgraph_t::fill_adj_list_in(skv_t* skv_out, sgraph_t* sgraph_in, 
-                              sflag_t flag1, sflag_t flag2,
-                           edge_t* edges, index_t count)
+void pgraph_t::fill_adj_list_in(skv_t* skv_out, sgraph_t* sgraph_in) 
 {
     sid_t src, dst;
     vid_t     vert1_id, vert2_id;
@@ -287,6 +284,7 @@ void pgraph_t::fill_adj_list_in(skv_t* skv_out, sgraph_t* sgraph_in,
     sflag_t   flag1_mask, flag2_mask;
     tid_t     src_index, dst_index;
     beg_pos_t* beg_pos_in = 0;
+    edge_t*   edges = (edge_t*) buf;
     
     for (index_t i = 0; i < count; ++i) {
         src = edges[i].src_id;
@@ -309,9 +307,7 @@ void pgraph_t::fill_adj_list_in(skv_t* skv_out, sgraph_t* sgraph_in,
     }
 }
 
-void pgraph_t::fill_adj_list_out(sgraph_t* sgraph_out, skv_t* skv_in, 
-                               sflag_t flag1, sflag_t flag2,
-                               edge_t* edges, index_t count)
+void pgraph_t::fill_adj_list_out(sgraph_t* sgraph_out, skv_t* skv_in) 
 {
     sid_t src, dst;
     vid_t     vert1_id, vert2_id;
@@ -319,6 +315,8 @@ void pgraph_t::fill_adj_list_out(sgraph_t* sgraph_out, skv_t* skv_in,
     sflag_t   flag1_mask, flag2_mask;
     beg_pos_t* beg_pos_out = 0;
     tid_t src_index, dst_index; 
+    edge_t*   edges = (edge_t*) buf;
+
     for (index_t i = 0; i < count; ++i) {
         src = edges[i].src_id;
         dst = edges[i].dst_id;
@@ -430,15 +428,14 @@ void pgraph_t::store_skv(skv_t* skv, sflag_t flag, string dir, string postfix)
     */
 }
 
-void pgraph_t::fill_skv(skv_t* skv_out, skv_t* skv_in, 
-                               sflag_t flag1, sflag_t flag2,
-                               edge_t* edges, index_t count)
+void pgraph_t::fill_skv(skv_t* skv_out, skv_t* skv_in)
 {
     sid_t src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     type1_id, type2_id;
     sflag_t   flag1_mask, flag2_mask;
     tid_t     src_index, dst_index;
+    edge_t*   edges = (edge_t*) buf;
     
     for (index_t i = 0; i < count; ++i) {
         src = edges[i].src_id;

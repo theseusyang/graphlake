@@ -144,31 +144,18 @@ class pgraph_t: public pinfo_t {
     sgraph_t* prep_sgraph(sflag_t ori_flag, tid_t flag_count);
     skv_t* prep_skv(sflag_t ori_flag, tid_t flag_count);
     
-    void calc_edge_count(sgraph_t* sgraph_out, sgraph_t* sgraph_in, 
-                        sflag_t flag1, sflag_t flag2, 
-                        edge_t* edges, index_t count);
-    void calc_edge_count_out(sgraph_t* sgraph_out, sflag_t flag1, 
-                               edge_t* edges, index_t count);
-    void calc_edge_count_in(sgraph_t* sgraph_in, sflag_t flag2, 
-                               edge_t* edges, index_t count);
+    void calc_edge_count(sgraph_t* sgraph_out, sgraph_t* sgraph_in); 
+    void calc_edge_count_out(sgraph_t* sgraph_out);
+    void calc_edge_count_in(sgraph_t* sgraph_in); 
     
     void prep_sgraph_internal(sgraph_t* sgraph, index_t edge_count, tid_t sgraph_count);
     
-    void fill_adj_list(sgraph_t* sgraph_out, sgraph_t* sgraph_in,
-                           sflag_t flag1, sflag_t flag2,
-                           edge_t* edges, index_t count);
-    void fill_adj_list_in(skv_t* skv_out, sgraph_t* sgraph_in, 
-                              sflag_t flag1, sflag_t flag2,
-                           edge_t* edges, index_t count);
-    void fill_adj_list_out(sgraph_t* sgraph_out, skv_t* skv_in, 
-                               sflag_t flag1, sflag_t flag2,
-                               edge_t* edges, index_t count);
-    void fill_skv(skv_t* skv_out, skv_t* skv_in,
-                        sflag_t flag1, sflag_t flag2,
-                        edge_t* edges, index_t count);
+    void fill_adj_list(sgraph_t* sgraph_out, sgraph_t* sgraph_in);
+    void fill_adj_list_in(skv_t* skv_out, sgraph_t* sgraph_in); 
+    void fill_adj_list_out(sgraph_t* sgraph_out, skv_t* skv_in); 
+    void fill_skv(skv_t* skv_out, skv_t* skv_in);
     
     void store_sgraph(sgraph_t* sgraph, sflag_t flag, string dir, string postfix);
-
     void store_skv(skv_t* skv, sflag_t flag, string dir, string postfix);
 };
 
