@@ -69,9 +69,6 @@ template<class T>
 void enumkv_t<T>::make_graph_baseline()
 {
     if (count == 0) return;
-
-    vid_t src;
-    T dst;
    
     flag1_count = __builtin_popcountll(flag1);
     

@@ -4,29 +4,24 @@
 
 
 template <class T>
-T atoT(string value)
+void atoT(string value, T* num)
 {
     assert(0);
-    return (T)0;
 }
 
-/*
+
 template <>
-uint32_t atoT(string value)
+inline void atoT(string value, uint32_t* num)
 {
-    uint32_t num = 0;
-    sscanf(value.c_str(), "%d", &num);
-    return num;
+    sscanf(value.c_str(), "%d", num);
 }
 
 template <>
-uint64_t atoT(string value)
+inline void atoT(string value, uint64_t* num)
 {
-    uint64_t num = 0;
-    sscanf(value.c_str(), "%ld", &num);
-    return num;
+    sscanf(value.c_str(), "%ld", num);
 }
-*/
+
 //generic number class
 //
 template <class T>
@@ -62,7 +57,8 @@ void numkv_t<T>::batch_update(const string& src, const string& dst)
     tid_t type_id = TO_TID(src_id);
     flag1 |= (1L << type_id);
 
-    dst_id = atoT<T>(dst);
+    atoT<T>(dst, &dst_id);
+
 
     index = count++;
     edges[index].src_id = src_id; 
@@ -74,8 +70,6 @@ void numkv_t<T>::make_graph_baseline()
 {
     if (count == 0) return;
 
-    vid_t src;
-    T dst;
     edgeT_t<T>* edges = (edgeT_t<T>*) buf;
    
     flag1_count = __builtin_popcountll(flag1);
