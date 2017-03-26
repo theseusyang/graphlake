@@ -170,13 +170,13 @@ void pgraph_t::calc_edge_count(sgraph_t* sgraph_out, sgraph_t* sgraph_in)
         vert1_id = TO_VID(src);
         type1_id = TO_TID(src) + 1;
         flag1_mask = flag1 & ( (1L << type1_id) - 1);
-        src_index = __builtin_popcountll(flag1_mask);
+        src_index = __builtin_popcountll(flag1_mask) - 1;
         sgraph_out[src_index].beg_pos[vert1_id].count += 1;
         
-        vert2_id = TO_VID(src);
+        vert2_id = TO_VID(dst);
         type2_id = TO_TID(dst) + 1;
         flag2_mask = flag2 & ( (1L << type2_id) - 1);
-        dst_index = __builtin_popcountll(flag2_mask);
+        dst_index = __builtin_popcountll(flag2_mask) - 1;
         sgraph_in[dst_index].beg_pos[vert2_id].count  += 1;
     }
 }
@@ -198,7 +198,7 @@ void pgraph_t::calc_edge_count_out(sgraph_t* sgraph_out)
         vert1_id = TO_VID(src);
         type1_id = TO_TID(src) + 1;
         flag1_mask = flag1 & ( (1L << type1_id) - 1);
-        src_index = __builtin_popcountll(flag1_mask);
+        src_index = __builtin_popcountll(flag1_mask) - 1;
         sgraph_out[src_index].beg_pos[vert1_id].count += 1;
         
     }
@@ -206,20 +206,19 @@ void pgraph_t::calc_edge_count_out(sgraph_t* sgraph_out)
 //estimate edge count
 void pgraph_t::calc_edge_count_in(sgraph_t* sgraph_in)
 {
-    sid_t src, dst;
+    sid_t     dst;
     vid_t     vert2_id;
     tid_t     type2_id;
     sflag_t   flag2_mask;
     tid_t     dst_index;
     edge_t*   edges = (edge_t*) buf;
     for (index_t i = 0; i < count; ++i) {
-        src = edges[i].src_id;
         dst = edges[i].dst_id;
         
-        vert2_id = TO_VID(src);
+        vert2_id = TO_VID(dst);
         type2_id = TO_TID(dst) + 1;
         flag2_mask = flag2 & ( (1L << type2_id) - 1);
-        dst_index = __builtin_popcountll(flag2_mask);
+        dst_index = __builtin_popcountll(flag2_mask) - 1;
         sgraph_in[dst_index].beg_pos[vert2_id].count  += 1;
     }
 }
@@ -261,15 +260,15 @@ void pgraph_t::fill_adj_list(sgraph_t* sgraph_out, sgraph_t* sgraph_in)
         vert1_id = TO_VID(src);
         type1_id = TO_TID(src) + 1;
         flag1_mask = flag1 & ( (1L << type1_id) - 1);
-        src_index = __builtin_popcountll(flag1_mask);
+        src_index = __builtin_popcountll(flag1_mask) - 1;
         
         beg_pos_out = sgraph_out[src_index].beg_pos + vert1_id; 
         beg_pos_out->adj_list[beg_pos_out->count++] = dst;
         
-        vert2_id = TO_VID(src);
+        vert2_id = TO_VID(dst);
         type2_id = TO_TID(dst) + 1;
         flag2_mask = flag2 & ( (1L << type2_id) - 1);
-        dst_index = __builtin_popcountll(flag2_mask);
+        dst_index = __builtin_popcountll(flag2_mask) - 1;
         
         beg_pos_in = sgraph_in[dst_index].beg_pos + vert2_id; 
         beg_pos_in->adj_list[beg_pos_in->count++] = src;
@@ -293,14 +292,14 @@ void pgraph_t::fill_adj_list_in(skv_t* skv_out, sgraph_t* sgraph_in)
         vert1_id = TO_VID(src);
         type1_id = TO_TID(src) + 1;
         flag1_mask = flag1 & ( (1L << type1_id) - 1);
-        src_index = __builtin_popcountll(flag1_mask);
+        src_index = __builtin_popcountll(flag1_mask) - 1;
         
         skv_out[src_index].kv[vert1_id] = dst;
         
-        vert2_id = TO_VID(src);
+        vert2_id = TO_VID(dst);
         type2_id = TO_TID(dst) + 1;
         flag2_mask = flag2 & ( (1L << type2_id) - 1);
-        dst_index = __builtin_popcountll(flag2_mask);
+        dst_index = __builtin_popcountll(flag2_mask) - 1 ;
         
         beg_pos_in = sgraph_in[dst_index].beg_pos + vert2_id; 
         beg_pos_in->adj_list[beg_pos_in->count++] = src;
@@ -324,15 +323,15 @@ void pgraph_t::fill_adj_list_out(sgraph_t* sgraph_out, skv_t* skv_in)
         vert1_id = TO_VID(src);
         type1_id = TO_TID(src) + 1;
         flag1_mask = flag1 & ( (1L << type1_id) - 1);
-        src_index = __builtin_popcountll(flag1_mask);
+        src_index = __builtin_popcountll(flag1_mask) - 1;
         
         beg_pos_out = sgraph_out[src_index].beg_pos + vert1_id; 
         beg_pos_out->adj_list[beg_pos_out->count++] = dst;
         
-        vert2_id = TO_VID(src);
+        vert2_id = TO_VID(dst);
         type2_id = TO_TID(dst) + 1;
         flag2_mask = flag2 & ( (1L << type2_id) - 1);
-        dst_index = __builtin_popcountll(flag2_mask);
+        dst_index = __builtin_popcountll(flag2_mask) - 1;
         
         skv_in[dst_index].kv[vert2_id] = src; 
     }
@@ -444,14 +443,14 @@ void pgraph_t::fill_skv(skv_t* skv_out, skv_t* skv_in)
         vert1_id = TO_VID(src);
         type1_id = TO_TID(src) + 1;
         flag1_mask = flag1 & ( (1L << type1_id) - 1);
-        src_index = __builtin_popcountll(flag1_mask);
+        src_index = __builtin_popcountll(flag1_mask) - 1;
         
         skv_out[src_index].kv[vert1_id] = dst; 
         
-        vert2_id = TO_VID(src);
+        vert2_id = TO_VID(dst);
         type2_id = TO_TID(dst) + 1;
         flag2_mask = flag2 & ( (1L << type2_id) - 1);
-        dst_index = __builtin_popcountll(flag2_mask);
+        dst_index = __builtin_popcountll(flag2_mask) - 1;
         
         skv_in[dst_index].kv[vert2_id] = src; 
     }

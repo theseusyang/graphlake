@@ -241,11 +241,14 @@ class pkv_t: public pinfo_t {
 
 class stringkv_t : public pkv_t {
  protected:
-    char** kv_out;
+    lkv_t<char*>* kv_out;
  public:
     void batch_update(const string& src, const string& dst);
     void make_graph_baseline();
     void store_graph_baseline(string dir);
+    lkv_t<char*>* prep_lkv(sflag_t ori_flag, tid_t flag_count);
+    void fill_adj_list_kv(lkv_t<char*>* lkv_out, sflag_t flag1,
+                              edgeT_t<char*>* edges, index_t count);
 };
 
 
