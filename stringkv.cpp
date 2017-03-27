@@ -9,8 +9,6 @@ void stringkv_t::batch_update(const string& src, const string& dst)
 
     map<string, vid_t>::iterator str2vid_iter = str2vid.find(src);
     if (str2vid.end() == str2vid_iter) {
-        src_id = vert_count++;
-        str2vid[src] = src_id;
         assert(0);
     } else {
         src_id = str2vid_iter->second;
@@ -83,11 +81,4 @@ void stringkv_t::fill_adj_list_kv(lkv_t<char*>* lkv_out, sflag_t flag1,
 void stringkv_t::store_graph_baseline(string dir)
 {
     if (count == 0) return;
-
-    //XXX it is wrong, we are writing the char*, not the string
-    string file = dir + p_name + ".kv_out";
-    FILE* f = fopen(file.c_str(), "wb");
-    assert(f != 0);
-    fwrite(kv_out, sizeof(int64_t), vert_count, f);
-    fclose(f);
 }

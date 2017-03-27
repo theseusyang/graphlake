@@ -6,6 +6,7 @@ SRC=main.cpp \
 	dgraph.cpp\
 	sgraph.cpp\
 	stringkv.cpp\
+    vgraph.cpp\
 	nt_to_edge.cpp\
 	intersection.cpp\
 

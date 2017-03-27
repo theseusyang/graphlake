@@ -38,7 +38,6 @@ public:
     vid_t dst_id;
 };
 
-
 typedef struct __beg_pos_t {
 public:
     index_t  count;
@@ -58,26 +57,6 @@ public:
     beg_pos_t* beg_pos;
 };
 
-enum p_type {
-    edgraph, //directed graph, many to many.
-    emany2one, // directed graph many to one such as "advisor"
-    eone2one,
-    eone2many,
-    eugraph, // undirected graph
-    // All the label properties now
-    eenum8,   // value is an enum, such as "type" property
-    estring, // value is a string, such as "name"
-    efloat,  // 
-    edouble,
-    euint8,
-    eint32,
-    euint32,
-    eint64,
-    euint64,
-    edate,
-    elast
-};
-
 /////////////////////////////////
 class pinfo_t {
  public:
@@ -92,26 +71,42 @@ class pinfo_t {
     virtual void batch_update(const string& src, const string& dst);
     virtual void make_graph_baseline();
     virtual void store_graph_baseline(string dir);
+};
+
+class tinfo_t {
+ public:
+    char*   type_name;
+    sid_t vert_id;
+};
+
+class vinfo_t {
+ public:
+    char*       v_name;
+    sflag_t     flag1;
+    uint8_t     flag1_count;
 
 };
 
 ////////////main class/////////////////////
-typedef struct __type_info_t {
-    char*   type_name;
-    sid_t vert_id;
-} type_info_t;
+class vgraph_t;
 
 class graph {
  public:
-    //mapping between enum and string
+    //Type information
     map<string, tid_t> str2enum;
-    type_info_t*       type_info;
-    tid_t              ecount;
-    tid_t              max_count;
+    tinfo_t*       t_info;
+    tid_t          t_count;
+    tid_t          max_count;
 
+    //graphs and labels store.
     pinfo_t** p_info;
     int       p_count;
     map <string, propid_t> str2pid;
+
+    //vertex information
+    vid_t     v_count;
+
+    vgraph_t* v_graph;
 
  public:
     graph();
@@ -123,7 +118,6 @@ class graph {
 };
 
 extern map <string, vid_t> str2vid;
-extern vid_t vert_count;
 extern graph* g;
 
 
@@ -209,6 +203,7 @@ class one2many_t: public pgraph_t {
     void store_graph_baseline(string dir);
 };
 
+
 /*----------- labels ------------------ */
 //generic classes for label.
 template <class T>
@@ -259,3 +254,18 @@ class stringkv_t : public pkv_t {
 typedef enumkv_t<uint8_t> enum8kv_t;
 typedef numkv_t<uint8_t>  uint8kv_t;
 typedef numkv_t<uint64_t> uint64kv_t;
+
+/*---------------vinfo--------------------*/
+class vgraph_t: public pkv_t
+{
+    lkv_t<char*>* kv_out;
+ public:    
+    void id2name(vid_t src_id, const string& src); 
+    void batch_update(const string& src, const string& dst);
+    void make_graph_baseline();
+    void store_graph_baseline(string dir);
+    
+    lkv_t<char*>* prep_lkv(sflag_t ori_flag, tid_t flag_count);
+    void fill_adj_list_kv(lkv_t<char*>* lkv_out, sflag_t flag1,
+                          edgeT_t<char*>* edges, index_t count);
+};
