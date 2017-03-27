@@ -41,8 +41,8 @@ void enumkv_t<T>::batch_update(const string& src, const string& dst)
     index_t index = 0;
     edgeT_t<T>* edges = (edgeT_t<T>*) buf;
 
-    map<string, vid_t>::iterator str2vid_iter = str2vid.find(src);
-    if (str2vid.end() == str2vid_iter) {
+    map<string, vid_t>::iterator str2vid_iter = g->str2vid.find(src);
+    if (g->str2vid.end() == str2vid_iter) {
         assert(0);
     } else {
         src_id = str2vid_iter->second;

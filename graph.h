@@ -106,7 +106,8 @@ class graph {
     //vertex information
     vgraph_t* v_graph;
 
-
+    //Other information
+    map <string, vid_t> str2vid;
     vid_t     vert_count;
 
 
@@ -120,7 +121,6 @@ class graph {
     void prep_graph(string idirname, string odirname);
 };
 
-extern map <string, vid_t> str2vid;
 extern graph* g;
 
 

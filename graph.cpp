@@ -1,7 +1,7 @@
 #include "graph.h"
 
 
-map <string, vid_t> str2vid;
+//map <string, vid_t> str2vid;
 
 graph::graph()
 {
@@ -113,8 +113,8 @@ void pgraph_t::batch_update(const string& src, const string& dst)
     index_t index = 0;
     edge_t* edges = (edge_t*) buf;
 
-    map<string, vid_t>::iterator str2vid_iter = str2vid.find(src);
-    if (str2vid.end() == str2vid_iter) {
+    map<string, vid_t>::iterator str2vid_iter = g->str2vid.find(src);
+    if (g->str2vid.end() == str2vid_iter) {
         assert(0);
     } else {
         src_id = str2vid_iter->second;
@@ -122,8 +122,8 @@ void pgraph_t::batch_update(const string& src, const string& dst)
     tid_t type_id = TO_TID(src_id);
     flag1 |= (1L << type_id);
     
-    str2vid_iter = str2vid.find(dst);
-    if (str2vid.end() == str2vid_iter) {
+    str2vid_iter = g->str2vid.find(dst);
+    if (g->str2vid.end() == str2vid_iter) {
         assert(0);
     } else {
         dst_id = str2vid_iter->second;
