@@ -9,6 +9,7 @@ graph::graph()
     p_count = 0;
     init_type(256);
     vert_count = 0;
+    v_graph =  new vgraph_t;
 }
 sid_t graph::get_type_scount(int type)
 {

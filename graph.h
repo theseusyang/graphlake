@@ -261,14 +261,20 @@ typedef numkv_t<uint64_t> uint64kv_t;
 /*---------------vinfo--------------------*/
 class vgraph_t: public pkv_t
 {
+public:
     lkv_t<char*>* kv_out;
+
  public:    
     void id2name(vid_t src_id, const string& src); 
-    void batch_update(const string& src, const string& dst);
+    //void batch_update(const string& src, const string& dst);
     void type_done();
     void store_graph_baseline(string dir);
     
     lkv_t<char*>* prep_lkv(sflag_t ori_flag, tid_t flag_count);
     void fill_adj_list_kv(lkv_t<char*>* lkv_out, sflag_t flag1,
                           edgeT_t<char*>* edges, index_t count);
+
+ public:
+    vgraph_t();
+    ~vgraph_t();
 };
