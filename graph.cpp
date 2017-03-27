@@ -8,7 +8,7 @@ graph::graph()
     p_info = 0;
     p_count = 0;
     init_type(256);
-    v_count = 0;
+    vert_count = 0;
 }
 sid_t graph::get_type_scount(int type)
 {
@@ -22,7 +22,7 @@ void graph::init_type(tid_t enumcount)
     t_info = new tinfo_t [enumcount];
 }
 
-void graph::batch_update(const string& src, const string& dst)
+void graph::type_update(const string& src, const string& dst)
 {
     vid_t       src_id;
     tid_t       type_id;
@@ -44,7 +44,7 @@ void graph::batch_update(const string& src, const string& dst)
     map<string, vid_t>::iterator str2vid_iter = str2vid.find(src);
     if (str2vid.end() == str2vid_iter) {
         src_id = vert_id++;
-        ++v_count;
+        ++vert_count;
         str2vid[src] = src_id;
         //update the id
         t_info[type_id].vert_id = vert_id;
@@ -53,6 +53,11 @@ void graph::batch_update(const string& src, const string& dst)
         //dublicate entry XXX
         src_id = str2vid_iter->second;
     }
+}
+
+void graph::type_done()
+{
+    v_graph->type_done();
 }
 
 /////////////////////////////////////////
@@ -133,7 +138,7 @@ void pgraph_t::batch_update(const string& src, const string& dst)
 //super bins memory allocation
 sgraph_t* pgraph_t::prep_sgraph(sflag_t ori_flag, tid_t flag_count)
 {
-    vid_t vert_count;
+    vid_t v_count;
     sflag_t flag = ori_flag;
     sgraph_t* sgraph  = (sgraph_t*) calloc (sizeof(sgraph_t), flag_count);
     tid_t   pos = 0;
@@ -143,8 +148,8 @@ sgraph_t* pgraph_t::prep_sgraph(sflag_t ori_flag, tid_t flag_count)
         pos = __builtin_ctz(flag);
         flag ^= (1L << pos);//reset that position
         super_id = g->get_type_scount(pos);
-        vert_count = TO_VID(super_id);
-        sgraph[i].beg_pos = (beg_pos_t*)calloc(sizeof(beg_pos_t), vert_count);
+        v_count = TO_VID(super_id);
+        sgraph[i].beg_pos = (beg_pos_t*)calloc(sizeof(beg_pos_t), v_count);
         sgraph[i].super_id = super_id;
     } 
     return sgraph;
@@ -225,12 +230,12 @@ void pgraph_t::prep_sgraph_internal(sgraph_t* sgraph, index_t edge_count, tid_t 
     vid_t* adj_list = (vid_t*) calloc (sizeof(vid_t), edge_count);
     index_t     prefix = 0;
     beg_pos_t*  beg_pos = 0;
-    vid_t       vert_count = 0;
+    vid_t       v_count = 0;
     
     for(tid_t i = 0; i < sgraph_count; i++) {
         beg_pos = sgraph[i].beg_pos;
-        vert_count = TO_VID(sgraph[i].super_id); 
-        for (vid_t j = 0; j < vert_count; ++j) {
+        v_count = TO_VID(sgraph[i].super_id); 
+        for (vid_t j = 0; j < v_count; ++j) {
             beg_pos[j].adj_list = adj_list + prefix;
             prefix += beg_pos[j].count;
             beg_pos[j].count = 0;
@@ -336,7 +341,7 @@ void pgraph_t::fill_adj_list_out(sgraph_t* sgraph_out, skv_t* skv_in)
 void pgraph_t::store_sgraph(sgraph_t* sgraph, sflag_t flag, string dir, string postfix)
 {
     /*
-    vid_t vert_count;
+    vid_t v_count;
     //base name using relationship type
     string basefile = dir + p_name;
     string file;
@@ -345,11 +350,11 @@ void pgraph_t::store_sgraph(sgraph_t* sgraph, sflag_t flag, string dir, string p
 
     //Write individual files.
     for (tid_t i = 0; i < flag_count; ++i) {
-        vert_count = TO_VID(sgraph[i].super_id);
+        v_count = TO_VID(sgraph[i].super_id);
         file = basefile + itoa(i) + "beg_pos" + postfix;
         f = fopen(file.c_str(), "wb");
         assert(f != 0);
-        fwrite(sgraph[i].beg_pos, sizeof(), vert_count + 1);
+        fwrite(sgraph[i].beg_pos, sizeof(), v_count + 1);
     }
 
     */
@@ -364,14 +369,14 @@ skv_t* pgraph_t::prep_skv(sflag_t ori_flag, tid_t flag_count)
     skv_t*  skv  = (skv_t*) calloc (sizeof(skv_t), flag_count);
     tid_t   pos  = 0;
     sid_t   super_id;
-    vid_t   vert_count;
+    vid_t   v_count;
 
     for(tid_t i = 0; i < flag_count; i++) {
         pos = __builtin_ctz(flag);
         flag ^= (1L << pos);//reset that position
         super_id = g->get_type_scount(pos);
-        vert_count = TO_VID(super_id);
-        skv[i].kv = (vid_t*)calloc(sizeof(vid_t), vert_count);
+        v_count = TO_VID(super_id);
+        skv[i].kv = (vid_t*)calloc(sizeof(vid_t), v_count);
         skv[i].super_id = super_id;
     }
     return skv;
@@ -380,7 +385,7 @@ skv_t* pgraph_t::prep_skv(sflag_t ori_flag, tid_t flag_count)
 void pgraph_t::store_skv(skv_t* skv, sflag_t flag, string dir, string postfix)
 {
     /*
-    vid_t vert_count;
+    vid_t v_count;
     //base name using relationship type
     string basefile = dir + p_name;
     string file;
@@ -389,11 +394,11 @@ void pgraph_t::store_skv(skv_t* skv, sflag_t flag, string dir, string postfix)
 
     //Write individual files.
     for (tid_t i = 0; i < flag_count; ++i) {
-        vert_count = TO_VID(sgraph[i].super_id);
+        v_count = TO_VID(sgraph[i].super_id);
         file = basefile + itoa(i) + "beg_pos" + postfix;
         f = fopen(file.c_str(), "wb");
         assert(f != 0);
-        //fwrite(sgraph[i].beg_pos, sizeof(), vert_count + 1);
+        //fwrite(sgraph[i].beg_pos, sizeof(), v_count + 1);
     }
     */
 }

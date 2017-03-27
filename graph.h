@@ -104,15 +104,18 @@ class graph {
     map <string, propid_t> str2pid;
 
     //vertex information
-    vid_t     v_count;
-
     vgraph_t* v_graph;
+
+
+    vid_t     vert_count;
+
 
  public:
     graph();
     void init_type(tid_t enumcount);
-    void batch_update(const string& src, const string& dst);
     sid_t get_type_scount(int type);    
+    void type_update(const string& src, const string& dst);
+    void type_done();
     
     void prep_graph(string idirname, string odirname);
 };
@@ -262,7 +265,7 @@ class vgraph_t: public pkv_t
  public:    
     void id2name(vid_t src_id, const string& src); 
     void batch_update(const string& src, const string& dst);
-    void make_graph_baseline();
+    void type_done();
     void store_graph_baseline(string dir);
     
     lkv_t<char*>* prep_lkv(sflag_t ori_flag, tid_t flag_count);

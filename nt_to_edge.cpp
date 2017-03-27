@@ -18,7 +18,7 @@ void graph::prep_graph(string idirname, string odirname)
     string subject, predicate, object, useless_dot;
     int file_count = 0;
     
-    //Read graph file for vertices
+    //Read graph file for types 
     dir = opendir(idirname.c_str());
     while (NULL != (ptr = readdir(dir))) {
         if (ptr->d_name[0] == '.') continue;
@@ -37,12 +37,14 @@ void graph::prep_graph(string idirname, string odirname)
             }
             pid = str2pid_iter->second;
             if( pid == 0) { // type
-                g->batch_update(subject, object);
+                g->type_update(subject, object);
                 ++nt_count;
             }
         }
     }
     closedir(dir);
+    g->type_done();
+    
     
     //Read graph file
     dir = opendir(idirname.c_str());
