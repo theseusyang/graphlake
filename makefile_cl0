@@ -8,12 +8,15 @@ SRC=main.cpp \
 	stringkv.cpp\
     vgraph.cpp\
 	nt_to_edge.cpp\
-	intersection.cpp\
+	query_triple.cpp\
+	graph_query.cpp\
+	
 
-HEADER=rdf.h \
-	btree.h\
-	kbtree.h\
-	edges.h\
+HEADER=graph.h\
+	enumkv.h\
+	numkv.h\
+	query_node.h\
+	query_triple.h\
 
 INCLUDES= -Iantlr4/include -Iantlr4
 LIBDIRS= -Lantlr4/lib

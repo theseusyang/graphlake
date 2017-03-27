@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <assert.h>
 
 using std::cout;
 using std::string;
@@ -11,13 +12,14 @@ using std::endl;
 
 typedef int32_t status_t;
 
-//using std::unique_ptr;
-typedef int32_t idata;
+inline int is_var(const char* str) {
+    assert(0 != str);
+    return ('?' == str[0]);
+}
 
 class query_node {
 public:
-	inline query_node()
-	{
+	inline query_node() {
 		sibling = 0;
 		child   = 0;
 	}

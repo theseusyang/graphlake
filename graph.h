@@ -9,6 +9,8 @@
 #include <assert.h>
 #include <fstream>
 
+#include "query_clause.h"
+
 
 using std::map;
 using std::cout;
@@ -71,6 +73,7 @@ class pinfo_t {
     virtual void batch_update(const string& src, const string& dst);
     virtual void make_graph_baseline();
     virtual void store_graph_baseline(string dir);
+    virtual status_t execute();
 };
 
 class tinfo_t {
@@ -119,6 +122,9 @@ class graph {
     void type_done();
     
     void prep_graph(string idirname, string odirname);
+
+    //queries
+    void run_query(query_clause* q);
 };
 
 extern graph* g;
@@ -184,6 +190,7 @@ class many2one_t: public pgraph_t {
  public:
     void make_graph_baseline();
     void store_graph_baseline(string dir);
+    status_t execute();
 };
 
 class one2one_t: public pgraph_t {

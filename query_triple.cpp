@@ -3,6 +3,7 @@
 status_t
 query_triple::execute()
 {
+    
 	return 0;
 }
 
@@ -14,11 +15,11 @@ query_triple::to_string()
 	if (node) {
 		node->to_string();
 	}
-	cout << sub_id << " " << pred_id << " " << obj_id << ")" << endl;
+	cout << src << " " << pred << " " << dst << ")" << endl;
+    
 	node = get_sibling();
 	while (node) {
 		node->to_string();
 		node = node->get_sibling();
 	}
-
 }

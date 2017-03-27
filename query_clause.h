@@ -1,10 +1,10 @@
 #pragma once
-
+#include "query_node.h"
 
 class query_whereclause : public query_node
 {
 	public:
-	inline status_t	execute() {return 0;}
+	status_t	execute();
 
 	inline virtual 
 	void to_string()
@@ -31,6 +31,7 @@ private:
 
 public:
 	inline void print_where() {where_clause->to_string();};
+    status_t execute();
 
 
 };
