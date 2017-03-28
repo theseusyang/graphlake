@@ -477,6 +477,18 @@ void pkv_t::store_lgraph(lgraph_t* lgraph_in, string dir, string postfix)
 
 status_t pgraph_t::query_adjlist_td(sgraph_t* sgraph, sflag_t flag, srset_t* iset, srset_t* oset)
 {
+    tid_t rset_count = iset->get_rset_count();
+    rset_t* rset = 0;
+    for (tid_t i = 0; i < rset_count; ++i) {
+        rset = iset.rset + i;
+
+        vid_t v_count = rset->get_vcount();
+        tid_t     tid = rset->get_tid();
+
+        for (vid_t v = 0; v < v_count; v++) {
+        
+        }
+    }
     return 0;
 }
 

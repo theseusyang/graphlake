@@ -45,25 +45,29 @@ enum direction_t {
 //one type's result set
 typedef struct __result_set_t {
     //type and count
-    sid_t count;
+    sid_t scount;
     union {
         bitset_t* status_array;
         vid_t*    frontiers;
     };
+    inline vid_t get_vcount() {return TO_VID(scount);}
+    inline tid_t get_tid() {return TO_TID(scount);}
 } rset_t;
 
 class srset_t {
  public:
     sflag_t  flag;
 
-    //total element count
-    uint64_t count;
+    //Total result set count and total frontiers count
+    uint64_t ccount;
    
     //array of result sets
     rset_t*  rset; 
 
  public:
     srset_t();
+    inline tid_t get_rset_count() {return TO_TID(ccount);}
+    inline tid_t get_total_vcount() {return TO_VID(ccount);}
 };
 
 
