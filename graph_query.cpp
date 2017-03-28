@@ -1,8 +1,9 @@
 #include "graph.h"
 
 
-status_t pinfo_t::execute()
+status_t pinfo_t::execute(srset_t* iset, srset_t* oset)
 {
+    assert(0);
     return 0;
 }
 
@@ -35,7 +36,14 @@ status_t query_whereclause::execute()
     return 0;
 }
 
-status_t many2one_t::execute()
+srset_t::srset_t()
+{
+    flag = 0;
+    count = 0;
+    rset = 0;
+}
+
+status_t many2one_t::execute(srset_t* iset, srset_t* oset)
 {
     return 0;
 }

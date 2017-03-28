@@ -61,20 +61,22 @@ class Bitmap {
  public:
   inline explicit Bitmap(size_t size) {
     uint64_t num_words = (size + bits_per_word - 1) / bits_per_word;
-    
+
+    /*    
     start_ = (uint64_t*)mmap(NULL, sizeof(uint64_t)*num_words, 
                        PROT_READ|PROT_WRITE,
                        MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0 , 0);
     if (MAP_FAILED == start_) {
         start_ = (uint64_t*)calloc(sizeof(uint64_t), num_words);
     }
+    */
     end_ = start_ + num_words;
   }
 
   inline ~Bitmap() {
-      if (-1 == munmap(start_, sizeof(uint64_t)* (end_ - start_))) {
+      //if (-1 == munmap(start_, sizeof(uint64_t)* (end_ - start_))) {
         free(start_);
-      }
+     // }
   }
 
   inline void reset() {

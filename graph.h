@@ -10,7 +10,7 @@
 #include <fstream>
 
 #include "query_clause.h"
-
+#include "bitmap.h"
 
 using std::map;
 using std::cout;
@@ -34,32 +34,68 @@ typedef uint64_t sflag_t;
 #define TO_SUPER(tid) (((sid_t)(tid)) << 40)
 
 
+typedef Bitmap bitset_t;
+
+//one type's result set
+typedef struct __result_set_t {
+    //type and count
+    sid_t count;
+    union {
+        bitset_t* status_array;
+        vid_t*    frontiers;
+    };
+} rset_t;
+
+class srset_t {
+ public:
+    sflag_t  flag;
+
+    //total element count
+    uint64_t count;
+   
+    //array of result sets
+    rset_t*  rset; 
+
+ public:
+    srset_t();
+};
+
+
 class edge_t {
 public:
     vid_t src_id;
     vid_t dst_id;
 };
 
+//One vertex's neighbor information
 typedef struct __beg_pos_t {
 public:
+    //count in adj list
     index_t  count;
+
+    //nebr list of one vertex
     vid_t*   adj_list;
 } beg_pos_t;
 
-
+//one type's key-value store
 class skv_t {
  public:
     sid_t super_id;
     vid_t* kv;
 };
 
+//one type's graph
 class sgraph_t {
 public:
+    //type id and count together
     sid_t      super_id;
+
+    //array of adj list of vertices
     beg_pos_t* beg_pos;
 };
 
 /////////////////////////////////
+//One relationship or label
 class pinfo_t {
  public:
     char*       p_name;
@@ -73,7 +109,7 @@ class pinfo_t {
     virtual void batch_update(const string& src, const string& dst);
     virtual void make_graph_baseline();
     virtual void store_graph_baseline(string dir);
-    virtual status_t execute();
+    status_t execute(srset_t* iset, srset_t* oset);
 };
 
 class tinfo_t {
@@ -160,6 +196,11 @@ class pgraph_t: public pinfo_t {
     
     void store_sgraph(sgraph_t* sgraph, sflag_t flag, string dir, string postfix);
     void store_skv(skv_t* skv, sflag_t flag, string dir, string postfix);
+
+    status_t query_adj_list_td(sgraph_t* sgraph, sflag_t, srset_t* iset, srset_t* oset);
+    status_t query_adj_list_bu(sgraph_t* sgraph, sflag_t, srset_t* iset, srset_t* oset);
+    status_t query_kv_td(sgraph_t* sgraph, sflag_t, srset_t* iset, srset_t* oset);
+    status_t query_kv_bu(sgraph_t* sgraph, sflag_t, srset_t* iset, srset_t* oset);
 };
 
 
@@ -190,7 +231,7 @@ class many2one_t: public pgraph_t {
  public:
     void make_graph_baseline();
     void store_graph_baseline(string dir);
-    status_t execute();
+    status_t execute(srset_t* iset, srset_t* oset);
 };
 
 class one2one_t: public pgraph_t {
