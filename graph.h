@@ -33,8 +33,14 @@ typedef uint64_t sflag_t;
 #define TO_VID(sid)  (sid & 0xffffffffff)
 #define TO_SUPER(tid) (((sid_t)(tid)) << 40)
 
+#define bu_factor 0.07
 
 typedef Bitmap bitset_t;
+
+enum direction_t {
+    eout, 
+    ein
+};
 
 //one type's result set
 typedef struct __result_set_t {
@@ -109,7 +115,7 @@ class pinfo_t {
     virtual void batch_update(const string& src, const string& dst);
     virtual void make_graph_baseline();
     virtual void store_graph_baseline(string dir);
-    status_t execute(srset_t* iset, srset_t* oset);
+    virtual status_t execute(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
 class tinfo_t {
@@ -197,10 +203,10 @@ class pgraph_t: public pinfo_t {
     void store_sgraph(sgraph_t* sgraph, sflag_t flag, string dir, string postfix);
     void store_skv(skv_t* skv, sflag_t flag, string dir, string postfix);
 
-    status_t query_adj_list_td(sgraph_t* sgraph, sflag_t, srset_t* iset, srset_t* oset);
-    status_t query_adj_list_bu(sgraph_t* sgraph, sflag_t, srset_t* iset, srset_t* oset);
-    status_t query_kv_td(sgraph_t* sgraph, sflag_t, srset_t* iset, srset_t* oset);
-    status_t query_kv_bu(sgraph_t* sgraph, sflag_t, srset_t* iset, srset_t* oset);
+    status_t query_adj_list_td(sgraph_t* sgraph, sflag_t flag, srset_t* iset, srset_t* oset);
+    status_t query_adj_list_bu(sgraph_t* sgraph, sflag_t flag, srset_t* iset, srset_t* oset);
+    status_t query_kv_td(skv_t* skv, sflag_t flag, srset_t* iset, srset_t* oset);
+    status_t query_kv_bu(skv_t* skv, sflag_t flag, srset_t* iset, srset_t* oset);
 };
 
 
@@ -231,7 +237,7 @@ class many2one_t: public pgraph_t {
  public:
     void make_graph_baseline();
     void store_graph_baseline(string dir);
-    status_t execute(srset_t* iset, srset_t* oset);
+    status_t execute(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
 class one2one_t: public pgraph_t {

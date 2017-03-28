@@ -1,7 +1,7 @@
 #include "graph.h"
 
 
-status_t pinfo_t::execute(srset_t* iset, srset_t* oset)
+status_t pinfo_t::execute(srset_t* iset, srset_t* oset, direction_t direction)
 {
     assert(0);
     return 0;
@@ -43,8 +43,26 @@ srset_t::srset_t()
     rset = 0;
 }
 
-status_t many2one_t::execute(srset_t* iset, srset_t* oset)
+//due to many2one structure, we give preference to bottom up approach
+status_t many2one_t::execute(srset_t* iset, srset_t* oset, direction_t direction)
 {
+    int total_count = 0;
+    if (direction == eout) {
+        total_count = 0;
+        if (iset->count >= bu_factor*total_count) { //bottom up approach
+            return query_adj_list_bu(sgraph_in, flag2, iset, oset);
+        } else { //top down approach
+            return query_kv_td(skv_out, flag1, iset, oset);
+        }
+    } else {
+        assert(direction == ein);
+        total_count = 0;
+        if (iset->count >= bu_factor*total_count) { //bottom up approach
+            return query_kv_bu(skv_out, flag1, iset, oset);
+        } else { //top down approach
+            return query_adj_list_td(sgraph_in, flag2, iset, oset);
+        }
+    }
     return 0;
 }
 
