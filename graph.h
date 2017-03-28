@@ -203,8 +203,8 @@ class pgraph_t: public pinfo_t {
     void store_sgraph(sgraph_t* sgraph, sflag_t flag, string dir, string postfix);
     void store_skv(skv_t* skv, sflag_t flag, string dir, string postfix);
 
-    status_t query_adj_list_td(sgraph_t* sgraph, sflag_t flag, srset_t* iset, srset_t* oset);
-    status_t query_adj_list_bu(sgraph_t* sgraph, sflag_t flag, srset_t* iset, srset_t* oset);
+    status_t query_adjlist_td(sgraph_t* sgraph, sflag_t flag, srset_t* iset, srset_t* oset);
+    status_t query_adjlist_bu(sgraph_t* sgraph, sflag_t flag, srset_t* iset, srset_t* oset);
     status_t query_kv_td(skv_t* skv, sflag_t flag, srset_t* iset, srset_t* oset);
     status_t query_kv_bu(skv_t* skv, sflag_t flag, srset_t* iset, srset_t* oset);
 };

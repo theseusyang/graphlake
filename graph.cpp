@@ -474,3 +474,23 @@ void pkv_t::store_lgraph(lgraph_t* lgraph_in, string dir, string postfix)
     */
     
 }
+
+status_t pgraph_t::query_adjlist_td(sgraph_t* sgraph, sflag_t flag, srset_t* iset, srset_t* oset)
+{
+    return 0;
+}
+
+status_t pgraph_t::query_adjlist_bu(sgraph_t* sgraph, sflag_t flag, srset_t* iset, srset_t* oset)
+{
+    return 0;
+}
+
+status_t pgraph_t::query_kv_td(skv_t* skv, sflag_t flag, srset_t* iset, srset_t* oset)
+{
+    return 0;
+}
+
+status_t pgraph_t::query_kv_bu(skv_t* skv, sflag_t flag, srset_t* iset, srset_t* oset) 
+{
+    return 0;
+}
