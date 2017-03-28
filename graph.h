@@ -44,14 +44,21 @@ enum direction_t {
 
 //one type's result set
 typedef struct __result_set_t {
-    //type and count
+    //few MSB bits type
+    //rest bis = frontiers count in frontiers, words count in status array
     sid_t scount;
+
+    //Count of words for status array
+    vid_t count2;
     union {
-        bitset_t* status_array;
+        uint64_t* status_array;
         vid_t*    frontiers;
     };
+
+ public:
     inline vid_t get_vcount() {return TO_VID(scount);}
     inline tid_t get_tid() {return TO_TID(scount);}
+    inline vid_t add_frontier(vid_t vid) {return 0;}//XXX
 } rset_t;
 
 class srset_t {
@@ -65,7 +72,12 @@ class srset_t {
     rset_t*  rset; 
 
  public:
-    srset_t();
+    inline srset_t() {
+        flag = 0;
+        ccount = 0;
+        rset = 0;
+    }
+
     inline tid_t get_rset_count() {return TO_TID(ccount);}
     inline tid_t get_total_vcount() {return TO_VID(ccount);}
 };
@@ -207,7 +219,7 @@ class pgraph_t: public pinfo_t {
     void store_sgraph(sgraph_t* sgraph, sflag_t flag, string dir, string postfix);
     void store_skv(skv_t* skv, sflag_t flag, string dir, string postfix);
 
-    status_t query_adjlist_td(sgraph_t* sgraph, sflag_t flag, srset_t* iset, srset_t* oset);
+    status_t query_adjlist_td(sgraph_t* sgraph, sflag_t iflag, sflag_t oflag, srset_t* iset, srset_t* oset);
     status_t query_adjlist_bu(sgraph_t* sgraph, sflag_t flag, srset_t* iset, srset_t* oset);
     status_t query_kv_td(skv_t* skv, sflag_t flag, srset_t* iset, srset_t* oset);
     status_t query_kv_bu(skv_t* skv, sflag_t flag, srset_t* iset, srset_t* oset);

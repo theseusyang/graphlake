@@ -475,18 +475,58 @@ void pkv_t::store_lgraph(lgraph_t* lgraph_in, string dir, string postfix)
     
 }
 
-status_t pgraph_t::query_adjlist_td(sgraph_t* sgraph, sflag_t flag, srset_t* iset, srset_t* oset)
+status_t pgraph_t::query_adjlist_td(sgraph_t* sgraph, sflag_t iflag, sflag_t oflag, srset_t* iset, srset_t* oset)
 {
     tid_t rset_count = iset->get_rset_count();
     rset_t* rset = 0;
+
+    //prepare the output result set;
+    oset->flag = oflag;//XXX
+    sid_t oflag_count = __builtin_popcountll(oflag);
+    oset->ccount |= TO_SUPER(oflag_count);
+    vid_t new_frontiers = 0;
+    
     for (tid_t i = 0; i < rset_count; ++i) {
-        rset = iset.rset + i;
-
-        vid_t v_count = rset->get_vcount();
+        rset = iset->rset + i;
+        vid_t w_count = rset->get_vcount();
         tid_t     tid = rset->get_tid();
-
-        for (vid_t v = 0; v < v_count; v++) {
         
+        //get the graph where we will traverse
+        sflag_t flag_mask = iflag & ( (1L << tid) - 1);
+        tid_t        pos = __builtin_popcountll(flag_mask) - 1;
+        beg_pos_t* graph = sgraph[pos].beg_pos; 
+        //sid_t   super_id = sgraph[pos].super_id;
+
+        //Get the frontiers
+        uint64_t* barray = rset->status_array;
+        vid_t     word, base, vert2_id, frontier;
+        sid_t     dst;
+        tid_t     count, type2_id, dst_index;
+
+        for (vid_t w = 0; w < w_count; w++) {
+            while( 0 == barray[w]) continue;
+            
+            word  = barray[w];
+            count = __builtin_popcountll(w);
+            base  = (w << 6);
+
+            for (tid_t j = 0; j < count; ++j) {
+                pos = __builtin_ctzll(word);
+                w  ^= (1L << pos);//reset that position
+                frontier = pos + base;
+                
+                //traverse the adj list
+                vid_t* adj_list = graph[frontier].adj_list;
+                vid_t nebr_count = graph[frontier].count;
+                for (vid_t k = 0; k < nebr_count; ++k) {
+                    dst = adj_list[k];
+                    vert2_id = TO_VID(dst);
+                    type2_id = TO_TID(dst) + 1;
+                    flag_mask = flag2 & ( (1L << type2_id) - 1);
+                    dst_index = __builtin_popcountll(flag_mask) - 1;
+                    new_frontiers += oset->rset[dst_index].add_frontier(vert2_id);
+                }
+            }
         }
     }
     return 0;
