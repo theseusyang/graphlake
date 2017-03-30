@@ -266,6 +266,7 @@ class ugraph_t: public pgraph_t {
  public:
     void make_graph_baseline();
     void store_graph_baseline(string dir);
+    status_t execute(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
 class dgraph_t: public pgraph_t {
@@ -276,6 +277,7 @@ class dgraph_t: public pgraph_t {
  public:
     void make_graph_baseline();
     void store_graph_baseline(string dir);
+    status_t execute(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
 class many2one_t: public pgraph_t {
@@ -297,6 +299,7 @@ class one2one_t: public pgraph_t {
  public:
     void make_graph_baseline();
     void store_graph_baseline(string dir);
+    status_t execute(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
 class one2many_t: public pgraph_t {
@@ -307,6 +310,7 @@ class one2many_t: public pgraph_t {
  public:
     void make_graph_baseline();
     void store_graph_baseline(string dir);
+    status_t execute(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
 
