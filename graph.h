@@ -45,10 +45,10 @@ enum direction_t {
 //one type's result set
 typedef struct __result_set_t {
     //few MSB bits type
-    //rest bis = frontiers count in frontiers, words count in status array
+    //rest bits = frontiers count in frontiers, words count in status array
     sid_t scount;
 
-    //Count of words for status array
+    //frontier count for status array
     vid_t count2;
     union {
         uint64_t* status_array;
@@ -56,9 +56,30 @@ typedef struct __result_set_t {
     };
 
  public:
+    inline __result_set_t() {
+        scount = 0;
+        count2 = 0;
+        status_array = 0;
+    }
+
+ public:
     inline vid_t get_vcount() {return TO_VID(scount);}
     inline tid_t get_tid() {return TO_TID(scount);}
-    inline vid_t add_frontier(vid_t vid) {return 0;}//XXX
+    inline vid_t add_frontier(vid_t vid) {
+        status_array[word_offset(vid)] |= ((uint64_t) 1l << bit_offset(vid));
+        return 0;
+    }
+    
+    inline vid_t get_status(vid_t vid) {
+        return status_array[word_offset(vid)] & ((uint64_t) 1l << bit_offset(vid));
+    }
+    
+    inline void setup(sid_t super_id) {
+        scount  = super_id;
+        vid_t v_count = TO_VID(super_id);
+        status_array = (uint64_t*) calloc(sizeof(uint64_t*), (v_count >> 8));
+    }
+
 } rset_t;
 
 class srset_t {
@@ -76,6 +97,14 @@ class srset_t {
         flag = 0;
         ccount = 0;
         rset = 0;
+    }
+    
+    inline tid_t setup(sflag_t flag) {
+        sid_t flag_count = __builtin_popcountll(flag);
+        ccount     |= TO_SUPER(flag_count);
+        rset        = new rset_t [flag_count];
+        flag        = flag;
+        return flag_count;
     }
 
     inline tid_t get_rset_count() {return TO_TID(ccount);}
@@ -220,8 +249,8 @@ class pgraph_t: public pinfo_t {
     void store_skv(skv_t* skv, sflag_t flag, string dir, string postfix);
 
     status_t query_adjlist_td(sgraph_t* sgraph, sflag_t iflag, sflag_t oflag, srset_t* iset, srset_t* oset);
+    status_t query_kv_td(skv_t* skv, sflag_t iflag, sflag_t oflag, srset_t* iset, srset_t* oset);
     status_t query_adjlist_bu(sgraph_t* sgraph, sflag_t flag, srset_t* iset, srset_t* oset);
-    status_t query_kv_td(skv_t* skv, sflag_t flag, srset_t* iset, srset_t* oset);
     status_t query_kv_bu(skv_t* skv, sflag_t flag, srset_t* iset, srset_t* oset);
 };
 
