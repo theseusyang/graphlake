@@ -1,6 +1,20 @@
 #include "graph.h"
 
 
+tid_t srset_t::full_setup(sflag_t flag) {
+    sid_t flag_count = setup(flag);
+    tid_t pos = 0;
+    sid_t super_id;
+    for (tid_t i = 0; i < flag_count; ++i) {
+        pos = __builtin_ctzll(flag);
+        flag ^= (1L << pos);//reset that position
+        super_id = g->get_type_scount(pos);
+        rset[i].setup(super_id);
+    }
+    return flag_count;
+}
+
+
 status_t pinfo_t::execute(srset_t* iset, srset_t* oset, direction_t direction)
 {
     assert(0);

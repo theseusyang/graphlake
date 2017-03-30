@@ -35,6 +35,9 @@ typedef uint64_t sflag_t;
 
 #define bu_factor 0.07
 
+class graph;
+extern graph* g;
+
 typedef Bitmap bitset_t;
 
 enum direction_t {
@@ -106,6 +109,8 @@ class srset_t {
         flag        = flag;
         return flag_count;
     }
+
+    tid_t full_setup(sflag_t flag);
 
     inline tid_t get_rset_count() {return TO_TID(ccount);}
     inline tid_t get_total_vcount() {return TO_VID(ccount);}
@@ -214,7 +219,6 @@ class graph {
     void run_query(query_clause* q);
 };
 
-extern graph* g;
 
 
 /******** graphs **************/

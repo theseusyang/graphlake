@@ -146,7 +146,7 @@ sgraph_t* pgraph_t::prep_sgraph(sflag_t ori_flag, tid_t flag_count)
     sid_t super_id;
 
     for(tid_t i = 0; i < flag_count; i++) {
-        pos = __builtin_ctz(flag);
+        pos = __builtin_ctzll(flag);
         flag ^= (1L << pos);//reset that position
         super_id = g->get_type_scount(pos);
         v_count = TO_VID(super_id);
@@ -481,11 +481,9 @@ status_t pgraph_t::query_adjlist_td(sgraph_t* sgraph, sflag_t iflag, sflag_t ofl
     rset_t*        rset = 0;
     vid_t total_frontiers = 0;
 
-    //prepare the output 1;
-    oset->setup(oflag);
+    //prepare the output 1,2;
+    oset->full_setup(oflag);
 
-    //set up the output 2 XXX
-    //rset->status_array = 0;
     
     for (tid_t i = 0; i < iset_count; ++i) {
         rset = iset->rset + i;
@@ -542,11 +540,9 @@ status_t pgraph_t::query_kv_td(skv_t* skv, sflag_t iflag, sflag_t oflag, srset_t
     rset_t*        rset = 0;
     vid_t total_frontiers = 0;
 
-    //prepare the output 1;
-    oset->setup(oflag);
+    //prepare the output 1,2;
+    oset->full_setup(oflag);
 
-    //set up the output 2 XXX
-    //rset->status_array = 0;
     
     for (tid_t i = 0; i < iset_count; ++i) {
         rset = iset->rset + i;
