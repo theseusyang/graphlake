@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "graph.h"
+#include "test1.h"
 
 #define no_argument 0
 #define required_argument 1 
@@ -70,6 +71,6 @@ int main(int argc, char* argv[])
             break;
     }
 
-    //g->run_query(queryfile);
+    test1();
     return 0;
 }

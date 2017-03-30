@@ -15,12 +15,6 @@ tid_t srset_t::full_setup(sflag_t flag) {
 }
 
 
-status_t pinfo_t::execute(srset_t* iset, srset_t* oset, direction_t direction)
-{
-    assert(0);
-    return 0;
-}
-
 void graph::run_query(query_clause* q)
 {
    q->execute(); 
@@ -50,7 +44,13 @@ status_t query_whereclause::execute()
     return 0;
 }
 
-status_t ugraph_t::execute(srset_t* iset, srset_t* oset, direction_t direction)
+status_t pinfo_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    assert(0);
+    return 0;
+}
+
+status_t ugraph_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
 {
     int total_count = 0;
     if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
@@ -62,7 +62,7 @@ status_t ugraph_t::execute(srset_t* iset, srset_t* oset, direction_t direction)
 }
 
 //due to many2one structure, we give preference to bottom up approach
-status_t many2one_t::execute(srset_t* iset, srset_t* oset, direction_t direction)
+status_t many2one_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
 {
     int total_count = 0;
     if (direction == eout) {
@@ -84,7 +84,7 @@ status_t many2one_t::execute(srset_t* iset, srset_t* oset, direction_t direction
     return 0;
 }
 
-status_t dgraph_t::execute(srset_t* iset, srset_t* oset, direction_t direction)
+status_t dgraph_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
 {
     int total_count = 0;
     if (direction == eout) {
@@ -106,7 +106,7 @@ status_t dgraph_t::execute(srset_t* iset, srset_t* oset, direction_t direction)
     return 0;
 }
 
-status_t one2one_t::execute(srset_t* iset, srset_t* oset, direction_t direction)
+status_t one2one_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
 {
     int total_count = 0;
     if (direction == eout) {
@@ -128,7 +128,7 @@ status_t one2one_t::execute(srset_t* iset, srset_t* oset, direction_t direction)
     return 0;
 }
 
-status_t one2many_t::execute(srset_t* iset, srset_t* oset, direction_t direction)
+status_t one2many_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
 {
     int total_count = 0;
     if (direction == eout) {
