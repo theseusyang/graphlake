@@ -1,6 +1,13 @@
 #include "graph.h"
 
 
+
+inline tid_t get_sindex(tid_t tid, sflag_t sflag)
+{
+    sflag_t flag_mask = sflag & ((1L << (tid +1)) - 1);
+    tid_t        pos = __builtin_popcountll(flag_mask) - 1;
+    return pos;
+}
 //map <string, vid_t> str2vid;
 
 graph::graph()
@@ -506,21 +513,19 @@ status_t pgraph_t::query_adjlist_td(sgraph_t* sgraph, sflag_t iflag, sflag_t ofl
     for (tid_t i = 0; i < iset_count; ++i) {
         rset = iset->rset + i;
         vid_t w_count = rset->get_vcount();
-        tid_t     tid = rset->get_tid() + 1;
         uint64_t* barray = rset->status_array;
         
         //get the graph where we will traverse
-        sflag_t flag_mask = iflag & ( (1L << tid) - 1);
-        tid_t        pos = __builtin_popcountll(flag_mask) - 1;
+        tid_t        tid = rset->get_tid();
+        tid_t        pos = get_sindex(tid, iflag);
         tid_t  graph_tid = TO_TID(sgraph[pos].super_id);
         beg_pos_t* graph = sgraph[pos].beg_pos; 
         if (graph_tid != tid) continue;
 
         
         //Get the frontiers
-        vid_t     word, base, vert2_id, frontier;
-        sid_t     dst;
-        tid_t     count, type2_id, dst_index;
+        vid_t     word, base, frontier;
+        tid_t     count;
         
         for (vid_t w = 0; w < w_count; w++) {
             while( 0 == barray[w]) continue;
@@ -538,12 +543,7 @@ status_t pgraph_t::query_adjlist_td(sgraph_t* sgraph, sflag_t iflag, sflag_t ofl
                 vid_t* adj_list = graph[frontier].adj_list;
                 vid_t nebr_count = graph[frontier].count;
                 for (vid_t k = 0; k < nebr_count; ++k) {
-                    dst = adj_list[k];
-                    vert2_id = TO_VID(dst);
-                    type2_id = TO_TID(dst) + 1;
-                    flag_mask = flag2 & ( (1L << type2_id) - 1);
-                    dst_index = __builtin_popcountll(flag_mask) - 1;
-                    total_frontiers += oset->rset[dst_index].add_frontier(vert2_id);
+                    total_frontiers += oset->add_frontier(adj_list[k]);
                 }
             }
         }
@@ -568,18 +568,15 @@ status_t pgraph_t::query_kv_td(skv_t* skv, sflag_t iflag, sflag_t oflag, srset_t
         uint64_t* barray = rset->status_array;
         
         //get the graph where we will traverse
-        tid_t     tid = rset->get_tid() + 1;
-        sflag_t flag_mask = iflag & ( (1L << tid) - 1);
-        tid_t        pos = __builtin_popcountll(flag_mask) - 1;
+        tid_t        tid = rset->get_tid();
+        tid_t        pos = get_sindex(tid, iflag);
         tid_t  graph_tid = TO_TID(skv[pos].super_id);
         vid_t*        kv = skv[pos].kv; 
-        if (graph_tid != tid - 1) continue;
-
+        if (graph_tid != tid) continue;
         
         //Get the frontiers
-        vid_t     word, base, vert2_id, frontier;
-        sid_t     dst;
-        tid_t     count, type2_id, dst_index;
+        vid_t     word, base, frontier;
+        tid_t     count;
         
         for (vid_t w = 0; w < w_count; w++) {
             if ( 0 == barray[w]) continue;
@@ -592,13 +589,7 @@ status_t pgraph_t::query_kv_td(skv_t* skv, sflag_t iflag, sflag_t oflag, srset_t
                 pos = __builtin_ctzll(word);
                 word  ^= (1L << pos);//reset that position
                 frontier = pos + base;
-            
-                dst = kv[frontier];
-                vert2_id = TO_VID(dst);
-                type2_id = TO_TID(dst) + 1;
-                flag_mask = flag2 & ( (1L << type2_id) - 1);
-                dst_index = __builtin_popcountll(flag_mask) - 1;
-                total_frontiers += oset->rset[dst_index].add_frontier(vert2_id);
+                total_frontiers += oset->add_frontier(kv[frontier]);
             }
         }
     }

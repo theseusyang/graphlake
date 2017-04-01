@@ -25,6 +25,7 @@ inline char* gstrdup(const char* str)
 
 #define bu_factor 0.07
 
+
 class graph;
 extern graph* g;
 
