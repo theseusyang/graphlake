@@ -10,8 +10,8 @@ void test1()
     
     query_triple qt;
     qt.set_src(src);
-    qt.set_dst(pred);
-    qt.set_pred("?x");
+    qt.set_pred(pred);
+    qt.set_dst("?x");
     
     query_whereclause qwhere;
     qwhere.add_child(&qt);

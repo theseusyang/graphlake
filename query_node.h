@@ -4,13 +4,13 @@
 #include <iostream>
 #include <string>
 #include <assert.h>
+#include "type.h"
 
 using std::cout;
 using std::string;
 using std::endl;
 
 
-typedef int32_t status_t;
 
 inline int is_var(const char* str) {
     assert(0 != str);

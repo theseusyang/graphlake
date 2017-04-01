@@ -113,7 +113,7 @@ class graph {
     vgraph_t* v_graph;
 
     //Other information
-    map <string, vid_t> str2vid;
+    map <string, sid_t> str2vid;
     vid_t     vert_count;
 
 
@@ -125,6 +125,7 @@ class graph {
     void type_done();
 
     propid_t get_pid(const char* property);
+    sid_t get_sid(const char* src);
     
     void prep_graph(string idirname, string odirname);
 

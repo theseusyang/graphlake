@@ -25,7 +25,7 @@ status_t query_clause::execute()
 {
     where_clause->execute();
 
-    return 0;
+    return eOK;
 }
 
 status_t query_whereclause::execute()
@@ -40,13 +40,13 @@ status_t query_whereclause::execute()
         node = node->get_sibling();
     }
 
-    return 0;
+    return eOK;
 }
 
 status_t pinfo_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
 {
     assert(0);
-    return 0;
+    return eOK;
 }
 
 status_t ugraph_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
@@ -57,7 +57,7 @@ status_t ugraph_t::transform(srset_t* iset, srset_t* oset, direction_t direction
     } else { //bottom up approach
         return query_adjlist_bu(sgraph, flag2, iset, oset);
     }
-    return 0;
+    return eOK;
 }
 
 //due to many2one structure, we give preference to bottom up approach
@@ -80,7 +80,7 @@ status_t many2one_t::transform(srset_t* iset, srset_t* oset, direction_t directi
             return query_kv_bu(skv_out, flag1, iset, oset);
         }
     }
-    return 0;
+    return eOK;
 }
 
 status_t dgraph_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
@@ -102,7 +102,7 @@ status_t dgraph_t::transform(srset_t* iset, srset_t* oset, direction_t direction
             return query_adjlist_bu(sgraph_out, flag1, iset, oset);
         }
     }
-    return 0;
+    return eOK;
 }
 
 status_t one2one_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
@@ -124,7 +124,7 @@ status_t one2one_t::transform(srset_t* iset, srset_t* oset, direction_t directio
             return query_kv_bu(skv_out, flag1, iset, oset);
         }
     }
-    return 0;
+    return eOK;
 }
 
 status_t one2many_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
@@ -146,5 +146,5 @@ status_t one2many_t::transform(srset_t* iset, srset_t* oset, direction_t directi
             return query_adjlist_bu(sgraph_out, flag1, iset, oset);
         }
     }
-    return 0;
+    return eOK;
 }

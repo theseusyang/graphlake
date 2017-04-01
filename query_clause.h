@@ -31,9 +31,9 @@ typedef struct __result_set_t {
         status_array = 0;
     }
 
- public:
     inline vid_t get_vcount() {return TO_VID(scount);}
     inline tid_t get_tid() {return TO_TID(scount);}
+    
     inline vid_t add_frontier(vid_t vid) {
         status_array[word_offset(vid)] |= ((uint64_t) 1l << bit_offset(vid));
         return 0;
@@ -45,8 +45,8 @@ typedef struct __result_set_t {
     
     inline void setup(sid_t super_id) {
         scount  = super_id;
-        vid_t v_count = TO_VID(super_id);
-        status_array = (uint64_t*) calloc(sizeof(uint64_t*), (v_count >> 8));
+        vid_t w_count = WORD_COUNT(TO_VID(super_id));
+        status_array = (uint64_t*) calloc(sizeof(uint64_t*), w_count);
     }
 
 } rset_t;
@@ -68,15 +68,23 @@ class srset_t {
         rset = 0;
     }
     
-    inline tid_t setup(sflag_t flag) {
-        sid_t flag_count = __builtin_popcountll(flag);
+    inline vid_t add_frontier(vid_t sid) {
+        vid_t vert_id = TO_VID(sid);
+        tid_t type_id = TO_TID(sid) + 1;
+        sflag_t flag_mask = flag & ((1L << type_id) - 1);
+        tid_t index = __builtin_popcountll(flag_mask) - 1;
+        return rset[index].add_frontier(vert_id);
+    }
+    
+    inline tid_t setup(sflag_t sflag) {
+        sid_t flag_count = __builtin_popcountll(sflag);
         ccount     |= TO_SUPER(flag_count);
         rset        = new rset_t [flag_count];
-        flag        = flag;
+        flag        = sflag;
         return flag_count;
     }
 
-    tid_t full_setup(sflag_t flag);
+    tid_t full_setup(sflag_t sflag);
 
     inline tid_t get_rset_count() {return TO_TID(ccount);}
     inline tid_t get_total_vcount() {return TO_VID(ccount);}
