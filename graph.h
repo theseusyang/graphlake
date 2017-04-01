@@ -123,6 +123,8 @@ class graph {
     sid_t get_type_scount(int type);    
     void type_update(const string& src, const string& dst);
     void type_done();
+
+    propid_t get_pid(const char* property);
     
     void prep_graph(string idirname, string odirname);
 

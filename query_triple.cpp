@@ -1,10 +1,19 @@
 #include "query_triple.h"
+#include "query_clause.h"
+#include "graph.h"
+
 
 status_t
 query_triple::execute()
 {
-    
-	return 0;
+    //get the property id
+    propid_t pid = g->get_pid(pred); 
+	//sid_t superid = g->to_sid(src);
+
+    srset_t iset;
+    srset_t oset;
+    g->p_info[pid]->transform(&iset, &oset, eout);
+    return 0;
 }
 
 void

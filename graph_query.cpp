@@ -39,7 +39,6 @@ status_t query_whereclause::execute()
         node->execute();
         node = node->get_sibling();
     }
-    cout << ")" << endl;
 
     return 0;
 }

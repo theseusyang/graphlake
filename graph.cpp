@@ -60,6 +60,15 @@ void graph::type_done()
 {
     v_graph->type_done();
 }
+    
+propid_t graph::get_pid(const char* predicate)
+{
+    map<string, propid_t>::iterator str2pid_iter = str2pid.find(predicate);
+    if (str2pid_iter == str2pid.end()) {
+        return INVALID_PID;
+    }
+    return str2pid_iter->second;
+}
 
 /////////////////////////////////////////
 void pinfo_t::batch_update(const string& src, const string& dst)

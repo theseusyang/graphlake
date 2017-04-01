@@ -13,3 +13,5 @@ typedef uint64_t sflag_t;
 #define TO_TID(sid) (sid >> 40)
 #define TO_VID(sid)  (sid & 0xffffffffff)
 #define TO_SUPER(tid) (((sid_t)(tid)) << 40)
+
+#define INVALID_PID 0xFFFFFF
