@@ -8,8 +8,26 @@ inline tid_t get_sindex(tid_t tid, sflag_t sflag)
     tid_t        pos = __builtin_popcountll(flag_mask) - 1;
     return pos;
 }
-//map <string, vid_t> str2vid;
+    
+/*
+inline void add_dst(sid_t sid, sflag_t flag, skv_t* skv) 
+{
+    vid_t vert2_id = TO_VID(sid);
+    tid_t type2_id = TO_TID(sid) + 1;
+    sflag_t flag2_mask = flag & ( (1L << type2_id) - 1);
+    tid_t dst_index = __builtin_popcountll(flag2_mask) - 1;
+    skv[dst_index].kv[vert2_id] = src; 
+}
 
+inline void add_dst_count(sid_t sid, sflag_t flag, skv_t* skv) 
+{
+    vid_t vert2_id = TO_VID(sid);
+    tid_t type2_id = TO_TID(sid) + 1;
+    sflag_t flag2_mask = flag & ( (1L << type2_id) - 1);
+    tid_t dst_index = __builtin_popcountll(flag2_mask) - 1;
+    skvn[dst_index].kv[vert2_id].count += 1; 
+}
+*/
 graph::graph()
 {
     p_info = 0;
@@ -512,7 +530,7 @@ status_t pgraph_t::query_adjlist_td(sgraph_t* sgraph, sflag_t iflag, sflag_t ofl
     
     for (tid_t i = 0; i < iset_count; ++i) {
         rset = iset->rset + i;
-        vid_t w_count = rset->get_vcount();
+        vid_t w_count = WORD_COUNT(rset->get_vcount());
         uint64_t* barray = rset->status_array;
         
         //get the graph where we will traverse
@@ -561,7 +579,6 @@ status_t pgraph_t::query_kv_td(skv_t* skv, sflag_t iflag, sflag_t oflag, srset_t
     //prepare the output 1,2;
     oset->full_setup(oflag);
 
-    
     for (tid_t i = 0; i < iset_count; ++i) {
         rset = iset->rset + i;
         vid_t w_count = WORD_COUNT(rset->get_vcount());
@@ -618,21 +635,12 @@ status_t pgraph_t::query_adjlist_bu(sgraph_t* sgraph, sflag_t flag, srset_t* ise
         rset = oset->rset + i;
         rset->setup(super_id);
         
-        vid_t     vert2_id;
-        sid_t     dst, flag_mask;
-        tid_t     type2_id, dst_index;
-
         for (vid_t v = 0; v < v_count; v++) {
             //traverse the adj list
             vid_t* adj_list = graph[v].adj_list;
             vid_t nebr_count = graph[v].count;
             for (vid_t k = 0; k < nebr_count; ++k) {
-                dst = adj_list[k];
-                vert2_id = TO_VID(dst);
-                type2_id = TO_TID(dst) + 1;
-                flag_mask = flag2 & ( (1L << type2_id) - 1);
-                dst_index = __builtin_popcountll(flag_mask) - 1;
-                if (iset->rset[dst_index].get_status(vert2_id)) {
+                if (iset->get_status(adj_list[k])) {
                     rset->add_frontier(v);
                     new_frontiers++;
                     total_frontiers++;
@@ -666,17 +674,8 @@ status_t pgraph_t::query_kv_bu(skv_t* skv, sflag_t flag, srset_t* iset, srset_t*
         rset = oset->rset + i;
         rset->setup(super_id);
         
-        vid_t     vert2_id;
-        sid_t     dst, flag_mask;
-        tid_t     type2_id, dst_index;
-
         for (vid_t v = 0; v < v_count; ++v) {
-            dst = kv[v];
-            vert2_id = TO_VID(dst);
-            type2_id = TO_TID(dst) + 1;
-            flag_mask = flag2 & ( (1L << type2_id) - 1);
-            dst_index = __builtin_popcountll(flag_mask) - 1;
-            if (iset->rset[dst_index].get_status(vert2_id)) {
+            if (iset->get_status(kv[v])) {
                 rset->add_frontier(v);
                 new_frontiers++;
                 total_frontiers++;

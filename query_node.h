@@ -10,7 +10,7 @@ using std::cout;
 using std::string;
 using std::endl;
 
-
+class query_clause;
 
 inline int is_var(const char* str) {
     assert(0 != str);
@@ -22,7 +22,15 @@ public:
 	inline query_node() {
 		sibling = 0;
 		child   = 0;
+        q = 0;
 	}
+    inline void set_queryclause(query_clause* a_q) {
+        q = a_q;
+    }
+
+    inline query_clause* get_queryclause() {
+        return q;
+    }
 
 public:
 	virtual status_t execute() = 0; 
@@ -75,8 +83,10 @@ public:
 		place->sibling = node;
 	}
 
+
 private:
 	query_node* sibling;
 	query_node* child;
+    query_clause *q;
 };
 #endif

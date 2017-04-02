@@ -9,6 +9,7 @@ typedef uint64_t sid_t;
 typedef uint64_t index_t;
 typedef uint32_t tid_t;
 typedef uint64_t sflag_t;
+typedef uint16_t qid_t;
 //typedef int32_t status_t;
 
 #define TO_TID(sid) (sid >> 40)
@@ -20,6 +21,8 @@ typedef uint64_t sflag_t;
 
 #define INVALID_PID 0xFFFFFFFF
 #define INVALID_SID 0xFFFFFFFFFFFFFFFF
+
+#define NO_QID 0xFFFF
 
 
 enum status_t {

@@ -50,6 +50,7 @@ class skv_t {
  public:
     sid_t super_id;
     vid_t* kv;
+
 };
 
 //one type's graph

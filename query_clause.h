@@ -67,6 +67,14 @@ class srset_t {
         ccount = 0;
         rset = 0;
     }
+
+    inline vid_t get_status(sid_t sid) {
+        vid_t vert_id = TO_VID(sid);
+        tid_t type_id = TO_TID(sid) + 1;
+        sflag_t flag_mask = flag & ( (1L << type_id) - 1);
+        tid_t index = __builtin_popcountll(flag_mask) - 1;
+        return rset[index].get_status(vert_id);
+    } 
     
     inline vid_t add_frontier(vid_t sid) {
         vid_t vert_id = TO_VID(sid);
@@ -116,6 +124,12 @@ class query_clause
 {
 private:
 	query_whereclause* where_clause;
+    
+    //result set for each variables
+    srset_t* srset;
+    //query variable count (in where clause)
+    int      qid_count; 
+
 	//More coming soon
 
 public:
@@ -126,5 +140,12 @@ public:
         where_clause = where;
     };
 
-
+    inline void setup_qid(qid_t qid) {
+        qid_count = qid;
+        srset = new srset_t [qid_count];
+    }
+    inline srset_t* get_srset(qid_t qid) {
+        assert(qid < qid_count);
+        return srset + qid;
+    }
 };

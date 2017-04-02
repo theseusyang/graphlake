@@ -9,16 +9,20 @@ query_triple::execute()
     //get the property id
     propid_t pid = g->get_pid(pred);
     if (pid == INVALID_PID) return eInvalidPID; 
-	sid_t sid = g->get_sid(src);
+	
+    sid_t sid = g->get_sid(src);
     if (sid == INVALID_SID) return eInvalidVID;
 
     tid_t tid = TO_TID(sid);
     sflag_t flag = TID_TO_SFLAG(tid);
+    
     srset_t iset;
     iset.full_setup(flag);
     iset.add_frontier(sid);
-    srset_t oset;
-    g->p_info[pid]->transform(&iset, &oset, eout);
+    
+    srset_t* oset = q->get_srset(dst_qid);
+    g->p_info[pid]->transform(&iset, oset, eout);
+    
     return eOK;
 }
 
