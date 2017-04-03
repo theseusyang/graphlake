@@ -37,6 +37,8 @@ class numkv_t : public pkv_t
     lkv_t<T>* prep_lkv(sflag_t ori_flag, tid_t flag_count);
     void fill_adj_list_kv(lkv_t<T>* lkv_out, sflag_t flag1,
                               edgeT_t<T>* edges, index_t count);
+
+    status_t filter(sid_t sid, void* value);
 };
 
 template<class T>
@@ -139,4 +141,10 @@ lkv_t<T>* numkv_t<T>::prep_lkv(sflag_t ori_flag, tid_t flag_count)
         lkv[i].super_id = super_id;
     }
     return lkv;
+}
+    
+template<class T>
+status_t numkv_t<T>::filter(sid_t sid, void* value)
+{
+    return eOK;
 }

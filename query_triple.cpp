@@ -1,27 +1,67 @@
+
+#include "assert.h"
 #include "query_triple.h"
-#include "query_clause.h"
 #include "graph.h"
+
 
 
 status_t
 query_triple::execute()
 {
+    direction_t dir;
+    sid_t sid;
+    tid_t tid;
+    sflag_t flag;
+    srset_t iset;
+    srset_t* oset;
+    
     //get the property id
     propid_t pid = g->get_pid(pred);
     if (pid == INVALID_PID) return eInvalidPID; 
-	
-    sid_t sid = g->get_sid(src);
-    if (sid == INVALID_SID) return eInvalidVID;
+    
+    int value = (src_qid == NO_QID) + ((dst_qid == NO_QID) << 1);
 
-    tid_t tid = TO_TID(sid);
-    sflag_t flag = TID_TO_SFLAG(tid);
+    switch(value) {
+        case 0:
+            //src is given, dst is given
+            //XXX pred is variable
+            assert(0);
+            break;
+        case 1:
+            //src is given, dst is variable
+            dir = eout;
+            sid = g->get_sid(src);
+            if (sid == INVALID_SID) return eInvalidVID;
+            tid = TO_TID(sid);
+            flag = TID_TO_SFLAG(tid);
+            
+            iset.full_setup(flag);
+            iset.add_frontier(sid);
+            
+            oset = q->get_srset(dst_qid);
+            break;
+        case 2:
+            //dst is given, src is variable
+            dir = ein;
+            sid = g->get_sid(dst);
+            if (sid == INVALID_SID) return eInvalidVID;
+            tid = TO_TID(sid);
+            flag = TID_TO_SFLAG(tid);
+            
+            iset.full_setup(flag);
+            iset.add_frontier(sid);
+            
+            oset = q->get_srset(src_qid);
+            break;
+        case 3:
+            assert(0);
+            break;
+        default:
+            assert(0);
+            break;
+    }
     
-    srset_t iset;
-    iset.full_setup(flag);
-    iset.add_frontier(sid);
-    
-    srset_t* oset = q->get_srset(dst_qid);
-    g->p_info[pid]->transform(&iset, oset, eout);
+    g->p_info[pid]->transform(&iset, oset, dir);
     
     return eOK;
 }

@@ -258,6 +258,7 @@ class pkv_t: public pinfo_t {
     void prep_lgraph_internal(lgraph_t* lgraph_in, index_t ecount, index_t edge_count);
     void store_lgraph(lgraph_t* lgraph_in, string dir, string postfix);
     void calc_edge_count(lgraph_t* lgraph_in, edge_t* edges, index_t count);
+    status_t filter(sid_t sid, void* value);
 };
 
 class stringkv_t : public pkv_t {
@@ -270,6 +271,8 @@ class stringkv_t : public pkv_t {
     lkv_t<char*>* prep_lkv(sflag_t ori_flag, tid_t flag_count);
     void fill_adj_list_kv(lkv_t<char*>* lkv_out, sflag_t flag1,
                               edgeT_t<char*>* edges, index_t count);
+    
+    status_t filter(sid_t sid, void* value);
 };
 
 

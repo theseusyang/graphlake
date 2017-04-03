@@ -31,6 +31,8 @@ class enumkv_t : public pkv_t {
                  sflag_t flag1, edgeT_t<T>* edges, index_t count);
 
     void store_lkv(lkv_t<T>* lkv_out, string dir, string postfix);
+    
+    status_t filter(sid_t sid, void* value);
 };
 
 template<class T>
@@ -174,4 +176,10 @@ template<class T>
 enumkv_t<T>::enumkv_t()
 {
     init_enum(256);
+}
+    
+template<class T>
+status_t enumkv_t<T>::filter(sid_t sid, void* value)
+{
+    return eOK;
 }

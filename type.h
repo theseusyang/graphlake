@@ -31,3 +31,5 @@ enum status_t {
     eInvalidVID,
     eUnknown        
 };
+
+typedef int (*filter_t)(sid_t sid);
