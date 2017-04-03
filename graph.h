@@ -25,7 +25,7 @@ inline char* gstrdup(const char* str)
 
 #define bu_factor 0.07
 
-
+class pkv_t;
 class graph;
 extern graph* g;
 
@@ -79,6 +79,7 @@ class pinfo_t {
     virtual void make_graph_baseline();
     virtual void store_graph_baseline(string dir);
     virtual status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    virtual status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, pinfo_t* graph, void* value);
 };
 
 class tinfo_t {
@@ -248,6 +249,7 @@ class lkv_t {
 
 typedef beg_pos_t lgraph_t;
 
+//base class for label graphs.
 class pkv_t: public pinfo_t {
  public:
     uint64_t    flag1;

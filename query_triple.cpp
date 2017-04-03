@@ -8,7 +8,7 @@
 status_t
 query_triple::execute()
 {
-    direction_t dir;
+    direction_t direction;
     sid_t sid;
     tid_t tid;
     sflag_t flag;
@@ -29,7 +29,7 @@ query_triple::execute()
             break;
         case 1:
             //src is given, dst is variable
-            dir = eout;
+            direction = eout;
             sid = g->get_sid(src);
             if (sid == INVALID_SID) return eInvalidVID;
             tid = TO_TID(sid);
@@ -42,7 +42,7 @@ query_triple::execute()
             break;
         case 2:
             //dst is given, src is variable
-            dir = ein;
+            direction = ein;
             sid = g->get_sid(dst);
             if (sid == INVALID_SID) return eInvalidVID;
             tid = TO_TID(sid);
@@ -61,7 +61,7 @@ query_triple::execute()
             break;
     }
     
-    g->p_info[pid]->transform(&iset, oset, dir);
+    g->p_info[pid]->transform(&iset, oset, direction);
     
     return eOK;
 }

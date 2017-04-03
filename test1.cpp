@@ -1,6 +1,7 @@
 #include "graph.h"
 
 #include "query_triple.h"
+#include "query_triplewithfilter.h"
 
 void test1()
 {
@@ -44,16 +45,25 @@ void lubm_1()
     const char* dst1 = "<http://www.Department0.University0.edu/GraduateCourse0>";
     query_whereclause qwhere;
     
+    /*
     query_triple qt;
     qt.set_src("?x", 0);
     qt.set_pred(pred);
     qt.set_dst(dst);
     qwhere.add_child(&qt);
-    
-    query_triple qt1;
+    */
+
+    query_triplewithfilter qt1;
     qt1.set_src("?x", 0);
     qt1.set_pred(pred1);
     qt1.set_dst(dst1);
+
+    //Get the filter details
+    pid_t type_pid = g->get_pid(pred);
+    pinfo_t *typegraph = g->p_info[type_pid];
+    char* typevalue = gstrdup(dst);
+    qt1.set_filterobj(typegraph, typevalue);
+    
     qwhere.add_child(&qt1);
     
     query_clause query;

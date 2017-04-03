@@ -2,15 +2,18 @@
 
 #include "query_triple.h"
 
-class pkv_t;
+class pinfo_t;
 
 class query_triplewithfilter: public query_triple
 {
+public:
 	virtual status_t execute();
-    inline void set_filterobj(pkv_t* a_graph) {
+    inline void set_filterobj(pinfo_t* a_graph, void* a_value) {
         rgraph = a_graph;
+        value = a_value;
     }
 
  public:
-    pkv_t* rgraph;
+    pinfo_t* rgraph;
+    void* value;
 };

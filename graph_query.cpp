@@ -148,3 +148,8 @@ status_t one2many_t::transform(srset_t* iset, srset_t* oset, direction_t directi
     }
     return eOK;
 }
+
+status_t pinfo_t::transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, pinfo_t* graph, void* value)
+{
+    return eOK;
+}
