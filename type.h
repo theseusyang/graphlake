@@ -25,6 +25,11 @@ typedef uint16_t qid_t;
 #define NO_QID 0xFFFF
 
 
+enum direction_t {
+    eout = 0, 
+    ein
+};
+
 enum status_t {
     eOK = 0,
     eInvalidPID,
@@ -32,4 +37,13 @@ enum status_t {
     eUnknown        
 };
 
-typedef int (*filter_t)(sid_t sid);
+typedef struct __sid_set_t {
+public:
+    int count;
+    sid_t* sids;
+} sid_set_t;
+
+enum filter_fn_t {
+    fn_out = 0,//simple lookup 
+    fn_ein, //simple inward lookup
+};

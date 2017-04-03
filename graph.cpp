@@ -120,11 +120,12 @@ void pinfo_t::store_graph_baseline(string dir)
     assert(0);
 }
 
+/*
 static int 
 is_literal(string str) {
        return ('<' != str[0]);
 }
-
+*/
 void pinfo_t::populate_property(const char* longname, const char* property_name)
 {
     g->p_info[g->p_count] = this;

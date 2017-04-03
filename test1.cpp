@@ -62,7 +62,7 @@ void lubm_1()
     pid_t type_pid = g->get_pid(pred);
     pinfo_t *typegraph = g->p_info[type_pid];
     char* typevalue = gstrdup(dst);
-    qt1.set_filterobj(typegraph, typevalue);
+    qt1.set_filterobj(typegraph, typevalue, fn_out);
     
     qwhere.add_child(&qt1);
     

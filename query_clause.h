@@ -6,11 +6,6 @@
 
 typedef Bitmap bitset_t;
 
-enum direction_t {
-    eout, 
-    ein
-};
-
 //one type's result set
 typedef struct __result_set_t {
     //few MSB bits type

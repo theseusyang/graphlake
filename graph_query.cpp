@@ -43,6 +43,7 @@ status_t query_whereclause::execute()
     return eOK;
 }
 
+/*************************** transform ****************/
 status_t pinfo_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
 {
     assert(0);
@@ -149,7 +150,16 @@ status_t one2many_t::transform(srset_t* iset, srset_t* oset, direction_t directi
     return eOK;
 }
 
+/******************* transform_withfilter ******************/
 status_t pinfo_t::transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, pinfo_t* graph, void* value)
 {
     return eOK;
 }
+
+/******************* filter ******************/
+status_t pinfo_t::filter(sid_t sid, void* value, filter_fn_t fn)
+{
+    return eOK;
+}
+
+

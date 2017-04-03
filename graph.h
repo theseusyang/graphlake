@@ -80,6 +80,8 @@ class pinfo_t {
     virtual void store_graph_baseline(string dir);
     virtual status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, pinfo_t* graph, void* value);
+    
+    virtual status_t filter(sid_t sid, void* value, filter_fn_t fn);
 };
 
 class tinfo_t {
@@ -260,7 +262,6 @@ class pkv_t: public pinfo_t {
     void prep_lgraph_internal(lgraph_t* lgraph_in, index_t ecount, index_t edge_count);
     void store_lgraph(lgraph_t* lgraph_in, string dir, string postfix);
     void calc_edge_count(lgraph_t* lgraph_in, edge_t* edges, index_t count);
-    status_t filter(sid_t sid, void* value);
 };
 
 class stringkv_t : public pkv_t {
@@ -274,7 +275,7 @@ class stringkv_t : public pkv_t {
     void fill_adj_list_kv(lkv_t<char*>* lkv_out, sflag_t flag1,
                               edgeT_t<char*>* edges, index_t count);
     
-    status_t filter(sid_t sid, void* value);
+    status_t filter(sid_set_t* sid_set, void* value, filter_fn_t fn);
 };
 
 
