@@ -259,6 +259,7 @@ status_t one2many_t::transform_withfilter(srset_t* iset, srset_t* oset, directio
 /******************* filter ******************/
 status_t pinfo_t::filter(sid_t sid, void* value, filter_fn_t fn)
 {
+    assert(0);
     return eOK;
 }
 
