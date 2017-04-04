@@ -84,12 +84,6 @@ class pinfo_t {
     virtual status_t filter(sid_t sid, void* value, filter_fn_t fn);
 };
 
-class tinfo_t {
- public:
-    char*   type_name;
-    sid_t vert_id;
-};
-
 class vinfo_t {
  public:
     char*       v_name;
@@ -312,6 +306,9 @@ public:
     lkv_t<char*>* prep_lkv(sflag_t ori_flag, tid_t flag_count);
     void fill_adj_list_kv(lkv_t<char*>* lkv_out, sflag_t flag1,
                           edgeT_t<char*>* edges, index_t count);
+
+ public:
+    const char* get_value(tid_t tid, vid_t vid);
 
  public:
     vgraph_t();

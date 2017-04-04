@@ -546,7 +546,7 @@ status_t pgraph_t::query_adjlist_td(sgraph_t* sgraph, sflag_t iflag, sflag_t ofl
             if ( 0 == barray[w]) continue;
             
             word  = barray[w];
-            count = __builtin_popcountll(w);
+            count = __builtin_popcountll(word);
             base  = (w << 6);
 
             for (tid_t j = 0; j < count; ++j) {
@@ -722,7 +722,7 @@ pgraph_t::query_adjlist_td_filter(sgraph_t* sgraph, sflag_t iflag, sflag_t oflag
             if ( 0 == barray[w]) continue;
             
             word  = barray[w];
-            count = __builtin_popcountll(w);
+            count = __builtin_popcountll(word);
             base  = (w << 6);
 
             for (tid_t j = 0; j < count; ++j) {

@@ -17,15 +17,46 @@ tid_t srset_t::full_setup(sflag_t flag) {
 
 void graph::run_query(query_clause* q)
 {
-   q->execute(); 
+   q->execute();
+   q->print_result(); 
 }
-
 
 status_t query_clause::execute()
 {
     where_clause->execute();
 
     return eOK;
+}
+
+void query_clause::print_result()
+{
+    //Printing only one var
+    srset_t* srset = get_srset(0);
+    tid_t rset_count = srset->get_rset_count();
+    vid_t word, count, pos, base, frontier = 0;
+
+    
+    for (tid_t i = 0; i < rset_count; i++) {
+       rset_t* rset = srset->rset + i;
+       vid_t v_count = rset->get_vcount();
+       tid_t tid = rset->get_tid();
+       vid_t w_count = WORD_COUNT(v_count);
+       vid_t* barray = rset->status_array;
+
+       for (vid_t w = 0; w < w_count; w++) {
+           if (barray[w] == 0) continue;
+            word  = barray[w];
+            count = __builtin_popcountll(word);
+            base  = (w << 6);
+
+            for (tid_t j = 0; j < count; ++j) {
+                pos = __builtin_ctzll(word);
+                word  ^= (1L << pos);//reset that position
+                frontier = pos + base;
+                cout << g->v_graph->get_value(tid, frontier);
+            }
+       }
+    }
 }
 
 status_t query_whereclause::execute()

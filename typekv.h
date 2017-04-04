@@ -2,6 +2,12 @@
 
 #include "graph.h"
 
+class tinfo_t {
+ public:
+    char*   type_name;
+    sid_t vert_id;
+};
+
 //type class
 class typekv_t : public pkv_t {
   public:

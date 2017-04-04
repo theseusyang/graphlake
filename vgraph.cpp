@@ -83,3 +83,8 @@ void vgraph_t::fill_adj_list_kv(lkv_t<char*>* lkv_out, sflag_t flag1,
         lkv_out[src_index].kv[vert1_id] = dst;
     }
 }
+
+const char* vgraph_t::get_value(tid_t tid, vid_t vid)
+{
+    return kv_out[tid].kv[vid];
+}

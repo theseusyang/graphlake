@@ -131,6 +131,8 @@ public:
 	inline void print_where() {where_clause->to_string();}
 
     status_t execute();
+    void print_result();
+    
     inline void add_whereclause(query_whereclause* where) {
         where_clause = where;
     };
