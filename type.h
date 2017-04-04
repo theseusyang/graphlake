@@ -12,9 +12,13 @@ typedef uint64_t sflag_t;
 typedef uint16_t qid_t;
 //typedef int32_t status_t;
 
-#define TO_TID(sid) (sid >> 40)
-#define TO_VID(sid)  (sid & 0xffffffffff)
-#define TO_SUPER(tid) (((sid_t)(tid)) << 40)
+#define VBIT 40
+#define VMASK 0xffffffffff
+
+
+#define TO_TID(sid) (sid >> VBIT)
+#define TO_VID(sid)  (sid & VMASK)
+#define TO_SUPER(tid) (((sid_t)(tid)) << VBIT)
 
 #define TID_TO_SFLAG(tid) (1L << tid)
 #define WORD_COUNT(count) ((count + 63) >> 6)
@@ -36,6 +40,7 @@ enum status_t {
     eOK = 0,
     eInvalidPID,
     eInvalidVID,
+    eQueryFail,
     eUnknown        
 };
 

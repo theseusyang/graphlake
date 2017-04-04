@@ -32,7 +32,7 @@ class enumkv_t : public pkv_t {
 
     void store_lkv(lkv_t<T>* lkv_out, string dir, string postfix);
     
-    status_t filter(sid_set_t* sid_set, void* value, filter_fn_t fn);
+    status_t filter(sid_t sid, void* value, filter_fn_t fn);
     
 };
 
@@ -180,27 +180,22 @@ enumkv_t<T>::enumkv_t()
 }
     
 template<class T>
-status_t enumkv_t<T>::filter(sid_set_t* sid_set, void* a_value, filter_fn_t fn)
+status_t enumkv_t<T>::filter(sid_t src, void* a_value, filter_fn_t fn)
 {
     //value is already encoded, so typecast it
     T     dst = (T) a_value;
-    sid_t src;
     vid_t vert1_id;
     tid_t type1_id, src_index;
     sflag_t flag1_mask;
   
     assert(fn == fn_out); 
     
-    for (int i = 0; i < sid_set->count; ++i ) {
-        src = sid_set->sids[i];
-        vert1_id = TO_VID(src);
-        type1_id = TO_TID(src) + 1;
-        flag1_mask = flag1 & ( (1L << type1_id) - 1);
-        src_index = __builtin_popcountll(flag1_mask);
-        if (lkv_out[src_index].kv[vert1_id] == dst) {
-            //XXX 
-        }
+    vert1_id = TO_VID(src);
+    type1_id = TO_TID(src) + 1;
+    flag1_mask = flag1 & ( (1L << type1_id) - 1);
+    src_index = __builtin_popcountll(flag1_mask);
+    if (lkv_out[src_index].kv[vert1_id] == dst) {
+        return eOK;
     }
-    
-    return eOK;
+    return eQueryFail;
 }

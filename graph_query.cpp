@@ -218,17 +218,17 @@ status_t one2one_t::transform_withfilter(srset_t* iset, srset_t* oset, direction
     if (direction == eout) {
         total_count = 0;
         if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
-            return query_kv_td(skv_out, flag1, flag2, iset, oset);
+            return query_kv_td_filter(skv_out, flag1, flag2, iset, oset, filter_info);
         } else { //bottom up approach
-            return query_kv_bu(skv_in, flag2, iset, oset);
+            return query_kv_bu_filter(skv_in, flag2, iset, oset, filter_info);
         }
     } else {
         assert(direction == ein);
         total_count = 0;
         if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
-            return query_kv_td(skv_in, flag2, flag1, iset, oset);
+            return query_kv_td_filter(skv_in, flag2, flag1, iset, oset, filter_info);
         } else { //bottom up approach 
-            return query_kv_bu(skv_out, flag1, iset, oset);
+            return query_kv_bu_filter(skv_out, flag1, iset, oset, filter_info);
         }
     }
     return eOK;
@@ -240,17 +240,17 @@ status_t one2many_t::transform_withfilter(srset_t* iset, srset_t* oset, directio
     if (direction == eout) {
         total_count = 0;
         if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
-            return query_adjlist_td(sgraph_out, flag1, flag2, iset, oset);
+            return query_adjlist_td_filter(sgraph_out, flag1, flag2, iset, oset, filter_info);
         } else { //bottom up approach
-            return query_kv_bu(skv_in, flag2, iset, oset);
+            return query_kv_bu_filter(skv_in, flag2, iset, oset, filter_info);
         }
     } else {
         assert(direction == ein);
         total_count = 0;
         if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
-            return query_kv_td(skv_in, flag2, flag1, iset, oset);
+            return query_kv_td_filter(skv_in, flag2, flag1, iset, oset, filter_info);
         } else { //bottom up approach 
-            return query_adjlist_bu(sgraph_out, flag1, iset, oset);
+            return query_adjlist_bu_filter(sgraph_out, flag1, iset, oset, filter_info);
         }
     }
     return eOK;

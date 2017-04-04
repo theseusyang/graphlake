@@ -289,7 +289,7 @@ class stringkv_t : public pkv_t {
     void fill_adj_list_kv(lkv_t<char*>* lkv_out, sflag_t flag1,
                               edgeT_t<char*>* edges, index_t count);
     
-    status_t filter(sid_set_t* sid_set, void* value, filter_fn_t fn);
+    //status_t filter(sid_t sid_set, void* value, filter_fn_t fn);
 };
 
 
