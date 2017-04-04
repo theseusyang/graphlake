@@ -13,6 +13,7 @@ public:
 	inline query_triple() {
         src = dst = pred = 0;
         src_qid = dst_qid = NO_QID;
+        q = 0;
     }
 	virtual status_t execute();
 	virtual void to_string();
@@ -37,6 +38,10 @@ public:
 	
     inline void set_pred(const char* a_pred) { 
         pred = gstrdup(a_pred); 
+    }
+    
+    inline void set_query(query_clause* a_q ) {
+        q = a_q;
     }
    
 
