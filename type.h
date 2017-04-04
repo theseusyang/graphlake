@@ -24,6 +24,8 @@ typedef uint16_t qid_t;
 
 #define NO_QID 0xFFFF
 
+class pinfo_t;
+
 
 enum direction_t {
     eout = 0, 
@@ -46,4 +48,10 @@ public:
 enum filter_fn_t {
     fn_out = 0,//simple lookup 
     fn_ein, //simple inward lookup
+};
+
+struct filter_info_t {
+    pinfo_t* rgraph;
+    void* value;
+    filter_fn_t filter_fn;
 };

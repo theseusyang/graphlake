@@ -79,7 +79,7 @@ class pinfo_t {
     virtual void make_graph_baseline();
     virtual void store_graph_baseline(string dir);
     virtual status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    virtual status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, pinfo_t* graph, void* value);
+    virtual status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, filter_info_t* filter_info);
     
     virtual status_t filter(sid_t sid, void* value, filter_fn_t fn);
 };
@@ -175,6 +175,11 @@ class pgraph_t: public pinfo_t {
     status_t query_kv_td(skv_t* skv, sflag_t iflag, sflag_t oflag, srset_t* iset, srset_t* oset);
     status_t query_adjlist_bu(sgraph_t* sgraph, sflag_t flag, srset_t* iset, srset_t* oset);
     status_t query_kv_bu(skv_t* skv, sflag_t flag, srset_t* iset, srset_t* oset);
+    
+    status_t query_adjlist_td_filter(sgraph_t* sgraph, sflag_t iflag, sflag_t oflag, srset_t* iset, srset_t* oset, filter_info_t* filter_info);
+    status_t query_kv_td_filter(skv_t* skv, sflag_t iflag, sflag_t oflag, srset_t* iset, srset_t* oset, filter_info_t* filter_info);
+    status_t query_adjlist_bu_filter(sgraph_t* sgraph, sflag_t flag, srset_t* iset, srset_t* oset, filter_info_t* filter_info);
+    status_t query_kv_bu_filter(skv_t* skv, sflag_t flag, srset_t* iset, srset_t* oset, filter_info_t* filter_info);
 };
 
 
@@ -186,6 +191,8 @@ class ugraph_t: public pgraph_t {
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction,
+                                  filter_info_t* filter_info);
 };
 
 class dgraph_t: public pgraph_t {
@@ -197,6 +204,8 @@ class dgraph_t: public pgraph_t {
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction,
+                                  filter_info_t* filter_info);
 };
 
 class many2one_t: public pgraph_t {
@@ -208,6 +217,7 @@ class many2one_t: public pgraph_t {
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    virtual status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, filter_info_t* filter_info);
 };
 
 class one2one_t: public pgraph_t {
@@ -219,6 +229,8 @@ class one2one_t: public pgraph_t {
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction,
+                                  filter_info_t* filter_info);
 };
 
 class one2many_t: public pgraph_t {
@@ -230,6 +242,8 @@ class one2many_t: public pgraph_t {
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction,
+                                  filter_info_t* filter_info);
 };
 
 

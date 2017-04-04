@@ -688,3 +688,31 @@ status_t pgraph_t::query_kv_bu(skv_t* skv, sflag_t flag, srset_t* iset, srset_t*
     oset->ccount |= TO_VID(total_frontiers);
     return eOK;
 }
+    
+status_t 
+pgraph_t::query_adjlist_td_filter(sgraph_t* sgraph, sflag_t iflag, sflag_t oflag, 
+                        srset_t* iset, srset_t* oset, filter_info_t* filter_info)
+{
+    return eOK;
+}
+
+status_t 
+pgraph_t::query_kv_td_filter(skv_t* skv, sflag_t iflag, sflag_t oflag, srset_t* iset, 
+                             srset_t* oset, filter_info_t* filter_info)
+{
+    return eOK;
+}
+
+status_t 
+pgraph_t::query_adjlist_bu_filter(sgraph_t* sgraph, sflag_t flag, srset_t* iset, 
+                                  srset_t* oset, filter_info_t* filter_info)
+{
+    return eOK;
+}
+
+status_t 
+pgraph_t::query_kv_bu_filter(skv_t* skv, sflag_t flag, srset_t* iset, 
+                             srset_t* oset, filter_info_t* filter_info)
+{
+    return eOK;
+}

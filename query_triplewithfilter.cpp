@@ -58,6 +58,6 @@ query_triplewithfilter::execute()
             break;
     }
     
-    g->p_info[pid]->transform_withfilter(&iset, oset, direction, rgraph, value);
+    g->p_info[pid]->transform_withfilter(&iset, oset, direction, &filter_info);
 	return eOK;
 }
