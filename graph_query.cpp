@@ -54,9 +54,11 @@ void query_clause::print_result()
                 word  ^= (1L << pos);//reset that position
                 frontier = pos + base;
                 cout << g->v_graph->get_value(tid, frontier);
+                cout << endl;
             }
        }
     }
+    cout << endl;
 }
 
 status_t query_whereclause::execute()

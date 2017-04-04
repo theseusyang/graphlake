@@ -43,5 +43,6 @@ class typekv_t : public pkv_t {
 
   public:
     status_t filter(sid_t sid, void* value, filter_fn_t fn);
+    tid_t get_encoded_value(const char* value );
     
 };

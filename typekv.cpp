@@ -46,6 +46,17 @@ status_t typekv_t::filter(sid_t src, void* a_value, filter_fn_t fn)
     return eQueryFail;
 }
 
+
+tid_t typekv_t::get_encoded_value(const char* value) 
+{
+    map<string, tid_t>::iterator str2enum_iter = str2enum.find(value);
+    if (str2enum.end() == str2enum_iter) {
+        assert(0);
+    }
+    return str2enum_iter->second;
+    
+}
+
 void typekv_t::make_graph_baseline() 
 {
     
