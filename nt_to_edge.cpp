@@ -89,7 +89,7 @@ void ontology_lubm()
     pinfo_t*  info = 0; 
     g->p_info       = new pinfo_t*[32];
     
-    info = new enum8kv_t;
+    info = new typekv_t;
     info->populate_property("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>", "type");
     
     info = new many2one_t;

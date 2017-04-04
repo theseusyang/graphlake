@@ -6,6 +6,7 @@ SRC=main.cpp \
 	dgraph.cpp\
 	sgraph.cpp\
 	stringkv.cpp\
+	typekv.cpp\
     vgraph.cpp\
 	nt_to_edge.cpp\
 	query_triple.cpp\
@@ -17,6 +18,7 @@ SRC=main.cpp \
 HEADER=graph.h\
 	enumkv.h\
 	numkv.h\
+	typekv.h\
 	query_node.h\
 	query_triple.h\
 

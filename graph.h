@@ -103,12 +103,6 @@ class vgraph_t;
 
 class graph {
  public:
-    //Type information
-    map<string, tid_t> str2enum;
-    tinfo_t*       t_info;
-    tid_t          t_count;
-    tid_t          max_count;
-
     //graphs and labels store.
     pinfo_t** p_info;
     int       p_count;
@@ -124,7 +118,6 @@ class graph {
 
  public:
     graph();
-    void init_type(tid_t enumcount);
     sid_t get_type_scount(int type);    
     void type_update(const string& src, const string& dst);
     void type_done();
@@ -263,6 +256,8 @@ class lkv_t {
     sid_t super_id;
 };
 
+//lgraph doesn't need super id stuff
+//as this graphs' src id may be an enum (e.g.)
 typedef beg_pos_t lgraph_t;
 
 //base class for label graphs.
@@ -293,6 +288,7 @@ class stringkv_t : public pkv_t {
 };
 
 
+#include "typekv.h"
 #include "numkv.h"
 #include "enumkv.h"
 

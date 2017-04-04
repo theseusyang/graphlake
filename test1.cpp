@@ -60,9 +60,9 @@ void lubm_1()
 
     //Get the filter details
     pid_t type_pid = g->get_pid(pred);
-    pinfo_t *typegraph = g->p_info[type_pid];
+    pinfo_t *labelgraph = g->p_info[type_pid];
     char* typevalue = gstrdup(dst);
-    qt1.set_filterobj(typegraph, typevalue, fn_out);
+    qt1.set_filterobj(labelgraph, typevalue, fn_out);
     
     qwhere.add_child(&qt1);
     

@@ -32,24 +32,19 @@ graph::graph()
 {
     p_info = 0;
     p_count = 0;
-    init_type(256);
     vert_count = 0;
     v_graph =  new vgraph_t;
 }
 sid_t graph::get_type_scount(int type)
 {
-    return t_info[type].vert_id;
-}
-
-void graph::init_type(tid_t enumcount)
-{
-    max_count = enumcount;
-    t_count = 0;
-    t_info = new tinfo_t [enumcount];
+    typekv_t* typekv = dynamic_cast<typekv_t*>(p_info[0]);
+    return typekv->t_info[type].vert_id;
 }
 
 void graph::type_update(const string& src, const string& dst)
 {
+    p_info[0]->batch_update(src, dst);
+    /*
     vid_t       src_id;
     tid_t       type_id;
     vid_t       vert_id = 0;
@@ -79,6 +74,7 @@ void graph::type_update(const string& src, const string& dst)
         //dublicate entry XXX
         src_id = str2vid_iter->second;
     }
+    */
 }
 
 void graph::type_done()
