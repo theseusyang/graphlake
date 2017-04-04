@@ -41,6 +41,7 @@ void lubm_1()
 */
     const char* pred = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
     const char* dst  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#GraduateStudent>";
+    //const char* dst  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#UndergraduateStudent>";
     
     const char* pred1 = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#takesCourse>";
     const char* dst1 = "<http://www.Department0.University0.edu/GraduateCourse0>";
