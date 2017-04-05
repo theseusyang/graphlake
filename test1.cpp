@@ -68,7 +68,10 @@ void lubm_1()
     //Get the filter details
     pid_t type_pid = g->get_pid(pred);
     pinfo_t *labelgraph = g->p_info[type_pid];
-    univ_t typevalue = g->p_info[0]->get_encoded_value(dst);
+    univ_t typevalue;
+    if (eOK != g->p_info[0]->get_encoded_value(dst, &typevalue)) {
+        assert(0);
+    }
     qt1.set_filterobj(labelgraph, typevalue, fn_out);
     
     qwhere.add_child(&qt1);
@@ -124,7 +127,10 @@ void lubm_4()
     //Get the filter details
     pid_t type_pid = g->get_pid(pred);
     pinfo_t *labelgraph = g->p_info[type_pid];
-    univ_t typevalue = g->p_info[0]->get_encoded_value(dst);
+    univ_t typevalue;
+    if (eOK != g->p_info[0]->get_encoded_value(dst, &typevalue)) {
+        assert(0);
+    }
     qt1.set_filterobj(labelgraph, typevalue, fn_out);
     
     qwhere.add_child(&qt1);

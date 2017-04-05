@@ -47,16 +47,15 @@ status_t typekv_t::filter(sid_t src, univ_t a_value, filter_fn_t fn)
 }
 
 
-univ_t typekv_t::get_encoded_value(const char* value) 
+status_t typekv_t::get_encoded_value(const char* value, univ_t* univ) 
 {
-    univ_t value_tid;
     map<string, tid_t>::iterator str2enum_iter = str2enum.find(value);
     if (str2enum.end() == str2enum_iter) {
-        assert(0);
+        return eQueryFail;
     }
 
-    value_tid.value_tid = str2enum_iter->second;
-    return value_tid;
+    univ->value_tid = str2enum_iter->second;
+    return eOK;
     
 }
 
