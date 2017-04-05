@@ -22,6 +22,7 @@ void test1()
     qwhere.add_child(&qt);
     query.add_whereclause(&qwhere);
     query.setup_qid(1);
+    query.add_selectclause(NULL, 0, 1);
 
     g->run_query(&query);
 }
@@ -73,6 +74,8 @@ void lubm_1()
     
     query.add_whereclause(&qwhere);
     query.setup_qid(1);
+    
+    query.add_selectclause(NULL, 0, 1);
 
     g->run_query(&query);
 }

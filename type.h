@@ -1,6 +1,9 @@
 #pragma once
 #include <stdint.h>
 #include <limits.h>
+#include <string>
+
+using std::string;
 
 
 typedef uint32_t propid_t;
@@ -55,8 +58,13 @@ enum filter_fn_t {
     fn_ein, //simple inward lookup
 };
 
-struct filter_info_t {
+typedef struct __filter_info_t {
     pinfo_t* rgraph;
     void* value;
     filter_fn_t filter_fn;
-};
+} filter_info_t;
+
+typedef struct __select_info_t {
+    pinfo_t* rgraph;
+    string name; 
+} select_info_t;

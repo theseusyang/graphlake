@@ -30,7 +30,7 @@ status_t query_clause::execute()
 
 void query_clause::print_result()
 {
-    //Printing only one var
+    //Printing only one var(vertex) and more labels
     srset_t* srset = get_srset(0);
     tid_t rset_count = srset->get_rset_count();
     vid_t word, count, pos, base, frontier = 0;
@@ -53,7 +53,11 @@ void query_clause::print_result()
                 pos = __builtin_ctzll(word);
                 word  ^= (1L << pos);//reset that position
                 frontier = pos + base;
-                cout << g->v_graph->get_value(tid, frontier);
+                
+                cout << g->v_graph->get_value(tid, frontier) << "\t";
+                for (int j = 0; j < select_count; ++j) {
+                    //cout << select_info->rgraph->get_dst(tid, frontier) << "\t";
+                }
                 cout << endl;
             }
        }
