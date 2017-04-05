@@ -68,8 +68,9 @@ void lubm_1()
     //Get the filter details
     pid_t type_pid = g->get_pid(pred);
     pinfo_t *labelgraph = g->p_info[type_pid];
-    tid_t typevalue = dynamic_cast<typekv_t*> (g->p_info[0])->get_encoded_value(dst);
-    qt1.set_filterobj(labelgraph, (void*)typevalue, fn_out);
+    univ_t typevalue;
+    typevalue.value_tid = dynamic_cast<typekv_t*> (g->p_info[0])->get_encoded_value(dst);
+    qt1.set_filterobj(labelgraph, typevalue, fn_out);
     
     qwhere.add_child(&qt1);
     
@@ -124,8 +125,9 @@ void lubm_4()
     //Get the filter details
     pid_t type_pid = g->get_pid(pred);
     pinfo_t *labelgraph = g->p_info[type_pid];
-    tid_t typevalue = dynamic_cast<typekv_t*> (g->p_info[0])->get_encoded_value(dst);
-    qt1.set_filterobj(labelgraph, (void*)typevalue, fn_out);
+    univ_t typevalue;
+    typevalue.value_tid = dynamic_cast<typekv_t*> (g->p_info[0])->get_encoded_value(dst);
+    qt1.set_filterobj(labelgraph, typevalue, fn_out);
     
     qwhere.add_child(&qt1);
     

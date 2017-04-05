@@ -34,10 +34,10 @@ void typekv_t::batch_update(const string& src, const string& dst)
 }
 
 
-status_t typekv_t::filter(sid_t src, void* a_value, filter_fn_t fn)
+status_t typekv_t::filter(sid_t src, univ_t a_value, filter_fn_t fn)
 {
     //value is already encoded, so typecast it
-    tid_t  dst = (tid_t) a_value;
+    tid_t  dst = (tid_t) a_value.value_tid;
   
     assert(fn == fn_out); 
     

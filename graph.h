@@ -86,7 +86,7 @@ class pinfo_t {
     virtual status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, filter_info_t* filter_info);
     
     //label specific
-    virtual status_t filter(sid_t sid, void* value, filter_fn_t fn);
+    virtual status_t filter(sid_t sid, univ_t value, filter_fn_t fn);
     virtual void print_raw_dst(tid_t tid, vid_t vid);
 };
 

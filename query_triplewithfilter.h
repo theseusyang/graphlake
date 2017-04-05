@@ -7,7 +7,7 @@ class query_triplewithfilter: public query_triple
 {
 public:
 	virtual status_t execute();
-    inline void set_filterobj(pinfo_t* a_graph, void* a_value, filter_fn_t fn) {
+    inline void set_filterobj(pinfo_t* a_graph, univ_t a_value, filter_fn_t fn) {
         filter_info.rgraph = a_graph;
         filter_info.value = a_value;
         filter_info.filter_fn = fn;

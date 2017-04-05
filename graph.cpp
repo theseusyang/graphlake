@@ -841,7 +841,7 @@ pgraph_t::query_kv_bu_filter(skv_t* skv, sflag_t flag, srset_t* iset,
 }
 
 /*******label specific **********/
-status_t pinfo_t::filter(sid_t sid, void* value, filter_fn_t fn)
+status_t pinfo_t::filter(sid_t sid, univ_t value, filter_fn_t fn)
 {
     assert(0);
     return eOK;

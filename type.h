@@ -47,6 +47,16 @@ enum status_t {
     eUnknown        
 };
 
+typedef union __univeral_type {
+    char*    value_charp;
+    uint64_t value_64b;
+    uint8_t  value_8b;
+    uint16_t value16b;
+    tid_t    value_tid;
+    vid_t    value_vid;
+    sid_t    value_sid;
+}univ_t;
+
 typedef struct __sid_set_t {
 public:
     int count;
@@ -60,7 +70,7 @@ enum filter_fn_t {
 
 typedef struct __filter_info_t {
     pinfo_t* rgraph;
-    void* value;
+    univ_t   value;
     filter_fn_t filter_fn;
 } filter_info_t;
 
@@ -69,6 +79,9 @@ typedef struct __select_info_t {
     string name; 
 } select_info_t;
 
+
+
+/////// Function//////////////
 inline tid_t get_sindex(tid_t tid, sflag_t sflag)
 {
     sflag_t flag_mask = sflag & ((1L << (tid +1)) - 1);
