@@ -25,7 +25,7 @@ inline char* gstrdup(const char* str)
 
 #define bu_factor 0.07
 
-class pkv_t;
+//class pkv_t;
 class graph;
 extern graph* g;
 
@@ -71,7 +71,9 @@ class pinfo_t {
     char*       p_longname;
     void*       buf;
     uint32_t    count;
-    
+   
+ public: 
+    inline pinfo_t() {}   
 
  public:
     void populate_property(const char* longname, const char* property_name);
@@ -233,84 +235,6 @@ class one2many_t: public pgraph_t {
                                   filter_info_t* filter_info);
 };
 
-
 /*----------- labels ------------------ */
-//generic classes for label.
-template <class T>
-class  edgeT_t {
- public:
-    vid_t src_id;
-    T     dst_id;
-};
+#include "labelkv.h"
 
-template <class T>
-class lkv_t {
- public:
-    T* kv;
-    sid_t super_id;
-};
-
-//lgraph doesn't need super id stuff
-//as this graphs' src id may be an enum (e.g.)
-typedef beg_pos_t lgraph_t;
-
-//base class for label graphs.
-class pkv_t: public pinfo_t {
- public:
-    uint64_t    flag1;
-    uint8_t     flag1_count;
-
- public:
-    lgraph_t* prep_lgraph(index_t ecount);
-    void prep_lgraph_internal(lgraph_t* lgraph_in, index_t ecount, index_t edge_count);
-    void store_lgraph(lgraph_t* lgraph_in, string dir, string postfix);
-    void calc_edge_count(lgraph_t* lgraph_in, edge_t* edges, index_t count);
-};
-
-class stringkv_t : public pkv_t {
- protected:
-    lkv_t<char*>* kv_out;
- public:
-    void batch_update(const string& src, const string& dst);
-    void make_graph_baseline();
-    void store_graph_baseline(string dir);
-    lkv_t<char*>* prep_lkv(sflag_t ori_flag, tid_t flag_count);
-    void fill_adj_list_kv(lkv_t<char*>* lkv_out, sflag_t flag1,
-                              edgeT_t<char*>* edges, index_t count);
-    
-    //status_t filter(sid_t sid_set, void* value, filter_fn_t fn);
-};
-
-
-#include "typekv.h"
-#include "numkv.h"
-#include "enumkv.h"
-
-
-typedef enumkv_t<uint8_t> enum8kv_t;
-typedef numkv_t<uint8_t>  uint8kv_t;
-typedef numkv_t<uint64_t> uint64kv_t;
-
-/*---------------vinfo--------------------*/
-class vgraph_t: public pkv_t
-{
-public:
-    lkv_t<char*>* kv_out;
-
- public:    
-    void id2name(vid_t src_id, const string& src); 
-    //void batch_update(const string& src, const string& dst);
-    void type_done();
-    void store_graph_baseline(string dir);
-    
-    lkv_t<char*>* prep_lkv(sflag_t ori_flag, tid_t flag_count);
-    void fill_adj_list_kv(lkv_t<char*>* lkv_out, sflag_t flag1,
-                          edgeT_t<char*>* edges, index_t count);
-
- public:
-    const char* get_value(tid_t tid, vid_t vid);
-
- public:
-    vgraph_t();
-    ~vgraph_t();
-};

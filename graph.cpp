@@ -473,47 +473,6 @@ void pgraph_t::fill_skv(skv_t* skv_out, skv_t* skv_in)
     }
 }
 
-//////////// Labels //////////////////////
-lgraph_t* pkv_t::prep_lgraph(index_t ecount)
-{
-    lgraph_t* lgraph  = (beg_pos_t*) calloc (sizeof(beg_pos_t), ecount);
-    return lgraph;
-}
-
-void pkv_t::prep_lgraph_internal(lgraph_t* lgraph_in, index_t ecount, index_t edge_count)
-{
-    vid_t* adj_list = (vid_t*) calloc (sizeof(vid_t), edge_count);
-    
-    index_t     prefix = 0;
-    beg_pos_t*  beg_pos = lgraph_in;
-    
-    for (vid_t j = 0; j < ecount; ++j) {
-        beg_pos[j].adj_list = adj_list + prefix;
-        prefix += beg_pos[j].count;
-        beg_pos[j].count = 0;
-    }
-}
-
-void pkv_t::calc_edge_count(lgraph_t* lgraph_in, edge_t* edges, index_t count)
-{
-    sid_t dst;
-    
-    for (index_t i = 0; i < count; ++i) {
-        dst = edges[i].dst_id;
-        lgraph_in[dst].count  += 1;
-    }
-}
-
-void pkv_t::store_lgraph(lgraph_t* lgraph_in, string dir, string postfix)
-{
-    //base name using relationship type
-    /*
-    string basefile = dir + p_name;
-    string file = basefile + "beg_pos";
-    FILE* f;
-    */
-    
-}
 
 status_t pgraph_t::query_adjlist_td(sgraph_t* sgraph, sflag_t iflag, sflag_t oflag, srset_t* iset, srset_t* oset)
 {

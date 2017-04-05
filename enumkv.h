@@ -4,7 +4,7 @@
 
 //generic enum class
 template <class T>
-class enumkv_t : public pkv_t {
+class enumkv_t : public pkv_t<T> {
   protected:
     lkv_t<T>* lkv_out; 
     lgraph_t* lgraph_in;
@@ -14,6 +14,12 @@ class enumkv_t : public pkv_t {
     char**      enum2str;
     T           ecount;
     T           max_count;
+  
+  private:
+    using pkv_t<T>::buf;
+    using pkv_t<T>::count;
+    using pkv_t<T>::flag1;
+    using pkv_t<T>::flag1_count;
 
   public:
     enumkv_t();
@@ -149,12 +155,14 @@ void enumkv_t<T>::store_lkv(lkv_t<T>* lkv_out, string dir, string postfix)
 template<class T>
 void enumkv_t<T>::store_graph_baseline(string dir)
 {
+    /*
     if (count == 0) return;
     store_lgraph(lgraph_in, dir, "in");
     
     store_lkv(lkv_out, dir, "out");
     
     //XXX writing enum mapping is pending
+    */
 }
 
 template <class T>

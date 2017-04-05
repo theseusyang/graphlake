@@ -9,7 +9,7 @@ class tinfo_t {
 };
 
 //type class
-class typekv_t : public pkv_t {
+class typekv_t : public pinfo_t {
   public:
     //for each type/class, the count of vertices  
     tinfo_t*       t_info;

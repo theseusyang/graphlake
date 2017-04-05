@@ -25,7 +25,7 @@ inline void atoT(string value, uint64_t* num)
 //generic number class
 //
 template <class T>
-class numkv_t : public pkv_t 
+class numkv_t : public pkv_t<T> 
 {
   protected:
     lkv_t<T>* lkv_out; 
@@ -39,6 +39,12 @@ class numkv_t : public pkv_t
                               edgeT_t<T>* edges, index_t count);
 
     status_t filter(sid_t sid, void* value);
+
+  private:
+    using pkv_t<T>::buf;
+    using pkv_t<T>::count;
+    using pkv_t<T>::flag1;
+    using pkv_t<T>::flag1_count;
 };
 
 template<class T>
