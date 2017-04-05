@@ -79,7 +79,7 @@ void graph::type_update(const string& src, const string& dst)
 
 void graph::type_done()
 {
-    v_graph->type_done();
+    v_graph->make_graph_baseline();
 }
     
 propid_t graph::get_pid(const char* predicate)

@@ -6,7 +6,7 @@
 template <class T>
 class enumkv_t : public pkv_t<T> {
   protected:
-    lkv_t<T>* lkv_out; 
+    //lkv_t<T>* lkv_out; 
     lgraph_t* lgraph_in;
     
     //mapping between enum and string
@@ -20,6 +20,8 @@ class enumkv_t : public pkv_t<T> {
     using pkv_t<T>::count;
     using pkv_t<T>::flag1;
     using pkv_t<T>::flag1_count;
+    using pkv_t<T>::lkv_out;
+    using pkv_t<T>::prep_lkv;
 
   public:
     enumkv_t();
@@ -31,7 +33,6 @@ class enumkv_t : public pkv_t<T> {
 
   public:
 
-    lkv_t<T>* prep_lkv(sflag_t ori_flag, tid_t flag_count);
 
     void fill_adj_list_kv(lkv_t<T>* lkv_out, lgraph_t* lgraph_in, 
                  sflag_t flag1, edgeT_t<T>* edges, index_t count);
@@ -82,7 +83,7 @@ void enumkv_t<T>::make_graph_baseline()
     flag1_count = __builtin_popcountll(flag1);
     
     //super bins memory allocation
-    lkv_out  = prep_lkv(flag1, flag1_count);
+    lkv_out  = prep_lkv();
     lgraph_in = prep_lgraph(ecount);    
 
     //estimate edge count
@@ -98,26 +99,6 @@ void enumkv_t<T>::make_graph_baseline()
     fill_adj_list_kv(lkv_out, lgraph_in, flag1, edges, count);
 }
 
-//super bins memory allocation
-template<class T>
-lkv_t<T>* enumkv_t<T>::prep_lkv(sflag_t ori_flag, tid_t flag_count)
-{
-    sflag_t flag = ori_flag;
-    lkv_t<T>*  lkv  = (lkv_t<T>*) calloc (sizeof(lkv_t<T>), flag_count);
-    tid_t      pos  = 0;
-    sid_t super_id;
-    vid_t v_count;
-
-    for(tid_t i = 0; i < flag_count; i++) {
-        pos = __builtin_ctz(flag);
-        flag ^= (1L << pos);//reset that position
-        super_id = g->get_type_scount(pos);
-        v_count = TO_VID(super_id);
-        lkv[i].kv = (T*)calloc(sizeof(T), v_count);
-        lkv[i].super_id = super_id;
-    }
-    return lkv;
-}
 
 template<class T>
 void enumkv_t<T>::fill_adj_list_kv(lkv_t<T>* lkv_out, lgraph_t* lgraph_in, 
@@ -162,7 +143,7 @@ void enumkv_t<T>::store_graph_baseline(string dir)
     store_lkv(lkv_out, dir, "out");
     
     //XXX writing enum mapping is pending
-    */
+   */ 
 }
 
 template <class T>
