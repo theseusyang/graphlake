@@ -43,6 +43,6 @@ class typekv_t : public pinfo_t {
 
   public:
     status_t filter(sid_t sid, univ_t value, filter_fn_t fn);
-    tid_t get_encoded_value(const char* value );
+    univ_t get_encoded_value(const char* value );
     
 };

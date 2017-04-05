@@ -851,3 +851,10 @@ void pinfo_t::print_raw_dst(tid_t tid, vid_t vid)
 {
     assert(0);
 }
+
+univ_t pinfo_t::get_encoded_value(const char* value)
+{
+    univ_t value_none;
+    assert(0);
+    return value_none;
+}

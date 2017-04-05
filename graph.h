@@ -88,6 +88,7 @@ class pinfo_t {
     //label specific
     virtual status_t filter(sid_t sid, univ_t value, filter_fn_t fn);
     virtual void print_raw_dst(tid_t tid, vid_t vid);
+    virtual univ_t get_encoded_value(const char* value);
 };
 
 class vinfo_t {
