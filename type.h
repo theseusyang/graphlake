@@ -68,3 +68,10 @@ typedef struct __select_info_t {
     pinfo_t* rgraph;
     string name; 
 } select_info_t;
+
+inline tid_t get_sindex(tid_t tid, sflag_t sflag)
+{
+    sflag_t flag_mask = sflag & ((1L << (tid +1)) - 1);
+    tid_t        pos = __builtin_popcountll(flag_mask) - 1;
+    return pos;
+}

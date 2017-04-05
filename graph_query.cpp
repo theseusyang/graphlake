@@ -56,7 +56,8 @@ void query_clause::print_result()
                 
                 cout << g->v_graph->get_value(tid, frontier) << "\t";
                 for (int j = 0; j < select_count; ++j) {
-                    //cout << select_info->rgraph->get_dst(tid, frontier) << "\t";
+                    select_info[j].rgraph->print_raw_dst(tid, frontier);
+                    cout << "\t";
                 }
                 cout << endl;
             }
@@ -293,11 +294,5 @@ status_t one2many_t::transform_withfilter(srset_t* iset, srset_t* oset, directio
     return eOK;
 }
 
-/******************* filter ******************/
-status_t pinfo_t::filter(sid_t sid, void* value, filter_fn_t fn)
-{
-    assert(0);
-    return eOK;
-}
 
 

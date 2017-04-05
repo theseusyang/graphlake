@@ -22,8 +22,7 @@ void stringkv_t::batch_update(const string& src, const string& dst)
     edges[index].src_id = src_id; 
     edges[index].dst_id = dst_id;
 }
-    
-    
+
 void stringkv_t::store_graph_baseline(string dir)
 {
     if (count == 0) return;

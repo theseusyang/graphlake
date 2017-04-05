@@ -1,13 +1,6 @@
 #include "graph.h"
 
 
-
-inline tid_t get_sindex(tid_t tid, sflag_t sflag)
-{
-    sflag_t flag_mask = sflag & ((1L << (tid +1)) - 1);
-    tid_t        pos = __builtin_popcountll(flag_mask) - 1;
-    return pos;
-}
     
 /*
 inline void add_dst(sid_t sid, sflag_t flag, skv_t* skv) 
@@ -845,4 +838,16 @@ pgraph_t::query_kv_bu_filter(skv_t* skv, sflag_t flag, srset_t* iset,
     }
     oset->ccount |= TO_VID(total_frontiers);
     return eOK;
+}
+
+/*******label specific **********/
+status_t pinfo_t::filter(sid_t sid, void* value, filter_fn_t fn)
+{
+    assert(0);
+    return eOK;
+}
+
+void pinfo_t::print_raw_dst(tid_t tid, vid_t vid)
+{
+    assert(0);
 }

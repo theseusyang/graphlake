@@ -3,6 +3,7 @@
 //#include "graph.h"
 
 
+
 //generic classes for label.
 template <class T>
 class  edgeT_t {
@@ -40,6 +41,8 @@ class pkv_t: public pinfo_t {
     void store_lgraph(lgraph_t* lgraph_in, string dir, string postfix);
     void calc_edge_count(lgraph_t* lgraph_in, edge_t* edges, index_t count);
     void make_graph_baseline();
+
+    void print_raw_dst(tid_t tid, vid_t vid);
 };
 
 class stringkv_t : public pkv_t<char*> {
@@ -47,6 +50,8 @@ class stringkv_t : public pkv_t<char*> {
  public:
     void batch_update(const string& src, const string& dst);
     void store_graph_baseline(string dir);
+
+    void get_raw_dst(tid_t tid, vid_t vid);
 };
 
 /*---------------vinfo--------------------*/
@@ -55,7 +60,6 @@ class vgraph_t: public pkv_t<char*>
 
  public:    
     void id2name(vid_t src_id, const string& src); 
-    //void batch_update(const string& src, const string& dst);
     void store_graph_baseline(string dir);
     
 
@@ -172,7 +176,13 @@ void pkv_t<T>::store_lgraph(lgraph_t* lgraph_in, string dir, string postfix)
     */
     
 }
-
+template <class T>
+void pkv_t<T>::print_raw_dst(tid_t tid, vid_t vid)
+{
+    tid_t sindex = get_sindex(tid, flag1);
+    
+    cout << lkv_out[sindex].kv[vid];
+}
 
 #include "typekv.h"
 #include "numkv.h"

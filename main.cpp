@@ -71,7 +71,6 @@ int main(int argc, char* argv[])
             break;
     }
 
-    test1();
-    lubm_1();
+    lubm();
     return 0;
 }

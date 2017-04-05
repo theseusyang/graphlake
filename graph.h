@@ -80,10 +80,14 @@ class pinfo_t {
     virtual void batch_update(const string& src, const string& dst);
     virtual void make_graph_baseline();
     virtual void store_graph_baseline(string dir);
+    
+    //Graph specific
     virtual status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, filter_info_t* filter_info);
     
+    //label specific
     virtual status_t filter(sid_t sid, void* value, filter_fn_t fn);
+    virtual void print_raw_dst(tid_t tid, vid_t vid);
 };
 
 class vinfo_t {
@@ -165,10 +169,16 @@ class pgraph_t: public pinfo_t {
     status_t query_adjlist_bu(sgraph_t* sgraph, sflag_t flag, srset_t* iset, srset_t* oset);
     status_t query_kv_bu(skv_t* skv, sflag_t flag, srset_t* iset, srset_t* oset);
     
-    status_t query_adjlist_td_filter(sgraph_t* sgraph, sflag_t iflag, sflag_t oflag, srset_t* iset, srset_t* oset, filter_info_t* filter_info);
-    status_t query_kv_td_filter(skv_t* skv, sflag_t iflag, sflag_t oflag, srset_t* iset, srset_t* oset, filter_info_t* filter_info);
-    status_t query_adjlist_bu_filter(sgraph_t* sgraph, sflag_t flag, srset_t* iset, srset_t* oset, filter_info_t* filter_info);
-    status_t query_kv_bu_filter(skv_t* skv, sflag_t flag, srset_t* iset, srset_t* oset, filter_info_t* filter_info);
+    status_t query_adjlist_td_filter(sgraph_t* sgraph, sflag_t iflag, sflag_t oflag, 
+                          srset_t* iset, srset_t* oset, filter_info_t* filter_info);
+    status_t query_kv_td_filter(skv_t* skv, sflag_t iflag, sflag_t oflag, srset_t* iset, 
+                                srset_t* oset, filter_info_t* filter_info);
+    status_t query_adjlist_bu_filter(sgraph_t* sgraph, sflag_t flag, srset_t* iset, 
+                                     srset_t* oset, filter_info_t* filter_info);
+    status_t query_kv_bu_filter(skv_t* skv, sflag_t flag, srset_t* iset, srset_t* oset, 
+                                filter_info_t* filter_info);
+
+
 };
 
 

@@ -180,7 +180,8 @@ void ontology_lubm()
     info = new stringkv_t;
     info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#researchInterest>", "researchInterest");
     
-    info = new uint64kv_t;
+    //info = new uint64kv_t;
+    info = new stringkv_t;
     info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#telephone>", "telephone");
     
     info = new stringkv_t;

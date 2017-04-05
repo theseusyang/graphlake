@@ -3,6 +3,7 @@
 #include "query_triple.h"
 #include "query_triplewithfilter.h"
 
+
 void test1()
 {
     const char* src = "<http://www.Department10.University1.edu/UndergraduateStudent2>"; 
@@ -79,3 +80,76 @@ void lubm_1()
 
     g->run_query(&query);
 }
+
+
+void lubm_4()
+{
+
+/* Query 4
+ * SELECT ?X, ?Y1, ?Y2, ?Y3
+        WHERE
+        {?X rdf:type ub:Professor .
+        ?X ub:worksFor <http://www.Department0.University0.edu> .
+        ?X ub:name ?Y1 .
+        ?X ub:emailAddress ?Y2 .
+        ?X ub:telephone ?Y3}
+*/
+    const char* pred = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    const char* dst  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#FullProfessor>";
+    
+    const char* pred1 = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#worksFor>";
+    const char* dst1 = "<http://www.Department0.University0.edu>";
+    
+    const char* name_pred = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#name>";
+    const char* email_pred = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#emailAddress>";
+    const char* telephone_pred = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#telephone>";
+    
+    query_whereclause qwhere;
+    query_clause query;
+    
+    /*
+    query_triple qt;
+    qt.set_src("?x", 0);
+    qt.set_pred(pred);
+    qt.set_dst(dst);
+    qwhere.add_child(&qt);
+    */
+
+    query_triplewithfilter qt1;
+    qt1.set_src("?x", 0);
+    qt1.set_pred(pred1);
+    qt1.set_dst(dst1);
+    qt1.set_query(&query);
+
+    //Get the filter details
+    pid_t type_pid = g->get_pid(pred);
+    pinfo_t *labelgraph = g->p_info[type_pid];
+    tid_t typevalue = dynamic_cast<typekv_t*> (g->p_info[0])->get_encoded_value(dst);
+    qt1.set_filterobj(labelgraph, (void*)typevalue, fn_out);
+    
+    qwhere.add_child(&qt1);
+    
+    query.add_whereclause(&qwhere);
+    query.setup_qid(1);
+
+    select_info_t select_info[3];
+    select_info[0].name = gstrdup("Y1");
+    select_info[1].name = gstrdup("Y2");
+    select_info[2].name = gstrdup("Y3");
+
+    select_info[0].rgraph = g->p_info[g->get_pid(name_pred)];
+    select_info[1].rgraph = g->p_info[g->get_pid(email_pred)];
+    select_info[2].rgraph = g->p_info[g->get_pid(telephone_pred)];
+    
+    query.add_selectclause(select_info, 3, 1);
+
+    g->run_query(&query);
+}
+
+void lubm() 
+{
+    test1();
+    lubm_1();
+    lubm_4();
+}
+
