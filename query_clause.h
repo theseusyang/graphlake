@@ -65,7 +65,7 @@ typedef struct __result_set_t {
     inline vid_t get_vcount() {return TO_VID(scount);}
     inline tid_t get_tid() {return TO_TID(scount);}
     
-    inline vid_t add_frontier(vid_t vid) {
+    inline vid_t set_status(vid_t vid) {
         status_array[word_offset(vid)] |= ((uint64_t) 1l << bit_offset(vid));
         return 0;
     }
@@ -109,12 +109,12 @@ class srset_t {
         return rset[index].get_status(vert_id);
     } 
     
-    inline vid_t add_frontier(vid_t sid) {
+    inline vid_t set_status(vid_t sid) {
         vid_t vert_id = TO_VID(sid);
         tid_t type_id = TO_TID(sid) + 1;
         sflag_t flag_mask = flag & ((1L << type_id) - 1);
         tid_t index = __builtin_popcountll(flag_mask) - 1;
-        return rset[index].add_frontier(vert_id);
+        return rset[index].set_status(vert_id);
     }
     
     inline tid_t setup(sflag_t sflag) {

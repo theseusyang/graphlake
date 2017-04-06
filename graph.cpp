@@ -510,7 +510,7 @@ status_t pgraph_t::query_adjlist_td(sgraph_t* sgraph, sflag_t iflag, sflag_t ofl
                 vid_t* adj_list = graph[frontier].adj_list;
                 vid_t nebr_count = graph[frontier].count;
                 for (vid_t k = 0; k < nebr_count; ++k) {
-                    total_frontiers += oset->add_frontier(adj_list[k]);
+                    total_frontiers += oset->set_status(adj_list[k]);
                 }
             }
         }
@@ -555,7 +555,7 @@ status_t pgraph_t::query_kv_td(skv_t* skv, sflag_t iflag, sflag_t oflag, srset_t
                 pos = __builtin_ctzll(word);
                 word  ^= (1L << pos);//reset that position
                 frontier = pos + base;
-                total_frontiers += oset->add_frontier(kv[frontier]);
+                total_frontiers += oset->set_status(kv[frontier]);
             }
         }
     }
@@ -590,7 +590,7 @@ status_t pgraph_t::query_adjlist_bu(sgraph_t* sgraph, sflag_t flag, srset_t* ise
             vid_t nebr_count = graph[v].count;
             for (vid_t k = 0; k < nebr_count; ++k) {
                 if (iset->get_status(adj_list[k])) {
-                    rset->add_frontier(v);
+                    rset->set_status(v);
                     new_frontiers++;
                     total_frontiers++;
                     break;
@@ -626,7 +626,7 @@ status_t pgraph_t::query_kv_bu(skv_t* skv, sflag_t flag, srset_t* iset, srset_t*
         
         for (vid_t v = 0; v < v_count; ++v) {
             if (iset->get_status(kv[v])) {
-                rset->add_frontier(v);
+                rset->set_status(v);
                 new_frontiers++;
                 total_frontiers++;
                 break;
@@ -689,7 +689,7 @@ pgraph_t::query_adjlist_td_filter(sgraph_t* sgraph, sflag_t iflag, sflag_t oflag
                     sid = adj_list[k];
                     if (eOK == filter_info->rgraph->filter(sid, 
                             filter_info->value, filter_info->filter_fn)) {
-                        total_frontiers += oset->add_frontier(sid);
+                        total_frontiers += oset->set_status(sid);
                     }
                 }
             }
@@ -740,7 +740,7 @@ pgraph_t::query_kv_td_filter(skv_t* skv, sflag_t iflag, sflag_t oflag, srset_t* 
                 //
                 if (eOK == filter_info->rgraph->filter(frontier, 
                      filter_info->value, filter_info->filter_fn)) {
-                   total_frontiers += oset->add_frontier(kv[frontier]);
+                   total_frontiers += oset->set_status(kv[frontier]);
                 }
             }
         }
@@ -784,7 +784,7 @@ pgraph_t::query_adjlist_bu_filter(sgraph_t* sgraph, sflag_t flag, srset_t* iset,
                 if (iset->get_status(adj_list[k]) && 
                     (eOK == filter_info->rgraph->filter(sid, 
                             filter_info->value, filter_info->filter_fn))) {
-                    rset->add_frontier(v);
+                    rset->set_status(v);
                     new_frontiers++;
                     total_frontiers++;
                     break;
@@ -827,7 +827,7 @@ pgraph_t::query_kv_bu_filter(skv_t* skv, sflag_t flag, srset_t* iset,
             if (iset->get_status(kv[v])
                && (eOK == filter_info->rgraph->filter(sid, 
                    filter_info->value, filter_info->filter_fn))) {
-                rset->add_frontier(v);
+                rset->set_status(v);
                 new_frontiers++;
                 total_frontiers++;
                 break;

@@ -47,7 +47,7 @@ query_triple::execute()
             flag = TID_TO_SFLAG(tid);
             iset = new srset_t; 
             iset->full_setup(flag);
-            iset->add_frontier(sid);
+            iset->set_status(sid);
             
             oset = q->get_srset(dst_qid);
             break;
@@ -61,7 +61,7 @@ query_triple::execute()
             
             iset = new srset_t; 
             iset->full_setup(flag);
-            iset->add_frontier(sid);
+            iset->set_status(sid);
             
             oset = q->get_srset(src_qid);
             break;
