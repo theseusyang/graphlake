@@ -6,17 +6,53 @@
 
 typedef Bitmap bitset_t;
 
+class edge_t {
+public:
+    vid_t src_id;
+    vid_t dst_id;
+};
+
+//One vertex's neighbor information
+typedef struct __beg_pos_t {
+public:
+    //count in adj list
+    index_t  count;
+
+    //nebr list of one vertex
+    sid_t*   adj_list;
+} beg_pos_t;
+
+//one type's key-value store
+class skv_t {
+ public:
+    sid_t super_id;
+    sid_t* kv;
+};
+
+//one type's graph
+class sgraph_t {
+public:
+    //type id and count together
+    sid_t      super_id;
+
+    //array of adj list of vertices
+    beg_pos_t* beg_pos;
+};
+
 //one type's result set
 typedef struct __result_set_t {
     //few MSB bits type
     //rest bits = frontiers count in frontiers, words count in status array
     sid_t scount;
 
-    //frontier count for status array
-    vid_t count2;
+    //few MSB bits: identify union
+    //rest bits = frontier count for status array. XXX not correct
+    sid_t count2;
     union {
         uint64_t* status_array;
-        vid_t*    frontiers;
+        sid_t*    frontiers;
+        beg_pos_t* graph;
+        sid_t*    kv;
     };
 
  public:
@@ -51,6 +87,8 @@ class srset_t {
     sflag_t  flag;
 
     //Total result set count and total frontiers count
+    //few MSB bits = index into rset
+    //other bits = total frontier count. XXX not correct
     uint64_t ccount;
    
     //array of result sets

@@ -29,39 +29,6 @@ inline char* gstrdup(const char* str)
 class graph;
 extern graph* g;
 
-class edge_t {
-public:
-    vid_t src_id;
-    vid_t dst_id;
-};
-
-//One vertex's neighbor information
-typedef struct __beg_pos_t {
-public:
-    //count in adj list
-    index_t  count;
-
-    //nebr list of one vertex
-    vid_t*   adj_list;
-} beg_pos_t;
-
-//one type's key-value store
-class skv_t {
- public:
-    sid_t super_id;
-    vid_t* kv;
-
-};
-
-//one type's graph
-class sgraph_t {
-public:
-    //type id and count together
-    sid_t      super_id;
-
-    //array of adj list of vertices
-    beg_pos_t* beg_pos;
-};
 
 /////////////////////////////////
 //One relationship or label
