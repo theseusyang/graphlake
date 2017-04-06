@@ -30,6 +30,15 @@ void test1()
 
 void test2()
 {
+    /* select ?x ?Y1
+     * where {
+     *   ?x rdf:type    ub:FullProfessor.
+     *   ?x ub:worksFor <http://www.Department0.University0.edu>">.
+     *   ?y ub:publicationAuthor ?x.
+     *   ?y ub:name ?Y1.
+     *
+     *
+     */
     const char* pred1 = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#worksFor>";
     const char* dst1 = "<http://www.Department0.University0.edu>";
     
