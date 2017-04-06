@@ -66,6 +66,13 @@ public:
 enum filter_fn_t {
     fn_out = 0,//simple lookup 
     fn_ein, //simple inward lookup
+    //More coming soon such as regex
+};
+
+enum queryplan_t {
+    eOutward = 0,
+    eInward,
+    eDefault,
 };
 
 typedef struct __filter_info_t {

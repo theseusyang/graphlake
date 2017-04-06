@@ -12,7 +12,7 @@ query_triple::execute()
     sid_t sid;
     tid_t tid;
     sflag_t flag;
-    srset_t iset;
+    srset_t* iset;
     srset_t* oset;
     
     //get the property id
@@ -23,9 +23,20 @@ query_triple::execute()
 
     switch(value) {
         case 0:
-            //src is given, dst is given
-            //XXX pred is variable
-            assert(0);
+            //src and dst both are variable
+            //Some other query triple would have filled one, 
+            //see query_plan
+            if (query_plan == eOutward) {
+                direction = eout;
+                iset = q->get_srset(src_qid);
+                oset = q->get_srset(dst_qid);
+
+            } else {
+                assert(query_plan == eInward);
+                direction = ein;
+                iset = q->get_srset(dst_qid);
+                oset = q->get_srset(src_qid);
+            }
             break;
         case 1:
             //src is given, dst is variable
@@ -34,9 +45,9 @@ query_triple::execute()
             if (sid == INVALID_SID) return eInvalidVID;
             tid = TO_TID(sid);
             flag = TID_TO_SFLAG(tid);
-            
-            iset.full_setup(flag);
-            iset.add_frontier(sid);
+            iset = new srset_t; 
+            iset->full_setup(flag);
+            iset->add_frontier(sid);
             
             oset = q->get_srset(dst_qid);
             break;
@@ -48,12 +59,15 @@ query_triple::execute()
             tid = TO_TID(sid);
             flag = TID_TO_SFLAG(tid);
             
-            iset.full_setup(flag);
-            iset.add_frontier(sid);
+            iset = new srset_t; 
+            iset->full_setup(flag);
+            iset->add_frontier(sid);
             
             oset = q->get_srset(src_qid);
             break;
         case 3:
+            //src is given, dst is given
+            //XXX pred could be variable??
             assert(0);
             break;
         default:
@@ -61,7 +75,7 @@ query_triple::execute()
             break;
     }
     
-    g->p_info[pid]->transform(&iset, oset, direction);
+    g->p_info[pid]->transform(iset, oset, direction);
     
     return eOK;
 }

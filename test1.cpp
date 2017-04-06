@@ -28,6 +28,62 @@ void test1()
     g->run_query(&query);
 }
 
+void test2()
+{
+    const char* pred1 = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#worksFor>";
+    const char* dst1 = "<http://www.Department0.University0.edu>";
+    
+    const char* pred = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    const char* dst  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#FullProfessor>";
+    
+    const char* pred2 = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#publicationAuthor>";
+    const char* name_pred = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#name>";
+    
+    query_whereclause qwhere;
+    query_clause query;
+    query_triplewithfilter qt1;
+    query_triple qt2;
+    
+    //first query
+    qt1.set_src("?x", 1);
+    qt1.set_pred(pred1);
+    qt1.set_dst(dst1);
+    qt1.set_query(&query);
+
+    //Get the filter details
+    pid_t type_pid = g->get_pid(pred);
+    pinfo_t *labelgraph = g->p_info[type_pid];
+    univ_t typevalue;
+    if (eOK != g->p_info[0]->get_encoded_value(dst, &typevalue)) {
+        assert(0);
+    }
+    qt1.set_filterobj(labelgraph, typevalue, fn_out);
+    
+    qwhere.add_child(&qt1);
+    
+    //second query
+    qt2.set_src("?y", 0);
+    qt2.set_pred(pred2);
+    qt2.set_dst("?x", 1);
+    qt2.set_qplan(eInward);
+    qt2.set_query(&query);
+    
+    qwhere.add_child(&qt2);
+
+    //other setup
+    query.add_whereclause(&qwhere);
+    query.setup_qid(2);
+
+    select_info_t select_info[1];
+    select_info[0].name = gstrdup("Y1");
+    select_info[0].rgraph = g->p_info[g->get_pid(name_pred)];
+    
+    query.add_selectclause(select_info, 1, 1);
+
+    g->run_query(&query);
+
+}
+
 void lubm_1()
 {
 /*    
@@ -51,14 +107,6 @@ void lubm_1()
     query_whereclause qwhere;
     query_clause query;
     
-    /*
-    query_triple qt;
-    qt.set_src("?x", 0);
-    qt.set_pred(pred);
-    qt.set_dst(dst);
-    qwhere.add_child(&qt);
-    */
-
     query_triplewithfilter qt1;
     qt1.set_src("?x", 0);
     qt1.set_pred(pred1);
@@ -157,5 +205,6 @@ void lubm()
     test1();
     lubm_1();
     lubm_4();
+    test2();
 }
 

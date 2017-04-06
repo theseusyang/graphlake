@@ -87,6 +87,7 @@ public:
 private:
 	query_node* sibling;
 	query_node* child;
+public:
     query_clause *q;
 };
 #endif

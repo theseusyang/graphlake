@@ -72,7 +72,7 @@ status_t query_whereclause::execute()
     if (node) {
         node->execute();
     }
-    node = get_sibling();
+    node = node->get_sibling();
     while (node) {
         node->execute();
         node = node->get_sibling();

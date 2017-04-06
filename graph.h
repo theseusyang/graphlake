@@ -92,7 +92,7 @@ class pinfo_t {
 };
 
 class vinfo_t {
- public:
+    public:
     char*       v_name;
     sflag_t     flag1;
     uint8_t     flag1_count;
