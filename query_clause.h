@@ -47,6 +47,7 @@ typedef struct __result_set_t {
 
     //few MSB bits: identify union
     //rest bits = frontier count for status array. XXX not correct
+	//          = or maximum allocated memory count;
     sid_t count2;
     union {
         uint64_t* status_array;
@@ -69,6 +70,12 @@ typedef struct __result_set_t {
         status_array[word_offset(vid)] |= ((uint64_t) 1l << bit_offset(vid));
         return 0;
     }
+	inline vid_t add_frontier(vid_t vid) {
+		vid_t index = TO_VID(scount);
+		frontiers[index] = vid;
+		++scount;
+		return 0;
+	}
     
     inline vid_t get_status(vid_t vid) {
         return status_array[word_offset(vid)] & ((uint64_t) 1l << bit_offset(vid));
@@ -79,6 +86,12 @@ typedef struct __result_set_t {
         vid_t w_count = WORD_COUNT(TO_VID(super_id));
         status_array = (uint64_t*) calloc(sizeof(uint64_t*), w_count);
     }
+
+	inline void setup_frontiers(tid_t tid, vid_t max_count) {
+		scount = TO_SUPER(tid);
+		count2 = TO_SUPER(1) + max_count;
+		frontiers = (sid_t*)calloc(sizeof(sid_t), max_count);
+	}
 
 } rset_t;
 
@@ -101,19 +114,29 @@ class srset_t {
         rset = 0;
     }
 
+	inline tid_t get_sindex(sid_t sid)
+	{
+		tid_t type_id = TO_TID(sid) + 1;
+		sflag_t flag_mask = flag & ((1L << type_id) - 1);
+		tid_t index = __builtin_popcountll(flag_mask) - 1;
+		return index;
+	}
+
     inline vid_t get_status(sid_t sid) {
-        vid_t vert_id = TO_VID(sid);
-        tid_t type_id = TO_TID(sid) + 1;
-        sflag_t flag_mask = flag & ( (1L << type_id) - 1);
-        tid_t index = __builtin_popcountll(flag_mask) - 1;
+		tid_t index = get_sindex(sid);
+		vid_t vert_id = TO_VID(sid);
         return rset[index].get_status(vert_id);
     } 
     
-    inline vid_t set_status(vid_t sid) {
-        vid_t vert_id = TO_VID(sid);
-        tid_t type_id = TO_TID(sid) + 1;
-        sflag_t flag_mask = flag & ((1L << type_id) - 1);
-        tid_t index = __builtin_popcountll(flag_mask) - 1;
+    inline vid_t add_frontier(sid_t sid) {
+		tid_t index = get_sindex(sid);
+		vid_t vert_id = TO_VID(sid);
+        return rset[index].add_frontier(vert_id);
+    }
+    
+    inline vid_t set_status(sid_t sid) {
+		tid_t index = get_sindex(sid);
+		vid_t vert_id = TO_VID(sid);
         return rset[index].set_status(vert_id);
     }
     

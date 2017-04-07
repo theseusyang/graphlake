@@ -95,3 +95,11 @@ inline tid_t get_sindex(tid_t tid, sflag_t sflag)
     tid_t        pos = __builtin_popcountll(flag_mask) - 1;
     return pos;
 }
+
+inline tid_t get_sindex(sid_t sid, sflag_t flag)
+{
+	tid_t type_id = TO_TID(sid) + 1;
+	sflag_t flag_mask = flag & ((1L << type_id) - 1);
+	tid_t index = __builtin_popcountll(flag_mask) - 1;
+	return index;
+}
