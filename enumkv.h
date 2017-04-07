@@ -107,8 +107,6 @@ void enumkv_t<T>::fill_adj_list_kv(lkv_t<T>* lkv_out, lgraph_t* lgraph_in,
     sid_t src;
     T         dst;
     vid_t     vert1_id;
-    tid_t     type1_id;
-    sflag_t   flag1_mask;
     tid_t     src_index;
     beg_pos_t* beg_pos_in = lgraph_in;
     
@@ -117,10 +115,7 @@ void enumkv_t<T>::fill_adj_list_kv(lkv_t<T>* lkv_out, lgraph_t* lgraph_in,
         dst = edges[i].dst_id;
         
         vert1_id = TO_VID(src);
-        type1_id = TO_TID(src) + 1;
-        flag1_mask = flag1 & ( (1L << type1_id) - 1);
-        src_index = __builtin_popcountll(flag1_mask);
-        
+        src_index = get_sindex(src, flag1); 
         lkv_out[src_index].kv[vert1_id] = dst;
         
         beg_pos_in[dst].adj_list[beg_pos_in->count++] = src;
@@ -180,9 +175,7 @@ status_t enumkv_t<T>::filter(sid_t src, void* a_value, filter_fn_t fn)
     assert(fn == fn_out); 
     
     vert1_id = TO_VID(src);
-    type1_id = TO_TID(src) + 1;
-    flag1_mask = flag1 & ( (1L << type1_id) - 1);
-    src_index = __builtin_popcountll(flag1_mask);
+	src_index = get_sindex(src, flag1);
     if (lkv_out[src_index].kv[vert1_id] == dst) {
         return eOK;
     }
