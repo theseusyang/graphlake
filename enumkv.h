@@ -169,8 +169,7 @@ status_t enumkv_t<T>::filter(sid_t src, void* a_value, filter_fn_t fn)
     //value is already encoded, so typecast it
     T     dst = (T) a_value;
     vid_t vert1_id;
-    tid_t type1_id, src_index;
-    sflag_t flag1_mask;
+    tid_t src_index;
   
     assert(fn == fn_out); 
     

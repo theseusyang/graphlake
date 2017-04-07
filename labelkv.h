@@ -132,8 +132,6 @@ void pkv_t<T>::fill_kv_out()
     sid_t src;
     T dst;
     vid_t     vert1_id;
-    tid_t     type1_id;
-    sflag_t   flag1_mask;
     tid_t     src_index;
     edgeT_t<T>* edges = (edgeT_t<T>*) buf;
     
@@ -142,10 +140,7 @@ void pkv_t<T>::fill_kv_out()
         dst = edges[i].dst_id;
         
         vert1_id = TO_VID(src);
-        type1_id = TO_TID(src) + 1;
-        flag1_mask = flag1 & ( (1L << type1_id) - 1);
-        src_index = __builtin_popcountll(flag1_mask) - 1;
-        
+        src_index = get_sindex(src, flag1);
         lkv_out[src_index].kv[vert1_id] = dst;
     }
 }
