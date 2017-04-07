@@ -146,6 +146,10 @@ class pgraph_t: public pinfo_t {
     status_t query_kv_bu_filter(skv_t* skv, sflag_t flag, srset_t* iset, srset_t* oset, 
                                 filter_info_t* filter_info);
 
+    status_t extend_adjlist_td(sgraph_t* skv, sflag_t iflag, srset_t* iset, srset_t* oset);
+    status_t extend_kv_td(skv_t* skv, sflag_t iflag, srset_t* iset, srset_t* oset);
+
+
 
 };
 

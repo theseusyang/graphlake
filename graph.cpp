@@ -771,6 +771,71 @@ pgraph_t::query_kv_bu_filter(skv_t* skv, sflag_t flag, srset_t* iset,
     return eOK;
 }
 
+//////extend functions ------------------------
+status_t 
+pgraph_t::extend_adjlist_td(sgraph_t* sgraph, sflag_t iflag, srset_t* iset, srset_t* oset)
+{
+    tid_t    iset_count = iset->get_rset_count();
+    rset_t*        rset = 0;
+    rset_t*        rset2 = 0;
+
+    //prepare the output 1,2;
+    oset->copy_setup(iset, eAdjlist);
+
+    for (tid_t i = 0; i < iset_count; ++i) {
+        rset = iset->rset + i;
+        rset2 = oset->rset + i;
+        vid_t v_count = rset->get_vcount();
+        sid_t* varray = rset->frontiers;
+        
+        //get the graph where we will traverse
+        tid_t        tid = rset->get_tid();
+        tid_t        pos = get_sindex(tid, iflag);
+        beg_pos_t* graph = sgraph[pos].beg_pos; 
+        
+        //get_sindex() is not full proof
+        tid_t  graph_tid = TO_TID(sgraph[pos].super_id);
+        if (graph_tid != tid) continue;
+
+        for (vid_t v = 0; v < v_count; v++) {
+            rset2->add_adjlist_ro(v, graph+varray[v]);
+        }
+    }
+    return eOK;
+}
+
+status_t 
+pgraph_t::extend_kv_td(skv_t* skv, sflag_t iflag, srset_t* iset, srset_t* oset)
+{
+    tid_t    iset_count = iset->get_rset_count();
+    rset_t*        rset = 0;
+    rset_t*       rset2 = 0;
+
+    //prepare the output 1,2;
+    oset->copy_setup(iset, eFrontiers);
+
+    for (tid_t i = 0; i < iset_count; ++i) {
+        rset = iset->rset + i;
+        rset2 = oset->rset + i;
+        vid_t v_count = rset->get_vcount();
+        sid_t* varray = rset->frontiers;
+        
+        //get the graph where we will traverse
+        tid_t     tid = rset->get_tid();
+        tid_t     pos = get_sindex(tid, iflag);
+        sid_t*  graph = skv[pos].kv; 
+        
+        //get_sindex() is not full proof
+        tid_t  graph_tid = TO_TID(skv[pos].super_id);
+        if (graph_tid != tid) continue;
+
+        for (vid_t v = 0; v < v_count; v++) {
+            rset2->add_kv(v, graph[varray[v]]);
+        }
+    }
+    return eOK;
+}
+
 /*******label specific **********/
 status_t pinfo_t::filter(sid_t sid, univ_t value, filter_fn_t fn)
 {
