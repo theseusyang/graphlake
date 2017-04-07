@@ -12,6 +12,7 @@ SRC=main.cpp \
 	query_triple.cpp\
 	query_triplewithfilter.cpp\
 	graph_query.cpp\
+	type.cpp\
 	test1.cpp\
 	
 
@@ -21,6 +22,8 @@ HEADER=graph.h\
 	typekv.h\
 	query_node.h\
 	query_triple.h\
+	type.h\
+    query_clause.h\
 
 INCLUDES= -Iantlr4/include -Iantlr4
 LIBDIRS= -Lantlr4/lib

@@ -50,7 +50,7 @@ void test2()
     
     query_whereclause qwhere;
     query_clause query;
-    query_triplewithfilter qt1;
+    query_triple qt1;
     query_triple qt2;
     
     //first query
@@ -58,16 +58,6 @@ void test2()
     qt1.set_pred(pred1);
     qt1.set_dst(dst1);
     qt1.set_query(&query);
-
-    //Get the filter details
-    pid_t type_pid = g->get_pid(pred);
-    pinfo_t *labelgraph = g->p_info[type_pid];
-    univ_t typevalue;
-    if (eOK != g->p_info[0]->get_encoded_value(dst, &typevalue)) {
-        assert(0);
-    }
-    qt1.set_filterobj(labelgraph, typevalue, fn_out);
-    
     qwhere.add_child(&qt1);
     
     //second query
@@ -76,12 +66,25 @@ void test2()
     qt2.set_dst("?x", 1);
     qt2.set_qplan(eInward);
     qt2.set_query(&query);
-    
     qwhere.add_child(&qt2);
 
     //other setup
     query.add_whereclause(&qwhere);
     query.setup_qid(2);
+
+    //Get the filter details
+    filter_info_t filter_info;
+    pid_t type_pid = g->get_pid(pred);
+    filter_info.rgraph = g->p_info[type_pid];
+    univ_t typevalue;
+    if (eOK != g->p_info[0]->get_encoded_value(dst, &typevalue)) {
+        assert(0);
+    }
+    filter_info.value = typevalue;
+    filter_info.filter_fn = fn_out;
+    //qt1.set_filterobj(labelgraph, typevalue, fn_out);
+    srset_t* srset = query.get_srset(1);
+    srset->set_filter(&filter_info);
 
     select_info_t select_info[1];
     select_info[0].name = gstrdup("Y1");
@@ -212,9 +215,10 @@ void lubm_4()
 void lubm() 
 {
     test1();
-    lubm_1();
-    lubm_4();
     test2();
+    /*lubm_1();
+    lubm_4();
+    */
     
 }
 

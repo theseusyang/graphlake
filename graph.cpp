@@ -402,16 +402,14 @@ status_t pgraph_t::query_adjlist_td(sgraph_t* sgraph, sflag_t iflag, sflag_t ofl
 {
     tid_t    iset_count = iset->get_rset_count();
     rset_t*        rset = 0;
-    vid_t total_frontiers = 0;
 
     //prepare the output 1,2;
     oset->full_setup(oflag);
 
-    
     for (tid_t i = 0; i < iset_count; ++i) {
         rset = iset->rset + i;
-        vid_t w_count = WORD_COUNT(rset->get_vcount());
-        uint64_t* barray = rset->status_array;
+        vid_t v_count = rset->get_vcount();
+        vid_t* vlist = rset->get_vlist();
         
         //get the graph where we will traverse
         tid_t        tid = rset->get_tid();
@@ -422,31 +420,18 @@ status_t pgraph_t::query_adjlist_td(sgraph_t* sgraph, sflag_t iflag, sflag_t ofl
 
         
         //Get the frontiers
-        vid_t     word, base, frontier;
-        tid_t     count;
-        
-        for (vid_t w = 0; w < w_count; w++) {
-            if ( 0 == barray[w]) continue;
+        vid_t     frontier;
+        for (vid_t v = 0; v < v_count; v++) {
+            frontier = vlist[v];
+            vid_t* adj_list = graph[frontier].adj_list;
+            vid_t nebr_count = graph[frontier].count;
             
-            word  = barray[w];
-            count = __builtin_popcountll(word);
-            base  = (w << 6);
-
-            for (tid_t j = 0; j < count; ++j) {
-                pos = __builtin_ctzll(word);
-                word  ^= (1L << pos);//reset that position
-                frontier = pos + base;
-                
-                //traverse the adj list
-                vid_t* adj_list = graph[frontier].adj_list;
-                vid_t nebr_count = graph[frontier].count;
-                for (vid_t k = 0; k < nebr_count; ++k) {
-                    total_frontiers += oset->set_status(adj_list[k]);
-                }
+            //traverse the adj list
+            for (vid_t k = 0; k < nebr_count; ++k) {
+                oset->set_status(adj_list[k]);
             }
         }
     }
-    oset->ccount |= TO_VID(total_frontiers);
     return eOK;
 }
 
@@ -454,43 +439,29 @@ status_t pgraph_t::query_kv_td(skv_t* skv, sflag_t iflag, sflag_t oflag, srset_t
 {
     tid_t    iset_count = iset->get_rset_count();
     rset_t*        rset = 0;
-    vid_t total_frontiers = 0;
 
     //prepare the output 1,2;
     oset->full_setup(oflag);
 
     for (tid_t i = 0; i < iset_count; ++i) {
         rset = iset->rset + i;
-        vid_t w_count = WORD_COUNT(rset->get_vcount());
-        uint64_t* barray = rset->status_array;
+        vid_t v_count = rset->get_vcount();
+        vid_t* vlist = rset->get_vlist();
         
         //get the graph where we will traverse
         tid_t        tid = rset->get_tid();
         tid_t        pos = get_sindex(tid, iflag);
         tid_t  graph_tid = TO_TID(skv[pos].super_id);
-        vid_t*        kv = skv[pos].kv; 
+        sid_t* kv = skv[pos].kv; 
         if (graph_tid != tid) continue;
-        
-        //Get the frontiers
-        vid_t     word, base, frontier;
-        tid_t     count;
-        
-        for (vid_t w = 0; w < w_count; w++) {
-            if ( 0 == barray[w]) continue;
-            
-            word  = barray[w];
-            count = __builtin_popcountll(word);
-            base  = (w << 6);
 
-            for (tid_t j = 0; j < count; ++j) {
-                pos = __builtin_ctzll(word);
-                word  ^= (1L << pos);//reset that position
-                frontier = pos + base;
-                total_frontiers += oset->set_status(kv[frontier]);
-            }
+        //Get the frontiers
+        vid_t     frontier;
+        for (vid_t v = 0; v < v_count; v++) {
+            frontier = vlist[v];;
+            oset->set_status(kv[frontier]);
         }
     }
-    oset->ccount |= TO_VID(total_frontiers);
     return eOK;
 }
 
@@ -498,8 +469,6 @@ status_t pgraph_t::query_kv_td(skv_t* skv, sflag_t iflag, sflag_t oflag, srset_t
 status_t pgraph_t::query_adjlist_bu(sgraph_t* sgraph, sflag_t flag, srset_t* iset, srset_t* oset)
 {
     rset_t*        rset = 0;
-    vid_t new_frontiers = 0;
-    vid_t total_frontiers = 0;
 
     //prepare the output 1;
     tid_t oset_count = oset->setup(flag);
@@ -522,24 +491,17 @@ status_t pgraph_t::query_adjlist_bu(sgraph_t* sgraph, sflag_t flag, srset_t* ise
             for (vid_t k = 0; k < nebr_count; ++k) {
                 if (iset->get_status(adj_list[k])) {
                     rset->set_status(v);
-                    new_frontiers++;
-                    total_frontiers++;
                     break;
                 }
             }
         }
-        rset->count2 = new_frontiers;
-        new_frontiers = 0;
     }
-    oset->ccount |= TO_VID(total_frontiers);
     return eOK;
 }
 
 status_t pgraph_t::query_kv_bu(skv_t* skv, sflag_t flag, srset_t* iset, srset_t* oset) 
 {
     rset_t*        rset = 0;
-    vid_t new_frontiers = 0;
-    vid_t total_frontiers = 0;
 
     //prepare the output 1;
     tid_t oset_count = oset->setup(flag);
@@ -558,15 +520,10 @@ status_t pgraph_t::query_kv_bu(skv_t* skv, sflag_t flag, srset_t* iset, srset_t*
         for (vid_t v = 0; v < v_count; ++v) {
             if (iset->get_status(kv[v])) {
                 rset->set_status(v);
-                new_frontiers++;
-                total_frontiers++;
                 break;
             }
         }
-        rset->count2 = new_frontiers;
-        new_frontiers = 0;
     }
-    oset->ccount |= TO_VID(total_frontiers);
     return eOK;
 }
 
@@ -577,17 +534,14 @@ pgraph_t::query_adjlist_td_filter(sgraph_t* sgraph, sflag_t iflag, sflag_t oflag
 {
     tid_t    iset_count = iset->get_rset_count();
     rset_t*        rset = 0;
-    vid_t total_frontiers = 0;
-    sid_t sid = 0;
 
     //prepare the output 1,2;
     oset->full_setup(oflag);
 
-    
     for (tid_t i = 0; i < iset_count; ++i) {
         rset = iset->rset + i;
-        vid_t w_count = WORD_COUNT(rset->get_vcount());
-        uint64_t* barray = rset->status_array;
+        vid_t v_count = rset->get_vcount();
+        vid_t* vlist = rset->get_vlist();
         
         //get the graph where we will traverse
         tid_t        tid = rset->get_tid();
@@ -598,35 +552,22 @@ pgraph_t::query_adjlist_td_filter(sgraph_t* sgraph, sflag_t iflag, sflag_t oflag
 
         
         //Get the frontiers
-        vid_t     word, base, frontier;
-        tid_t     count;
-        
-        for (vid_t w = 0; w < w_count; w++) {
-            if ( 0 == barray[w]) continue;
+        vid_t     frontier;
+        for (vid_t v = 0; v < v_count; v++) {
+            frontier = vlist[v];
+            vid_t* adj_list = graph[frontier].adj_list;
+            vid_t nebr_count = graph[frontier].count;
             
-            word  = barray[w];
-            count = __builtin_popcountll(word);
-            base  = (w << 6);
-
-            for (tid_t j = 0; j < count; ++j) {
-                pos = __builtin_ctzll(word);
-                word  ^= (1L << pos);//reset that position
-                frontier = pos + base;
-                
-                //traverse the adj list
-                vid_t* adj_list = graph[frontier].adj_list;
-                vid_t nebr_count = graph[frontier].count;
-                for (vid_t k = 0; k < nebr_count; ++k) {
-                    sid = adj_list[k];
-                    if (eOK == filter_info->rgraph->filter(sid, 
-                            filter_info->value, filter_info->filter_fn)) {
-                        total_frontiers += oset->set_status(sid);
-                    }
+            //traverse the adj list
+            for (vid_t k = 0; k < nebr_count; ++k) {
+                sid_t sid = adj_list[k];
+                if (eOK == filter_info->rgraph->filter(sid, 
+                        filter_info->value, filter_info->filter_fn)) {
+                    oset->set_status(sid);
                 }
             }
         }
     }
-    oset->ccount |= TO_VID(total_frontiers);
     return eOK;
 }
 
@@ -636,47 +577,33 @@ pgraph_t::query_kv_td_filter(skv_t* skv, sflag_t iflag, sflag_t oflag, srset_t* 
 {
     tid_t    iset_count = iset->get_rset_count();
     rset_t*        rset = 0;
-    vid_t total_frontiers = 0;
 
     //prepare the output 1,2;
     oset->full_setup(oflag);
 
     for (tid_t i = 0; i < iset_count; ++i) {
         rset = iset->rset + i;
-        vid_t w_count = WORD_COUNT(rset->get_vcount());
-        uint64_t* barray = rset->status_array;
+        vid_t v_count = rset->get_vcount();
+        vid_t* vlist = rset->get_vlist();
         
         //get the graph where we will traverse
         tid_t        tid = rset->get_tid();
         tid_t        pos = get_sindex(tid, iflag);
         tid_t  graph_tid = TO_TID(skv[pos].super_id);
-        vid_t*        kv = skv[pos].kv; 
+        sid_t* kv = skv[pos].kv; 
         if (graph_tid != tid) continue;
-        
-        //Get the frontiers
-        vid_t     word, base, frontier;
-        tid_t     count;
-        
-        for (vid_t w = 0; w < w_count; w++) {
-            if ( 0 == barray[w]) continue;
-            
-            word  = barray[w];
-            count = __builtin_popcountll(word);
-            base  = (w << 6);
 
-            for (tid_t j = 0; j < count; ++j) {
-                pos = __builtin_ctzll(word);
-                word  ^= (1L << pos);//reset that position
-                frontier = pos + base;
-                //
-                if (eOK == filter_info->rgraph->filter(frontier, 
-                     filter_info->value, filter_info->filter_fn)) {
-                   total_frontiers += oset->set_status(kv[frontier]);
-                }
+        //Get the frontiers
+        sid_t     sid;
+        for (vid_t v = 0; v < v_count; v++) {
+            sid = kv[vlist[v]];
+            if (eOK == filter_info->rgraph->filter(sid, 
+                 filter_info->value, filter_info->filter_fn)) {
+               oset->set_status(sid);
             }
         }
     }
-    oset->ccount |= TO_VID(total_frontiers);
+
     return eOK;
 }
 
@@ -685,20 +612,17 @@ pgraph_t::query_adjlist_bu_filter(sgraph_t* sgraph, sflag_t flag, srset_t* iset,
                                   srset_t* oset, filter_info_t* filter_info)
 {
     rset_t*        rset = 0;
-    vid_t new_frontiers = 0;
-    vid_t total_frontiers = 0;
-    sid_t sid = 0;
-  
 
     //prepare the output 1;
     tid_t oset_count = oset->setup(flag);
     
     for (tid_t i = 0; i < oset_count; ++i) {
+        
         //get the graph where we will traverse
         beg_pos_t* graph = sgraph[i].beg_pos; 
         sid_t   super_id = sgraph[i].super_id;
         vid_t v_count = TO_VID(super_id);
-        sid_t tid_high = super_id & VMASK;
+        sid_t    tid_high = TO_THIGH(super_id);
         
         //set up the output 2
         rset = oset->rset + i;
@@ -708,24 +632,17 @@ pgraph_t::query_adjlist_bu_filter(sgraph_t* sgraph, sflag_t flag, srset_t* iset,
             //traverse the adj list
             vid_t* adj_list = graph[v].adj_list;
             vid_t nebr_count = graph[v].count;
-            sid = v + tid_high;
             for (vid_t k = 0; k < nebr_count; ++k) {
-
                 //apply the filter here.
                 if (iset->get_status(adj_list[k]) && 
-                    (eOK == filter_info->rgraph->filter(sid, 
+                    (eOK == filter_info->rgraph->filter(tid_high + v, 
                             filter_info->value, filter_info->filter_fn))) {
                     rset->set_status(v);
-                    new_frontiers++;
-                    total_frontiers++;
                     break;
                 }
             }
         }
-        rset->count2 = new_frontiers;
-        new_frontiers = 0;
     }
-    oset->ccount |= TO_VID(total_frontiers);
     return eOK;
 }
 
@@ -734,9 +651,6 @@ pgraph_t::query_kv_bu_filter(skv_t* skv, sflag_t flag, srset_t* iset,
                              srset_t* oset, filter_info_t* filter_info)
 {
     rset_t*        rset = 0;
-    vid_t new_frontiers = 0;
-    vid_t total_frontiers = 0;
-    sid_t sid;
 
     //prepare the output 1;
     tid_t oset_count = oset->setup(flag);
@@ -747,27 +661,21 @@ pgraph_t::query_kv_bu_filter(skv_t* skv, sflag_t flag, srset_t* iset,
         vid_t*        kv = skv[i].kv; 
         sid_t   super_id = skv[i].super_id;
         vid_t    v_count = TO_VID(super_id);
-        sid_t tid_high = super_id & VMASK;
+        sid_t    tid_high = TO_SUPER(TO_TID(super_id));
         
         //set up the output 2
         rset = oset->rset + i;
         rset->setup(super_id);
         
         for (vid_t v = 0; v < v_count; ++v) {
-            sid = v + tid_high;
             if (iset->get_status(kv[v])
-               && (eOK == filter_info->rgraph->filter(sid, 
+               && (eOK == filter_info->rgraph->filter(tid_high + v, 
                    filter_info->value, filter_info->filter_fn))) {
                 rset->set_status(v);
-                new_frontiers++;
-                total_frontiers++;
                 break;
             }
         }
-        rset->count2 = new_frontiers;
-        new_frontiers = 0;
     }
-    oset->ccount |= TO_VID(total_frontiers);
     return eOK;
 }
 
@@ -786,7 +694,7 @@ pgraph_t::extend_adjlist_td(sgraph_t* sgraph, sflag_t iflag, srset_t* iset, srse
         rset = iset->rset + i;
         rset2 = oset->rset + i;
         vid_t v_count = rset->get_vcount();
-        sid_t* varray = rset->frontiers;
+        sid_t* varray = rset->get_vlist();
         
         //get the graph where we will traverse
         tid_t        tid = rset->get_tid();
@@ -812,13 +720,13 @@ pgraph_t::extend_kv_td(skv_t* skv, sflag_t iflag, srset_t* iset, srset_t* oset)
     rset_t*       rset2 = 0;
 
     //prepare the output 1,2;
-    oset->copy_setup(iset, eFrontiers);
+    oset->copy_setup(iset, eKV);
 
     for (tid_t i = 0; i < iset_count; ++i) {
         rset = iset->rset + i;
         rset2 = oset->rset + i;
         vid_t v_count = rset->get_vcount();
-        sid_t* varray = rset->frontiers;
+        sid_t* varray = rset->get_vlist();
         
         //get the graph where we will traverse
         tid_t     tid = rset->get_tid();

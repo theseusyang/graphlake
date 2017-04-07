@@ -46,8 +46,9 @@ query_triple::execute()
             tid = TO_TID(sid);
             flag = TID_TO_SFLAG(tid);
             iset = new srset_t; 
-            iset->full_setup(flag);
-            iset->set_status(sid);
+            iset->setup(flag);
+            iset->rset->setup_frontiers(tid, 1);
+            iset->add_frontier(sid);
             
             oset = q->get_srset(dst_qid);
             break;
@@ -60,8 +61,9 @@ query_triple::execute()
             flag = TID_TO_SFLAG(tid);
             
             iset = new srset_t; 
-            iset->full_setup(flag);
-            iset->set_status(sid);
+            iset->setup(flag);
+            iset->rset->setup_frontiers(tid, 1);
+            iset->add_frontier(sid);
             
             oset = q->get_srset(src_qid);
             break;
@@ -75,7 +77,13 @@ query_triple::execute()
             break;
     }
     
-    g->p_info[pid]->transform(iset, oset, direction);
+    if (traverse == eTransform) {
+        g->p_info[pid]->transform(iset, oset, direction);
+
+    } else if (traverse == eExtend) {
+        //convert to frontier list format, if required
+        g->p_info[pid]->extend(iset, oset, direction);
+    }
     
     return eOK;
 }

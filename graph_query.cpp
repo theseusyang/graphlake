@@ -27,7 +27,7 @@ status_t query_clause::execute()
 
     return eOK;
 }
-
+/*
 void query_clause::print_result()
 {
     //Printing only one var(vertex) and more labels
@@ -65,6 +65,62 @@ void query_clause::print_result()
     }
     cout << endl;
 }
+*/
+
+void query_clause::print_result()
+{
+    //Printing only one var(vertex) and more labels
+    srset_t* srset = get_srset(0);
+    tid_t rset_count = srset->get_rset_count();
+    vid_t frontier = 0;
+    sid_t sid= 0;
+    filter_info_t* filter_info = srset->filter_info;
+
+    if (filter_info) {
+        for (tid_t i = 0; i < rset_count; i++) {
+            rset_t* rset = srset->rset + i;
+            vid_t v_count = rset->get_vcount();
+            tid_t tid = rset->get_tid();
+            vid_t* varray = rset->get_vlist();
+
+            for (vid_t j = 0; j < v_count; ++j) {
+                sid = varray[j];
+
+                if (eOK != filter_info->rgraph->filter(sid, 
+                     filter_info->value, filter_info->filter_fn)) {
+                    continue;
+                }
+                
+                frontier = TO_VID(sid);
+                cout << g->v_graph->get_value(TO_TID(sid), frontier) << "\t";
+                for (int j = 0; j < select_count; ++j) {
+                    select_info[j].rgraph->print_raw_dst(tid, frontier);
+                    cout << "\t";
+                }
+                cout << endl;
+            }
+        }
+    } else {
+        for (tid_t i = 0; i < rset_count; i++) {
+            rset_t* rset = srset->rset + i;
+            vid_t v_count = rset->get_vcount();
+            tid_t tid = rset->get_tid();
+            vid_t* varray = rset->get_vlist();
+
+            for (vid_t j = 0; j < v_count; ++j) {
+                sid = varray[j];
+                frontier = TO_VID(sid);
+                cout << g->v_graph->get_value(TO_TID(sid), frontier) << "\t";
+                for (int j = 0; j < select_count; ++j) {
+                    select_info[j].rgraph->print_raw_dst(tid, frontier);
+                    cout << "\t";
+                }
+                cout << endl;
+            }
+        }
+    }
+    cout << endl;
+}
 
 status_t query_whereclause::execute()
 {
@@ -80,13 +136,69 @@ status_t query_whereclause::execute()
 
     return eOK;
 }
+/*************************** extend *******************/
+status_t pinfo_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    assert(0);
+    return eOK;
+}
 
+status_t ugraph_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    return extend_adjlist_td(sgraph, flag1, iset, oset);
+}
+
+//due to many2one structure, we give preference to bottom up approach
+status_t many2one_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    if (direction == eout) {
+        return extend_kv_td(skv_out, flag1,  iset, oset);
+    } else {
+        assert(direction == ein);
+        return extend_adjlist_td(sgraph_in, flag2, iset, oset);
+    }
+    return eOK;
+}
+
+status_t dgraph_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    if (direction == eout) {
+        return extend_adjlist_td(sgraph_out, flag1, iset, oset);
+    } else {
+        assert(direction == ein);
+        return extend_adjlist_td(sgraph_in, flag2, iset, oset);
+    }
+    return eOK;
+}
+
+status_t one2one_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    if (direction == eout) {
+        return extend_kv_td(skv_out, flag1, iset, oset);
+    } else {
+        assert(direction == ein);
+        return extend_kv_td(skv_in, flag2, iset, oset);
+    }
+    return eOK;
+}
+
+status_t one2many_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    if (direction == eout) {
+        return extend_adjlist_td(sgraph_out, flag1, iset, oset);
+    } else {
+        assert(direction == ein);
+        return extend_kv_td(skv_in, flag2, iset, oset);
+    }
+    return eOK;
+}
 /*************************** transform ****************/
 status_t pinfo_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
 {
     assert(0);
     return eOK;
 }
+
 
 status_t ugraph_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
 {

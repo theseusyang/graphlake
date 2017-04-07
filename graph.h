@@ -51,6 +51,7 @@ class pinfo_t {
     //Graph specific
     virtual status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, filter_info_t* filter_info);
+    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
     
     //label specific
     virtual status_t filter(sid_t sid, univ_t value, filter_fn_t fn);
@@ -164,6 +165,7 @@ class ugraph_t: public pgraph_t {
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction,
                                   filter_info_t* filter_info);
+    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
 class dgraph_t: public pgraph_t {
@@ -177,6 +179,7 @@ class dgraph_t: public pgraph_t {
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction,
                                   filter_info_t* filter_info);
+    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
 class many2one_t: public pgraph_t {
@@ -189,6 +192,7 @@ class many2one_t: public pgraph_t {
     void store_graph_baseline(string dir);
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, filter_info_t* filter_info);
+    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
 class one2one_t: public pgraph_t {
@@ -202,6 +206,7 @@ class one2one_t: public pgraph_t {
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction,
                                   filter_info_t* filter_info);
+    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
 class one2many_t: public pgraph_t {
@@ -215,6 +220,7 @@ class one2many_t: public pgraph_t {
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction,
                                   filter_info_t* filter_info);
+    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
 /*----------- labels ------------------ */

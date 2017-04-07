@@ -18,11 +18,13 @@ typedef uint16_t qid_t;
 
 #define VBIT 40
 #define VMASK 0xffffffffff
+#define THIGH_MASK 0xFFFFFF0000000000
 
 
 #define TO_TID(sid) (sid >> VBIT)
 #define TO_VID(sid)  (sid & VMASK)
 #define TO_SUPER(tid) (((sid_t)(tid)) << VBIT)
+#define TO_THIGH(sid) (sid & THIGH_MASK)
 
 #define TID_TO_SFLAG(tid) (1L << tid)
 #define WORD_COUNT(count) ((count + 63) >> 6)
@@ -70,17 +72,34 @@ enum filter_fn_t {
     //More coming soon such as regex
 };
 
+//required when src and dst both are variable 
+//but one is populated from another query.
 enum queryplan_t {
     eOutward = 0,
     eInward,
     eDefault,
 };
 
-typedef struct __filter_info_t {
+enum traverse_t {
+    eTransform = 0,
+    eExtend,
+};
+
+class filter_info_t {
+ public:
     pinfo_t* rgraph;
     univ_t   value;
     filter_fn_t filter_fn;
-} filter_info_t;
+    
+
+ public:
+    inline void set_filterobj(pinfo_t* a_graph, univ_t a_value, filter_fn_t fn) {
+        rgraph = a_graph;
+        value = a_value;
+        filter_fn = fn;
+    }
+
+} ;
 
 typedef struct __select_info_t {
     pinfo_t* rgraph;
@@ -131,24 +150,29 @@ public:
 #define eStatusarray 0
 #define eFrontiers  1
 #define eAdjlist    2
+#define eKV         3
 
 //one type's result set
 class rset_t {
-    public:
+    private:
     //few MSB bits = type
-    //rest bits = frontiers count in frontiers, words count in status array
+    //rest bits = words count in status array, maximum count in other cases
     sid_t scount;
 
     //few MSB bits: identify union
-    //rest bits = frontier count for status array. XXX not correct
-	//          = or maximum allocated memory count;
+    //rest bits = frontier count  XXX not correct
     sid_t count2;
 
+    //Notes: in td transform, vlist is used (input), status_array is produced;
+    // in bu transform, status array is used in both (input and output)
+    //In extend, input is vlist, output is kv or adjlist
     union {
         uint64_t* status_array;
-        sid_t*    frontiers;
+        vid_t*    vlist;
         beg_pos_t* adjlist;
+        sid_t*    kv;
     };
+
 
     public:
     inline rset_t() {
@@ -156,65 +180,53 @@ class rset_t {
         count2 = 0;
         status_array = 0;
     }
-
-    inline vid_t get_vcount() {return TO_VID(scount);}
+    inline vid_t* get_vlist() { return vlist;}
+    inline uint64_t* get_barray() {return status_array;} 
+    inline vid_t get_vcount() {return TO_VID(count2);}
+    inline int   get_uniontype() {return TO_TID(count2);}
     inline tid_t get_tid() {return TO_TID(scount);}
-    
-    inline vid_t set_status(vid_t vid) {
-        status_array[word_offset(vid)] |= ((uint64_t) 1l << bit_offset(vid));
-        return 0;
-    }
-	inline vid_t add_frontier(vid_t vid) {
-		vid_t index = TO_VID(scount);
-		frontiers[index] = vid;
-		++scount;
-		return 0;
-	}
-	
-    inline vid_t add_adjlist_ro(vid_t index, beg_pos_t* begpos) {
-		adjlist[index].count = begpos->count;
-		adjlist[index].adj_list = begpos->adj_list;
-		return 0;
-	}
-    
-    inline vid_t add_kv(vid_t index, sid_t sid) {
-		frontiers[index] = sid;
-		return 0;
-	}
+    inline vid_t get_wcount() {return WORD_COUNT(TO_VID(scount));}
     
     inline vid_t get_status(vid_t vid) {
-        return status_array[word_offset(vid)] & ((uint64_t) 1l << bit_offset(vid));
+        return status_array[word_offset(vid)] & ((uint64_t) 1L << bit_offset(vid));
     }
+    inline vid_t set_status(vid_t vid) {
+        if(!get_status(vid)) {
+            status_array[word_offset(vid)] |= ((uint64_t) 1L << bit_offset(vid));
+            ++count2;
+            return 1L;
+        }
+        return 0L;
+    }
+	inline void add_frontier(sid_t sid) {
+		vid_t index = TO_VID(scount);
+		vlist[index] = sid;
+		++count2;
+	}
+	
+    inline void setup_frontiers(tid_t tid, vid_t max_count) {
+		scount = TO_SUPER(tid) + max_count;
+		count2 = TO_SUPER(1) + 0;
+		vlist = (vid_t*)calloc(sizeof(sid_t), max_count);
+	}
+	
+    inline void add_adjlist_ro(vid_t index, beg_pos_t* begpos) {
+		adjlist[index].count = begpos->count;
+		adjlist[index].adj_list = begpos->adj_list;
+	}
+    
+    inline void add_kv(vid_t index, sid_t sid) {
+		kv[index] = sid;
+	}
+    
     
     inline void setup(sid_t super_id) {
         scount  = super_id;
         vid_t w_count = WORD_COUNT(TO_VID(super_id));
         status_array = (uint64_t*) calloc(sizeof(uint64_t*), w_count);
     }
-
-	inline void setup_frontiers(tid_t tid, vid_t max_count) {
-		scount = TO_SUPER(tid);
-		count2 = TO_SUPER(1) + max_count;
-		frontiers = (sid_t*)calloc(sizeof(sid_t), max_count);
-	}
-    
-    inline void copy_setup(rset_t* iset, int union_type) {
-		assert(eStatusarray == TO_TID(iset->count2));
-        scount = iset->scount;
-        vid_t v_count = TO_VID(scount);
-		count2 = TO_SUPER(union_type) + v_count;
-		switch(union_type) {
-        case eFrontiers:
-            adjlist = (beg_pos_t*)calloc(sizeof(beg_pos_t), v_count);
-            break;
-        case eAdjlist:
-            adjlist = (beg_pos_t*)calloc(sizeof(beg_pos_t), v_count);
-            break;
-        default:
-        assert(0);
-        }
-    }
-
+    void copy_setup(rset_t* iset, int union_type); 
+    void bitwise2vlist();
 };
 
 class srset_t {
@@ -228,13 +240,18 @@ class srset_t {
    
     //array of result sets
     rset_t*  rset; 
+    filter_info_t* filter_info;
 
  public:
     inline srset_t() {
         flag = 0;
         ccount = 0;
         rset = 0;
+        filter_info = 0;
     }
+    inline void set_filter(filter_info_t* info) {
+       filter_info = info;
+    } 
 
 	inline tid_t get_sindex(sid_t sid)
 	{
@@ -250,10 +267,10 @@ class srset_t {
         return rset[index].get_status(vert_id);
     } 
     
-    inline vid_t add_frontier(sid_t sid) {
+    inline void add_frontier(sid_t sid) {
 		tid_t index = get_sindex(sid);
 		vid_t vert_id = TO_VID(sid);
-        return rset[index].add_frontier(vert_id);
+        rset[index].add_frontier(vert_id);
     }
     
     inline vid_t set_status(sid_t sid) {
@@ -280,8 +297,10 @@ class srset_t {
 
     tid_t full_setup(sflag_t sflag);
 
+    void bitwise2vlist();
     inline tid_t get_rset_count() {return TO_TID(ccount);}
     inline tid_t get_total_vcount() {return TO_VID(ccount);}
+
 };
 
 
@@ -300,3 +319,4 @@ inline tid_t get_sindex(sid_t sid, sflag_t flag)
 	tid_t index = __builtin_popcountll(flag_mask) - 1;
 	return index;
 }
+
