@@ -14,50 +14,13 @@ status_t query_clause::execute()
 
     return eOK;
 }
-/*
-void query_clause::print_result()
-{
-    //Printing only one var(vertex) and more labels
-    srset_t* srset = get_srset(0);
-    tid_t rset_count = srset->get_rset_count();
-    vid_t word, count, pos, base, frontier = 0;
-
-    
-    for (tid_t i = 0; i < rset_count; i++) {
-       rset_t* rset = srset->rset + i;
-       vid_t v_count = rset->get_vcount();
-       tid_t tid = rset->get_tid();
-       vid_t w_count = WORD_COUNT(v_count);
-       vid_t* barray = rset->status_array;
-
-       for (vid_t w = 0; w < w_count; w++) {
-           if (barray[w] == 0) continue;
-            word  = barray[w];
-            count = __builtin_popcountll(word);
-            base  = (w << 6);
-
-            for (tid_t j = 0; j < count; ++j) {
-                pos = __builtin_ctzll(word);
-                word  ^= (1L << pos);//reset that position
-                frontier = pos + base;
-                
-                cout << g->v_graph->get_value(tid, frontier) << "\t";
-                for (int j = 0; j < select_count; ++j) {
-                    select_info[j].rgraph->print_raw_dst(tid, frontier);
-                    cout << "\t";
-                }
-                cout << endl;
-            }
-       }
-    }
-    cout << endl;
-}
-*/
 
 void query_clause::print_result()
 {
     tid_t rset_count = srset->get_rset_count();
     vid_t frontier = 0;
+    select_info_t* select_info = srset->select_info;
+    qid_t         select_count = srset->select_count;
 
     srset->bitwise2vlist();
 
@@ -80,17 +43,16 @@ void query_clause::print_result()
                     continue;
                 }
                 
-                cout << g->v_graph->get_value(tid, frontier) << "\t";
-                for (int k = 1; k < qid_count; ++k) {
-                    cout << "\t";
-                    srset[k].rset[i].print_result(j);
-                }
-                /*
                 for (int j = 0; j < select_count; ++j) {
                     select_info[j].rgraph->print_raw_dst(tid, frontier);
                     cout << "\t";
-                }*/
-                cout << endl;
+                }
+
+                for (int k = 1; k < qid_count; ++k) {
+                    cout << "\t";
+                    srset[k].print_result(i,j) ;
+                }
+                cout << endl << endl;
             }
         }
     } else {
@@ -103,11 +65,15 @@ void query_clause::print_result()
 
             for (vid_t j = 0; j < v_count; ++j) {
                 frontier = varray[j];
-                cout << g->v_graph->get_value(tid, frontier) << "\t";
+                
+                for (int j = 0; j < select_count; ++j) {
+                    select_info[j].rgraph->print_raw_dst(tid, frontier);
+                    cout << "\t";
+                }
                  
                 for (int k = 1; k < qid_count; ++k) {
                     cout << "\t";
-                    srset[k].rset[i].print_result(j);
+                    srset[k].print_result(i,j) ;
                 }
                 cout << endl;
             }
@@ -289,112 +255,6 @@ status_t one2many_t::transform(srset_t* iset, srset_t* oset, direction_t directi
             return query_kv_td(skv_in, flag2, flag1, iset, oset);
         } else { //bottom up approach 
             return query_adjlist_bu(sgraph_out, flag1, iset, oset);
-        }
-    }
-    return eOK;
-}
-
-/******************* transform_withfilter ******************/
-status_t pinfo_t::transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, filter_info_t* graph)
-{
-    return eOK;
-}
-
-status_t ugraph_t::transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, filter_info_t* filter_info)
-{
-    int total_count = 0;
-    if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
-        return query_adjlist_td_filter(sgraph, flag1, flag2, iset, oset, filter_info);
-    } else { //bottom up approach
-        return query_adjlist_bu_filter(sgraph, flag2, iset, oset, filter_info);
-    }
-    return eOK;
-}
-
-//due to many2one structure, we give preference to bottom up approach
-status_t many2one_t::transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, filter_info_t* filter_info)
-{
-    int total_count = 0;
-    if (direction == eout) {
-        total_count = 0;
-        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
-            return query_kv_td_filter(skv_out, flag1, flag2, iset, oset, filter_info);
-        } else { //bottom up approach
-            return query_adjlist_bu_filter(sgraph_in, flag2, iset, oset, filter_info);
-        }
-    } else {
-        assert(direction == ein);
-        total_count = 0;
-        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
-            return query_adjlist_td_filter(sgraph_in, flag2, flag1, iset, oset, filter_info);
-        } else { //bottom up approach 
-            return query_kv_bu_filter(skv_out, flag1, iset, oset, filter_info);
-        }
-    }
-    return eOK;
-}
-
-status_t dgraph_t::transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, filter_info_t* filter_info)
-{
-    int total_count = 0;
-    if (direction == eout) {
-        total_count = 0;
-        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
-            return query_adjlist_td_filter(sgraph_out, flag1, flag2, iset, oset, filter_info);
-        } else { //bottom up approach
-            return query_adjlist_bu_filter(sgraph_in, flag2, iset, oset, filter_info);
-        }
-    } else {
-        assert(direction == ein);
-        total_count = 0;
-        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
-            return query_adjlist_td_filter(sgraph_in, flag2, flag1, iset, oset, filter_info);
-        } else { //bottom up approach 
-            return query_adjlist_bu_filter(sgraph_out, flag1, iset, oset, filter_info);
-        }
-    }
-    return eOK;
-}
-
-status_t one2one_t::transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, filter_info_t* filter_info)
-{
-    int total_count = 0;
-    if (direction == eout) {
-        total_count = 0;
-        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
-            return query_kv_td_filter(skv_out, flag1, flag2, iset, oset, filter_info);
-        } else { //bottom up approach
-            return query_kv_bu_filter(skv_in, flag2, iset, oset, filter_info);
-        }
-    } else {
-        assert(direction == ein);
-        total_count = 0;
-        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
-            return query_kv_td_filter(skv_in, flag2, flag1, iset, oset, filter_info);
-        } else { //bottom up approach 
-            return query_kv_bu_filter(skv_out, flag1, iset, oset, filter_info);
-        }
-    }
-    return eOK;
-}
-
-status_t one2many_t::transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, filter_info_t* filter_info)
-{
-    int total_count = 0;
-    if (direction == eout) {
-        total_count = 0;
-        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
-            return query_adjlist_td_filter(sgraph_out, flag1, flag2, iset, oset, filter_info);
-        } else { //bottom up approach
-            return query_kv_bu_filter(skv_in, flag2, iset, oset, filter_info);
-        }
-    } else {
-        assert(direction == ein);
-        total_count = 0;
-        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
-            return query_kv_td_filter(skv_in, flag2, flag1, iset, oset, filter_info);
-        } else { //bottom up approach 
-            return query_adjlist_bu_filter(sgraph_out, flag1, iset, oset, filter_info);
         }
     }
     return eOK;

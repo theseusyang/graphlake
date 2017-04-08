@@ -35,8 +35,6 @@ private:
     //query variable count (in where clause)
     int      qid_count; 
 
-    select_info_t* select_info;
-    int select_count;
     int select_qids;
 	//More coming soon
 
@@ -45,8 +43,6 @@ public:
         where_clause = 0;
         srset = 0;
         qid_count = 0;
-        select_info = 0;
-        select_count = 0;
         select_qids = 0;
     }
 
@@ -62,12 +58,11 @@ public:
 
     inline void 
     add_selectclause(select_info_t* info, int a_select_count, int a_select_qids) {
-        select_info = info;
-        select_count = a_select_count;
         select_qids = a_select_qids;
     }
 
-    inline void setup_qid(qid_t qid) {
+    inline void setup_qid(qid_t qid, qid_t a_select_qids) {
+        select_qids = a_select_qids;
         qid_count = qid;
         srset = new srset_t [qid_count];
     }

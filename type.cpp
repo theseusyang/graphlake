@@ -63,7 +63,7 @@ void rset_t::copy_setup(rset_t* iset, int union_type)
     }
 }
 
-void rset_t::print_vlist()
+void rset_t::print_vlist(select_info_t* select_info, qid_t select_count)
 {
     vid_t* varray = get_vlist();
     vid_t v_count = get_vcount();
@@ -73,49 +73,94 @@ void rset_t::print_vlist()
 
     for (vid_t j = 0; j < v_count; ++j) {
         frontier = varray[j];
-        cout << g->v_graph->get_value(tid, frontier) << "\t";
-        /*
         for (int j = 0; j < select_count; ++j) {
             select_info[j].rgraph->print_raw_dst(tid, frontier);
-            cout << "\t";
-        }*/
-        cout << endl;
+            cout << ",";
+        }
     }
 }
 
-void rset_t::print_adjlist(vid_t pos)
+void rset_t::print_adjlist(select_info_t* select_info, qid_t select_count, vid_t pos)
 {
     beg_pos_t* varray = get_graph();
     vid_t  v_count = varray[pos].count;
     sid_t* v_adjlist = varray[pos].adj_list;
     sid_t sid;
     vid_t frontier;
+    tid_t tid;
 
     for (vid_t j = 0; j < v_count; ++j) {
         sid = v_adjlist[j];
         frontier = TO_VID(sid);
-        cout << g->v_graph->get_value(TO_TID(sid), frontier) << ",";
-        /*
+        tid = TO_TID(sid);
+        
         for (int j = 0; j < select_count; ++j) {
             select_info[j].rgraph->print_raw_dst(tid, frontier);
-            cout << "\t";
-        }*/
+            cout << ",";
+        }
     }
-    cout << endl;
 }
 
-void rset_t::print_kv(vid_t pos)
+void rset_t::print_kv(select_info_t* select_info, qid_t select_count, vid_t pos)
 {
     sid_t* kv = get_kv();
     sid_t sid = kv[pos];
     vid_t frontier = TO_VID(sid);
-    cout << g->v_graph->get_value(TO_TID(sid), frontier) << "\t";
+    tid_t tid = TO_TID(sid);
+
+    for (int j = 0; j < select_count; ++j) {
+        select_info[j].rgraph->print_raw_dst(tid, frontier);
+        cout << ",";
+    }
 }
 
-void rset_t::print_barray()
+void rset_t::print_barray(select_info_t* select_info, qid_t select_count)
 {
-    bitwise2vlist();
-    print_vlist();
+    assert(eStatusarray == get_uniontype());
+
+    uint64_t* barray  = get_barray();
+    vid_t     w_count = get_wcount();
+    tid_t         tid = get_tid();    
+    
+    vid_t     word, base, frontier;
+    tid_t     pos, count;
+    
+    //Get the frontiers
+    for (vid_t w = 0; w < w_count; w++) {
+        if ( 0 == barray[w]) continue;
+        
+        word  = barray[w];
+        count = __builtin_popcountll(word);
+        base  = (w << 6);
+
+        for (tid_t j = 0; j < count; ++j) {
+            pos = __builtin_ctzll(word);
+            word  ^= (1L << pos);//reset that position
+            frontier = pos + base;
+            //Print
+            for (int j = 0; j < select_count; ++j) {
+                select_info[j].rgraph->print_raw_dst(tid, frontier);
+                cout << ",";
+            }
+        }
+    }
+}
+
+void rset_t::print_result(select_info_t* select_info, qid_t select_count, vid_t vid_pos)
+{
+    int uniontype = get_uniontype();
+
+    if (uniontype == eFrontiers) {
+        assert(0);
+        print_vlist(select_info, select_count);
+    } else if (uniontype == eAdjlist) {
+        print_adjlist(select_info, select_count, vid_pos);
+    } else if (uniontype == eKV) {
+        print_kv(select_info, select_count, vid_pos);
+    } else if (uniontype == eStatusarray) {
+        assert(0);
+        print_barray(select_info, select_count);;
+    }
 }
 
 /********************************************/
@@ -158,19 +203,29 @@ tid_t srset_t::copy_setup(srset_t* iset, int union_type)
     return flag_count;
 }
 
-void rset_t::print_result(vid_t vid_pos)
-{
-    int uniontype = get_uniontype();
-
-    if (uniontype == eFrontiers) {
-        assert(0);
-        print_vlist();
-    } else if (uniontype == eAdjlist) {
-        print_adjlist(vid_pos);
-    } else if (uniontype == eKV) {
-        print_kv(vid_pos);
-    } else if (uniontype == eStatusarray) {
-        assert(0);
-        print_barray();;
-    }
+void srset_t::setup_select(qid_t a_count) { 
+    select_count = a_count;
+    select_info  = new select_info_t[a_count]; 
 }
+
+void srset_t::create_select(qid_t index, const char* a_name, const char* prop_name) 
+{
+    select_info[index].name = gstrdup(a_name);
+    
+    if (0 == prop_name) {
+        select_info[index].rgraph = g->v_graph;
+        return;
+    }
+
+    propid_t pid = g->get_pid(prop_name);
+    assert(INVALID_PID != pid);
+    select_info[index].rgraph = g->p_info[pid];
+}
+
+
+void srset_t::print_result(tid_t tid_pos, vid_t vid_pos)
+{
+    //pass filter_info
+    rset[tid_pos].print_result(select_info, select_count, vid_pos);
+}
+

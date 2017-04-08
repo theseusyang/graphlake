@@ -29,7 +29,9 @@ typedef uint16_t qid_t;
 #define TID_TO_SFLAG(tid) (1L << tid)
 #define WORD_COUNT(count) ((count + 63) >> 6)
 
+
 #define INVALID_PID 0xFFFFFFFF
+#define INVALID_TID 0xFFFFFF
 #define INVALID_SID 0xFFFFFFFFFFFFFFFF
 
 #define NO_QID 0xFFFF
@@ -231,11 +233,11 @@ class rset_t {
     void copy_setup(rset_t* iset, int union_type); 
     void bitwise2vlist();
    
-    void print_result(vid_t pos);
-    void print_vlist();
-    void print_adjlist(vid_t pos);
-    void print_kv(vid_t pos);
-    void print_barray();
+    void print_result(select_info_t* select_info, qid_t select_count, vid_t pos);
+    void print_adjlist(select_info_t* select_info, qid_t select_count, vid_t pos);
+    void print_kv(select_info_t* select_info, qid_t select_count, vid_t pos);
+    void print_barray(select_info_t* select_info, qid_t select_count);
+    void print_vlist(select_info_t* select_info, qid_t select_count);
 };
 
 class srset_t {
@@ -250,7 +252,10 @@ class srset_t {
     //array of result sets
     rset_t*  rset; 
     filter_info_t* filter_info;
+    select_info_t* select_info;
+    
     uint8_t filter_done;
+    uint8_t select_count;
 
 
  public:
@@ -261,6 +266,9 @@ class srset_t {
         filter_info = 0;
         filter_done = 1;
     }
+    void setup_select(qid_t a_count); 
+    void create_select(qid_t index, const char* a_name, const char* prop_name);
+    
     inline void set_filter(filter_info_t* info) {
         filter_info = info;
         filter_done = 0;
@@ -295,6 +303,7 @@ class srset_t {
     void bitwise2vlist();
     inline tid_t get_rset_count() {return TO_TID(ccount);}
     inline tid_t get_total_vcount() {return TO_VID(ccount);}
+    void print_result(tid_t tid_pos, vid_t vid_pos);
   
  private:    
  public:

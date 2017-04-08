@@ -17,11 +17,12 @@ using std::cout;
 using std::endl;
 using std::string;
 
+
+
 inline char* gstrdup(const char* str) 
 {
     return strdup(str);
 }
-
 
 #define bu_factor 0.07
 
