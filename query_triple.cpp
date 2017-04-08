@@ -81,7 +81,6 @@ query_triple::execute()
         g->p_info[pid]->transform(iset, oset, direction);
 
     } else if (traverse == eExtend) {
-        //convert to frontier list format, if required
         g->p_info[pid]->extend(iset, oset, direction);
     }
     

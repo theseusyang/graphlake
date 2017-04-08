@@ -181,7 +181,9 @@ class rset_t {
         status_array = 0;
     }
     inline vid_t* get_vlist() { return vlist;}
+    inline beg_pos_t* get_graph() { return adjlist;}
     inline uint64_t* get_barray() {return status_array;} 
+    inline sid_t* get_kv() { return kv;};
     inline vid_t get_vcount() {return TO_VID(count2);}
     inline int   get_uniontype() {return TO_TID(count2);}
     inline tid_t get_tid() {return TO_TID(scount);}
@@ -199,7 +201,7 @@ class rset_t {
         return 0L;
     }
 	inline void add_frontier(sid_t sid) {
-		vid_t index = TO_VID(scount);
+		vid_t index = TO_VID(count2);
 		vlist[index] = sid;
 		++count2;
 	}
@@ -221,12 +223,19 @@ class rset_t {
     
     
     inline void setup(sid_t super_id) {
-        scount  = super_id;
+        tid_t tid = TO_TID(super_id);
+        scount  = TO_SUPER(tid) + WORD_COUNT(TO_VID(super_id));
+        count2 = TO_SUPER(eStatusarray);
         vid_t w_count = WORD_COUNT(TO_VID(super_id));
         status_array = (uint64_t*) calloc(sizeof(uint64_t*), w_count);
     }
     void copy_setup(rset_t* iset, int union_type); 
     void bitwise2vlist();
+    
+    void print_vlist();
+    void print_adjlist(vid_t pos);
+    void print_kv(vid_t pos);
+    void print_barray();
 };
 
 class srset_t {

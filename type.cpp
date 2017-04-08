@@ -1,5 +1,8 @@
 #include <assert.h>
+#include <iostream>
+
 #include "type.h"
+#include "graph.h"
 
 void srset_t::bitwise2vlist()
 {
@@ -39,7 +42,7 @@ void rset_t::bitwise2vlist()
     }
     free(barray);
     vlist = vid_list;
-    scount = TO_TID(scount) + list_count;
+    scount = TO_THIGH(scount) + list_count;
 }
 
 void rset_t::copy_setup(rset_t* iset, int union_type) 
@@ -61,4 +64,59 @@ void rset_t::copy_setup(rset_t* iset, int union_type)
     default:
     assert(0);
     }
+}
+
+void rset_t::print_vlist()
+{
+    vid_t* varray = get_vlist();
+    vid_t v_count = get_vcount();
+    sid_t tid = get_tid();
+    vid_t frontier;
+
+
+    for (vid_t j = 0; j < v_count; ++j) {
+        frontier = varray[j];
+        cout << g->v_graph->get_value(tid, frontier) << "\t";
+        /*
+        for (int j = 0; j < select_count; ++j) {
+            select_info[j].rgraph->print_raw_dst(tid, frontier);
+            cout << "\t";
+        }*/
+        cout << endl;
+    }
+}
+
+void rset_t::print_adjlist(vid_t pos)
+{
+    beg_pos_t* varray = get_graph();
+    vid_t  v_count = varray[pos].count;
+    sid_t* v_adjlist = varray[pos].adj_list;
+    sid_t sid;
+    vid_t frontier;
+
+    for (vid_t j = 0; j < v_count; ++j) {
+        sid = v_adjlist[j];
+        frontier = TO_VID(sid);
+        cout << g->v_graph->get_value(TO_TID(sid), frontier) << "\t";
+        /*
+        for (int j = 0; j < select_count; ++j) {
+            select_info[j].rgraph->print_raw_dst(tid, frontier);
+            cout << "\t";
+        }*/
+        cout << endl;
+    }
+}
+
+void rset_t::print_kv(vid_t pos)
+{
+    sid_t* kv = get_kv();
+    sid_t sid = kv[pos];
+    vid_t frontier = TO_VID(sid);
+    cout << g->v_graph->get_value(TO_TID(sid), frontier) << "\t";
+}
+
+void rset_t::print_barray()
+{
+    bitwise2vlist();
+    print_vlist();
 }

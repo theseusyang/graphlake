@@ -7,7 +7,8 @@
 void test1()
 {
     const char* src = "<http://www.Department10.University1.edu/UndergraduateStudent2>"; 
-    const char* pred = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#advisor>"; 
+    //const char* pred = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#advisor>"; 
+    const char* pred = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#takesCourse>"; 
     //const char* dst = "<http://www.Department10.University1.edu/FullProfessor1>" ;
     
     query_clause query;
@@ -18,6 +19,7 @@ void test1()
     qt.set_src(src);
     qt.set_pred(pred);
     qt.set_dst("?x", 0);
+    qt.set_traverse(eTransform);
     qt.set_query(&query);
 
     qwhere.add_child(&qt);
@@ -58,6 +60,7 @@ void test2()
     qt1.set_pred(pred1);
     qt1.set_dst(dst1);
     qt1.set_query(&query);
+    qt1.set_traverse(eTransform);
     qwhere.add_child(&qt1);
     
     //second query
@@ -65,6 +68,7 @@ void test2()
     qt2.set_pred(pred2);
     qt2.set_dst("?x", 1);
     qt2.set_qplan(eInward);
+    qt1.set_traverse(eExtend);
     qt2.set_query(&query);
     qwhere.add_child(&qt2);
 
@@ -215,7 +219,7 @@ void lubm_4()
 void lubm() 
 {
     test1();
-    test2();
+    //test2();
     /*lubm_1();
     lubm_4();
     */

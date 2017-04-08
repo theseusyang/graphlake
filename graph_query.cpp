@@ -103,19 +103,16 @@ void query_clause::print_result()
     } else {
         for (tid_t i = 0; i < rset_count; i++) {
             rset_t* rset = srset->rset + i;
-            vid_t v_count = rset->get_vcount();
-            tid_t tid = rset->get_tid();
-            vid_t* varray = rset->get_vlist();
-
-            for (vid_t j = 0; j < v_count; ++j) {
-                sid = varray[j];
-                frontier = TO_VID(sid);
-                cout << g->v_graph->get_value(TO_TID(sid), frontier) << "\t";
-                for (int j = 0; j < select_count; ++j) {
-                    select_info[j].rgraph->print_raw_dst(tid, frontier);
-                    cout << "\t";
-                }
-                cout << endl;
+            int uniontype = rset->get_uniontype();
+            
+            if (uniontype == eFrontiers) {
+                rset->print_vlist();
+            } else if (uniontype == eAdjlist) {
+                rset->print_adjlist(0);
+            } else if (uniontype == eKV) {
+                rset->print_kv(0);
+            } else if (uniontype == eStatusarray) {
+                rset->print_barray();;
             }
         }
     }
