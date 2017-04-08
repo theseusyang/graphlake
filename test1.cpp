@@ -68,7 +68,7 @@ void test2()
     qt2.set_pred(pred2);
     qt2.set_dst("?x", 1);
     qt2.set_qplan(eInward);
-    qt1.set_traverse(eExtend);
+    qt2.set_traverse(eExtend);
     qt2.set_query(&query);
     qwhere.add_child(&qt2);
 
@@ -218,8 +218,8 @@ void lubm_4()
 
 void lubm() 
 {
-    test1();
-    //test2();
+    //test1();
+    test2();
     /*lubm_1();
     lubm_4();
     */

@@ -14,9 +14,13 @@ void srset_t::bitwise2vlist()
 
 void rset_t::bitwise2vlist()
 {
+    int uniontype = get_uniontype();
+    if (uniontype != eStatusarray) {
+        return;
+    }
+
     uint64_t* barray  = get_barray();
     vid_t     w_count = get_wcount();
-
     vid_t   list_count = get_vcount();
     vid_t*  vid_list = (vid_t*)calloc(sizeof(vid_t), list_count);
     list_count = 0; 
