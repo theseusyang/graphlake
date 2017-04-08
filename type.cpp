@@ -4,14 +4,6 @@
 #include "type.h"
 #include "graph.h"
 
-void srset_t::bitwise2vlist()
-{
-    tid_t    iset_count = get_rset_count();
-    for (tid_t i = 0; i < iset_count; ++i) {
-        rset[i].bitwise2vlist();
-    }
-}
-
 void rset_t::bitwise2vlist()
 {
     int uniontype = get_uniontype();
@@ -102,14 +94,14 @@ void rset_t::print_adjlist(vid_t pos)
     for (vid_t j = 0; j < v_count; ++j) {
         sid = v_adjlist[j];
         frontier = TO_VID(sid);
-        cout << g->v_graph->get_value(TO_TID(sid), frontier) << "\t";
+        cout << g->v_graph->get_value(TO_TID(sid), frontier) << ",";
         /*
         for (int j = 0; j < select_count; ++j) {
             select_info[j].rgraph->print_raw_dst(tid, frontier);
             cout << "\t";
         }*/
-        cout << endl;
     }
+    cout << endl;
 }
 
 void rset_t::print_kv(vid_t pos)
@@ -124,4 +116,61 @@ void rset_t::print_barray()
 {
     bitwise2vlist();
     print_vlist();
+}
+
+/********************************************/
+void srset_t::bitwise2vlist()
+{
+    tid_t    iset_count = get_rset_count();
+    for (tid_t i = 0; i < iset_count; ++i) {
+        rset[i].bitwise2vlist();
+    }
+}
+
+tid_t srset_t::full_setup(sflag_t flag) {
+    sid_t flag_count = setup(flag);
+    tid_t pos = 0;
+    sid_t super_id;
+    for (tid_t i = 0; i < flag_count; ++i) {
+        pos = __builtin_ctzll(flag);
+        flag ^= (1L << pos);//reset that position
+        super_id = g->get_type_scount(pos);
+        rset[i].setup(super_id);
+    }
+    return flag_count;
+}
+
+tid_t srset_t::setup(sflag_t sflag) 
+{
+    sid_t flag_count = __builtin_popcountll(sflag);
+    ccount     |= TO_SUPER(flag_count);
+    rset        = new rset_t [flag_count];
+    flag        = sflag;
+    return flag_count;
+}
+    
+tid_t srset_t::copy_setup(srset_t* iset, int union_type) 
+{
+    tid_t flag_count = setup(iset->flag);
+    for (tid_t i = 0; i < flag_count; ++i) {
+        rset[i].copy_setup(iset->rset + i, union_type);
+    }
+    return flag_count;
+}
+
+void rset_t::print_result(vid_t vid_pos)
+{
+    int uniontype = get_uniontype();
+
+    if (uniontype == eFrontiers) {
+        assert(0);
+        print_vlist();
+    } else if (uniontype == eAdjlist) {
+        print_adjlist(vid_pos);
+    } else if (uniontype == eKV) {
+        print_kv(vid_pos);
+    } else if (uniontype == eStatusarray) {
+        assert(0);
+        print_barray();;
+    }
 }

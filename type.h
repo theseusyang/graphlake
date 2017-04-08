@@ -221,7 +221,6 @@ class rset_t {
 		kv[index] = sid;
 	}
     
-    
     inline void setup(sid_t super_id) {
         tid_t tid = TO_TID(super_id);
         vid_t w_count = WORD_COUNT(TO_VID(super_id));
@@ -231,7 +230,8 @@ class rset_t {
     }
     void copy_setup(rset_t* iset, int union_type); 
     void bitwise2vlist();
-    
+   
+    void print_result(vid_t pos);
     void print_vlist();
     void print_adjlist(vid_t pos);
     void print_kv(vid_t pos);
@@ -250,6 +250,8 @@ class srset_t {
     //array of result sets
     rset_t*  rset; 
     filter_info_t* filter_info;
+    uint8_t filter_done;
+
 
  public:
     inline srset_t() {
@@ -257,9 +259,11 @@ class srset_t {
         ccount = 0;
         rset = 0;
         filter_info = 0;
+        filter_done = 1;
     }
     inline void set_filter(filter_info_t* info) {
-       filter_info = info;
+        filter_info = info;
+        filter_done = 0;
     } 
 
 	inline tid_t get_sindex(sid_t sid)
@@ -287,28 +291,16 @@ class srset_t {
 		vid_t vert_id = TO_VID(sid);
         return rset[index].set_status(vert_id);
     }
-    
-    inline tid_t setup(sflag_t sflag) {
-        sid_t flag_count = __builtin_popcountll(sflag);
-        ccount     |= TO_SUPER(flag_count);
-        rset        = new rset_t [flag_count];
-        flag        = sflag;
-        return flag_count;
-    }
-    
-    inline tid_t copy_setup(srset_t* iset, int union_type) {
-        tid_t flag_count = setup(iset->flag);
-        for (tid_t i = 0; i < flag_count; ++i) {
-            rset[i].copy_setup(iset->rset + i, union_type);
-        }
-        return flag_count;
-    }
-
-    tid_t full_setup(sflag_t sflag);
 
     void bitwise2vlist();
     inline tid_t get_rset_count() {return TO_TID(ccount);}
     inline tid_t get_total_vcount() {return TO_VID(ccount);}
+  
+ private:    
+ public:
+    tid_t setup(sflag_t sflag); 
+    tid_t copy_setup(srset_t* iset, int union_type);
+    tid_t full_setup(sflag_t sflag);
 
 };
 

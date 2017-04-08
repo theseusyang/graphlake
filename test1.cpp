@@ -56,7 +56,7 @@ void test2()
     query_triple qt2;
     
     //first query
-    qt1.set_src("?x", 1);
+    qt1.set_src("?x", 0);
     qt1.set_pred(pred1);
     qt1.set_dst(dst1);
     qt1.set_query(&query);
@@ -64,9 +64,9 @@ void test2()
     qwhere.add_child(&qt1);
     
     //second query
-    qt2.set_src("?y", 0);
+    qt2.set_src("?y", 1);
     qt2.set_pred(pred2);
-    qt2.set_dst("?x", 1);
+    qt2.set_dst("?x", 0);
     qt2.set_qplan(eInward);
     qt2.set_traverse(eExtend);
     qt2.set_query(&query);
@@ -87,14 +87,14 @@ void test2()
     filter_info.value = typevalue;
     filter_info.filter_fn = fn_out;
     //qt1.set_filterobj(labelgraph, typevalue, fn_out);
-    srset_t* srset = query.get_srset(1);
+    srset_t* srset = query.get_srset(0);
     srset->set_filter(&filter_info);
 
     select_info_t select_info[1];
     select_info[0].name = gstrdup("Y1");
     select_info[0].rgraph = g->p_info[g->get_pid(name_pred)];
     
-    query.add_selectclause(select_info, 1, 1);
+    query.add_selectclause(select_info, 1, 2);
 
     g->run_query(&query);
 
@@ -218,7 +218,7 @@ void lubm_4()
 
 void lubm() 
 {
-    //test1();
+    test1();
     test2();
     /*lubm_1();
     lubm_4();

@@ -1,19 +1,6 @@
 #include "graph.h"
 
 
-tid_t srset_t::full_setup(sflag_t flag) {
-    sid_t flag_count = setup(flag);
-    tid_t pos = 0;
-    sid_t super_id;
-    for (tid_t i = 0; i < flag_count; ++i) {
-        pos = __builtin_ctzll(flag);
-        flag ^= (1L << pos);//reset that position
-        super_id = g->get_type_scount(pos);
-        rset[i].setup(super_id);
-    }
-    return flag_count;
-}
-
 
 void graph::run_query(query_clause* q)
 {
@@ -69,50 +56,60 @@ void query_clause::print_result()
 
 void query_clause::print_result()
 {
-    //Printing only one var(vertex) and more labels
-    srset_t* srset = get_srset(0);
     tid_t rset_count = srset->get_rset_count();
     vid_t frontier = 0;
-    sid_t sid= 0;
-    filter_info_t* filter_info = srset->filter_info;
 
-    if (filter_info) {
+    srset->bitwise2vlist();
+
+    if (!srset->filter_done) {
+        filter_info_t* filter_info = srset->filter_info;
+        sid_t sid;
         for (tid_t i = 0; i < rset_count; i++) {
             rset_t* rset = srset->rset + i;
             vid_t v_count = rset->get_vcount();
             tid_t tid = rset->get_tid();
+            sid_t tid_high = TO_SUPER(tid);
             vid_t* varray = rset->get_vlist();
 
             for (vid_t j = 0; j < v_count; ++j) {
-                sid = varray[j];
+                frontier = varray[j];
+                sid = tid_high + frontier;
 
                 if (eOK != filter_info->rgraph->filter(sid, 
                      filter_info->value, filter_info->filter_fn)) {
                     continue;
                 }
                 
-                frontier = TO_VID(sid);
-                cout << g->v_graph->get_value(TO_TID(sid), frontier) << "\t";
+                cout << g->v_graph->get_value(tid, frontier) << "\t";
+                for (int k = 1; k < qid_count; ++k) {
+                    cout << "\t";
+                    srset[k].rset[i].print_result(j);
+                }
+                /*
                 for (int j = 0; j < select_count; ++j) {
                     select_info[j].rgraph->print_raw_dst(tid, frontier);
                     cout << "\t";
-                }
+                }*/
                 cout << endl;
             }
         }
     } else {
         for (tid_t i = 0; i < rset_count; i++) {
             rset_t* rset = srset->rset + i;
-            int uniontype = rset->get_uniontype();
             
-            if (uniontype == eFrontiers) {
-                rset->print_vlist();
-            } else if (uniontype == eAdjlist) {
-                rset->print_adjlist(0);
-            } else if (uniontype == eKV) {
-                rset->print_kv(0);
-            } else if (uniontype == eStatusarray) {
-                rset->print_barray();;
+            vid_t v_count = rset->get_vcount();
+            tid_t tid = rset->get_tid();
+            vid_t* varray = rset->get_vlist();
+
+            for (vid_t j = 0; j < v_count; ++j) {
+                frontier = varray[j];
+                cout << g->v_graph->get_value(tid, frontier) << "\t";
+                 
+                for (int k = 1; k < qid_count; ++k) {
+                    cout << "\t";
+                    srset[k].rset[i].print_result(j);
+                }
+                cout << endl;
             }
         }
     }
