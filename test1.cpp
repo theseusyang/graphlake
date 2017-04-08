@@ -124,18 +124,21 @@ void lubm_1()
     
     query_whereclause qwhere;
     query_clause query;
-    
+    query.add_whereclause(&qwhere);
+    query.setup_qid(1,1);
+    srset_t* srset;
+
     query_triple qt1;
     qt1.set_src("?x", 0);
     qt1.set_pred(pred1);
     qt1.set_dst(dst1);
     qt1.set_traverse(eTransform);
     qt1.set_query(&query);
-
-    qwhere.add_child(&qt1);
-    query.add_whereclause(&qwhere);
-    query.setup_qid(1,1);
     
+    srset = query.get_srset(0);
+    srset->setup_select(1);
+    srset->create_select(0, "?x", 0);
+
     //Get the filter details
     filter_info_t filter_info;
     propid_t type_pid = g->get_pid(pred);
@@ -144,9 +147,9 @@ void lubm_1()
         assert(0);
     }
     filter_info.filter_fn = fn_out;
-    srset_t* srset = query.get_srset(0);
     srset->set_filter(&filter_info);
     
+    qwhere.add_child(&qt1);
     g->run_query(&query);
 }
 
@@ -175,6 +178,9 @@ void lubm_4()
     
     query_whereclause qwhere;
     query_clause query;
+    query.add_whereclause(&qwhere);
+    query.setup_qid(1,1);
+    srset_t* srset;
     
     query_triple qt1;
     qt1.set_src("?x", 0);
@@ -183,9 +189,13 @@ void lubm_4()
     qt1.set_traverse(eTransform);
     qt1.set_query(&query);
     
-    qwhere.add_child(&qt1);
-    query.add_whereclause(&qwhere);
-    query.setup_qid(1,1);
+    srset = query.get_srset(0);
+    srset->setup_select(4);
+    srset->create_select(0, "?x1", 0);
+    srset->create_select(1, "?Y1", name_pred);
+    srset->create_select(2, "?Y2", email_pred);
+    srset->create_select(3, "?Y3", telephone_pred);
+    
     
     //Get the filter details
     filter_info_t filter_info;
@@ -195,19 +205,9 @@ void lubm_4()
         assert(0);
     }
     filter_info.filter_fn = fn_out;
-    srset_t* srset = query.get_srset(0);
     srset->set_filter(&filter_info);
 
-    select_info_t select_info[3];
-    select_info[0].name = gstrdup("Y1");
-    select_info[1].name = gstrdup("Y2");
-    select_info[2].name = gstrdup("Y3");
-
-    select_info[0].rgraph = g->p_info[g->get_pid(name_pred)];
-    select_info[1].rgraph = g->p_info[g->get_pid(email_pred)];
-    select_info[2].rgraph = g->p_info[g->get_pid(telephone_pred)];
-    
-
+    qwhere.add_child(&qt1);
     g->run_query(&query);
 }
 
@@ -215,8 +215,8 @@ void lubm()
 {
     test1();
     test2();
-    /*lubm_1();
+    lubm_1();
     lubm_4();
-    */
+    /* */
 }
 
