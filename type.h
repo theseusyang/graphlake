@@ -187,7 +187,7 @@ class rset_t {
     inline vid_t get_vcount() {return TO_VID(count2);}
     inline int   get_uniontype() {return TO_TID(count2);}
     inline tid_t get_tid() {return TO_TID(scount);}
-    inline vid_t get_wcount() {return WORD_COUNT(TO_VID(scount));}
+    inline vid_t get_wcount() {return TO_VID(scount);}
     
     inline vid_t get_status(vid_t vid) {
         return status_array[word_offset(vid)] & ((uint64_t) 1L << bit_offset(vid));
@@ -224,9 +224,9 @@ class rset_t {
     
     inline void setup(sid_t super_id) {
         tid_t tid = TO_TID(super_id);
-        scount  = TO_SUPER(tid) + WORD_COUNT(TO_VID(super_id));
-        count2 = TO_SUPER(eStatusarray);
         vid_t w_count = WORD_COUNT(TO_VID(super_id));
+        scount  = TO_SUPER(tid) + w_count;
+        count2 = TO_SUPER(eStatusarray);
         status_array = (uint64_t*) calloc(sizeof(uint64_t*), w_count);
     }
     void copy_setup(rset_t* iset, int union_type); 
@@ -299,7 +299,7 @@ class srset_t {
     inline tid_t copy_setup(srset_t* iset, int union_type) {
         tid_t flag_count = setup(iset->flag);
         for (tid_t i = 0; i < flag_count; ++i) {
-            rset->copy_setup(iset->rset, union_type);
+            rset[i].copy_setup(iset->rset + i, union_type);
         }
         return flag_count;
     }

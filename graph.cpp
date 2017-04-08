@@ -687,13 +687,12 @@ pgraph_t::extend_adjlist_td(sgraph_t* sgraph, sflag_t iflag, srset_t* iset, srse
     rset_t*        rset = 0;
     rset_t*        rset2 = 0;
 
-
+    iset->bitwise2vlist();
     //prepare the output 1,2;
     oset->copy_setup(iset, eAdjlist);
 
     for (tid_t i = 0; i < iset_count; ++i) {
         rset = iset->rset + i;
-        rset->bitwise2vlist();
         rset2 = oset->rset + i;
         vid_t v_count = rset->get_vcount();
         sid_t* varray = rset->get_vlist();
@@ -721,12 +720,12 @@ pgraph_t::extend_kv_td(skv_t* skv, sflag_t iflag, srset_t* iset, srset_t* oset)
     rset_t*        rset = 0;
     rset_t*       rset2 = 0;
 
+    iset->bitwise2vlist();
     //prepare the output 1,2;
     oset->copy_setup(iset, eKV);
 
     for (tid_t i = 0; i < iset_count; ++i) {
         rset = iset->rset + i;
-        rset->bitwise2vlist();
         rset2 = oset->rset + i;
         vid_t v_count = rset->get_vcount();
         sid_t* varray = rset->get_vlist();

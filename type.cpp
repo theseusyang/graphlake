@@ -47,13 +47,14 @@ void rset_t::bitwise2vlist()
     free(barray);
     vlist = vid_list;
     scount = TO_THIGH(scount) + list_count;
+    count2 = TO_SUPER(eFrontiers) + list_count;
 }
 
 void rset_t::copy_setup(rset_t* iset, int union_type) 
 {
     assert(eStatusarray != TO_TID(iset->count2));
     vid_t v_count = iset->get_vcount();
-    scount = TO_TID(iset->scount) + v_count;
+    scount = TO_THIGH(iset->scount) + v_count;
     count2 = TO_SUPER(union_type) + v_count;
     switch(union_type) {
     case eFrontiers:
