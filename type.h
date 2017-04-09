@@ -89,19 +89,31 @@ enum traverse_t {
 
 class filter_info_t {
  public:
+    //always one count
     pinfo_t* rgraph;
+
+    qid_t count;
+    //these could be more, controlled by count
     univ_t   value;
     filter_fn_t filter_fn;
     
-
- public:
+    inline filter_info_t() {
+        rgraph = 0;
+        count = 0;
+    }
+ 
+ private:
     inline void set_filterobj(pinfo_t* a_graph, univ_t a_value, filter_fn_t fn) {
         rgraph = a_graph;
         value = a_value;
         filter_fn = fn;
     }
-
 } ;
+
+class type_filter_t {
+ public:
+     tid_t tid_value;
+};
 
 typedef struct __select_info_t {
     pinfo_t* rgraph;
@@ -251,14 +263,19 @@ class rset_t {
 
 class srset_t {
  public:
-
-   
     //array of result sets
     rset_t*  rset; 
     
     filter_info_t* filter_info;
+    
+    //type filters
+    tid_t*  tfilter;
+    
     select_info_t* select_info;
+    
+    uint8_t filter_count;
     uint8_t filter_done;
+    uint8_t tfilter_count;
     uint8_t select_count;
     
  private:
@@ -275,6 +292,8 @@ class srset_t {
         rset = 0;
         filter_info = 0;
         filter_done = 1;
+        tfilter = 0;
+        tfilter_count = 0;
     }
     void setup_select(qid_t a_count); 
     void create_select(qid_t index, const char* a_name, const char* prop_name);
@@ -284,6 +303,15 @@ class srset_t {
         filter_done = 0;
     } 
 
+    inline void setup_tfilter(tid_t count) {
+        tfilter_count = count;
+        tfilter = new tid_t[count];
+    }
+    inline void create_tfilter(tid_t index, tid_t tid) {
+        assert(index < tfilter_count);
+        tfilter[index] = tid;
+    }
+    
 	inline tid_t get_sindex(sid_t sid) {
 		tid_t type_id = TO_TID(sid) + 1;
 		sflag_t flag_mask = flag & ((1L << type_id) - 1);
@@ -304,7 +332,7 @@ class srset_t {
     }
     
     inline vid_t set_status(sid_t sid) {
-        if (filter_done == 0 && eOK != apply_typefilter(TO_TID(sid))) {
+        if (tfilter_count > 0 && eOK != apply_typefilter(TO_TID(sid))) {
             return 0L;
         }
         tid_t index = get_sindex(sid);

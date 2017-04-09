@@ -71,20 +71,19 @@ void test2()
     qt1.set_traverse(eTransform);
     qwhere.add_child(&qt1);
     
+    //Select info
     srset = query.get_srset(0);
     srset->setup_select(1);
     srset->create_select(0, "?x", 0);
-    
-    //Get the filter details
-    filter_info_t filter_info;
-    propid_t type_pid = g->get_pid(pred);
-    filter_info.rgraph = g->p_info[type_pid];
-    if (eOK != g->p_info[0]->get_encoded_value(dst, &filter_info.value)) {
+
+    //type filter
+    srset->setup_tfilter(1);
+    univ_t value;
+    if (eOK != g->p_info[0]->get_encoded_value(dst, &value)) {
         assert(0);
     }
-    filter_info.filter_fn = fn_out;
-    srset->set_filter(&filter_info);
-
+    srset->create_tfilter(0, value.value_tid);
+    
     //second query
     qt2.set_src("?y", 1);
     qt2.set_pred(pred2);
@@ -134,21 +133,20 @@ void lubm_1()
     qt1.set_dst(dst1);
     qt1.set_traverse(eTransform);
     qt1.set_query(&query);
-    
+   
+    //select info
     srset = query.get_srset(0);
     srset->setup_select(1);
     srset->create_select(0, "?x", 0);
-
-    //Get the filter details
-    filter_info_t filter_info;
-    propid_t type_pid = g->get_pid(pred);
-    filter_info.rgraph = g->p_info[type_pid];
-    if (eOK != g->p_info[0]->get_encoded_value(dst, &filter_info.value)) {
+    
+    //type filter
+    srset->setup_tfilter(1);
+    univ_t value;
+    if (eOK != g->p_info[0]->get_encoded_value(dst, &value)) {
         assert(0);
     }
-    filter_info.filter_fn = fn_out;
-    srset->set_filter(&filter_info);
-    
+    srset->create_tfilter(0, value.value_tid);
+
     qwhere.add_child(&qt1);
     g->run_query(&query);
 }
@@ -189,6 +187,7 @@ void lubm_4()
     qt1.set_traverse(eTransform);
     qt1.set_query(&query);
     
+    //select info
     srset = query.get_srset(0);
     srset->setup_select(4);
     srset->create_select(0, "?x1", 0);
@@ -196,16 +195,13 @@ void lubm_4()
     srset->create_select(2, "?Y2", email_pred);
     srset->create_select(3, "?Y3", telephone_pred);
     
-    
-    //Get the filter details
-    filter_info_t filter_info;
-    propid_t type_pid = g->get_pid(pred);
-    filter_info.rgraph = g->p_info[type_pid];
-    if (eOK != g->p_info[0]->get_encoded_value(dst, &filter_info.value)) {
+    //type filter
+    srset->setup_tfilter(1);
+    univ_t value;
+    if (eOK != g->p_info[0]->get_encoded_value(dst, &value)) {
         assert(0);
     }
-    filter_info.filter_fn = fn_out;
-    srset->set_filter(&filter_info);
+    srset->create_tfilter(0, value.value_tid);
 
     qwhere.add_child(&qt1);
     g->run_query(&query);
@@ -219,4 +215,3 @@ void lubm()
     lubm_4();
     /* */
 }
-

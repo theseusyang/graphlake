@@ -43,8 +43,8 @@ void query_clause::print_result()
                     continue;
                 }
                 
-                for (int j = 0; j < select_count; ++j) {
-                    select_info[j].rgraph->print_raw_dst(tid, frontier);
+                for (int m = 0; m < select_count; ++m) {
+                    select_info[m].rgraph->print_raw_dst(tid, frontier);
                     cout << "\t";
                 }
 
@@ -66,8 +66,8 @@ void query_clause::print_result()
             for (vid_t j = 0; j < v_count; ++j) {
                 frontier = varray[j];
                 
-                for (int j = 0; j < select_count; ++j) {
-                    select_info[j].rgraph->print_raw_dst(tid, frontier);
+                for (int m = 0; m < select_count; ++m) {
+                    select_info[m].rgraph->print_raw_dst(tid, frontier);
                     cout << "\t";
                 }
                  
@@ -75,7 +75,7 @@ void query_clause::print_result()
                     cout << "\t";
                     srset[k].print_result(i,j) ;
                 }
-                cout << endl;
+                cout << endl << endl;
             }
         }
     }
