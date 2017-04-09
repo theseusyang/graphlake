@@ -167,7 +167,9 @@ void rset_t::print_result(select_info_t* select_info, qid_t select_count, vid_t 
 void srset_t::bitwise2vlist()
 {
     tid_t    iset_count = get_rset_count();
+    
     for (tid_t i = 0; i < iset_count; ++i) {
+        //apply other filters
         rset[i].bitwise2vlist();
     }
 }

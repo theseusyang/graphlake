@@ -10,7 +10,6 @@ SRC=main.cpp \
     vgraph.cpp\
 	nt_to_edge.cpp\
 	query_triple.cpp\
-	query_triplewithfilter.cpp\
 	graph_query.cpp\
 	type.cpp\
 	test1.cpp\

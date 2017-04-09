@@ -154,6 +154,9 @@ public:
 #define eAdjlist    2
 #define eKV         3
 
+
+class srset_t;
+
 //one type's result set
 class rset_t {
     private:
@@ -177,6 +180,7 @@ class rset_t {
 
 
     public:
+    friend class srset_t;
     inline rset_t() {
         scount = 0;
         count2 = 0;
@@ -191,9 +195,6 @@ class rset_t {
     inline tid_t get_tid() {return TO_TID(scount);}
     inline vid_t get_wcount() {return TO_VID(scount);}
     
-    inline vid_t get_status(vid_t vid) {
-        return status_array[word_offset(vid)] & ((uint64_t) 1L << bit_offset(vid));
-    }
     inline vid_t set_status(vid_t vid) {
         if(!get_status(vid)) {
             status_array[word_offset(vid)] |= ((uint64_t) 1L << bit_offset(vid));
@@ -223,6 +224,20 @@ class rset_t {
 		kv[index] = sid;
 	}
     
+   
+    private:
+    inline vid_t get_status(vid_t vid) {
+        return status_array[word_offset(vid)] & ((uint64_t) 1L << bit_offset(vid));
+    }
+    void copy_setup(rset_t* iset, int union_type); 
+    void print_result(select_info_t* select_info, qid_t select_count, vid_t pos);
+    void print_adjlist(select_info_t* select_info, qid_t select_count, vid_t pos);
+    void print_kv(select_info_t* select_info, qid_t select_count, vid_t pos);
+    void print_barray(select_info_t* select_info, qid_t select_count);
+    void print_vlist(select_info_t* select_info, qid_t select_count);
+    
+    void bitwise2vlist();
+    
     inline void setup(sid_t super_id) {
         tid_t tid = TO_TID(super_id);
         vid_t w_count = WORD_COUNT(TO_VID(super_id));
@@ -230,33 +245,28 @@ class rset_t {
         count2 = TO_SUPER(eStatusarray);
         status_array = (uint64_t*) calloc(sizeof(uint64_t*), w_count);
     }
-    void copy_setup(rset_t* iset, int union_type); 
-    void bitwise2vlist();
-   
-    void print_result(select_info_t* select_info, qid_t select_count, vid_t pos);
-    void print_adjlist(select_info_t* select_info, qid_t select_count, vid_t pos);
-    void print_kv(select_info_t* select_info, qid_t select_count, vid_t pos);
-    void print_barray(select_info_t* select_info, qid_t select_count);
-    void print_vlist(select_info_t* select_info, qid_t select_count);
+
+        
 };
 
 class srset_t {
  public:
-    sflag_t  flag;
 
+   
+    //array of result sets
+    rset_t*  rset; 
+    
+    filter_info_t* filter_info;
+    select_info_t* select_info;
+    uint8_t filter_done;
+    uint8_t select_count;
+    
+ private:
+    sflag_t  flag;
     //Total result set count and total frontiers count
     //few MSB bits = index into rset
     //other bits = total frontier count. XXX not correct
     uint64_t ccount;
-   
-    //array of result sets
-    rset_t*  rset; 
-    filter_info_t* filter_info;
-    select_info_t* select_info;
-    
-    uint8_t filter_done;
-    uint8_t select_count;
-
 
  public:
     inline srset_t() {

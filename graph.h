@@ -51,7 +51,7 @@ class pinfo_t {
     
     //Graph specific
     virtual status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    virtual status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, filter_info_t* filter_info);
+    //virtual status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, filter_info_t* filter_info);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
     
     //label specific
@@ -138,7 +138,8 @@ class pgraph_t: public pinfo_t {
     status_t query_kv_td(skv_t* skv, sflag_t iflag, sflag_t oflag, srset_t* iset, srset_t* oset);
     status_t query_adjlist_bu(sgraph_t* sgraph, sflag_t flag, srset_t* iset, srset_t* oset);
     status_t query_kv_bu(skv_t* skv, sflag_t flag, srset_t* iset, srset_t* oset);
-    
+  
+  /*  
     status_t query_adjlist_td_filter(sgraph_t* sgraph, sflag_t iflag, sflag_t oflag, 
                           srset_t* iset, srset_t* oset, filter_info_t* filter_info);
     status_t query_kv_td_filter(skv_t* skv, sflag_t iflag, sflag_t oflag, srset_t* iset, 
@@ -147,7 +148,7 @@ class pgraph_t: public pinfo_t {
                                      srset_t* oset, filter_info_t* filter_info);
     status_t query_kv_bu_filter(skv_t* skv, sflag_t flag, srset_t* iset, srset_t* oset, 
                                 filter_info_t* filter_info);
-
+*/
     status_t extend_adjlist_td(sgraph_t* skv, sflag_t iflag, srset_t* iset, srset_t* oset);
     status_t extend_kv_td(skv_t* skv, sflag_t iflag, srset_t* iset, srset_t* oset);
 
@@ -164,8 +165,8 @@ class ugraph_t: public pgraph_t {
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction,
-                                  filter_info_t* filter_info);
+    //status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction,
+    //                              filter_info_t* filter_info);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
@@ -178,8 +179,8 @@ class dgraph_t: public pgraph_t {
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction,
-                                  filter_info_t* filter_info);
+    //status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction,
+    //                              filter_info_t* filter_info);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
@@ -192,7 +193,7 @@ class many2one_t: public pgraph_t {
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    virtual status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, filter_info_t* filter_info);
+    //virtual status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, filter_info_t* filter_info);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
@@ -205,8 +206,8 @@ class one2one_t: public pgraph_t {
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction,
-                                  filter_info_t* filter_info);
+    //status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction,
+    //                              filter_info_t* filter_info);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
@@ -219,8 +220,8 @@ class one2many_t: public pgraph_t {
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction,
-                                  filter_info_t* filter_info);
+    //status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction,
+    //                              filter_info_t* filter_info);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
