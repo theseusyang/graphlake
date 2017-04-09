@@ -88,7 +88,7 @@ class graph {
 
  public:
     graph();
-    sid_t get_type_scount(int type);    
+    sid_t get_type_scount(tid_t type);    
     void type_update(const string& src, const string& dst);
     void type_done();
 

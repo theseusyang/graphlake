@@ -186,6 +186,7 @@ tid_t srset_t::full_setup(sflag_t a_flag)
     }
 
     sid_t flag_count = setup(flag);
+    a_flag = flag;
     tid_t pos = 0;
     sid_t super_id;
     for (tid_t i = 0; i < flag_count; ++i) {
@@ -247,7 +248,7 @@ void srset_t::print_result(tid_t tid_pos, vid_t vid_pos)
 status_t srset_t::apply_typefilter(tid_t tid)
 {
     for (tid_t i = 0; i < tfilter_count; ++i) { 
-        if (tid != tfilter[i]) return eQueryFail;
+        if (tid == tfilter[i]) return eOK;
     }
-    return eOK;
+    return eQueryFail;
 }

@@ -1,5 +1,6 @@
 #include "graph.h"
 
+#include "typekv.h"
 #include "query_triple.h"
 #include "query_triplewithfilter.h"
 
@@ -58,6 +59,7 @@ void test2()
     query_triple qt1;
     query_triple qt2;
     srset_t* srset;
+    typekv_t* typekv = dynamic_cast<typekv_t*>(g->p_info[0]);
     
     //other setup
     query.add_whereclause(&qwhere);
@@ -77,12 +79,15 @@ void test2()
     srset->create_select(0, "?x", 0);
 
     //type filter
-    srset->setup_tfilter(1);
-    univ_t value;
-    if (eOK != g->p_info[0]->get_encoded_value(dst, &value)) {
+    tid_t* tids;
+    qid_t  t_counts;
+    if (eOK != typekv->get_encoded_values(dst, &tids, &t_counts)) {
         assert(0);
     }
-    srset->create_tfilter(0, value.value_tid);
+    srset->setup_tfilter(t_counts);
+    for (tid_t i = 0; i < t_counts; ++i) {
+        srset->create_tfilter(i, tids[i]);
+    }
     
     //second query
     qt2.set_src("?y", 1);
@@ -126,6 +131,7 @@ void lubm_1()
     query.add_whereclause(&qwhere);
     query.setup_qid(1,1);
     srset_t* srset;
+    typekv_t* typekv = dynamic_cast<typekv_t*>(g->p_info[0]);
 
     query_triple qt1;
     qt1.set_src("?x", 0);
@@ -140,17 +146,73 @@ void lubm_1()
     srset->create_select(0, "?x", 0);
     
     //type filter
-    srset->setup_tfilter(1);
-    univ_t value;
-    if (eOK != g->p_info[0]->get_encoded_value(dst, &value)) {
+    tid_t* tids;
+    qid_t  t_counts;
+    if (eOK != typekv->get_encoded_values(dst, &tids, &t_counts)) {
         assert(0);
     }
-    srset->create_tfilter(0, value.value_tid);
+    srset->setup_tfilter(t_counts);
+    for (tid_t i = 0; i < t_counts; ++i) {
+        srset->create_tfilter(i, tids[i]);
+    }
 
     qwhere.add_child(&qt1);
     g->run_query(&query);
 }
 
+void lubm_1_1()
+{
+/*    
+# Query1
+# This query bears large input and high selectivity. It queries about just one class and
+# one property and does not assume any hierarchy information or inference.
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX ub: <http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#>
+    SELECT ?X  WHERE {
+     ?X rdf:type ub:GraduateStudent .
+     ?X ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse0>
+    }
+*/
+    const char* pred = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    //const char* dst  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#GraduateStudent>";
+    const char* dst  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#Student>";
+    
+    const char* pred1 = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#takesCourse>";
+    const char* dst1 = "<http://www.Department0.University0.edu/GraduateCourse0>";
+    
+    query_whereclause qwhere;
+    query_clause query;
+    query.add_whereclause(&qwhere);
+    query.setup_qid(1,1);
+    srset_t* srset;
+    typekv_t* typekv = dynamic_cast<typekv_t*>(g->p_info[0]);
+
+    query_triple qt1;
+    qt1.set_src("?x", 0);
+    qt1.set_pred(pred1);
+    qt1.set_dst(dst1);
+    qt1.set_traverse(eTransform);
+    qt1.set_query(&query);
+   
+    //select info
+    srset = query.get_srset(0);
+    srset->setup_select(1);
+    srset->create_select(0, "?x", 0);
+    
+    //type filter
+    tid_t* tids;
+    qid_t  t_counts;
+    if (eOK != typekv->get_encoded_values(dst, &tids, &t_counts)) {
+        assert(0);
+    }
+    srset->setup_tfilter(t_counts);
+    for (tid_t i = 0; i < t_counts; ++i) {
+        srset->create_tfilter(i, tids[i]);
+    }
+
+    qwhere.add_child(&qt1);
+    g->run_query(&query);
+}
 
 void lubm_4()
 {
@@ -179,6 +241,7 @@ void lubm_4()
     query.add_whereclause(&qwhere);
     query.setup_qid(1,1);
     srset_t* srset;
+    typekv_t* typekv = dynamic_cast<typekv_t*>(g->p_info[0]);
     
     query_triple qt1;
     qt1.set_src("?x", 0);
@@ -196,12 +259,74 @@ void lubm_4()
     srset->create_select(3, "?Y3", telephone_pred);
     
     //type filter
-    srset->setup_tfilter(1);
-    univ_t value;
-    if (eOK != g->p_info[0]->get_encoded_value(dst, &value)) {
+    tid_t* tids;
+    qid_t  t_counts;
+    if (eOK != typekv->get_encoded_values(dst, &tids, &t_counts)) {
         assert(0);
     }
-    srset->create_tfilter(0, value.value_tid);
+    srset->setup_tfilter(t_counts);
+    for (tid_t i = 0; i < t_counts; ++i) {
+        srset->create_tfilter(i, tids[i]);
+    }
+
+    qwhere.add_child(&qt1);
+    g->run_query(&query);
+}
+
+void lubm_4_1()
+{
+
+/* Query 4
+ * SELECT ?X, ?Y1, ?Y2, ?Y3
+        WHERE
+        {?X rdf:type ub:Professor .
+        ?X ub:worksFor <http://www.Department0.University0.edu> .
+        ?X ub:name ?Y1 .
+        ?X ub:emailAddress ?Y2 .
+        ?X ub:telephone ?Y3}
+*/
+    const char* pred = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    const char* dst  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#Professor>";
+    
+    const char* pred1 = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#worksFor>";
+    const char* dst1 = "<http://www.Department0.University0.edu>";
+    
+    const char* name_pred = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#name>";
+    const char* email_pred = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#emailAddress>";
+    const char* telephone_pred = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#telephone>";
+    
+    query_whereclause qwhere;
+    query_clause query;
+    query.add_whereclause(&qwhere);
+    query.setup_qid(1,1);
+    srset_t* srset;
+    typekv_t* typekv = dynamic_cast<typekv_t*>(g->p_info[0]);
+    
+    query_triple qt1;
+    qt1.set_src("?x", 0);
+    qt1.set_pred(pred1);
+    qt1.set_dst(dst1);
+    qt1.set_traverse(eTransform);
+    qt1.set_query(&query);
+    
+    //select info
+    srset = query.get_srset(0);
+    srset->setup_select(4);
+    srset->create_select(0, "?x1", 0);
+    srset->create_select(1, "?Y1", name_pred);
+    srset->create_select(2, "?Y2", email_pred);
+    srset->create_select(3, "?Y3", telephone_pred);
+    
+    //type filter
+    tid_t* tids;
+    qid_t  t_counts;
+    if (eOK != typekv->get_encoded_values(dst, &tids, &t_counts)) {
+        assert(0);
+    }
+    srset->setup_tfilter(t_counts);
+    for (tid_t i = 0; i < t_counts; ++i) {
+        srset->create_tfilter(i, tids[i]);
+    }
 
     qwhere.add_child(&qt1);
     g->run_query(&query);
@@ -209,9 +334,12 @@ void lubm_4()
 
 void lubm() 
 {
+    
     test1();
     test2();
     lubm_1();
-    lubm_4();
+    lubm_1_1();
+    lubm_4(); 
+    lubm_4_1(); 
     /* */
 }

@@ -7,10 +7,10 @@ graph::graph()
     vert_count = 0;
     v_graph =  new vgraph_t;
 }
-sid_t graph::get_type_scount(int type)
+sid_t graph::get_type_scount(tid_t type)
 {
     typekv_t* typekv = dynamic_cast<typekv_t*>(p_info[0]);
-    return typekv->t_info[type].vert_id;
+    return typekv->get_type_scount(type);
 }
 
 void graph::type_update(const string& src, const string& dst)

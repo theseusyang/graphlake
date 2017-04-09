@@ -14,7 +14,7 @@
 
 graph* g;
 
-void ontology_lubm();
+void ontology_lubm(string idirname, string odirname);
 
 int main(int argc, char* argv[])
 {
@@ -64,8 +64,7 @@ int main(int argc, char* argv[])
 
     switch (convert) {
         case 0:
-            ontology_lubm();
-            g->prep_graph(idir, odir);
+            ontology_lubm(idir, odir);
             break;
         default:
             break;

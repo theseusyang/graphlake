@@ -10,6 +10,7 @@
 
 using std::ifstream;
 
+void fill_lubm_inference_type();
 
 void graph::prep_graph(string idirname, string odirname)
 {
@@ -83,8 +84,64 @@ void graph::prep_graph(string idirname, string odirname)
     }
 }
 
+void fill_lubm_inference_type()
+{
+    typekv_t* typekv = dynamic_cast<typekv_t*>(g->p_info[0]);
+    
+    //students
+    const char* name = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#Student>";
+    const char* member;
+    univ_t value;
+    tid_t count = 2;
+    tid_t* tlist = new tid_t[count];
 
-void ontology_lubm()
+    member  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#GraduateStudent>"; 
+    if (eOK != g->p_info[0]->get_encoded_value(member, &value)) {
+        assert(0);
+    }
+    tlist[0] = value.value_tid;
+    
+    member  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#UndergraduateStudent>"; 
+    if (eOK != g->p_info[0]->get_encoded_value(member, &value)) {
+        assert(0);
+    }
+    tlist[1] = value.value_tid;
+
+    typekv->populate_inference_type(name, count, tlist);
+    
+    //professor
+    name = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#Professor>";
+    count = 4;
+    tlist = new tid_t[count];
+
+    member  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#FullProfessor>"; 
+    if (eOK != g->p_info[0]->get_encoded_value(member, &value)) {
+        assert(0);
+    }
+    tlist[0] = value.value_tid;
+    
+    member  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#AssociateProfessor>"; 
+    if (eOK != g->p_info[0]->get_encoded_value(member, &value)) {
+        assert(0);
+    }
+    tlist[1] = value.value_tid;
+
+    member  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#AssistantProfessor>"; 
+    if (eOK != g->p_info[0]->get_encoded_value(member, &value)) {
+        assert(0);
+    }
+    tlist[2] = value.value_tid;
+    
+    member  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#Lecturer>"; 
+    if (eOK != g->p_info[0]->get_encoded_value(member, &value)) {
+        assert(0);
+    }
+    tlist[3] = value.value_tid;
+    typekv->populate_inference_type(name, count, tlist);
+
+}
+
+void ontology_lubm(string idirname, string odirname)
 {
     pinfo_t*  info = 0; 
     g->p_info       = new pinfo_t*[32];
@@ -186,4 +243,7 @@ void ontology_lubm()
     
     info = new stringkv_t;
     info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#title>", "title");
+
+    g->prep_graph(idirname, odirname);
+    fill_lubm_inference_type();
 }

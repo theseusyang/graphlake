@@ -58,6 +58,29 @@ status_t typekv_t::get_encoded_value(const char* value, univ_t* univ)
     return eOK;
     
 }
+    
+status_t typekv_t::get_encoded_values(const char* value, tid_t** tids, qid_t* counts)
+{
+    tid_t tid;
+    map<string, tid_t>::iterator str2enum_iter = str2enum.find(value);
+    if (str2enum.end() == str2enum_iter) {
+        return eQueryFail;
+    }
+
+    tid = str2enum_iter->second;
+    assert(tid < t_count + it_count);
+    
+    if (tid < t_count) {
+        *counts = 1;
+        tids[0] = new tid_t;
+        tids[0][0] = tid;
+    } else {
+        *counts = it_info[tid - t_count].count;
+        tids[0] = it_info[tid - t_count].tlist; 
+    }
+
+    return eOK;
+}
 
 void typekv_t::make_graph_baseline() 
 {
