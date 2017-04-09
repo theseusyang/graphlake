@@ -274,8 +274,7 @@ class srset_t {
         filter_done = 0;
     } 
 
-	inline tid_t get_sindex(sid_t sid)
-	{
+	inline tid_t get_sindex(sid_t sid) {
 		tid_t type_id = TO_TID(sid) + 1;
 		sflag_t flag_mask = flag & ((1L << type_id) - 1);
 		tid_t index = __builtin_popcountll(flag_mask) - 1;
@@ -295,21 +294,27 @@ class srset_t {
     }
     
     inline vid_t set_status(sid_t sid) {
-		tid_t index = get_sindex(sid);
-		vid_t vert_id = TO_VID(sid);
+        if (filter_done == 0 && eOK != apply_typefilter(TO_TID(sid))) {
+            return 0L;
+        }
+        tid_t index = get_sindex(sid);
+        vid_t vert_id = TO_VID(sid);
         return rset[index].set_status(vert_id);
     }
 
-    void bitwise2vlist();
     inline tid_t get_rset_count() {return TO_TID(ccount);}
     inline tid_t get_total_vcount() {return TO_VID(ccount);}
+    
+    void bitwise2vlist();
     void print_result(tid_t tid_pos, vid_t vid_pos);
+    status_t apply_typefilter(tid_t tid);
   
- private:    
- public:
-    tid_t setup(sflag_t sflag); 
-    tid_t copy_setup(srset_t* iset, int union_type);
     tid_t full_setup(sflag_t sflag);
+    tid_t copy_setup(srset_t* iset, int union_type);
+    
+    
+    //Dont call directly
+    tid_t setup(sflag_t sflag); 
 
 };
 

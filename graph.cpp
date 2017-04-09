@@ -458,7 +458,7 @@ status_t pgraph_t::query_kv_td(skv_t* skv, sflag_t iflag, sflag_t oflag, srset_t
         //Get the frontiers
         vid_t     frontier;
         for (vid_t v = 0; v < v_count; v++) {
-            frontier = vlist[v];;
+            frontier = vlist[v];
             oset->set_status(kv[frontier]);
         }
     }
@@ -470,19 +470,17 @@ status_t pgraph_t::query_adjlist_bu(sgraph_t* sgraph, sflag_t flag, srset_t* ise
 {
     rset_t*        rset = 0;
 
-    //prepare the output 1;
-    tid_t oset_count = oset->setup(flag);
+    //prepare the output 1,2;
+    tid_t oset_count = oset->full_setup(flag);
     
     for (tid_t i = 0; i < oset_count; ++i) {
         
         //get the graph where we will traverse
         beg_pos_t* graph = sgraph[i].beg_pos; 
         sid_t   super_id = sgraph[i].super_id;
-        vid_t v_count = TO_VID(super_id);
+        vid_t    v_count = TO_VID(super_id);
         
-        //set up the output 2
         rset = oset->rset + i;
-        rset->setup(super_id);
         
         for (vid_t v = 0; v < v_count; v++) {
             //traverse the adj list
@@ -504,7 +502,7 @@ status_t pgraph_t::query_kv_bu(skv_t* skv, sflag_t flag, srset_t* iset, srset_t*
     rset_t*        rset = 0;
 
     //prepare the output 1;
-    tid_t oset_count = oset->setup(flag);
+    tid_t oset_count = oset->full_setup(flag);
     
     for (tid_t i = 0; i < oset_count; ++i) {
 
@@ -513,9 +511,7 @@ status_t pgraph_t::query_kv_bu(skv_t* skv, sflag_t flag, srset_t* iset, srset_t*
         sid_t   super_id = skv[i].super_id;
         vid_t    v_count = TO_VID(super_id);
         
-        //set up the output 2
         rset = oset->rset + i;
-        rset->setup(super_id);
         
         for (vid_t v = 0; v < v_count; ++v) {
             if (iset->get_status(kv[v])) {

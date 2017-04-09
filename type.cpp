@@ -172,34 +172,43 @@ void srset_t::bitwise2vlist()
     }
 }
 
-tid_t srset_t::full_setup(sflag_t flag) {
+tid_t srset_t::full_setup(sflag_t a_flag) {
+    if (filter_info) {
+        flag = a_flag & (1L << filter_info->value.value_tid);
+    } else {
+        flag = a_flag;
+    }
     sid_t flag_count = setup(flag);
     tid_t pos = 0;
     sid_t super_id;
     for (tid_t i = 0; i < flag_count; ++i) {
-        pos = __builtin_ctzll(flag);
-        flag ^= (1L << pos);//reset that position
+        pos = __builtin_ctzll(a_flag);
+        a_flag ^= (1L << pos);//reset that position
         super_id = g->get_type_scount(pos);
         rset[i].setup(super_id);
+       
     }
+    filter_done = 1;
     return flag_count;
 }
 
-tid_t srset_t::setup(sflag_t sflag) 
-{
-    sid_t flag_count = __builtin_popcountll(sflag);
-    ccount     |= TO_SUPER(flag_count);
-    rset        = new rset_t [flag_count];
-    flag        = sflag;
-    return flag_count;
-}
-    
+//Filter can not be applied to eAdjlist and eKV
 tid_t srset_t::copy_setup(srset_t* iset, int union_type) 
 {
     tid_t flag_count = setup(iset->flag);
     for (tid_t i = 0; i < flag_count; ++i) {
         rset[i].copy_setup(iset->rset + i, union_type);
     }
+    return flag_count;
+}
+
+//Should not called directly
+tid_t srset_t::setup(sflag_t sflag) 
+{
+    sid_t flag_count = __builtin_popcountll(sflag);
+    ccount     |= TO_SUPER(flag_count);
+    rset        = new rset_t [flag_count];
+    flag        = sflag;
     return flag_count;
 }
 
@@ -229,3 +238,9 @@ void srset_t::print_result(tid_t tid_pos, vid_t vid_pos)
     rset[tid_pos].print_result(select_info, select_count, vid_pos);
 }
 
+status_t srset_t::apply_typefilter(tid_t tid)
+{
+    tid_t filter_tid = filter_info->value.value_tid;
+    if (tid == filter_tid) return eOK;  
+    return eQueryFail;
+}
