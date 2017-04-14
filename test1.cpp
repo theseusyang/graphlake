@@ -48,7 +48,7 @@ void test2()
     const char* pred1 = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#worksFor>";
     const char* dst1 = "<http://www.Department0.University0.edu>";
     
-    const char* pred = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    //const char* pred = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
     const char* dst  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#FullProfessor>";
     
     const char* pred2 = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#publicationAuthor>";
@@ -119,7 +119,7 @@ void lubm_1()
      ?X ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse0>
     }
 */
-    const char* pred = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    //const char* pred = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
     const char* dst  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#GraduateStudent>";
     //const char* dst  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#UndergraduateStudent>";
     
@@ -173,7 +173,7 @@ void lubm_1_1()
      ?X ub:takesCourse <http://www.Department0.University0.edu/GraduateCourse0>
     }
 */
-    const char* pred = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    //const char* pred = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
     //const char* dst  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#GraduateStudent>";
     const char* dst  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#Student>";
     
@@ -226,7 +226,7 @@ void lubm_4()
         ?X ub:emailAddress ?Y2 .
         ?X ub:telephone ?Y3}
 */
-    const char* pred = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    //const char* pred = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
     const char* dst  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#FullProfessor>";
     
     const char* pred1 = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#worksFor>";
@@ -285,7 +285,7 @@ void lubm_4_1()
         ?X ub:emailAddress ?Y2 .
         ?X ub:telephone ?Y3}
 */
-    const char* pred = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
+    //const char* pred = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
     const char* dst  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#Professor>";
     
     const char* pred1 = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#worksFor>";

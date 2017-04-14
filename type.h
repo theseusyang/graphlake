@@ -128,9 +128,11 @@ public:
     vid_t dst_id;
 };
 
+class rset_t;
 //One vertex's neighbor information
 class beg_pos_t {
- public:
+ private:
+     //count, flag for snapshot, XXX: smart pointer count
     //count in adj list
     index_t  count;
 
@@ -142,6 +144,20 @@ class beg_pos_t {
         count = 0;
         adj_list = 0;
     }
+    inline vid_t get_count() {
+        return count;
+    } 
+    inline sid_t* get_adjlist() {
+        return adj_list;
+    }
+    inline void set_adjlist(sid_t* a_adjlist) {
+        adj_list = a_adjlist;
+    }
+    inline void set_count (vid_t a_count) {
+        count = a_count;
+    }
+    friend class rset_t;
+    friend class sgraph_t;
 };
 
 //one type's key-value store
@@ -159,6 +175,15 @@ public:
 
     //array of adj list of vertices
     beg_pos_t* beg_pos;
+
+public:
+    inline void increment_count(vid_t vid) {
+       beg_pos[vid].count += 1; 
+    }
+    inline void add_nebr(vid_t vid, sid_t sid) {
+        beg_pos_t* tmp_begpos = beg_pos + vid;
+        tmp_begpos->adj_list[tmp_begpos->count++] = sid;
+    }
 };
 
 #define eStatusarray 0
