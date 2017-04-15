@@ -154,19 +154,20 @@ sgraph_t* pgraph_t::prep_sgraph(sflag_t ori_flag, tid_t flag_count)
     vid_t v_count;
     sflag_t flag = ori_flag;
     sgraph_t* sgraph  = (sgraph_t*) calloc (sizeof(sgraph_t), flag_count);
-    tid_t   pos = 0;
     sid_t super_id;
-
+    beg_pos_t* beg_pos = 0;
+    tid_t   pos = 0;
     for(tid_t i = 0; i < flag_count; i++) {
         pos = __builtin_ctzll(flag);
         flag ^= (1L << pos);//reset that position
         super_id = g->get_type_scount(pos);
         v_count = TO_VID(super_id);
-        sgraph[i].beg_pos = (beg_pos_t*)calloc(sizeof(beg_pos_t), v_count);
-        sgraph[i].super_id = super_id;
+        beg_pos = (beg_pos_t*)calloc(sizeof(beg_pos_t), v_count);
+        sgraph[i].init(super_id, beg_pos);
     } 
     return sgraph;
 }
+
 
 //estimate edge count
 void pgraph_t::calc_edge_count(sgraph_t* sgraph_out, sgraph_t* sgraph_in) 
@@ -229,8 +230,8 @@ void pgraph_t::prep_sgraph_internal(sgraph_t* sgraph, index_t edge_count, tid_t 
     vid_t       v_count = 0;
     
     for(tid_t i = 0; i < sgraph_count; i++) {
-        beg_pos = sgraph[i].beg_pos;
-        v_count = TO_VID(sgraph[i].super_id); 
+        beg_pos = sgraph[i].get_begpos();
+        v_count = sgraph[i].get_vcount();
         for (vid_t j = 0; j < v_count; ++j) {
             beg_pos[j].set_adjlist(adj_list + prefix);
             prefix += beg_pos[j].get_count();
@@ -273,7 +274,7 @@ void pgraph_t::fill_adj_list_in(skv_t* skv_out, sgraph_t* sgraph_in)
 		dst_index = get_sindex(dst,flag2);
         
         vert1_id = TO_VID(src);
-        skv_out[src_index].kv[vert1_id] = dst;
+        skv_out[src_index].set_value(vert1_id, dst);
         
         vert2_id = TO_VID(dst);
         sgraph_in[dst_index].add_nebr(vert2_id, src);
@@ -297,7 +298,7 @@ void pgraph_t::fill_adj_list_out(sgraph_t* sgraph_out, skv_t* skv_in)
         sgraph_out[src_index].add_nebr(vert1_id, dst);
         
         vert2_id = TO_VID(dst);
-        skv_in[dst_index].kv[vert2_id] = src; 
+        skv_in[dst_index].set_value(vert2_id, src); 
     }
 }
 
@@ -332,15 +333,12 @@ skv_t* pgraph_t::prep_skv(sflag_t ori_flag, tid_t flag_count)
     skv_t*  skv  = (skv_t*) calloc (sizeof(skv_t), flag_count);
     tid_t   pos  = 0;
     sid_t   super_id;
-    vid_t   v_count;
 
     for(tid_t i = 0; i < flag_count; i++) {
         pos = __builtin_ctz(flag);
         flag ^= (1L << pos);//reset that position
         super_id = g->get_type_scount(pos);
-        v_count = TO_VID(super_id);
-        skv[i].kv = (vid_t*)calloc(sizeof(vid_t), v_count);
-        skv[i].super_id = super_id;
+        skv[i].setup(super_id);
     }
     return skv;
 }
@@ -380,10 +378,10 @@ void pgraph_t::fill_skv(skv_t* skv_out, skv_t* skv_in)
 		dst_index = get_sindex(dst,flag2);
         
         vert1_id = TO_VID(src);
-        skv_out[src_index].kv[vert1_id] = dst; 
+        skv_out[src_index].set_value(vert1_id, dst); 
         
         vert2_id = TO_VID(dst);
-        skv_in[dst_index].kv[vert2_id] = src; 
+        skv_in[dst_index].set_value(vert2_id, src); 
     }
 }
 
@@ -404,8 +402,8 @@ status_t pgraph_t::query_adjlist_td(sgraph_t* sgraph, sflag_t iflag, sflag_t ofl
         //get the graph where we will traverse
         tid_t        tid = rset->get_tid();
         tid_t        pos = get_sindex(tid, iflag);
-        tid_t  graph_tid = TO_TID(sgraph[pos].super_id);
-        beg_pos_t* graph = sgraph[pos].beg_pos; 
+        tid_t  graph_tid = sgraph[pos].get_tid();
+        beg_pos_t* graph = sgraph[pos].get_begpos(); 
         if (graph_tid != tid) continue;
 
         
@@ -441,8 +439,8 @@ status_t pgraph_t::query_kv_td(skv_t* skv, sflag_t iflag, sflag_t oflag, srset_t
         //get the graph where we will traverse
         tid_t        tid = rset->get_tid();
         tid_t        pos = get_sindex(tid, iflag);
-        tid_t  graph_tid = TO_TID(skv[pos].super_id);
-        sid_t* kv = skv[pos].kv; 
+        tid_t  graph_tid = skv[pos].get_tid();
+        sid_t* kv = skv[pos].get_kv(); 
         if (graph_tid != tid) continue;
 
         //Get the frontiers
@@ -466,9 +464,8 @@ status_t pgraph_t::query_adjlist_bu(sgraph_t* sgraph, sflag_t flag, srset_t* ise
     for (tid_t i = 0; i < oset_count; ++i) {
         
         //get the graph where we will traverse
-        beg_pos_t* graph = sgraph[i].beg_pos; 
-        sid_t   super_id = sgraph[i].super_id;
-        vid_t    v_count = TO_VID(super_id);
+        beg_pos_t* graph = sgraph[i].get_begpos(); 
+        vid_t    v_count = sgraph[i].get_vcount();
         
         rset = oset->rset + i;
         
@@ -497,9 +494,8 @@ status_t pgraph_t::query_kv_bu(skv_t* skv, sflag_t flag, srset_t* iset, srset_t*
     for (tid_t i = 0; i < oset_count; ++i) {
 
         //get the graph where we will traverse
-        vid_t*        kv = skv[i].kv; 
-        sid_t   super_id = skv[i].super_id;
-        vid_t    v_count = TO_VID(super_id);
+        vid_t*        kv = skv[i].get_kv(); 
+        sid_t    v_count = skv[i].get_vcount();
         
         rset = oset->rset + i;
         
@@ -533,10 +529,10 @@ pgraph_t::extend_adjlist_td(sgraph_t* sgraph, sflag_t iflag, srset_t* iset, srse
         //get the graph where we will traverse
         tid_t        tid = rset->get_tid();
         tid_t        pos = get_sindex(tid, iflag);
-        beg_pos_t* graph = sgraph[pos].beg_pos; 
+        beg_pos_t* graph = sgraph[pos].get_begpos(); 
         
         //get_sindex() is not full proof
-        tid_t  graph_tid = TO_TID(sgraph[pos].super_id);
+        tid_t  graph_tid = sgraph[pos].get_tid();
         if (graph_tid != tid) continue;
 
         for (vid_t v = 0; v < v_count; v++) {
@@ -566,10 +562,10 @@ pgraph_t::extend_kv_td(skv_t* skv, sflag_t iflag, srset_t* iset, srset_t* oset)
         //get the graph where we will traverse
         tid_t     tid = rset->get_tid();
         tid_t     pos = get_sindex(tid, iflag);
-        sid_t*  graph = skv[pos].kv; 
+        sid_t*  graph = skv[pos].get_kv(); 
         
         //get_sindex() is not full proof
-        tid_t  graph_tid = TO_TID(skv[pos].super_id);
+        tid_t  graph_tid = skv[pos].get_tid();
         if (graph_tid != tid) continue;
 
         for (vid_t v = 0; v < v_count; v++) {
