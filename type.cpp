@@ -83,8 +83,8 @@ void rset_t::print_vlist(select_info_t* select_info, qid_t select_count)
 void rset_t::print_adjlist(select_info_t* select_info, qid_t select_count, vid_t pos)
 {
     beg_pos_t* varray = get_graph();
-    vid_t  v_count = varray[pos].count;
-    sid_t* v_adjlist = varray[pos].adj_list;
+    vid_t  v_count = varray[pos].get_count();
+    sid_t* v_adjlist = varray[pos].get_adjlist();
     sid_t sid;
     vid_t frontier;
     tid_t tid;

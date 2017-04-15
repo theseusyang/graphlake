@@ -156,6 +156,10 @@ class beg_pos_t {
     }
 
     //
+    inline void copy(beg_pos_t* beg_pos) {
+        count = beg_pos->count;
+        adj_list = beg_pos->adj_list;
+    }
     inline beg_pos_t() {
         count = 0;
         adj_list = 0;
@@ -166,8 +170,6 @@ class beg_pos_t {
     inline sid_t* get_adjlist() {
         return adj_list;
     }
-    friend class rset_t;
-    //friend class sgraph_t;
 };
 
 //one type's graph
@@ -264,8 +266,7 @@ class rset_t {
 	}
 	
     inline void add_adjlist_ro(vid_t index, beg_pos_t* begpos) {
-		adjlist[index].count = begpos->count;
-		adjlist[index].adj_list = begpos->adj_list;
+        adjlist[index].copy(begpos);
 	}
     
     inline void add_kv(vid_t index, sid_t sid) {
