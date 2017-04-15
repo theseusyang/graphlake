@@ -6,8 +6,6 @@
 template <class T>
 class enumkv_t : public pkv_t<T> {
   protected:
-    //lkv_t<T>* lkv_out; 
-    lgraph_t* lgraph_in;
     
     //mapping between enum and string
     map<string, T> str2enum;
@@ -22,6 +20,8 @@ class enumkv_t : public pkv_t<T> {
     using pkv_t<T>::flag1_count;
     using pkv_t<T>::lkv_out;
     using pkv_t<T>::prep_lkv;
+    using pkv_t<T>::lgraph_in;
+    using pkv_t<T>::nebr_count;
 
   public:
     enumkv_t();
@@ -96,31 +96,8 @@ void enumkv_t<T>::make_graph_baseline()
     //populate and get the original count back
     //handle kv_out as well.
     edgeT_t<T>* edges = (edgeT_t<T>*) buf;
-    fill_adj_list_kv(lkv_out, lgraph_in, flag1, edges, count);
 }
 
-
-template<class T>
-void enumkv_t<T>::fill_adj_list_kv(lkv_t<T>* lkv_out, lgraph_t* lgraph_in, 
-                             sflag_t flag1, edgeT_t<T>* edges, index_t count)
-{
-    sid_t src;
-    T         dst;
-    vid_t     vert1_id;
-    tid_t     src_index;
-    beg_pos_t* beg_pos_in = lgraph_in;
-    
-    for (index_t i = 0; i < count; ++i) {
-        src = edges[i].src_id;
-        dst = edges[i].dst_id;
-        
-        vert1_id = TO_VID(src);
-        src_index = get_sindex(src, flag1); 
-        lkv_out[src_index].kv[vert1_id] = dst;
-        
-        beg_pos_in[dst].adj_list[beg_pos_in->count++] = src;
-    }
-}
 
 
 template<class T>

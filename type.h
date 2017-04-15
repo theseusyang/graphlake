@@ -130,30 +130,27 @@ public:
 
 //One vertex's neighbor information
 class beg_pos_t {
+public:
  private:
-    //count in adj list. Used during setup only.
-    vid_t  count;
-
+    //vid_t count;
     //nebr list of one vertex. First member is a spl member
      //count, flag for snapshot, XXX: smart pointer count
     sid_t*   adj_list;
 
  public:
     //used during initial setup only
-    inline void set_adjlist(sid_t* a_adjlist) { adj_list = a_adjlist; }
-    inline void set_count (vid_t a_count) { count = a_count; }
-    inline void increment_count() { ++count; }
-    inline void add_nebr(sid_t sid) { adj_list[count++] = sid; }
-
+    inline void setup(vid_t a_count) {
+        adj_list = (vid_t*) calloc(sizeof(vid_t), a_count+1);
+    }
+    inline void add_nebr(sid_t sid) { 
+        adj_list[++adj_list[0]] = sid; 
+    }
     //
     inline void copy(beg_pos_t* beg_pos) {
-        count = beg_pos->count;
         adj_list = beg_pos->adj_list;
     }
-    inline vid_t get_count() { return count; } 
     inline sid_t* get_adjlist() { return adj_list; }
     inline beg_pos_t() {
-        count = 0;
         adj_list = 0;
     }
 };
@@ -167,6 +164,8 @@ private:
     //array of adj list of vertices
     beg_pos_t* beg_pos;
 
+    //count in adj list. Used during setup only.
+    vid_t* nebr_count;
 
 public:
     //used during initial setup only
@@ -174,12 +173,18 @@ public:
         super_id = sid;
         vid_t v_count = TO_VID(sid);
         beg_pos = (beg_pos_t*)calloc(sizeof(beg_pos_t), v_count);
+        nebr_count = (vid_t*)calloc(sizeof(vid_t), v_count);
     }
+    inline void increment_count(vid_t vid) { ++nebr_count[vid]; }
+    inline void setup_adjlist(vid_t vid) {
+        beg_pos[vid].setup(nebr_count[vid]);
+    }
+    inline void add_nebr(vid_t vid, sid_t sid) { beg_pos[vid].add_nebr(sid); }
+
     inline beg_pos_t* get_begpos() { return beg_pos;}
     inline vid_t get_vcount() { return TO_VID(super_id);}
     inline tid_t get_tid() { return TO_TID(super_id);}
-    inline void increment_count(vid_t vid) { beg_pos[vid].increment_count(); }
-    inline void add_nebr(vid_t vid, sid_t sid) { beg_pos[vid].add_nebr(sid); }
+    
 };
 
 //one type's key-value store
@@ -195,12 +200,13 @@ class skv_t {
         kv = (vid_t*)calloc(sizeof(vid_t), v_count);
     }
 
+    inline sid_t* get_kv() { return kv; }
+    inline tid_t get_tid() { return TO_TID(super_id);}
+    inline vid_t get_vcount() { return TO_VID(super_id); }
+    
     inline void set_value(vid_t vert1_id, sid_t dst) {
         kv[vert1_id] = dst;
     }
-    inline tid_t get_tid() { return TO_TID(super_id);}
-    inline vid_t get_vcount() { return TO_VID(super_id); }
-    inline sid_t* get_kv() { return kv; }
 };
 
 class sdegree_t {

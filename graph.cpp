@@ -168,10 +168,11 @@ sgraph_t* pgraph_t::prep_sgraph(sflag_t ori_flag, tid_t flag_count)
 //estimate edge count
 void pgraph_t::calc_edge_count(sgraph_t* sgraph_out, sgraph_t* sgraph_in) 
 {
-    sid_t src, dst;
+    sid_t     src, dst;
     vid_t     vert1_id, vert2_id;
-    tid_t src_index, dst_index;
+    tid_t     src_index, dst_index;
     edge_t*   edges = (edge_t*) buf;  
+    
     for (index_t i = 0; i < count; ++i) {
         src = edges[i].src_id;
         dst = edges[i].dst_id;
@@ -220,18 +221,12 @@ void pgraph_t::calc_edge_count_in(sgraph_t* sgraph_in)
 //prefix sum, allocate adj list memory then reset the count
 void pgraph_t::prep_sgraph_internal(sgraph_t* sgraph, index_t edge_count, tid_t sgraph_count)
 {
-    vid_t* adj_list = (vid_t*) calloc (sizeof(vid_t), edge_count);
-    index_t     prefix = 0;
-    beg_pos_t*  beg_pos = 0;
     vid_t       v_count = 0;
     
     for(tid_t i = 0; i < sgraph_count; i++) {
-        beg_pos = sgraph[i].get_begpos();
         v_count = sgraph[i].get_vcount();
         for (vid_t j = 0; j < v_count; ++j) {
-            beg_pos[j].set_adjlist(adj_list + prefix);
-            prefix += beg_pos[j].get_count();
-            beg_pos[j].set_count(0);
+            sgraph[i].setup_adjlist(j);
         }
     }
 }
@@ -407,8 +402,9 @@ status_t pgraph_t::query_adjlist_td(sgraph_t* sgraph, sflag_t iflag, sflag_t ofl
         vid_t     frontier;
         for (vid_t v = 0; v < v_count; v++) {
             frontier = vlist[v];
-            vid_t* adj_list = graph[frontier].get_adjlist();
-            vid_t nebr_count = graph[frontier].get_count();
+            sid_t* adj_list = graph[frontier].get_adjlist();
+            vid_t nebr_count = adj_list[0];
+            ++adj_list;
             
             //traverse the adj list
             for (vid_t k = 0; k < nebr_count; ++k) {
@@ -467,8 +463,9 @@ status_t pgraph_t::query_adjlist_bu(sgraph_t* sgraph, sflag_t flag, srset_t* ise
         
         for (vid_t v = 0; v < v_count; v++) {
             //traverse the adj list
-            vid_t* adj_list = graph[v].get_adjlist();
-            vid_t nebr_count = graph[v].get_count();
+            sid_t* adj_list = graph[v].get_adjlist();
+            vid_t nebr_count = adj_list[0];
+            ++adj_list;
             for (vid_t k = 0; k < nebr_count; ++k) {
                 if (iset->get_status(adj_list[k])) {
                     rset->set_status(v);

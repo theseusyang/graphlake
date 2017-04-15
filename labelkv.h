@@ -29,13 +29,20 @@ template <class T>
 class pkv_t: public pinfo_t {
  public:
     lkv_t<T>* lkv_out;
-    uint64_t    flag1;
-    uint8_t     flag1_count;
+    lgraph_t* lgraph_in;
+    vid_t*    nebr_count;
+    
+    uint64_t  flag1;
+    uint8_t   flag1_count;
+
+    //Flag2 is not required.
 
  public:
     lgraph_t* prep_lgraph(index_t ecount);
     lkv_t<T>* prep_lkv();
     void fill_kv_out();
+    void fill_adj_list_kv(lkv_t<T>* lkv_out, lgraph_t* lgraph_in, 
+                        sflag_t flag1, edgeT_t<T>* edges, index_t count);
     
     void prep_lgraph_internal(lgraph_t* lgraph_in, index_t ecount, index_t edge_count);
     void store_lgraph(lgraph_t* lgraph_in, string dir, string postfix);
@@ -97,6 +104,7 @@ template <class T>
 lgraph_t* pkv_t<T>::prep_lgraph(index_t ecount)
 {
     lgraph_t* lgraph  = (beg_pos_t*) calloc (sizeof(beg_pos_t), ecount);
+    nebr_count  = (vid_t*) calloc (sizeof(vid_t), ecount);
     return lgraph;
 }
 
@@ -109,9 +117,7 @@ void pkv_t<T>::prep_lgraph_internal(lgraph_t* lgraph_in, index_t ecount, index_t
     beg_pos_t*  beg_pos = lgraph_in;
     
     for (vid_t j = 0; j < ecount; ++j) {
-        beg_pos[j].adj_list = adj_list + prefix;
-        prefix += beg_pos[j].count;
-        beg_pos[j].count = 0;
+        beg_pos[j].setup(nebr_count[j]);
     }
 }
 
@@ -122,7 +128,7 @@ void pkv_t<T>::calc_edge_count(lgraph_t* lgraph_in, edge_t* edges, index_t count
     
     for (index_t i = 0; i < count; ++i) {
         dst = edges[i].dst_id;
-        lgraph_in[dst].count  += 1;
+        nebr_count[dst] += 1;
     }
 }
 
@@ -142,6 +148,28 @@ void pkv_t<T>::fill_kv_out()
         vert1_id = TO_VID(src);
         src_index = get_sindex(src, flag1);
         lkv_out[src_index].kv[vert1_id] = dst;
+    }
+}
+
+template<class T>
+void pkv_t<T>::fill_adj_list_kv(lkv_t<T>* lkv_out, lgraph_t* lgraph_in, 
+                             sflag_t flag1, edgeT_t<T>* edges, index_t count)
+{
+    sid_t src;
+    T         dst;
+    vid_t     vert1_id;
+    tid_t     src_index;
+    beg_pos_t* beg_pos_in = lgraph_in;
+    
+    for (index_t i = 0; i < count; ++i) {
+        src = edges[i].src_id;
+        dst = edges[i].dst_id;
+        
+        vert1_id = TO_VID(src);
+        src_index = get_sindex(src, flag1); 
+        lkv_out[src_index].kv[vert1_id] = dst;
+        
+        beg_pos_in[dst].add_nebr(src);
     }
 }
 
