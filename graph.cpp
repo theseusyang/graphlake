@@ -151,19 +151,15 @@ void pgraph_t::batch_update(const string& src, const string& dst)
 //super bins memory allocation
 sgraph_t* pgraph_t::prep_sgraph(sflag_t ori_flag, tid_t flag_count)
 {
-    vid_t v_count;
     sflag_t flag = ori_flag;
     sgraph_t* sgraph  = (sgraph_t*) calloc (sizeof(sgraph_t), flag_count);
     sid_t super_id;
-    beg_pos_t* beg_pos = 0;
     tid_t   pos = 0;
     for(tid_t i = 0; i < flag_count; i++) {
         pos = __builtin_ctzll(flag);
         flag ^= (1L << pos);//reset that position
         super_id = g->get_type_scount(pos);
-        v_count = TO_VID(super_id);
-        beg_pos = (beg_pos_t*)calloc(sizeof(beg_pos_t), v_count);
-        sgraph[i].init(super_id, beg_pos);
+        sgraph[i].setup(super_id);
     } 
     return sgraph;
 }

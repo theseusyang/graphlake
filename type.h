@@ -170,9 +170,10 @@ private:
 
 public:
     //used during initial setup only
-    inline void init(sid_t sid, beg_pos_t* a_begpos ) {
+    inline void setup(sid_t sid) {
         super_id = sid;
-        beg_pos = a_begpos;
+        vid_t v_count = TO_VID(sid);
+        beg_pos = (beg_pos_t*)calloc(sizeof(beg_pos_t), v_count);
     }
     inline beg_pos_t* get_begpos() { return beg_pos;}
     inline vid_t get_vcount() { return TO_VID(super_id);}
@@ -188,10 +189,6 @@ class skv_t {
     sid_t* kv;
 
  public:
-    inline void init(sid_t sid, sid_t* a_kv ) {
-        super_id = sid;
-        kv = a_kv;
-    }
     inline void setup(sid_t sid) {
         super_id = sid;
         vid_t v_count = TO_VID(sid);
