@@ -124,17 +124,16 @@ typedef struct __select_info_t {
 
 class edge_t {
 public:
-    vid_t src_id;
-    vid_t dst_id;
+    sid_t src_id;
+    sid_t dst_id;
 };
 
 //One vertex's neighbor information
 class beg_pos_t {
 public:
  private:
-    //vid_t count;
     //nebr list of one vertex. First member is a spl member
-     //count, flag for snapshot, XXX: smart pointer count
+    //count, flag for snapshot, XXX: smart pointer count
     sid_t*   adj_list;
 
  public:

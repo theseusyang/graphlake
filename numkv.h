@@ -37,8 +37,8 @@ class numkv_t : public pkv_t<T>
     status_t filter(sid_t sid, void* value);
 
   private:
-    using pkv_t<T>::buf;
-    using pkv_t<T>::count;
+    using pkv_t<T>::batch_info;
+    using pkv_t<T>::batch_count;
     using pkv_t<T>::flag1;
     using pkv_t<T>::flag1_count;
 };
@@ -49,7 +49,7 @@ void numkv_t<T>::batch_update(const string& src, const string& dst)
     vid_t src_id;
     T     dst_id;
     index_t index = 0;
-    edgeT_t<T>* edges = (edgeT_t<T>*) buf;
+    edgeT_t<T>* edges = (edgeT_t<T>*) batch_info[batch_count].buf;
 
     map<string, vid_t>::iterator str2vid_iter = g->str2vid.find(src);
     if (g->str2vid.end() == str2vid_iter) {
@@ -64,7 +64,7 @@ void numkv_t<T>::batch_update(const string& src, const string& dst)
     atoT<T>(dst, &dst_id);
 
 
-    index = count++;
+    index = batch_info[batch_count].count++;
     edges[index].src_id = src_id; 
     edges[index].dst_id = dst_id;
 }
@@ -73,7 +73,7 @@ void numkv_t<T>::batch_update(const string& src, const string& dst)
 template <class T>
 void numkv_t<T>::store_graph_baseline(string dir)
 {
-    if (count == 0) return;
+    //if (count == 0) return;
 
     /*
     string file = dir + p_name + ".kv_out";

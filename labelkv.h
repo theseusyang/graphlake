@@ -139,9 +139,9 @@ void pkv_t<T>::fill_kv_out()
     T dst;
     vid_t     vert1_id;
     tid_t     src_index;
-    edgeT_t<T>* edges = (edgeT_t<T>*) buf;
+    edgeT_t<T>* edges = (edgeT_t<T>*) batch_info[batch_count].buf;
     
-    for (index_t i = 0; i < count; ++i) {
+    for (index_t i = 0; i < batch_info[batch_count].count; ++i) {
         src = edges[i].src_id;
         dst = edges[i].dst_id;
         
@@ -176,7 +176,7 @@ void pkv_t<T>::fill_adj_list_kv(lkv_t<T>* lkv_out, lgraph_t* lgraph_in,
 template<class T>
 void pkv_t<T>::make_graph_baseline()
 {
-    if (count == 0) return;
+    if (batch_info[batch_count].count == 0) return;
 
     flag1_count = __builtin_popcountll(flag1);
     

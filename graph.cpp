@@ -102,12 +102,17 @@ void pinfo_t::populate_property(const char* longname, const char* property_name)
     
     p_name = gstrdup(property_name);
     p_longname = gstrdup(longname);
-
-    buf = calloc(sizeof(vid_t), 1000000);
-    count = 0; 
-
 }
 
+pinfo_t::pinfo_t()
+{
+    batch_info = (batchinfo_t*)calloc(sizeof(batchinfo_t), MAX_BCOUNT);
+    batch_count = 0;
+    for (uint32_t i = 0; i < MAX_BCOUNT; ++i) {
+        batch_info[i].buf = calloc(sizeof(edge_t), MAX_ECOUNT);
+        batch_info[i].count = 0; 
+    }
+}
 
 /************* Semantic graphs  *****************/
 pgraph_t::pgraph_t()
@@ -123,7 +128,7 @@ void pgraph_t::batch_update(const string& src, const string& dst)
 {
     vid_t src_id, dst_id;
     index_t index = 0;
-    edge_t* edges = (edge_t*) buf;
+    edge_t* edges = (edge_t*) batch_info[batch_count].buf;
 
     map<string, vid_t>::iterator str2vid_iter = g->str2vid.find(src);
     if (g->str2vid.end() == str2vid_iter) {
@@ -143,7 +148,7 @@ void pgraph_t::batch_update(const string& src, const string& dst)
     type_id = TO_TID(dst_id);
     flag2 |= TID_TO_SFLAG(type_id);
 
-    index = count++;
+    index = batch_info[batch_count].count++;
     edges[index].src_id = src_id; 
     edges[index].dst_id = dst_id;
 }
@@ -171,9 +176,9 @@ void pgraph_t::calc_edge_count(sgraph_t* sgraph_out, sgraph_t* sgraph_in)
     sid_t     src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    edge_t*   edges = (edge_t*) buf;  
+    edge_t*   edges = (edge_t*)batch_info[0].buf;  
     
-    for (index_t i = 0; i < count; ++i) {
+    for (index_t i = 0; i < batch_info[0].count; ++i) {
         src = edges[i].src_id;
         dst = edges[i].dst_id;
 		
@@ -194,9 +199,9 @@ void pgraph_t::calc_edge_count_out(sgraph_t* sgraph_out)
     vid_t     vert1_id;
     tid_t     src_index;
 
-    edge_t*  edges = (edge_t*) buf;
+    edge_t*  edges = (edge_t*)batch_info[batch_count].buf;
 
-    for (index_t i = 0; i < count; ++i) {
+    for (index_t i = 0; i < batch_info[batch_count].count; ++i) {
         src = edges[i].src_id;
 		src_index = get_sindex(src, flag1);
 		vert1_id = TO_VID(src);
@@ -209,8 +214,8 @@ void pgraph_t::calc_edge_count_in(sgraph_t* sgraph_in)
     sid_t     dst;
     vid_t     vert2_id;
     tid_t     dst_index;
-    edge_t*   edges = (edge_t*) buf;
-    for (index_t i = 0; i < count; ++i) {
+    edge_t*   edges = (edge_t*) batch_info[batch_count].buf;
+    for (index_t i = 0; i < batch_info[batch_count].count; ++i) {
         dst = edges[i].dst_id;
 		dst_index = get_sindex(dst,flag2);
 		vert2_id = TO_VID(dst);
@@ -236,9 +241,9 @@ void pgraph_t::fill_adj_list(sgraph_t* sgraph_out, sgraph_t* sgraph_in)
     sid_t src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    edge_t*    edges = (edge_t*) buf;
+    edge_t*    edges = (edge_t*) batch_info[batch_count].buf;
     
-    for (index_t i = 0; i < count; ++i) {
+    for (index_t i = 0; i < batch_info[batch_count].count; ++i) {
         src = edges[i].src_id;
         dst = edges[i].dst_id;
 		src_index = get_sindex(src, flag1);
@@ -256,9 +261,9 @@ void pgraph_t::fill_adj_list_in(skv_t* skv_out, sgraph_t* sgraph_in)
     sid_t src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    edge_t*   edges = (edge_t*) buf;
+    edge_t*   edges = (edge_t*) batch_info[batch_count].buf;
     
-    for (index_t i = 0; i < count; ++i) {
+    for (index_t i = 0; i < batch_info[batch_count].count; ++i) {
         src = edges[i].src_id;
         dst = edges[i].dst_id;
 		src_index = get_sindex(src, flag1);
@@ -277,9 +282,9 @@ void pgraph_t::fill_adj_list_out(sgraph_t* sgraph_out, skv_t* skv_in)
     sid_t src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t src_index, dst_index; 
-    edge_t*   edges = (edge_t*) buf;
+    edge_t*   edges = (edge_t*) batch_info[batch_count].buf;
 
-    for (index_t i = 0; i < count; ++i) {
+    for (index_t i = 0; i < batch_info[batch_count].count; ++i) {
         src = edges[i].src_id;
         dst = edges[i].dst_id;
 		src_index = get_sindex(src, flag1);
@@ -360,9 +365,9 @@ void pgraph_t::fill_skv(skv_t* skv_out, skv_t* skv_in)
     sid_t src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    edge_t*   edges = (edge_t*) buf;
+    edge_t*   edges = (edge_t*)batch_info[batch_count].buf;
     
-    for (index_t i = 0; i < count; ++i) {
+    for (index_t i = 0; i < batch_info[batch_count].count; ++i) {
         src = edges[i].src_id;
         dst = edges[i].dst_id;
 		src_index = get_sindex(src, flag1);

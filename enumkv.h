@@ -14,8 +14,8 @@ class enumkv_t : public pkv_t<T> {
     T           max_count;
   
   private:
-    using pkv_t<T>::buf;
-    using pkv_t<T>::count;
+    using pkv_t<T>::batch_info;
+    using pkv_t<T>::batch_count;
     using pkv_t<T>::flag1;
     using pkv_t<T>::flag1_count;
     using pkv_t<T>::lkv_out;
@@ -49,7 +49,7 @@ void enumkv_t<T>::batch_update(const string& src, const string& dst)
     vid_t src_id;
     T     dst_id;
     index_t index = 0;
-    edgeT_t<T>* edges = (edgeT_t<T>*) buf;
+    edgeT_t<T>* edges = (edgeT_t<T>*) batch_info[batch_count].buf;
 
     map<string, vid_t>::iterator str2vid_iter = g->str2vid.find(src);
     if (g->str2vid.end() == str2vid_iter) {
@@ -70,7 +70,7 @@ void enumkv_t<T>::batch_update(const string& src, const string& dst)
         dst_id = str2enum_iter->second;
     }
 
-    index = count++;
+    index = batch_info[batch_count].count++;
     edges[index].src_id = src_id; 
     edges[index].dst_id = dst_id;
 }
@@ -78,7 +78,7 @@ void enumkv_t<T>::batch_update(const string& src, const string& dst)
 template<class T>
 void enumkv_t<T>::make_graph_baseline()
 {
-    if (count == 0) return;
+    if (batch_info[batch_count].count == 0) return;
    
     flag1_count = __builtin_popcountll(flag1);
     
@@ -87,15 +87,15 @@ void enumkv_t<T>::make_graph_baseline()
     lgraph_in = prep_lgraph(ecount);    
 
     //estimate edge count
-    edge_t* edges1 = (edge_t*) buf;
-    calc_edge_count(lgraph_in, edges1, count);
+    edge_t* edges1 = (edge_t*) batch_info[batch_count].buf;
+    calc_edge_count(lgraph_in, edges1, batch_info[batch_count].count);
     
     //prefix sum then reset the count
-    prep_lgraph_internal(lgraph_in, ecount, count);
+    prep_lgraph_internal(lgraph_in, ecount, batch_info[batch_count].count);
     
     //populate and get the original count back
     //handle kv_out as well.
-    edgeT_t<T>* edges = (edgeT_t<T>*) buf;
+    edgeT_t<T>* edges = (edgeT_t<T>*) batch_info[batch_count].buf;
 }
 
 

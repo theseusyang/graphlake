@@ -25,23 +25,33 @@ inline char* gstrdup(const char* str)
 }
 
 #define bu_factor 0.07
+#define MAX_BCOUNT 256
+#define MAX_ECOUNT 1000000
 
 //class pkv_t;
 class graph;
 extern graph* g;
 
+class batchinfo_t {
+ public:
+    void*    buf;
+    uint32_t count;
+};
 
 /////////////////////////////////
 //One relationship or label
 class pinfo_t {
  public:
-    char*       p_name;
-    char*       p_longname;
-    void*       buf;
-    uint32_t    count;
+    char*        p_name;
+    char*        p_longname;
+    batchinfo_t* batch_info;
+    uint8_t      batch_count;
+    
+    //void*       buf;
+    //uint32_t    count;
    
  public: 
-    inline pinfo_t() {}   
+    pinfo_t();   
 
  public:
     void populate_property(const char* longname, const char* property_name);
