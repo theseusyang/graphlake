@@ -14,6 +14,8 @@ class enumkv_t : public pkv_t<T> {
     T           max_count;
   
   private:
+    using pkv_t<T>::batch_info1;
+    using pkv_t<T>::batch_count1;
     using pkv_t<T>::batch_info;
     using pkv_t<T>::batch_count;
     using pkv_t<T>::flag1;
@@ -65,12 +67,12 @@ void enumkv_t<T>::batch_update(const string& src, const string& dst)
         dst_id = str2enum_iter->second;
     }
     
-    if (batch_info[batch_count].count == MAX_ECOUNT) {
-        ++batch_count;
+    if (batch_info1[batch_count1].count == MAX_ECOUNT) {
+        ++batch_count1;
     }
 
-    index = batch_info[batch_count].count++;
-    edges = (edgeT_t<T>*) batch_info[batch_count].buf;
+    index = batch_info1[batch_count1].count++;
+    edges = (edgeT_t<T>*) batch_info1[batch_count1].buf;
     edges[index].src_id = src_id; 
     edges[index].dst_id = dst_id;
 }

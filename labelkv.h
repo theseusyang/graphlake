@@ -1,8 +1,5 @@
 #pragma once
 #include "type.h"
-//#include "graph.h"
-
-
 
 //generic classes for label.
 template <class T>
@@ -22,7 +19,6 @@ class lkv_t {
 //lgraph doesn't need super id stuff
 //as this graphs' src id may be an enum (e.g.)
 typedef beg_pos_t lgraph_t;
-
 
 //base class for label graphs.
 template <class T>
@@ -67,8 +63,6 @@ class vgraph_t: public pkv_t<char*>
 
  public:    
     void id2name(vid_t src_id, const string& src); 
-    void store_graph_baseline(string dir);
-    
 
  public:
     const char* get_value(tid_t tid, vid_t vid);

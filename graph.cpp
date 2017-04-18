@@ -1,4 +1,7 @@
 #include "graph.h"
+#include <algorithm>
+
+using std::swap;
 
 graph::graph()
 {
@@ -16,37 +19,6 @@ sid_t graph::get_type_scount(tid_t type)
 void graph::type_update(const string& src, const string& dst)
 {
     p_info[0]->batch_update(src, dst);
-    /*
-    vid_t       src_id;
-    tid_t       type_id;
-    vid_t       vert_id = 0;
-
-    map<string, tid_t>::iterator str2enum_iter = str2enum.find(dst);
-    if (str2enum.end() == str2enum_iter) {
-        type_id = t_count++;
-        vert_id = TO_SUPER(type_id);
-        str2enum[dst] = type_id;
-        t_info[type_id].vert_id = vert_id; 
-        t_info[type_id].type_name = gstrdup(dst.c_str());
-    } else {
-        type_id = str2enum_iter->second;
-        vert_id = t_info[type_id].vert_id;
-    }
-
-    //allocate class specific ids.
-    map<string, vid_t>::iterator str2vid_iter = str2vid.find(src);
-    if (str2vid.end() == str2vid_iter) {
-        src_id = vert_id++;
-        ++vert_count;
-        str2vid[src] = src_id;
-        //update the id
-        t_info[type_id].vert_id = vert_id;
-        v_graph->id2name(src_id, src);
-    } else {
-        //dublicate entry XXX
-        src_id = str2vid_iter->second;
-    }
-    */
 }
 
 void graph::type_done()
@@ -83,7 +55,17 @@ void pinfo_t::make_graph_baseline()
     assert(0);
 }
 
+void pinfo_t::make_graph_update()
+{
+    assert(0);
+}
+
 void pinfo_t::store_graph_baseline(string dir)
+{
+    assert(0);
+}
+
+void pinfo_t::store_graph_update(string dir)
 {
     assert(0);
 }
@@ -108,10 +90,20 @@ pinfo_t::pinfo_t()
 {
     batch_info = (batchinfo_t*)calloc(sizeof(batchinfo_t), MAX_BCOUNT);
     batch_count = 0;
+    batch_info1 = (batchinfo_t*)calloc(sizeof(batchinfo_t), MAX_BCOUNT);
+    batch_count1 = 0;
     for (uint32_t i = 0; i < MAX_BCOUNT; ++i) {
         batch_info[i].buf = calloc(sizeof(edge_t), MAX_ECOUNT);
         batch_info[i].count = 0; 
+        batch_info1[i].buf = calloc(sizeof(edge_t), MAX_ECOUNT);
+        batch_info1[i].count = 0; 
     }
+}
+
+void pinfo_t::swap_log_buffer()
+{
+    swap(batch_info, batch_info1);
+    swap(batch_count, batch_count1);
 }
 
 /************* Semantic graphs  *****************/
@@ -130,7 +122,6 @@ void pgraph_t::batch_update(const string& src, const string& dst)
     index_t index = 0;
     edge_t* edges;
     
-
     map<string, vid_t>::iterator str2vid_iter = g->str2vid.find(src);
     if (g->str2vid.end() == str2vid_iter) {
         assert(0);
@@ -149,11 +140,11 @@ void pgraph_t::batch_update(const string& src, const string& dst)
     type_id = TO_TID(dst_id);
     flag2 |= TID_TO_SFLAG(type_id);
 
-    if (batch_info[batch_count].count == MAX_ECOUNT) {
-        ++batch_count;
+    if (batch_info1[batch_count1].count == MAX_ECOUNT) {
+        ++batch_count1;
     }
-    index = batch_info[batch_count].count++;
-    edges = (edge_t*) batch_info[batch_count].buf;
+    index = batch_info1[batch_count1].count++;
+    edges = (edge_t*) batch_info1[batch_count1].buf;
 
     edges[index].src_id = src_id; 
     edges[index].dst_id = dst_id;

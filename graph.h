@@ -46,6 +46,9 @@ class pinfo_t {
     char*        p_longname;
     batchinfo_t* batch_info;
     uint8_t      batch_count;
+
+    batchinfo_t* batch_info1;
+    uint8_t      batch_count1;
    
  public: 
     pinfo_t();   
@@ -53,9 +56,13 @@ class pinfo_t {
  public:
     void populate_property(const char* longname, const char* property_name);
     virtual void batch_update(const string& src, const string& dst);
+    void swap_log_buffer(); 
     virtual void make_graph_baseline();
     virtual void store_graph_baseline(string dir);
     
+    virtual void make_graph_update();
+    virtual void store_graph_update(string dir);
+
     //Graph specific
     virtual status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     //virtual status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, filter_info_t* filter_info);
@@ -67,17 +74,8 @@ class pinfo_t {
     virtual status_t get_encoded_value(const char* value, univ_t* univ);
 };
 
-class vinfo_t {
-    public:
-    char*       v_name;
-    sflag_t     flag1;
-    uint8_t     flag1_count;
-
-};
-
-////////////main class/////////////////////
 class vgraph_t;
-
+////////////main class/////////////////////
 class graph {
  public:
     //graphs and labels store.
@@ -92,7 +90,6 @@ class graph {
     map <string, sid_t> str2vid;
     vid_t     vert_count;
 
-
  public:
     graph();
     sid_t get_type_scount(tid_t type);    
@@ -103,6 +100,7 @@ class graph {
     sid_t get_sid(const char* src);
     
     void prep_graph(string idirname, string odirname);
+    void update_graph(string idirname, string odirname);
 
     //queries
     void run_query(query_clause* q);
