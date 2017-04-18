@@ -32,11 +32,6 @@ class enumkv_t : public pkv_t<T> {
     void store_graph_baseline(string dir);
 
   public:
-
-
-    void fill_adj_list_kv(lkv_t<T>* lkv_out, lgraph_t* lgraph_in, 
-                 sflag_t flag1, edgeT_t<T>* edges, index_t count);
-
     void store_lkv(lkv_t<T>* lkv_out, string dir, string postfix);
     
     status_t filter(sid_t sid, void* value, filter_fn_t fn);
@@ -49,7 +44,7 @@ void enumkv_t<T>::batch_update(const string& src, const string& dst)
     vid_t src_id;
     T     dst_id;
     index_t index = 0;
-    edgeT_t<T>* edges = (edgeT_t<T>*) batch_info[batch_count].buf;
+    edgeT_t<T>* edges;
 
     map<string, vid_t>::iterator str2vid_iter = g->str2vid.find(src);
     if (g->str2vid.end() == str2vid_iter) {
@@ -69,8 +64,13 @@ void enumkv_t<T>::batch_update(const string& src, const string& dst)
     } else {
         dst_id = str2enum_iter->second;
     }
+    
+    if (batch_info[batch_count].count == MAX_ECOUNT) {
+        ++batch_count;
+    }
 
     index = batch_info[batch_count].count++;
+    edges = (edgeT_t<T>*) batch_info[batch_count].buf;
     edges[index].src_id = src_id; 
     edges[index].dst_id = dst_id;
 }
@@ -78,7 +78,7 @@ void enumkv_t<T>::batch_update(const string& src, const string& dst)
 template<class T>
 void enumkv_t<T>::make_graph_baseline()
 {
-    if (batch_info[batch_count].count == 0) return;
+    if (batch_info[0].count == 0) return;
    
     flag1_count = __builtin_popcountll(flag1);
     
@@ -87,15 +87,12 @@ void enumkv_t<T>::make_graph_baseline()
     lgraph_in = prep_lgraph(ecount);    
 
     //estimate edge count
-    edge_t* edges1 = (edge_t*) batch_info[batch_count].buf;
-    calc_edge_count(lgraph_in, edges1, batch_info[batch_count].count);
+    calc_edge_count(lgraph_in);
     
     //prefix sum then reset the count
-    prep_lgraph_internal(lgraph_in, ecount, batch_info[batch_count].count);
+    prep_lgraph_internal(lgraph_in, ecount);
     
-    //populate and get the original count back
-    //handle kv_out as well.
-    edgeT_t<T>* edges = (edgeT_t<T>*) batch_info[batch_count].buf;
+    fill_Adj_list_kv(lkv_out, lgraph_in, flag1);
 }
 
 

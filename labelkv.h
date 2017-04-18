@@ -42,11 +42,11 @@ class pkv_t: public pinfo_t {
     lkv_t<T>* prep_lkv();
     void fill_kv_out();
     void fill_adj_list_kv(lkv_t<T>* lkv_out, lgraph_t* lgraph_in, 
-                        sflag_t flag1, edgeT_t<T>* edges, index_t count);
+                        sflag_t flag1);
     
-    void prep_lgraph_internal(lgraph_t* lgraph_in, index_t ecount, index_t edge_count);
+    void prep_lgraph_internal(lgraph_t* lgraph_in, index_t ecount);
     void store_lgraph(lgraph_t* lgraph_in, string dir, string postfix);
-    void calc_edge_count(lgraph_t* lgraph_in, edge_t* edges, index_t count);
+    void calc_edge_count(lgraph_t* lgraph_in);
     void make_graph_baseline();
 
     void print_raw_dst(tid_t tid, vid_t vid);
@@ -101,18 +101,16 @@ lkv_t<T>* pkv_t<T>::prep_lkv()
 }
 
 template <class T>
-lgraph_t* pkv_t<T>::prep_lgraph(index_t ecount)
+lgraph_t* pkv_t<T>::prep_lgraph(index_t enumcount)
 {
-    lgraph_t* lgraph  = (beg_pos_t*) calloc (sizeof(beg_pos_t), ecount);
-    nebr_count  = (vid_t*) calloc (sizeof(vid_t), ecount);
+    lgraph_t* lgraph  = (beg_pos_t*) calloc (sizeof(beg_pos_t), enumcount);
+    nebr_count  = (vid_t*) calloc (sizeof(vid_t), enumcount);
     return lgraph;
 }
 
 template <class T>
-void pkv_t<T>::prep_lgraph_internal(lgraph_t* lgraph_in, index_t ecount, index_t edge_count)
+void pkv_t<T>::prep_lgraph_internal(lgraph_t* lgraph_in, index_t ecount)
 {
-    vid_t* adj_list = (vid_t*) calloc (sizeof(vid_t), edge_count);
-    
     index_t     prefix = 0;
     beg_pos_t*  beg_pos = lgraph_in;
     
@@ -122,13 +120,20 @@ void pkv_t<T>::prep_lgraph_internal(lgraph_t* lgraph_in, index_t ecount, index_t
 }
 
 template <class T>
-void pkv_t<T>::calc_edge_count(lgraph_t* lgraph_in, edge_t* edges, index_t count)
+void pkv_t<T>::calc_edge_count(lgraph_t* lgraph_in)
 {
     sid_t dst;
+    edgeT_t<T>*   edges;
+    index_t   count;
     
-    for (index_t i = 0; i < count; ++i) {
-        dst = edges[i].dst_id;
-        nebr_count[dst] += 1;
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (edgeT_t<T>*)batch_info[j].buf;
+        count = batch_info[j].count;
+    
+        for (index_t i = 0; i < count; ++i) {
+            dst = edges[i].dst_id;
+            nebr_count[dst] += 1;
+        }
     }
 }
 
@@ -139,37 +144,49 @@ void pkv_t<T>::fill_kv_out()
     T dst;
     vid_t     vert1_id;
     tid_t     src_index;
-    edgeT_t<T>* edges = (edgeT_t<T>*) batch_info[batch_count].buf;
+    edgeT_t<T>*   edges;
+    index_t   count;
+
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (edgeT_t<T>*)batch_info[j].buf;
+        count = batch_info[j].count;
     
-    for (index_t i = 0; i < batch_info[batch_count].count; ++i) {
-        src = edges[i].src_id;
-        dst = edges[i].dst_id;
-        
-        vert1_id = TO_VID(src);
-        src_index = get_sindex(src, flag1);
-        lkv_out[src_index].kv[vert1_id] = dst;
+        for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
+            dst = edges[i].dst_id;
+            
+            vert1_id = TO_VID(src);
+            src_index = get_sindex(src, flag1);
+            lkv_out[src_index].kv[vert1_id] = dst;
+        }
     }
 }
 
 template<class T>
 void pkv_t<T>::fill_adj_list_kv(lkv_t<T>* lkv_out, lgraph_t* lgraph_in, 
-                             sflag_t flag1, edgeT_t<T>* edges, index_t count)
+                             sflag_t flag1)
 {
     sid_t src;
     T         dst;
     vid_t     vert1_id;
     tid_t     src_index;
     beg_pos_t* beg_pos_in = lgraph_in;
+    edgeT_t<T>*   edges;
+    index_t   count;
+
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (edgeT_t<T>*)batch_info[j].buf;
+        count = batch_info[j].count;
     
-    for (index_t i = 0; i < count; ++i) {
-        src = edges[i].src_id;
-        dst = edges[i].dst_id;
-        
-        vert1_id = TO_VID(src);
-        src_index = get_sindex(src, flag1); 
-        lkv_out[src_index].kv[vert1_id] = dst;
-        
-        beg_pos_in[dst].add_nebr(src);
+        for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
+            dst = edges[i].dst_id;
+            vert1_id = TO_VID(src);
+            src_index = get_sindex(src, flag1); 
+            
+            lkv_out[src_index].kv[vert1_id] = dst;
+            beg_pos_in[dst].add_nebr(src);
+        }
     }
 }
 

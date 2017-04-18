@@ -49,7 +49,7 @@ void numkv_t<T>::batch_update(const string& src, const string& dst)
     vid_t src_id;
     T     dst_id;
     index_t index = 0;
-    edgeT_t<T>* edges = (edgeT_t<T>*) batch_info[batch_count].buf;
+    edgeT_t<T>* edges;
 
     map<string, vid_t>::iterator str2vid_iter = g->str2vid.find(src);
     if (g->str2vid.end() == str2vid_iter) {
@@ -63,8 +63,13 @@ void numkv_t<T>::batch_update(const string& src, const string& dst)
 
     atoT<T>(dst, &dst_id);
 
+    if (batch_info[batch_count].count == MAX_ECOUNT) {
+        ++batch_count;
+    }
 
     index = batch_info[batch_count].count++;
+    edges = (edgeT_t<T>*) batch_info[batch_count].buf;
+    
     edges[index].src_id = src_id; 
     edges[index].dst_id = dst_id;
 }

@@ -46,9 +46,6 @@ class pinfo_t {
     char*        p_longname;
     batchinfo_t* batch_info;
     uint8_t      batch_count;
-    
-    //void*       buf;
-    //uint32_t    count;
    
  public: 
     pinfo_t();   
@@ -134,7 +131,7 @@ class pgraph_t: public pinfo_t {
     void calc_edge_count_out(sgraph_t* sgraph_out);
     void calc_edge_count_in(sgraph_t* sgraph_in); 
     
-    void prep_sgraph_internal(sgraph_t* sgraph, index_t edge_count, tid_t sgraph_count);
+    void prep_sgraph_internal(sgraph_t* sgraph, tid_t sgraph_count);
     
     void fill_adj_list(sgraph_t* sgraph_out, sgraph_t* sgraph_in);
     void fill_adj_list_in(skv_t* skv_out, sgraph_t* sgraph_in); 

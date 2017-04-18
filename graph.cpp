@@ -128,7 +128,8 @@ void pgraph_t::batch_update(const string& src, const string& dst)
 {
     vid_t src_id, dst_id;
     index_t index = 0;
-    edge_t* edges = (edge_t*) batch_info[batch_count].buf;
+    edge_t* edges;
+    
 
     map<string, vid_t>::iterator str2vid_iter = g->str2vid.find(src);
     if (g->str2vid.end() == str2vid_iter) {
@@ -148,7 +149,12 @@ void pgraph_t::batch_update(const string& src, const string& dst)
     type_id = TO_TID(dst_id);
     flag2 |= TID_TO_SFLAG(type_id);
 
+    if (batch_info[batch_count].count == MAX_ECOUNT) {
+        ++batch_count;
+    }
     index = batch_info[batch_count].count++;
+    edges = (edge_t*) batch_info[batch_count].buf;
+
     edges[index].src_id = src_id; 
     edges[index].dst_id = dst_id;
 }
@@ -176,19 +182,24 @@ void pgraph_t::calc_edge_count(sgraph_t* sgraph_out, sgraph_t* sgraph_in)
     sid_t     src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    edge_t*   edges = (edge_t*)batch_info[0].buf;  
+    edge_t*   edges;
+    index_t   count;
     
-    for (index_t i = 0; i < batch_info[0].count; ++i) {
-        src = edges[i].src_id;
-        dst = edges[i].dst_id;
-		
-		src_index = get_sindex(src, flag1);
-		dst_index = get_sindex(dst,flag2);
-		vert1_id = TO_VID(src);
-		vert2_id = TO_VID(dst);
-        
-        sgraph_out[src_index].increment_count(vert1_id);
-        sgraph_in[dst_index].increment_count(vert2_id);
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (edge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+        for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
+            dst = edges[i].dst_id;
+            
+            src_index = get_sindex(src, flag1);
+            dst_index = get_sindex(dst,flag2);
+            vert1_id = TO_VID(src);
+            vert2_id = TO_VID(dst);
+            
+            sgraph_out[src_index].increment_count(vert1_id);
+            sgraph_in[dst_index].increment_count(vert2_id);
+        }
     }
 }
 
@@ -198,14 +209,18 @@ void pgraph_t::calc_edge_count_out(sgraph_t* sgraph_out)
     sid_t     src;
     vid_t     vert1_id;
     tid_t     src_index;
+    edge_t*   edges;
+    index_t   count;
 
-    edge_t*  edges = (edge_t*)batch_info[batch_count].buf;
-
-    for (index_t i = 0; i < batch_info[batch_count].count; ++i) {
-        src = edges[i].src_id;
-		src_index = get_sindex(src, flag1);
-		vert1_id = TO_VID(src);
-        sgraph_out[src_index].increment_count(vert1_id);
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (edge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+        for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
+            src_index = get_sindex(src, flag1);
+            vert1_id = TO_VID(src);
+            sgraph_out[src_index].increment_count(vert1_id);
+        }
     }
 }
 //estimate edge count
@@ -214,17 +229,23 @@ void pgraph_t::calc_edge_count_in(sgraph_t* sgraph_in)
     sid_t     dst;
     vid_t     vert2_id;
     tid_t     dst_index;
-    edge_t*   edges = (edge_t*) batch_info[batch_count].buf;
-    for (index_t i = 0; i < batch_info[batch_count].count; ++i) {
-        dst = edges[i].dst_id;
-		dst_index = get_sindex(dst,flag2);
-		vert2_id = TO_VID(dst);
-        sgraph_in[dst_index].increment_count(vert2_id);
+    edge_t*   edges;
+    index_t   count;
+    
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (edge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+        for (index_t i = 0; i < count; ++i) {
+            dst = edges[i].dst_id;
+            dst_index = get_sindex(dst,flag2);
+            vert2_id = TO_VID(dst);
+            sgraph_in[dst_index].increment_count(vert2_id);
+        }
     }
 }
 
 //prefix sum, allocate adj list memory then reset the count
-void pgraph_t::prep_sgraph_internal(sgraph_t* sgraph, index_t edge_count, tid_t sgraph_count)
+void pgraph_t::prep_sgraph_internal(sgraph_t* sgraph, tid_t sgraph_count)
 {
     vid_t       v_count = 0;
     
@@ -241,18 +262,24 @@ void pgraph_t::fill_adj_list(sgraph_t* sgraph_out, sgraph_t* sgraph_in)
     sid_t src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    edge_t*    edges = (edge_t*) batch_info[batch_count].buf;
     
-    for (index_t i = 0; i < batch_info[batch_count].count; ++i) {
-        src = edges[i].src_id;
-        dst = edges[i].dst_id;
-		src_index = get_sindex(src, flag1);
-		dst_index = get_sindex(dst,flag2);
-        vert1_id = TO_VID(src);
-        vert2_id = TO_VID(dst);
-        
-        sgraph_out[src_index].add_nebr(vert1_id, dst);
-        sgraph_in[dst_index].add_nebr(vert2_id, src);
+    edge_t*   edges;
+    index_t   count;
+
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (edge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+        for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
+            dst = edges[i].dst_id;
+            src_index = get_sindex(src, flag1);
+            dst_index = get_sindex(dst,flag2);
+            vert1_id = TO_VID(src);
+            vert2_id = TO_VID(dst);
+            
+            sgraph_out[src_index].add_nebr(vert1_id, dst);
+            sgraph_in[dst_index].add_nebr(vert2_id, src);
+        }
     }
 }
 
@@ -261,19 +288,24 @@ void pgraph_t::fill_adj_list_in(skv_t* skv_out, sgraph_t* sgraph_in)
     sid_t src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    edge_t*   edges = (edge_t*) batch_info[batch_count].buf;
+    edge_t*   edges;
+    index_t   count;
     
-    for (index_t i = 0; i < batch_info[batch_count].count; ++i) {
-        src = edges[i].src_id;
-        dst = edges[i].dst_id;
-		src_index = get_sindex(src, flag1);
-		dst_index = get_sindex(dst,flag2);
-        
-        vert1_id = TO_VID(src);
-        skv_out[src_index].set_value(vert1_id, dst);
-        
-        vert2_id = TO_VID(dst);
-        sgraph_in[dst_index].add_nebr(vert2_id, src);
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (edge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+        for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
+            dst = edges[i].dst_id;
+            src_index = get_sindex(src, flag1);
+            dst_index = get_sindex(dst,flag2);
+            
+            vert1_id = TO_VID(src);
+            skv_out[src_index].set_value(vert1_id, dst);
+            
+            vert2_id = TO_VID(dst);
+            sgraph_in[dst_index].add_nebr(vert2_id, src);
+        }
     }
 }
 
@@ -282,19 +314,24 @@ void pgraph_t::fill_adj_list_out(sgraph_t* sgraph_out, skv_t* skv_in)
     sid_t src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t src_index, dst_index; 
-    edge_t*   edges = (edge_t*) batch_info[batch_count].buf;
-
-    for (index_t i = 0; i < batch_info[batch_count].count; ++i) {
-        src = edges[i].src_id;
-        dst = edges[i].dst_id;
-		src_index = get_sindex(src, flag1);
-		dst_index = get_sindex(dst,flag2);
-        
-        vert1_id = TO_VID(src);
-        sgraph_out[src_index].add_nebr(vert1_id, dst);
-        
-        vert2_id = TO_VID(dst);
-        skv_in[dst_index].set_value(vert2_id, src); 
+    edge_t*   edges;
+    index_t   count;
+    
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (edge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+        for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
+            dst = edges[i].dst_id;
+            src_index = get_sindex(src, flag1);
+            dst_index = get_sindex(dst,flag2);
+            
+            vert1_id = TO_VID(src);
+            sgraph_out[src_index].add_nebr(vert1_id, dst);
+            
+            vert2_id = TO_VID(dst);
+            skv_in[dst_index].set_value(vert2_id, src); 
+        }
     }
 }
 
@@ -365,19 +402,25 @@ void pgraph_t::fill_skv(skv_t* skv_out, skv_t* skv_in)
     sid_t src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    edge_t*   edges = (edge_t*)batch_info[batch_count].buf;
+    edge_t*   edges;
+    index_t   count;
     
-    for (index_t i = 0; i < batch_info[batch_count].count; ++i) {
-        src = edges[i].src_id;
-        dst = edges[i].dst_id;
-		src_index = get_sindex(src, flag1);
-		dst_index = get_sindex(dst,flag2);
-        
-        vert1_id = TO_VID(src);
-        skv_out[src_index].set_value(vert1_id, dst); 
-        
-        vert2_id = TO_VID(dst);
-        skv_in[dst_index].set_value(vert2_id, src); 
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (edge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+    
+        for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
+            dst = edges[i].dst_id;
+            src_index = get_sindex(src, flag1);
+            dst_index = get_sindex(dst,flag2);
+            
+            vert1_id = TO_VID(src);
+            skv_out[src_index].set_value(vert1_id, dst); 
+            
+            vert2_id = TO_VID(dst);
+            skv_in[dst_index].set_value(vert2_id, src); 
+        }
     }
 }
 

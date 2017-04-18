@@ -14,8 +14,8 @@ void dgraph_t::make_graph_baseline()
     
     
     //prefix sum then reset the count
-    prep_sgraph_internal(sgraph_out, batch_info[batch_count].count, flag1_count);
-    prep_sgraph_internal(sgraph_in, batch_info[batch_count].count, flag2_count);
+    prep_sgraph_internal(sgraph_out, flag1_count);
+    prep_sgraph_internal(sgraph_in, flag2_count);
 
     //populate and get the original count back
     fill_adj_list(sgraph_out, sgraph_in);
@@ -23,7 +23,7 @@ void dgraph_t::make_graph_baseline()
 
 void dgraph_t::store_graph_baseline(string dir)
 {
-    if (batch_info[batch_count].count == 0) return;
+    if (batch_info[0].count == 0) return;
     string postfix = "out";
     store_sgraph(sgraph_out, flag1, dir, postfix);
     postfix = "in";
@@ -48,7 +48,7 @@ void ugraph_t::make_graph_baseline()
     
     //prefix sum then reset the count
     //Take symmetry into consideration
-    prep_sgraph_internal(sgraph, 2*batch_info[batch_count].count, flag1_count);
+    prep_sgraph_internal(sgraph, flag1_count);
 
     //populate and get the original count back
     fill_adj_list(sgraph, sgraph);
@@ -56,7 +56,7 @@ void ugraph_t::make_graph_baseline()
 
 void ugraph_t::store_graph_baseline(string dir)
 {
-    if (batch_info[batch_count].count == 0) return;
+    if (batch_info[0].count == 0) return;
     string postfix = "";
     store_sgraph(sgraph, flag1, dir, postfix);
 }
@@ -64,7 +64,7 @@ void ugraph_t::store_graph_baseline(string dir)
 /***************************************/
 void many2one_t::make_graph_baseline()
 {
-    if (batch_info[batch_count].count == 0) return;
+    if (batch_info[0].count == 0) return;
     flag1_count = __builtin_popcountll(flag1);
     flag2_count = __builtin_popcountll(flag2);
 
@@ -77,7 +77,7 @@ void many2one_t::make_graph_baseline()
     
     
     //prefix sum then reset the count
-    prep_sgraph_internal(sgraph_in, batch_info[batch_count].count, flag2_count);
+    prep_sgraph_internal(sgraph_in, flag2_count);
 
     //populate and get the original count back
     //handle kv_out as well.
@@ -86,7 +86,7 @@ void many2one_t::make_graph_baseline()
 
 void many2one_t::store_graph_baseline(string dir)
 {
-    if (batch_info[batch_count].count == 0) return;
+    if (batch_info[0].count == 0) return;
     string postfix = "out";
     store_skv(skv_out, flag1, dir, postfix);
     postfix = "in";
@@ -96,7 +96,7 @@ void many2one_t::store_graph_baseline(string dir)
 /*******************************************/
 void one2many_t::make_graph_baseline()
 {
-    if (batch_info[batch_count].count == 0) return;
+    if (batch_info[0].count == 0) return;
     flag1_count = __builtin_popcountll(flag1);
     flag2_count = __builtin_popcountll(flag2);
 
@@ -109,7 +109,7 @@ void one2many_t::make_graph_baseline()
     
     
     //prefix sum then reset the count
-    prep_sgraph_internal(sgraph_out, batch_info[batch_count].count, flag1_count);
+    prep_sgraph_internal(sgraph_out, flag1_count);
 
     //populate and get the original count back
     //handle kv_in as well.
@@ -118,7 +118,7 @@ void one2many_t::make_graph_baseline()
 
 void one2many_t::store_graph_baseline(string dir)
 {
-    if (batch_info[batch_count].count == 0) return;
+    if (batch_info[0].count == 0) return;
     string postfix = "out";
     store_sgraph(sgraph_out, flag1, dir, postfix);
     postfix = "in";
@@ -128,7 +128,7 @@ void one2many_t::store_graph_baseline(string dir)
 /************************************************/
 void one2one_t::make_graph_baseline()
 {
-    if (batch_info[batch_count].count == 0) return;
+    if (batch_info[0].count == 0) return;
     flag1_count = __builtin_popcountll(flag1);
     flag2_count = __builtin_popcountll(flag2);
 
@@ -142,7 +142,7 @@ void one2one_t::make_graph_baseline()
 
 void one2one_t::store_graph_baseline(string dir)
 {
-    if (batch_info[batch_count].count == 0) return;
+    if (batch_info[0].count == 0) return;
     string postfix = "out";
     store_skv(skv_out, flag1, dir, postfix);
     postfix = "in";
