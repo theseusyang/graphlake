@@ -178,23 +178,28 @@ void srset_t::bitwise2vlist()
 
 tid_t srset_t::full_setup(sflag_t a_flag) 
 {
-    flag = 0;
+    sflag_t sflag = 0;
     if (tfilter_count) {
         for (tid_t i = 0; i < tfilter_count; ++i) {
-            flag |= a_flag & (1L << tfilter[i]);
+            sflag |= a_flag & (1L << tfilter[i]);
         }
     } else {
-        flag = a_flag;
+        sflag = a_flag;
     }
-
-    sid_t flag_count = setup(flag);
-    a_flag = flag;
+    tid_t flag_count = __builtin_popcountll(sflag);
+    tid_t t_count = g->get_total_types();
+    ccount = TO_SUPER(flag_count);
+    flag = (tid_t*) malloc(sizeof(tid_t)*t_count);
+    memset(flag, INVALID_TID, sizeof(tid_t)*t_count);
+    rset = (rset_t*)calloc(sizeof(rset_t), flag_count);
+    
     tid_t pos = 0;
     sid_t super_id;
     for (tid_t i = 0; i < flag_count; ++i) {
-        pos = __builtin_ctzll(a_flag);
-        a_flag ^= (1L << pos);//reset that position
+        pos = __builtin_ctzll(sflag);
+        sflag ^= (1L << pos);//reset that position
         super_id = g->get_type_scount(pos);
+        flag[pos] = i;
         rset[i].setup(super_id);
        
     }
@@ -204,7 +209,13 @@ tid_t srset_t::full_setup(sflag_t a_flag)
 //Filter can not be applied to eAdjlist and eKV
 tid_t srset_t::copy_setup(srset_t* iset, int union_type) 
 {
-    tid_t flag_count = setup(iset->flag);
+    tid_t t_count = g->get_total_types();
+    ccount = iset->ccount;
+
+    tid_t flag_count = get_rset_count();
+    flag = (tid_t*) malloc(sizeof(tid_t)*t_count);
+    memcpy(flag, iset->flag, sizeof(tid_t)*t_count);
+    rset = (rset_t*)calloc(sizeof(rset_t), flag_count);
     for (tid_t i = 0; i < flag_count; ++i) {
         rset[i].copy_setup(iset->rset + i, union_type);
     }
@@ -212,13 +223,15 @@ tid_t srset_t::copy_setup(srset_t* iset, int union_type)
 }
 
 //Should not called directly
-tid_t srset_t::setup(sflag_t sflag) 
+tid_t srset_t::setup(tid_t tid) 
 {
-    sid_t flag_count = __builtin_popcountll(sflag);
-    ccount     |= TO_SUPER(flag_count);
-    rset        = new rset_t [flag_count];
-    flag        = sflag;
-    return flag_count;
+    tid_t t_count = g->get_total_types();
+    rset        = new rset_t;
+    flag        = (tid_t*)malloc(sizeof(tid_t)*t_count);
+    memset(flag, INVALID_TID, sizeof(tid_t)*t_count); 
+    flag[tid] = 0;
+    ccount = TO_SUPER(1);
+    return 1;
 }
 
 void srset_t::setup_select(qid_t a_count) { 

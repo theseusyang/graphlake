@@ -11,7 +11,6 @@ query_triple::execute()
     direction_t direction;
     sid_t sid;
     tid_t tid;
-    sflag_t flag;
     srset_t* iset;
     srset_t* oset;
     
@@ -44,9 +43,8 @@ query_triple::execute()
             sid = g->get_sid(src);
             if (sid == INVALID_SID) return eInvalidVID;
             tid = TO_TID(sid);
-            flag = TID_TO_SFLAG(tid);
             iset = new srset_t; 
-            iset->setup(flag);
+            iset->setup(tid);
             iset->rset->setup_frontiers(tid, 1);
             iset->add_frontier(sid);
             
@@ -58,10 +56,9 @@ query_triple::execute()
             sid = g->get_sid(dst);
             if (sid == INVALID_SID) return eInvalidVID;
             tid = TO_TID(sid);
-            flag = TID_TO_SFLAG(tid);
             
             iset = new srset_t; 
-            iset->setup(flag);
+            iset->setup(tid);
             iset->rset->setup_frontiers(tid, 1);
             iset->add_frontier(sid);
             

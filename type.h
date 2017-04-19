@@ -333,7 +333,7 @@ class srset_t {
     uint8_t select_count;
     
  private:
-    sflag_t  flag;
+    tid_t*  flag;
     //Total result set count and total frontiers count
     //few MSB bits = index into rset
     //other bits = total frontier count. XXX not correct
@@ -367,10 +367,8 @@ class srset_t {
     }
     
 	inline tid_t get_sindex(sid_t sid) {
-		tid_t type_id = TO_TID(sid) + 1;
-		sflag_t flag_mask = flag & ((1L << type_id) - 1);
-		tid_t index = __builtin_popcountll(flag_mask) - 1;
-		return index;
+		tid_t tid = TO_TID(sid);
+		return flag[tid];
 	}
 
     inline vid_t get_status(sid_t sid) {
@@ -406,24 +404,6 @@ class srset_t {
     
     
     //Dont call directly
-    tid_t setup(sflag_t sflag); 
+    tid_t setup(tid_t tid); 
 
 };
-
-
-/////// Function//////////////
-inline tid_t get_sindex(tid_t tid, sflag_t sflag)
-{
-    sflag_t flag_mask = sflag & ((1L << (tid +1)) - 1);
-    tid_t        pos = __builtin_popcountll(flag_mask) - 1;
-    return pos;
-}
-
-inline tid_t get_sindex(sid_t sid, sflag_t flag)
-{
-	tid_t type_id = TO_TID(sid) + 1;
-	sflag_t flag_mask = flag & ((1L << type_id) - 1);
-	tid_t index = __builtin_popcountll(flag_mask) - 1;
-	return index;
-}
-
