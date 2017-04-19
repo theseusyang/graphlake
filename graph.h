@@ -17,8 +17,6 @@ using std::cout;
 using std::endl;
 using std::string;
 
-
-
 inline char* gstrdup(const char* str) 
 {
     return strdup(str);
@@ -94,7 +92,8 @@ class graph {
 
  public:
     graph();
-    sid_t get_type_scount(tid_t type);    
+    sid_t get_type_scount(tid_t type);
+    tid_t get_total_types();
     void type_update(const string& src, const string& dst);
     void type_done();
 
@@ -113,8 +112,8 @@ class graph {
 /******** graphs **************/
 class pgraph_t: public pinfo_t {
   public:    
-    uint64_t    flag1;
-    uint64_t    flag2;
+    sflag_t     flag1;
+    tid_t       flag2;
     uint8_t     flag1_count;
     uint8_t     flag2_count;
  
@@ -124,111 +123,90 @@ class pgraph_t: public pinfo_t {
  public:
     pgraph_t();
  public:
-    sgraph_t* prep_sgraph(sflag_t ori_flag, tid_t flag_count);
-    skv_t* prep_skv(sflag_t ori_flag, tid_t flag_count);
+    sgraph_t** prep_sgraph(sflag_t ori_flag, tid_t flag_count);
+    skv_t** prep_skv(sflag_t ori_flag, tid_t flag_count);
     
-    void calc_edge_count(sgraph_t* sgraph_out, sgraph_t* sgraph_in); 
-    void calc_edge_count_out(sgraph_t* sgraph_out);
-    void calc_edge_count_in(sgraph_t* sgraph_in); 
+    void calc_edge_count(sgraph_t** sgraph_out, sgraph_t** sgraph_in); 
+    void calc_edge_count_out(sgraph_t** sgraph_out);
+    void calc_edge_count_in(sgraph_t** sgraph_in); 
     
-    void prep_sgraph_internal(sgraph_t* sgraph, tid_t sgraph_count);
+    void prep_sgraph_internal(sgraph_t** sgraph);
     
-    void fill_adj_list(sgraph_t* sgraph_out, sgraph_t* sgraph_in);
-    void fill_adj_list_in(skv_t* skv_out, sgraph_t* sgraph_in); 
-    void fill_adj_list_out(sgraph_t* sgraph_out, skv_t* skv_in); 
-    void fill_skv(skv_t* skv_out, skv_t* skv_in);
+    void fill_adj_list(sgraph_t** sgraph_out, sgraph_t** sgraph_in);
+    void fill_adj_list_in(skv_t** skv_out, sgraph_t** sgraph_in); 
+    void fill_adj_list_out(sgraph_t** sgraph_out, skv_t** skv_in); 
+    void fill_skv(skv_t** skv_out, skv_t** skv_in);
     
-    void store_sgraph(sgraph_t* sgraph, sflag_t flag, string dir, string postfix);
-    void store_skv(skv_t* skv, sflag_t flag, string dir, string postfix);
+    void store_sgraph(sgraph_t** sgraph, string dir, string postfix);
+    void store_skv(skv_t** skv, string dir, string postfix);
 
-    status_t query_adjlist_td(sgraph_t* sgraph, sflag_t iflag, sflag_t oflag, srset_t* iset, srset_t* oset);
-    status_t query_kv_td(skv_t* skv, sflag_t iflag, sflag_t oflag, srset_t* iset, srset_t* oset);
-    status_t query_adjlist_bu(sgraph_t* sgraph, sflag_t flag, srset_t* iset, srset_t* oset);
-    status_t query_kv_bu(skv_t* skv, sflag_t flag, srset_t* iset, srset_t* oset);
+    status_t query_adjlist_td(sgraph_t** sgraph, sflag_t oflag, srset_t* iset, srset_t* oset);
+    status_t query_kv_td(skv_t** skv, sflag_t oflag, srset_t* iset, srset_t* oset);
+    status_t query_adjlist_bu(sgraph_t** sgraph, sflag_t flag, srset_t* iset, srset_t* oset);
+    status_t query_kv_bu(skv_t** skv, sflag_t flag, srset_t* iset, srset_t* oset);
   
-  /*  
-    status_t query_adjlist_td_filter(sgraph_t* sgraph, sflag_t iflag, sflag_t oflag, 
-                          srset_t* iset, srset_t* oset, filter_info_t* filter_info);
-    status_t query_kv_td_filter(skv_t* skv, sflag_t iflag, sflag_t oflag, srset_t* iset, 
-                                srset_t* oset, filter_info_t* filter_info);
-    status_t query_adjlist_bu_filter(sgraph_t* sgraph, sflag_t flag, srset_t* iset, 
-                                     srset_t* oset, filter_info_t* filter_info);
-    status_t query_kv_bu_filter(skv_t* skv, sflag_t flag, srset_t* iset, srset_t* oset, 
-                                filter_info_t* filter_info);
-*/
-    status_t extend_adjlist_td(sgraph_t* skv, sflag_t iflag, srset_t* iset, srset_t* oset);
-    status_t extend_kv_td(skv_t* skv, sflag_t iflag, srset_t* iset, srset_t* oset);
-
-
-
+    
+    status_t extend_adjlist_td(sgraph_t** skv, srset_t* iset, srset_t* oset);
+    status_t extend_kv_td(skv_t** skv, srset_t* iset, srset_t* oset);
 };
 
 
 class ugraph_t: public pgraph_t {
  protected:
-    sgraph_t* sgraph;
+    sgraph_t** sgraph;
 
  public:
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    //status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction,
-    //                              filter_info_t* filter_info);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
 class dgraph_t: public pgraph_t {
  protected:
-    //count is hidden in flag1 and flag2
-    sgraph_t* sgraph_out;
-    sgraph_t* sgraph_in; 
+    //count is hidden in type count
+    sgraph_t** sgraph_out;
+    sgraph_t** sgraph_in; 
  public:
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    //status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction,
-    //                              filter_info_t* filter_info);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
 class many2one_t: public pgraph_t {
  protected:
-    skv_t*     skv_out;
-    sgraph_t*  sgraph_in;
+    skv_t**     skv_out;
+    sgraph_t**  sgraph_in;
 
  public:
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    //virtual status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, filter_info_t* filter_info);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
 class one2one_t: public pgraph_t {
  protected:
-    skv_t*   skv_in;
-    skv_t*   skv_out;
+    skv_t**   skv_in;
+    skv_t**   skv_out;
 
  public:
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    //status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction,
-    //                              filter_info_t* filter_info);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
 class one2many_t: public pgraph_t {
  protected:
-    sgraph_t*   sgraph_out;
-    skv_t*      skv_in;
+    sgraph_t**   sgraph_out;
+    skv_t**      skv_in;
 
  public:
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    //status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction,
-    //                              filter_info_t* filter_info);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 

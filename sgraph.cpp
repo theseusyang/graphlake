@@ -14,8 +14,8 @@ void dgraph_t::make_graph_baseline()
     
     
     //prefix sum then reset the count
-    prep_sgraph_internal(sgraph_out, flag1_count);
-    prep_sgraph_internal(sgraph_in, flag2_count);
+    prep_sgraph_internal(sgraph_out);
+    prep_sgraph_internal(sgraph_in);
 
     //populate and get the original count back
     fill_adj_list(sgraph_out, sgraph_in);
@@ -25,9 +25,9 @@ void dgraph_t::store_graph_baseline(string dir)
 {
     if (batch_info[0].count == 0) return;
     string postfix = "out";
-    store_sgraph(sgraph_out, flag1, dir, postfix);
+    store_sgraph(sgraph_out, dir, postfix);
     postfix = "in";
-    store_sgraph(sgraph_in,  flag2, dir, postfix);
+    store_sgraph(sgraph_in,  dir, postfix);
 }
 
 /*******************************************/
@@ -48,7 +48,7 @@ void ugraph_t::make_graph_baseline()
     
     //prefix sum then reset the count
     //Take symmetry into consideration
-    prep_sgraph_internal(sgraph, flag1_count);
+    prep_sgraph_internal(sgraph);
 
     //populate and get the original count back
     fill_adj_list(sgraph, sgraph);
@@ -58,7 +58,7 @@ void ugraph_t::store_graph_baseline(string dir)
 {
     if (batch_info[0].count == 0) return;
     string postfix = "";
-    store_sgraph(sgraph, flag1, dir, postfix);
+    store_sgraph(sgraph, dir, postfix);
 }
 
 /***************************************/
@@ -77,7 +77,7 @@ void many2one_t::make_graph_baseline()
     
     
     //prefix sum then reset the count
-    prep_sgraph_internal(sgraph_in, flag2_count);
+    prep_sgraph_internal(sgraph_in);
 
     //populate and get the original count back
     //handle kv_out as well.
@@ -88,9 +88,9 @@ void many2one_t::store_graph_baseline(string dir)
 {
     if (batch_info[0].count == 0) return;
     string postfix = "out";
-    store_skv(skv_out, flag1, dir, postfix);
+    store_skv(skv_out, dir, postfix);
     postfix = "in";
-    store_sgraph(sgraph_in, flag2, dir, postfix);
+    store_sgraph(sgraph_in, dir, postfix);
 }
 
 /*******************************************/
@@ -109,7 +109,7 @@ void one2many_t::make_graph_baseline()
     
     
     //prefix sum then reset the count
-    prep_sgraph_internal(sgraph_out, flag1_count);
+    prep_sgraph_internal(sgraph_out);
 
     //populate and get the original count back
     //handle kv_in as well.
@@ -120,9 +120,9 @@ void one2many_t::store_graph_baseline(string dir)
 {
     if (batch_info[0].count == 0) return;
     string postfix = "out";
-    store_sgraph(sgraph_out, flag1, dir, postfix);
+    store_sgraph(sgraph_out, dir, postfix);
     postfix = "in";
-    store_skv(skv_in, flag2, dir, postfix);
+    store_skv(skv_in, dir, postfix);
 }
 
 /************************************************/
@@ -144,7 +144,7 @@ void one2one_t::store_graph_baseline(string dir)
 {
     if (batch_info[0].count == 0) return;
     string postfix = "out";
-    store_skv(skv_out, flag1, dir, postfix);
+    store_skv(skv_out, dir, postfix);
     postfix = "in";
-    store_skv(skv_in, flag2, dir, postfix);
+    store_skv(skv_in, dir, postfix);
 }

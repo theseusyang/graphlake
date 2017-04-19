@@ -105,17 +105,17 @@ status_t pinfo_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
 
 status_t ugraph_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
 {
-    return extend_adjlist_td(sgraph, flag1, iset, oset);
+    return extend_adjlist_td(sgraph, iset, oset);
 }
 
 //due to many2one structure, we give preference to bottom up approach
 status_t many2one_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
 {
     if (direction == eout) {
-        return extend_kv_td(skv_out, flag1,  iset, oset);
+        return extend_kv_td(skv_out,  iset, oset);
     } else {
         assert(direction == ein);
-        return extend_adjlist_td(sgraph_in, flag2, iset, oset);
+        return extend_adjlist_td(sgraph_in, iset, oset);
     }
     return eOK;
 }
@@ -123,10 +123,10 @@ status_t many2one_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
 status_t dgraph_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
 {
     if (direction == eout) {
-        return extend_adjlist_td(sgraph_out, flag1, iset, oset);
+        return extend_adjlist_td(sgraph_out, iset, oset);
     } else {
         assert(direction == ein);
-        return extend_adjlist_td(sgraph_in, flag2, iset, oset);
+        return extend_adjlist_td(sgraph_in, iset, oset);
     }
     return eOK;
 }
@@ -134,10 +134,10 @@ status_t dgraph_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
 status_t one2one_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
 {
     if (direction == eout) {
-        return extend_kv_td(skv_out, flag1, iset, oset);
+        return extend_kv_td(skv_out, iset, oset);
     } else {
         assert(direction == ein);
-        return extend_kv_td(skv_in, flag2, iset, oset);
+        return extend_kv_td(skv_in, iset, oset);
     }
     return eOK;
 }
@@ -145,10 +145,10 @@ status_t one2one_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
 status_t one2many_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
 {
     if (direction == eout) {
-        return extend_adjlist_td(sgraph_out, flag1, iset, oset);
+        return extend_adjlist_td(sgraph_out, iset, oset);
     } else {
         assert(direction == ein);
-        return extend_kv_td(skv_in, flag2, iset, oset);
+        return extend_kv_td(skv_in, iset, oset);
     }
     return eOK;
 }
@@ -164,7 +164,7 @@ status_t ugraph_t::transform(srset_t* iset, srset_t* oset, direction_t direction
 {
     int total_count = 0;
     if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
-        return query_adjlist_td(sgraph, flag1, flag2, iset, oset);
+        return query_adjlist_td(sgraph, flag2, iset, oset);
     } else { //bottom up approach
         return query_adjlist_bu(sgraph, flag2, iset, oset);
     }
@@ -178,7 +178,7 @@ status_t many2one_t::transform(srset_t* iset, srset_t* oset, direction_t directi
     if (direction == eout) {
         total_count = 0;
         if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
-            return query_kv_td(skv_out, flag1, flag2, iset, oset);
+            return query_kv_td(skv_out, flag2, iset, oset);
         } else { //bottom up approach
             return query_adjlist_bu(sgraph_in, flag2, iset, oset);
         }
@@ -186,7 +186,7 @@ status_t many2one_t::transform(srset_t* iset, srset_t* oset, direction_t directi
         assert(direction == ein);
         total_count = 0;
         if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
-            return query_adjlist_td(sgraph_in, flag2, flag1, iset, oset);
+            return query_adjlist_td(sgraph_in, flag1, iset, oset);
         } else { //bottom up approach 
             return query_kv_bu(skv_out, flag1, iset, oset);
         }
@@ -200,7 +200,7 @@ status_t dgraph_t::transform(srset_t* iset, srset_t* oset, direction_t direction
     if (direction == eout) {
         total_count = 0;
         if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
-            return query_adjlist_td(sgraph_out, flag1, flag2, iset, oset);
+            return query_adjlist_td(sgraph_out, flag2, iset, oset);
         } else { //bottom up approach
             return query_adjlist_bu(sgraph_in, flag2, iset, oset);
         }
@@ -208,7 +208,7 @@ status_t dgraph_t::transform(srset_t* iset, srset_t* oset, direction_t direction
         assert(direction == ein);
         total_count = 0;
         if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
-            return query_adjlist_td(sgraph_in, flag2, flag1, iset, oset);
+            return query_adjlist_td(sgraph_in, flag1, iset, oset);
         } else { //bottom up approach 
             return query_adjlist_bu(sgraph_out, flag1, iset, oset);
         }
@@ -222,7 +222,7 @@ status_t one2one_t::transform(srset_t* iset, srset_t* oset, direction_t directio
     if (direction == eout) {
         total_count = 0;
         if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
-            return query_kv_td(skv_out, flag1, flag2, iset, oset);
+            return query_kv_td(skv_out, flag2, iset, oset);
         } else { //bottom up approach
             return query_kv_bu(skv_in, flag2, iset, oset);
         }
@@ -230,7 +230,7 @@ status_t one2one_t::transform(srset_t* iset, srset_t* oset, direction_t directio
         assert(direction == ein);
         total_count = 0;
         if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
-            return query_kv_td(skv_in, flag2, flag1, iset, oset);
+            return query_kv_td(skv_in, flag1, iset, oset);
         } else { //bottom up approach 
             return query_kv_bu(skv_out, flag1, iset, oset);
         }
@@ -244,7 +244,7 @@ status_t one2many_t::transform(srset_t* iset, srset_t* oset, direction_t directi
     if (direction == eout) {
         total_count = 0;
         if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
-            return query_adjlist_td(sgraph_out, flag1, flag2, iset, oset);
+            return query_adjlist_td(sgraph_out, flag2, iset, oset);
         } else { //bottom up approach
             return query_kv_bu(skv_in, flag2, iset, oset);
         }
@@ -252,13 +252,10 @@ status_t one2many_t::transform(srset_t* iset, srset_t* oset, direction_t directi
         assert(direction == ein);
         total_count = 0;
         if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
-            return query_kv_td(skv_in, flag2, flag1, iset, oset);
+            return query_kv_td(skv_in, flag1, iset, oset);
         } else { //bottom up approach 
             return query_adjlist_bu(sgraph_out, flag1, iset, oset);
         }
     }
     return eOK;
 }
-
-
-

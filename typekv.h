@@ -55,8 +55,11 @@ class typekv_t : public pinfo_t {
         it_info[id].count = count;
     };
 
-    sid_t get_type_scount(tid_t type) {
+    inline  sid_t get_type_scount(tid_t type) {
         return t_info[type].vert_id;
+    }
+    inline tid_t get_total_types() {
+        return t_count;
     }
     
     void batch_update(const string& src, const string& dst);
