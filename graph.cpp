@@ -106,6 +106,22 @@ void pinfo_t::swap_log_buffer()
     swap(batch_count, batch_count1);
 }
 
+void pinfo_t::reset_buffer0()
+{
+    batch_count = 0;
+    for (uint32_t i = 0; i < MAX_BCOUNT; ++i) {
+        batch_info[i].count = 0;
+    }
+}
+
+void pinfo_t::reset_buffer1()
+{
+    batch_count1 = 0;
+    for (uint32_t i = 0; i < MAX_BCOUNT; ++i) {
+        batch_info1[i].count = 0; 
+    }
+}
+
 /************* Semantic graphs  *****************/
 pgraph_t::pgraph_t()
 {

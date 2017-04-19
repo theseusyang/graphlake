@@ -94,6 +94,8 @@ void graph::update_graph(string idirname, string odirname)
     DIR *dir;
     string subject, predicate, object, useless_dot;
     int file_count = 0;
+
+    //reset the log buffer
     
     //Read graph file for types 
     dir = opendir(idirname.c_str());
