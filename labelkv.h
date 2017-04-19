@@ -24,9 +24,9 @@ typedef beg_pos_t lgraph_t;
 template <class T>
 class pkv_t: public pinfo_t {
  public:
-    lkv_t<T>* lkv_out;
-    lgraph_t* lgraph_in;
-    vid_t*    nebr_count;
+    lkv_t<T>** lkv_out;
+    lgraph_t*  lgraph_in;
+    vid_t*     nebr_count;
     
     uint64_t  flag1;
     uint8_t   flag1_count;
@@ -35,9 +35,9 @@ class pkv_t: public pinfo_t {
 
  public:
     lgraph_t* prep_lgraph(index_t ecount);
-    lkv_t<T>* prep_lkv();
+    lkv_t<T>** prep_lkv();
     void fill_kv_out();
-    void fill_adj_list_kv(lkv_t<T>* lkv_out, lgraph_t* lgraph_in, 
+    void fill_adj_list_kv(lkv_t<T>** lkv_out, lgraph_t* lgraph_in, 
                         sflag_t flag1);
     
     void prep_lgraph_internal(lgraph_t* lgraph_in, index_t ecount);
@@ -75,10 +75,11 @@ class vgraph_t: public pkv_t<char*>
 /**************/
 //super bins memory allocation
 template<class T>
-lkv_t<T>* pkv_t<T>::prep_lkv()
+lkv_t<T>** pkv_t<T>::prep_lkv()
 {
-    sflag_t flag = flag1;
-    lkv_t<T>*  lkv  = (lkv_t<T>*) calloc (sizeof(lkv_t<T>), flag1_count);
+    sflag_t    flag = flag1;
+    tid_t   t_count = g->get_total_types();
+    lkv_t<T>** lkv  = (lkv_t<T>**) calloc (sizeof(lkv_t<T>*), t_count);
     tid_t      pos  = 0;
     sid_t super_id;
     vid_t v_count;
@@ -88,8 +89,9 @@ lkv_t<T>* pkv_t<T>::prep_lkv()
         flag ^= (1L << pos);//reset that position
         super_id = g->get_type_scount(pos);
         v_count = TO_VID(super_id);
-        lkv[i].kv = (T*)calloc(sizeof(T), v_count);
-        lkv[i].super_id = super_id;
+        lkv[pos] = new lkv_t<T>;
+        lkv[pos]->kv = (T*)calloc(sizeof(T), v_count);
+        lkv[pos]->super_id = super_id;
     }
     return lkv;
 }
@@ -150,14 +152,14 @@ void pkv_t<T>::fill_kv_out()
             dst = edges[i].dst_id;
             
             vert1_id = TO_VID(src);
-            src_index = get_sindex(src, flag1);
-            lkv_out[src_index].kv[vert1_id] = dst;
+            src_index = TO_TID(src);
+            lkv_out[src_index]->kv[vert1_id] = dst;
         }
     }
 }
 
 template<class T>
-void pkv_t<T>::fill_adj_list_kv(lkv_t<T>* lkv_out, lgraph_t* lgraph_in, 
+void pkv_t<T>::fill_adj_list_kv(lkv_t<T>** lkv_out, lgraph_t* lgraph_in, 
                              sflag_t flag1)
 {
     sid_t src;
@@ -176,9 +178,9 @@ void pkv_t<T>::fill_adj_list_kv(lkv_t<T>* lkv_out, lgraph_t* lgraph_in,
             src = edges[i].src_id;
             dst = edges[i].dst_id;
             vert1_id = TO_VID(src);
-            src_index = get_sindex(src, flag1); 
+            src_index = TO_TID(src); 
             
-            lkv_out[src_index].kv[vert1_id] = dst;
+            lkv_out[src_index]->kv[vert1_id] = dst;
             beg_pos_in[dst].add_nebr(src);
         }
     }
@@ -213,9 +215,7 @@ void pkv_t<T>::store_lgraph(lgraph_t* lgraph_in, string dir, string postfix)
 template <class T>
 void pkv_t<T>::print_raw_dst(tid_t tid, vid_t vid)
 {
-    tid_t sindex = get_sindex(tid, flag1);
-    
-    cout << lkv_out[sindex].kv[vid];
+    cout << lkv_out[tid]->kv[vid];
 }
 
 #include "typekv.h"

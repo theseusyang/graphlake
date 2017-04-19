@@ -150,8 +150,8 @@ status_t enumkv_t<T>::filter(sid_t src, void* a_value, filter_fn_t fn)
     assert(fn == fn_out); 
     
     vert1_id = TO_VID(src);
-	src_index = get_sindex(src, flag1);
-    if (lkv_out[src_index].kv[vert1_id] == dst) {
+	src_index = TO_TID(src);
+    if (lkv_out[src_index]->kv[vert1_id] == dst) {
         return eOK;
     }
     return eQueryFail;

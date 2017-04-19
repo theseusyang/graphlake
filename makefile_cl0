@@ -16,6 +16,7 @@ SRC=main.cpp \
 	
 
 HEADER=graph.h\
+	labelkv.h\
 	enumkv.h\
 	numkv.h\
 	typekv.h\
