@@ -451,9 +451,6 @@ status_t pgraph_t::query_adjlist_td(sgraph_t** sgraph, sflag_t oflag, srset_t* i
     tid_t    iset_count = iset->get_rset_count();
     rset_t*        rset = 0;
 
-    //prepare the output 1,2;
-    oset->full_setup(oflag);
-
     for (tid_t i = 0; i < iset_count; ++i) {
         rset = iset->rset + i;
         vid_t v_count = rset->get_vcount();
@@ -487,9 +484,6 @@ status_t pgraph_t::query_kv_td(skv_t** skv, sflag_t oflag, srset_t* iset, srset_
     tid_t    iset_count = iset->get_rset_count();
     rset_t*        rset = 0;
 
-    //prepare the output 1,2;
-    oset->full_setup(oflag);
-
     for (tid_t i = 0; i < iset_count; ++i) {
         rset = iset->rset + i;
         vid_t v_count = rset->get_vcount();
@@ -515,10 +509,8 @@ status_t pgraph_t::query_adjlist_bu(sgraph_t** sgraph, sflag_t flag, srset_t* is
 {
     rset_t* rset = 0;
     tid_t   tid  = 0;
+    tid_t oset_count = oset->get_rset_count();
 
-    //prepare the output 1,2;
-    tid_t oset_count = oset->full_setup(flag);
-    
     for (tid_t i = 0; i < oset_count; ++i) {
         
         //get the graph where we will traverse
@@ -550,10 +542,7 @@ status_t pgraph_t::query_kv_bu(skv_t** skv, sflag_t flag, srset_t* iset, srset_t
 {
     rset_t*  rset = 0;
     tid_t    tid  = 0;
-
-    //prepare the output 1;
-    tid_t oset_count = oset->full_setup(flag);
-    
+    tid_t    oset_count = oset->get_rset_count();
     for (tid_t i = 0; i < oset_count; ++i) {
 
         //get the graph where we will traverse

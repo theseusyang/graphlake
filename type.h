@@ -31,13 +31,14 @@ typedef uint16_t qid_t;
 
 
 #define INVALID_PID 0xFFFFFFFF
-#define INVALID_TID 0xFFFFFF
+#define INVALID_TID 0xFFFFFFFF
 #define INVALID_SID 0xFFFFFFFFFFFFFFFF
 
 #define NO_QID 0xFFFF
 
 class pinfo_t;
-
+class skv_t;
+class sgraph_t;
 
 enum direction_t {
     eout = 0, 
@@ -400,6 +401,8 @@ class srset_t {
     status_t apply_typefilter(tid_t tid);
   
     tid_t full_setup(sflag_t sflag);
+    tid_t full_setup(sgraph_t** sgraph);
+    tid_t full_setup(skv_t** skv);
     tid_t copy_setup(srset_t* iset, int union_type);
     
     

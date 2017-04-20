@@ -162,7 +162,10 @@ status_t pinfo_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
 
 status_t ugraph_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
 {
+    //prepare the output 1,2;
+    oset->full_setup(flag2);
     int total_count = 0;
+    
     if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
         return query_adjlist_td(sgraph, flag2, iset, oset);
     } else { //bottom up approach
@@ -175,7 +178,9 @@ status_t ugraph_t::transform(srset_t* iset, srset_t* oset, direction_t direction
 status_t many2one_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
 {
     int total_count = 0;
+
     if (direction == eout) {
+        oset->full_setup(sgraph_in);
         total_count = 0;
         if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
             return query_kv_td(skv_out, flag2, iset, oset);
@@ -184,6 +189,7 @@ status_t many2one_t::transform(srset_t* iset, srset_t* oset, direction_t directi
         }
     } else {
         assert(direction == ein);
+        oset->full_setup(skv_out);
         total_count = 0;
         if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
             return query_adjlist_td(sgraph_in, flag1, iset, oset);
@@ -199,6 +205,7 @@ status_t dgraph_t::transform(srset_t* iset, srset_t* oset, direction_t direction
     int total_count = 0;
     if (direction == eout) {
         total_count = 0;
+        oset->full_setup(sgraph_in);
         if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
             return query_adjlist_td(sgraph_out, flag2, iset, oset);
         } else { //bottom up approach
@@ -207,6 +214,7 @@ status_t dgraph_t::transform(srset_t* iset, srset_t* oset, direction_t direction
     } else {
         assert(direction == ein);
         total_count = 0;
+        oset->full_setup(sgraph_out);
         if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
             return query_adjlist_td(sgraph_in, flag1, iset, oset);
         } else { //bottom up approach 
@@ -221,6 +229,7 @@ status_t one2one_t::transform(srset_t* iset, srset_t* oset, direction_t directio
     int total_count = 0;
     if (direction == eout) {
         total_count = 0;
+        oset->full_setup(skv_in);
         if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
             return query_kv_td(skv_out, flag2, iset, oset);
         } else { //bottom up approach
@@ -229,6 +238,7 @@ status_t one2one_t::transform(srset_t* iset, srset_t* oset, direction_t directio
     } else {
         assert(direction == ein);
         total_count = 0;
+        oset->full_setup(skv_out);
         if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
             return query_kv_td(skv_in, flag1, iset, oset);
         } else { //bottom up approach 
@@ -243,6 +253,7 @@ status_t one2many_t::transform(srset_t* iset, srset_t* oset, direction_t directi
     int total_count = 0;
     if (direction == eout) {
         total_count = 0;
+        oset->full_setup(skv_in);
         if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
             return query_adjlist_td(sgraph_out, flag2, iset, oset);
         } else { //bottom up approach
@@ -251,6 +262,7 @@ status_t one2many_t::transform(srset_t* iset, srset_t* oset, direction_t directi
     } else {
         assert(direction == ein);
         total_count = 0;
+        oset->full_setup(sgraph_out);
         if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
             return query_kv_td(skv_in, flag1, iset, oset);
         } else { //bottom up approach 

@@ -206,6 +206,82 @@ tid_t srset_t::full_setup(sflag_t a_flag)
     return flag_count;
 }
 
+tid_t srset_t::full_setup(sgraph_t** sgraph) 
+{
+    tid_t t_count = g->get_total_types();
+    flag = (tid_t*) malloc(sizeof(tid_t)*t_count);
+    memset(flag, INVALID_TID, sizeof(tid_t)*t_count);
+    
+    tid_t flag_count = 0;
+    
+    if (tfilter_count) {
+        for(tid_t i = 0; i < tfilter_count; i++) {
+            if (0 != sgraph[tfilter[i]]) {
+                flag[tfilter[i]] = flag_count;
+                ++flag_count;
+            }
+        }
+    } else {
+        for(tid_t i = 0; i < t_count; i++) {
+            if (0 != sgraph[i]) {
+                flag[i] = flag_count;
+                ++flag_count;
+            }
+        }
+    }
+    
+    ccount = TO_SUPER(flag_count);
+    rset = (rset_t*)calloc(sizeof(rset_t), flag_count);
+    
+    tid_t pos = 0;
+    sid_t super_id;
+    for (tid_t i = 0; i < t_count; ++i) {
+        if (INVALID_TID == flag[i]) continue;
+        super_id = g->get_type_scount(i);
+        pos = flag[i];
+        rset[pos].setup(super_id);
+    }
+    return flag_count;
+}
+
+tid_t srset_t::full_setup(skv_t** skv) 
+{
+    tid_t t_count = g->get_total_types();
+    flag = (tid_t*) malloc(sizeof(tid_t)*t_count);
+    memset(flag, INVALID_TID, sizeof(tid_t)*t_count);
+    
+    tid_t flag_count = 0;
+    
+    if (tfilter_count) {
+        for(tid_t i = 0; i < tfilter_count; i++) {
+            if (0 != skv[tfilter[i]]) {
+                flag[tfilter[i]] = flag_count;
+                ++flag_count;
+            }
+        }
+    } else {
+        for(tid_t i = 0; i < t_count; i++) {
+            if (0 != skv[i]) {
+                flag[i] = flag_count;
+                ++flag_count;
+            }
+        }
+    }
+    
+    ccount = TO_SUPER(flag_count);
+    rset = (rset_t*)calloc(sizeof(rset_t), flag_count);
+    
+    tid_t pos = 0;
+    sid_t super_id;
+    for (tid_t i = 0; i < t_count; ++i) {
+        if (INVALID_TID == flag[i]) continue;
+        super_id = g->get_type_scount(i);
+        pos = flag[i];
+        rset[pos].setup(super_id);
+    }
+    return flag_count;
+}
+
 //Filter can not be applied to eAdjlist and eKV
 tid_t srset_t::copy_setup(srset_t* iset, int union_type) 
 {
