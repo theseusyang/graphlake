@@ -446,7 +446,7 @@ void pgraph_t::fill_skv(skv_t** skv_out, skv_t** skv_in)
 }
 
 
-status_t pgraph_t::query_adjlist_td(sgraph_t** sgraph, sflag_t oflag, srset_t* iset, srset_t* oset)
+status_t pgraph_t::query_adjlist_td(sgraph_t** sgraph, srset_t* iset, srset_t* oset)
 {
     tid_t    iset_count = iset->get_rset_count();
     rset_t*        rset = 0;
@@ -479,7 +479,7 @@ status_t pgraph_t::query_adjlist_td(sgraph_t** sgraph, sflag_t oflag, srset_t* i
     return eOK;
 }
 
-status_t pgraph_t::query_kv_td(skv_t** skv, sflag_t oflag, srset_t* iset, srset_t* oset)
+status_t pgraph_t::query_kv_td(skv_t** skv, srset_t* iset, srset_t* oset)
 {
     tid_t    iset_count = iset->get_rset_count();
     rset_t*        rset = 0;
@@ -505,7 +505,7 @@ status_t pgraph_t::query_kv_td(skv_t** skv, sflag_t oflag, srset_t* iset, srset_
 }
 
 //sgraph_in and oset share the same flag.
-status_t pgraph_t::query_adjlist_bu(sgraph_t** sgraph, sflag_t flag, srset_t* iset, srset_t* oset)
+status_t pgraph_t::query_adjlist_bu(sgraph_t** sgraph, srset_t* iset, srset_t* oset)
 {
     rset_t* rset = 0;
     tid_t   tid  = 0;
@@ -538,7 +538,7 @@ status_t pgraph_t::query_adjlist_bu(sgraph_t** sgraph, sflag_t flag, srset_t* is
     return eOK;
 }
 
-status_t pgraph_t::query_kv_bu(skv_t** skv, sflag_t flag, srset_t* iset, srset_t* oset) 
+status_t pgraph_t::query_kv_bu(skv_t** skv, srset_t* iset, srset_t* oset) 
 {
     rset_t*  rset = 0;
     tid_t    tid  = 0;

@@ -37,8 +37,7 @@ class pkv_t: public pinfo_t {
     lgraph_t* prep_lgraph(index_t ecount);
     lkv_t<T>** prep_lkv();
     void fill_kv_out();
-    void fill_adj_list_kv(lkv_t<T>** lkv_out, lgraph_t* lgraph_in, 
-                        sflag_t flag1);
+    void fill_adj_list_kv(lkv_t<T>** lkv_out, lgraph_t* lgraph_in);
     
     void prep_lgraph_internal(lgraph_t* lgraph_in, index_t ecount);
     void store_lgraph(lgraph_t* lgraph_in, string dir, string postfix);
@@ -159,8 +158,7 @@ void pkv_t<T>::fill_kv_out()
 }
 
 template<class T>
-void pkv_t<T>::fill_adj_list_kv(lkv_t<T>** lkv_out, lgraph_t* lgraph_in, 
-                             sflag_t flag1)
+void pkv_t<T>::fill_adj_list_kv(lkv_t<T>** lkv_out, lgraph_t* lgraph_in)
 {
     sid_t src;
     T         dst;
