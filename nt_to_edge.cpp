@@ -73,11 +73,12 @@ void graph::prep_graph(string idirname, string odirname)
     }
     closedir(dir);
 
-    //make graph
     //swap 
     for (int i = 0; i < p_count; i++) {
         p_info[i]->swap_log_buffer();
     }
+    
+    //make graph
     for (int i = 0; i < p_count; i++) {
         p_info[i]->make_graph_baseline();
     }
@@ -95,7 +96,10 @@ void graph::update_graph(string idirname, string odirname)
     string subject, predicate, object, useless_dot;
     int file_count = 0;
 
-    //reset the log buffer
+    //reset the log buffer, flags
+    for (int i = 0; i < p_count; i++) {
+        p_info[i]->reset();
+    }
     
     //Read graph file for types 
     dir = opendir(idirname.c_str());

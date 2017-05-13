@@ -21,6 +21,10 @@ void dgraph_t::make_graph_baseline()
     fill_adj_list(sgraph_out, sgraph_in);
 }
 
+void dgraph_t::make_graph_update()
+{
+}
+
 void dgraph_t::store_graph_baseline(string dir)
 {
     if (batch_info[0].count == 0) return;
@@ -52,6 +56,14 @@ void ugraph_t::make_graph_baseline()
 
     //populate and get the original count back
     fill_adj_list(sgraph, sgraph);
+
+    //clean up
+    cleanup();
+}
+
+void ugraph_t::make_graph_update()
+{
+
 }
 
 void ugraph_t::store_graph_baseline(string dir)
@@ -82,6 +94,11 @@ void many2one_t::make_graph_baseline()
     //populate and get the original count back
     //handle kv_out as well.
     fill_adj_list_in(skv_out, sgraph_in);
+}
+
+void many2one_t::make_graph_update()
+{
+
 }
 
 void many2one_t::store_graph_baseline(string dir)
@@ -116,6 +133,11 @@ void one2many_t::make_graph_baseline()
     fill_adj_list_out(sgraph_out, skv_in);
 }
 
+void one2many_t::make_graph_update()
+{
+
+}
+
 void one2many_t::store_graph_baseline(string dir)
 {
     if (batch_info[0].count == 0) return;
@@ -138,6 +160,11 @@ void one2one_t::make_graph_baseline()
 
     //handle kv_out as well as kv_in.
     fill_skv(skv_out, skv_in);
+}
+
+void one2one_t::make_graph_update()
+{
+
 }
 
 void one2one_t::store_graph_baseline(string dir)

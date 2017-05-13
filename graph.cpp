@@ -98,18 +98,33 @@ pinfo_t::pinfo_t()
     batch_count = 0;
     batch_info1 = (batchinfo_t*)calloc(sizeof(batchinfo_t), MAX_BCOUNT);
     batch_count1 = 0;
-    for (uint32_t i = 0; i < MAX_BCOUNT; ++i) {
-        batch_info[i].buf = calloc(sizeof(edge_t), MAX_ECOUNT);
-        batch_info[i].count = 0; 
-        batch_info1[i].buf = calloc(sizeof(edge_t), MAX_ECOUNT);
-        batch_info1[i].count = 0; 
-    }
+    //Only first buffer is allocated.
+    //Others are allocated at runtime
+    batch_info[0].buf = calloc(sizeof(edge_t), MAX_ECOUNT);
+    batch_info[0].count = 0; 
+    batch_info1[0].buf = calloc(sizeof(edge_t), MAX_ECOUNT);
+    batch_info1[0].count = 0; 
+    flag1 = 0;
+    flag2 = 0;
+    flag1_count = 0;
+    flag2_count = 0;
 }
 
 void pinfo_t::swap_log_buffer()
 {
     swap(batch_info, batch_info1);
     swap(batch_count, batch_count1);
+}
+
+void pinfo_t::cleanup()
+{
+    batch_info[0].count = 0;
+    for (uint32_t i = 1; i <= batch_count; ++i) {
+        free(batch_info[i].buf);
+        batch_info[i].buf = 0;
+        batch_info[i].count = 0;
+    }
+    batch_count = 0;
 }
 
 void pinfo_t::reset_buffer0()
@@ -128,13 +143,23 @@ void pinfo_t::reset_buffer1()
     }
 }
 
-/************* Semantic graphs  *****************/
-pgraph_t::pgraph_t()
+void pinfo_t::reset()
 {
     flag1 = 0;
     flag2 = 0;
     flag1_count = 0;
     flag2_count = 0;
+    
+    batch_count1 = 0;
+    for (uint32_t i = 0; i < MAX_BCOUNT; ++i) {
+        batch_info1[i].count = 0; 
+    }
+}
+
+
+/************* Semantic graphs  *****************/
+pgraph_t::pgraph_t()
+{
 }
 
 //Applicable to graphs only, labels should be aware of it.
@@ -164,6 +189,8 @@ void pgraph_t::batch_update(const string& src, const string& dst)
 
     if (batch_info1[batch_count1].count == MAX_ECOUNT) {
         ++batch_count1;
+        batch_info1[batch_count1].count = 0;
+        batch_info1[batch_count1].buf = calloc(sizeof(edge_t), MAX_ECOUNT);
     }
     index = batch_info1[batch_count1].count++;
     edges = (edge_t*) batch_info1[batch_count1].buf;

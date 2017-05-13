@@ -47,14 +47,20 @@ class pinfo_t {
 
     batchinfo_t* batch_info1;
     uint8_t      batch_count1;
+    
+    sflag_t     flag1;
+    sflag_t     flag2;
+    uint8_t     flag1_count;
+    uint8_t     flag2_count;
    
  public: 
     pinfo_t();   
-
+    void reset();
  public:
     void populate_property(const char* longname, const char* property_name);
     virtual void batch_update(const string& src, const string& dst);
     void swap_log_buffer(); 
+    void cleanup();
     void reset_buffer0();
     void reset_buffer1();
     virtual void make_graph_baseline();
@@ -112,10 +118,6 @@ class graph {
 /******** graphs **************/
 class pgraph_t: public pinfo_t {
   public:    
-    sflag_t     flag1;
-    tid_t       flag2;
-    uint8_t     flag1_count;
-    uint8_t     flag2_count;
  
     //graph specific functions 
     void batch_update(const string& src, const string& dst);
@@ -157,6 +159,7 @@ class ugraph_t: public pgraph_t {
 
  public:
     void make_graph_baseline();
+    virtual void make_graph_update();
     void store_graph_baseline(string dir);
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
@@ -169,6 +172,7 @@ class dgraph_t: public pgraph_t {
     sgraph_t** sgraph_in; 
  public:
     void make_graph_baseline();
+    virtual void make_graph_update();
     void store_graph_baseline(string dir);
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
@@ -181,6 +185,7 @@ class many2one_t: public pgraph_t {
 
  public:
     void make_graph_baseline();
+    virtual void make_graph_update();
     void store_graph_baseline(string dir);
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
@@ -193,6 +198,7 @@ class one2one_t: public pgraph_t {
 
  public:
     void make_graph_baseline();
+    virtual void make_graph_update();
     void store_graph_baseline(string dir);
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
@@ -205,6 +211,7 @@ class one2many_t: public pgraph_t {
 
  public:
     void make_graph_baseline();
+    virtual void make_graph_update();
     void store_graph_baseline(string dir);
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);

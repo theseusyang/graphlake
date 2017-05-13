@@ -28,8 +28,8 @@ class pkv_t: public pinfo_t {
     lgraph_t*  lgraph_in;
     vid_t*     nebr_count;
     
-    uint64_t  flag1;
-    uint8_t   flag1_count;
+    //uint64_t  flag1;
+    //uint8_t   flag1_count;
 
     //Flag2 is not required.
 
