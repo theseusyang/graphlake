@@ -23,6 +23,20 @@ void dgraph_t::make_graph_baseline()
 
 void dgraph_t::make_graph_update()
 {
+    //estimate edge count
+    calc_edge_count(sgraph_out, sgraph_in);
+
+    //allocate space for old+new adj list, 
+    //Copy the old adj list to new one
+    //keep the old count
+    //prefix sum then reset the count
+    prep_sgraph_internal(sgraph_out);
+    prep_sgraph_internal(sgraph_in);
+    
+
+    //populate the adj list for new members at the end.
+
+    //Do you want to sort it?, use merge sort
 }
 
 void dgraph_t::store_graph_baseline(string dir)

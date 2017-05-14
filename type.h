@@ -139,10 +139,17 @@ public:
     sid_t*   adj_list;
 
  public:
-    //used during initial setup only
+
     inline void setup(vid_t a_count) {
-        adj_list = (vid_t*) calloc(sizeof(vid_t), a_count+1);
+        vid_t count = a_count;
+        if (adj_list) {
+            count += adj_list[0];
+            adj_list = (vid_t*) realloc(adj_list, sizeof(vid_t)*(count+1));
+        } else {
+            adj_list = (vid_t*) calloc(sizeof(vid_t), count+1);
+        }
     }
+
     inline void add_nebr(sid_t sid) { 
         adj_list[++adj_list[0]] = sid; 
     }
@@ -182,6 +189,9 @@ public:
     }
     inline void add_nebr(vid_t vid, sid_t sid) { beg_pos[vid].add_nebr(sid); }
 
+    inline void reset_count(vid_t vid) {
+        nebr_count[vid] = 0;
+    }
     inline beg_pos_t* get_begpos() { return beg_pos;}
     inline vid_t get_vcount() { return TO_VID(super_id);}
     inline tid_t get_tid() { return TO_TID(super_id);}

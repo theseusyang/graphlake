@@ -16,6 +16,12 @@ void* alloc_buf()
     return calloc(sizeof(edge_t), MAX_ECOUNT);
 }
 
+void free_buf(void* buf)
+{
+    free(buf);
+    buf = 0;
+}
+
 sid_t graph::get_type_scount(tid_t type)
 {
     typekv_t* typekv = dynamic_cast<typekv_t*>(p_info[0]);
@@ -127,7 +133,7 @@ void pinfo_t::cleanup()
 {
     batch_info[0].count = 0;
     for (uint32_t i = 1; i <= batch_count; ++i) {
-        free(batch_info[i].buf);
+        free_buf(batch_info[i].buf);
         batch_info[i].buf = 0;
         batch_info[i].count = 0;
     }
@@ -310,6 +316,7 @@ void pgraph_t::prep_sgraph_internal(sgraph_t** sgraph)
         v_count = sgraph[i]->get_vcount();
         for (vid_t j = 0; j < v_count; ++j) {
             sgraph[i]->setup_adjlist(j);
+            sgraph[i]->reset_count(j);
         }
     }
 }
