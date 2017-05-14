@@ -50,6 +50,7 @@ enum status_t {
     eInvalidPID,
     eInvalidVID,
     eQueryFail,
+    eEndBatch,
     eUnknown        
 };
 

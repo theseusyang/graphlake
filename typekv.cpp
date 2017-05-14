@@ -1,6 +1,6 @@
 #include "typekv.h"
 
-void typekv_t::batch_update(const string& src, const string& dst)
+status_t typekv_t::batch_update(const string& src, const string& dst)
 {
     vid_t       src_id;
     tid_t       type_id;
@@ -31,6 +31,8 @@ void typekv_t::batch_update(const string& src, const string& dst)
         //dublicate entry XXX
         src_id = str2vid_iter->second;
     }
+
+    return eOK;
 }
 
 

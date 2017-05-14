@@ -10,6 +10,12 @@ graph::graph()
     vert_count = 0;
     v_graph =  new vgraph_t;
 }
+
+void* alloc_buf()
+{
+    return calloc(sizeof(edge_t), MAX_ECOUNT);
+}
+
 sid_t graph::get_type_scount(tid_t type)
 {
     typekv_t* typekv = dynamic_cast<typekv_t*>(p_info[0]);
@@ -51,9 +57,10 @@ sid_t graph::get_sid(const char* src)
 }
 
 /////////////////////////////////////////
-void pinfo_t::batch_update(const string& src, const string& dst)
+status_t pinfo_t::batch_update(const string& src, const string& dst)
 {
     assert(0);
+    return  eOK;
 }
     
 void pinfo_t::make_graph_baseline()
@@ -163,11 +170,19 @@ pgraph_t::pgraph_t()
 }
 
 //Applicable to graphs only, labels should be aware of it.
-void pgraph_t::batch_update(const string& src, const string& dst)
+status_t pgraph_t::batch_update(const string& src, const string& dst)
 {
     vid_t src_id, dst_id;
     index_t index = 0;
     edge_t* edges;
+
+    if (batch_info1[batch_count1].count == MAX_ECOUNT) {
+        void* mem = alloc_buf();
+        if (mem == 0) return eEndBatch;
+        ++batch_count1;
+        batch_info1[batch_count1].count = 0;
+        batch_info1[batch_count1].buf = mem; 
+    }
     
     map<string, vid_t>::iterator str2vid_iter = g->str2vid.find(src);
     if (g->str2vid.end() == str2vid_iter) {
@@ -186,17 +201,13 @@ void pgraph_t::batch_update(const string& src, const string& dst)
     }
     type_id = TO_TID(dst_id);
     flag2 |= TID_TO_SFLAG(type_id);
-
-    if (batch_info1[batch_count1].count == MAX_ECOUNT) {
-        ++batch_count1;
-        batch_info1[batch_count1].count = 0;
-        batch_info1[batch_count1].buf = calloc(sizeof(edge_t), MAX_ECOUNT);
-    }
+    
     index = batch_info1[batch_count1].count++;
     edges = (edge_t*) batch_info1[batch_count1].buf;
 
     edges[index].src_id = src_id; 
     edges[index].dst_id = dst_id;
+    return eOK;
 }
 
 //super bins memory allocation

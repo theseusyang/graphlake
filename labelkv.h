@@ -50,7 +50,7 @@ class pkv_t: public pinfo_t {
 class stringkv_t : public pkv_t<char*> {
  protected:
  public:
-    void batch_update(const string& src, const string& dst);
+    status_t batch_update(const string& src, const string& dst);
     void store_graph_baseline(string dir);
 
     void get_raw_dst(tid_t tid, vid_t vid);

@@ -62,7 +62,7 @@ class typekv_t : public pinfo_t {
         return t_count;
     }
     
-    void batch_update(const string& src, const string& dst);
+    status_t batch_update(const string& src, const string& dst);
     inline void make_graph_baseline();
     void store_graph_baseline(string dir) {}
 

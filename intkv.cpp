@@ -5,12 +5,22 @@ typedef struct __label_int64_t {
     int64_t dst_id;
 } label_int64_t;
 
-void int64kv_t::batch_update(const string& src, const string& dst)
+status_t int64kv_t::batch_update(const string& src, const string& dst)
 {
     vid_t src_id;
     uint64_t dst_id;
     index_t index = 0;
-    label_int64_t* edges = (label_int64_t*) batch_info[batch_count].buf;
+    label_int64_t* edges;
+    
+    if (batch_info1[batch_count1].count == MAX_ECOUNT) {
+        void* mem = alloc_buf();
+        if (mem == 0) return eEndBatch;
+        ++batch_count1;
+        batch_info1[batch_count1].count = 0;
+        batch_info1[batch_count1].buf = mem; 
+    }
+    edges = (edge_t*) batch_info1[batch_count1].buf;
+   
     map<string, vid_t>::iterator str2vid_iter = str2vid.find(src);
     if (str2vid.end() == str2vid_iter) {
         src_id = vert_count++;
@@ -23,6 +33,7 @@ void int64kv_t::batch_update(const string& src, const string& dst)
     index = count++;
     edges[index].src_id = src_id; 
     edges[index].dst_id = dst_id;
+    return eOk;
 }
     
 void int64kv_t::make_graph_baseline()

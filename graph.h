@@ -21,6 +21,8 @@ inline char* gstrdup(const char* str)
 {
     return strdup(str);
 }
+    
+void* alloc_buf();
 
 #define bu_factor 0.07
 #define MAX_BCOUNT 256
@@ -58,7 +60,7 @@ class pinfo_t {
     void reset();
  public:
     void populate_property(const char* longname, const char* property_name);
-    virtual void batch_update(const string& src, const string& dst);
+    virtual status_t batch_update(const string& src, const string& dst);
     void swap_log_buffer(); 
     void cleanup();
     void reset_buffer0();
@@ -120,7 +122,7 @@ class pgraph_t: public pinfo_t {
   public:    
  
     //graph specific functions 
-    void batch_update(const string& src, const string& dst);
+    status_t batch_update(const string& src, const string& dst);
  
  public:
     pgraph_t();
