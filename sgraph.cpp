@@ -6,8 +6,13 @@ void dgraph_t::make_graph_baseline()
     flag2_count = __builtin_popcountll(flag2);
 
     //super bins memory allocation
-    sgraph_out = prep_sgraph(flag1, flag1_count);    
-    sgraph_in  = prep_sgraph(flag2, flag2_count);
+    tid_t   t_count = g->get_total_types();
+    
+    sgraph_out  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+    prep_sgraph(flag1, sgraph_out);    
+    
+    sgraph_in  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+    prep_sgraph(flag2, sgraph_in);
 
     //estimate edge count
     calc_edge_count(sgraph_out, sgraph_in);
@@ -35,6 +40,7 @@ void dgraph_t::make_graph_update()
     
 
     //populate the adj list for new members at the end.
+    fill_adj_list(sgraph_out, sgraph_in);
 
     //Do you want to sort it?, use merge sort
 }
@@ -58,7 +64,10 @@ void ugraph_t::make_graph_baseline()
     flag2_count = flag1_count;
 
     //super bins memory allocation
-    sgraph = prep_sgraph(flag1, flag1_count);    
+    tid_t   t_count = g->get_total_types();
+    
+    sgraph  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+    prep_sgraph(flag1, sgraph);    
 
     //estimate edge count
     calc_edge_count(sgraph, sgraph);
@@ -95,8 +104,12 @@ void many2one_t::make_graph_baseline()
     flag2_count = __builtin_popcountll(flag2);
 
     //super bins memory allocation
+    tid_t   t_count = g->get_total_types();
+    
+    sgraph_in  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+    prep_sgraph(flag2, sgraph_in);
+    
     skv_out  = prep_skv(flag1, flag1_count);
-    sgraph_in  = prep_sgraph(flag2, flag2_count);
 
     //estimate edge count
     calc_edge_count_in(sgraph_in);
@@ -132,7 +145,11 @@ void one2many_t::make_graph_baseline()
     flag2_count = __builtin_popcountll(flag2);
 
     //super bins memory allocation
-    sgraph_out = prep_sgraph(flag1, flag1_count);
+    tid_t   t_count = g->get_total_types();
+    
+    sgraph_out  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+    prep_sgraph(flag1, sgraph_out);
+    
     skv_in   = prep_skv(flag2, flag2_count);
 
     //estimate edge count

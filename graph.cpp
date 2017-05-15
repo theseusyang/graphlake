@@ -217,21 +217,22 @@ status_t pgraph_t::batch_update(const string& src, const string& dst)
 }
 
 //super bins memory allocation
-sgraph_t** pgraph_t::prep_sgraph(sflag_t ori_flag, tid_t flag_count)
+sgraph_t** pgraph_t::prep_sgraph(sflag_t ori_flag, sgraph_t** sgraph )
 {
-    sflag_t flag = ori_flag;
-    tid_t   t_count = g->get_total_types();
-    sgraph_t** sgraph  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
-    
     sid_t super_id;
     tid_t   pos = 0;
+    
+    sflag_t      flag = ori_flag;
+    tid_t  flag_count = __builtin_popcountll(flag);
     
     for(tid_t i = 0; i < flag_count; i++) {
         pos = __builtin_ctzll(flag);
         flag ^= (1L << pos);//reset that position
         super_id = g->get_type_scount(pos);
-        sgraph[pos] = new sgraph_t;
-        sgraph[pos]->setup(super_id);
+        if (0 == sgraph[pos]) {
+            sgraph[pos] = new sgraph_t;
+            sgraph[pos]->setup(super_id);
+        }
     }
     return sgraph;
 }
