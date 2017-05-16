@@ -24,6 +24,7 @@ class enumkv_t : public pkv_t<T> {
     using pkv_t<T>::prep_lkv;
     using pkv_t<T>::lgraph_in;
     using pkv_t<T>::nebr_count;
+    using pkv_t<T>::cleanup;
 
   public:
     enumkv_t();
@@ -103,7 +104,7 @@ void enumkv_t<T>::make_graph_baseline()
     fill_adj_list_kv(lkv_out, lgraph_in);
     
     //clean up
-    //cleanup();
+    cleanup();
 }
 
 
