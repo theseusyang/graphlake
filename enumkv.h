@@ -101,6 +101,9 @@ void enumkv_t<T>::make_graph_baseline()
     prep_lgraph_internal(lgraph_in, ecount);
     
     fill_adj_list_kv(lkv_out, lgraph_in);
+    
+    //clean up
+    //cleanup();
 }
 
 

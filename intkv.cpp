@@ -38,19 +38,17 @@ status_t int64kv_t::batch_update(const string& src, const string& dst)
     
 void int64kv_t::make_graph_baseline()
 {
-    if (count == 0) return;
+    if (batch_info[0].count == 0) return;
+    flag1_count = __builtin_popcountll(flag1);
+    
+    //super bins memory allocation
+    prep_lkv();
+    
+    fill_kv_out();
+    
+    //clean up
+    cleanup();
 
-    vid_t src;
-    int64_t dst;
-    label_int64_t* edges = (label_int64_t*) batch_info[batch_count].buf;
-    kv_out = (int64_t*)calloc(sizeof(int64_t), vert_count);
-
-    //populate
-    for (index_t i = 0; i < count; ++i) {
-        src = edges[i].src_id;
-        dst = edges[i].dst_id;
-        kv_out[src] = dst;
-    }
 }
 
     
