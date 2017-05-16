@@ -400,6 +400,20 @@ void pgraph_t::fill_adj_list_out(sgraph_t** sgraph_out, skv_t** skv_in)
     }
 }
 
+void pgraph_t::update_count(sgraph_t** sgraph)
+{
+    vid_t       v_count = 0;
+    tid_t       t_count = g->get_total_types();
+    
+    for(tid_t i = 0; i < t_count; i++) {
+        if (0 == sgraph[i]) continue;
+        v_count = sgraph[i]->get_vcount();
+        for (vid_t j = 0; j < v_count; ++j) {
+            sgraph[i]->update_count(j);
+        }
+    }
+}
+
 void pgraph_t::store_sgraph(sgraph_t** sgraph, string dir, string postfix)
 {
     /*

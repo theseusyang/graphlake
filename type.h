@@ -150,8 +150,16 @@ public:
         }
     }
 
-    inline void add_nebr(sid_t sid) { 
-        adj_list[++adj_list[0]] = sid; 
+    inline void add_nebr(vid_t index, sid_t sid) { 
+        adj_list[index] = sid; 
+    }
+
+    inline void set_nebrcount(vid_t count) {
+        adj_list[0] = count;
+    }
+
+    inline vid_t get_nebrcount() {
+        return adj_list[0];
     }
     //
     inline void copy(beg_pos_t* beg_pos) {
@@ -178,6 +186,7 @@ private:
 public:
     //used during initial setup only
     inline void setup(sid_t sid) {
+        //XXX: need to reserve more vertex id space then the current number.
         super_id = sid;
         vid_t v_count = TO_VID(sid);
         beg_pos = (beg_pos_t*)calloc(sizeof(beg_pos_t), v_count);
@@ -187,10 +196,16 @@ public:
     inline void setup_adjlist(vid_t vid) {
         beg_pos[vid].setup(nebr_count[vid]);
     }
-    inline void add_nebr(vid_t vid, sid_t sid) { beg_pos[vid].add_nebr(sid); }
+    inline void add_nebr(vid_t vid, sid_t sid) { 
+        ++nebr_count[vid];
+        beg_pos[vid].add_nebr(nebr_count[vid], sid);
+    }
 
+    inline void update_count(vid_t vid) {
+        beg_pos[vid].set_nebrcount(nebr_count[vid]);
+    }
     inline void reset_count(vid_t vid) {
-        nebr_count[vid] = 0;
+        nebr_count[vid] = beg_pos[vid].get_nebrcount();
     }
     inline beg_pos_t* get_begpos() { return beg_pos;}
     inline vid_t get_vcount() { return TO_VID(super_id);}

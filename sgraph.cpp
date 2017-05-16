@@ -24,6 +24,8 @@ void dgraph_t::make_graph_baseline()
 
     //populate and get the original count back
     fill_adj_list(sgraph_out, sgraph_in);
+    update_count(sgraph_out);
+    update_count(sgraph_in);
 }
 
 void dgraph_t::make_graph_update()
@@ -79,6 +81,7 @@ void ugraph_t::make_graph_baseline()
 
     //populate and get the original count back
     fill_adj_list(sgraph, sgraph);
+    update_count(sgraph);
 
     //clean up
     cleanup();
@@ -121,6 +124,7 @@ void many2one_t::make_graph_baseline()
     //populate and get the original count back
     //handle kv_out as well.
     fill_adj_list_in(skv_out, sgraph_in);
+    update_count(sgraph_in);
 }
 
 void many2one_t::make_graph_update()
@@ -162,6 +166,7 @@ void one2many_t::make_graph_baseline()
     //populate and get the original count back
     //handle kv_in as well.
     fill_adj_list_out(sgraph_out, skv_in);
+    update_count(sgraph_out);
 }
 
 void one2many_t::make_graph_update()

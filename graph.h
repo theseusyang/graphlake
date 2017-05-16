@@ -135,6 +135,7 @@ class pgraph_t: public pinfo_t {
     void calc_edge_count_in(sgraph_t** sgraph_in); 
     
     void prep_sgraph_internal(sgraph_t** sgraph);
+    void update_count(sgraph_t** sgraph);
     
     void fill_adj_list(sgraph_t** sgraph_out, sgraph_t** sgraph_in);
     void fill_adj_list_in(skv_t** skv_out, sgraph_t** sgraph_in); 
