@@ -219,8 +219,7 @@ status_t pgraph_t::batch_update(const string& src, const string& dst)
 //super bins memory allocation
 sgraph_t** pgraph_t::prep_sgraph(sflag_t ori_flag, sgraph_t** sgraph )
 {
-    sid_t super_id;
-    tid_t   pos = 0;
+    tid_t   pos = 0;//it is tid
     
     sflag_t      flag = ori_flag;
     tid_t  flag_count = __builtin_popcountll(flag);
@@ -228,10 +227,9 @@ sgraph_t** pgraph_t::prep_sgraph(sflag_t ori_flag, sgraph_t** sgraph )
     for(tid_t i = 0; i < flag_count; i++) {
         pos = __builtin_ctzll(flag);
         flag ^= (1L << pos);//reset that position
-        super_id = g->get_type_scount(pos);
         if (0 == sgraph[pos]) {
             sgraph[pos] = new sgraph_t;
-            sgraph[pos]->setup(super_id);
+            sgraph[pos]->setup(pos);
         }
     }
     return sgraph;
@@ -309,16 +307,11 @@ void pgraph_t::calc_edge_count_in(sgraph_t** sgraph_in)
 //prefix sum, allocate adj list memory then reset the count
 void pgraph_t::prep_sgraph_internal(sgraph_t** sgraph)
 {
-    vid_t       v_count = 0;
     tid_t       t_count = g->get_total_types();
     
     for(tid_t i = 0; i < t_count; i++) {
         if (0 == sgraph[i]) continue;
-        v_count = sgraph[i]->get_vcount();
-        for (vid_t j = 0; j < v_count; ++j) {
-            sgraph[i]->setup_adjlist(j);
-            sgraph[i]->reset_count(j);
-        }
+        sgraph[i]->setup_adjlist();
     }
 }
 
@@ -442,17 +435,15 @@ void pgraph_t::store_sgraph(sgraph_t** sgraph, string dir, string postfix)
 skv_t** pgraph_t::prep_skv(sflag_t ori_flag, skv_t** skv)
 {
     tid_t   pos  = 0;
-    sid_t   super_id;
     sflag_t flag       = ori_flag;
     tid_t   flag_count = __builtin_popcountll(flag);
 
     for(tid_t i = 0; i < flag_count; i++) {
         pos = __builtin_ctz(flag);
         flag ^= (1L << pos);//reset that position
-        super_id = g->get_type_scount(pos);
         if (0 == skv[pos]) {
             skv[pos] = new skv_t;
-            skv[pos]->setup(super_id);
+            skv[pos]->setup(pos);
         }
     }
     return skv;

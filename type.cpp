@@ -343,3 +343,47 @@ status_t srset_t::apply_typefilter(tid_t tid)
     }
     return eQueryFail;
 }
+
+//////////////////////////////////////////////////////////
+void skv_t::setup(tid_t tid)
+{
+    if (0 == super_id) {
+        super_id = g->get_type_scount(tid);
+        vid_t v_count = TO_VID(super_id);
+        max_vcount = (v_count << 2);
+        kv = (vid_t*)calloc(sizeof(vid_t), max_vcount);
+    } else {
+        super_id = g->get_type_scount(tid);
+        vid_t v_count = TO_VID(super_id);
+        if (max_vcount < v_count) {
+            assert(0);
+        }
+    }
+}
+
+void sgraph_t::setup(tid_t tid)
+{
+    if(0 == super_id) {
+        super_id = g->get_type_scount(tid);
+        vid_t v_count = TO_VID(super_id);
+        max_vcount = (v_count << 1);
+        beg_pos = (beg_pos_t*)calloc(sizeof(beg_pos_t), max_vcount);
+        nebr_count = (vid_t*)calloc(sizeof(vid_t), max_vcount);
+    } else {
+        super_id = g->get_type_scount(tid);
+        vid_t v_count = TO_VID(super_id);
+        if (max_vcount < v_count) {
+            assert(0);
+        }
+    }
+}
+
+void sgraph_t::setup_adjlist()
+{
+    vid_t v_count = TO_VID(super_id);
+    for (vid_t vid = 0; vid < v_count; ++vid) {
+        beg_pos[vid].setup(nebr_count[vid]);
+        reset_count(vid);
+    }
+}
+

@@ -14,6 +14,14 @@ class lkv_t {
  public:
     T* kv;
     sid_t super_id;
+    vid_t max_vcount;
+    
+    inline void setup(tid_t tid) {
+        super_id = g->get_type_scount(tid);
+        vid_t v_count = TO_VID(super_id);
+        max_vcount = (v_count << 1);
+        kv = (T*)calloc(sizeof(T), max_vcount);
+    }
 };
 
 //lgraph doesn't need super id stuff
@@ -34,6 +42,11 @@ class pkv_t: public pinfo_t {
     //Flag2 is not required.
 
  public:
+    inline pkv_t() {
+        lkv_out = 0;
+        lgraph_in = 0;
+        nebr_count = 0;
+    }
     lgraph_t* prep_lgraph(index_t ecount);
     lkv_t<T>** prep_lkv();
     void fill_kv_out();
@@ -77,22 +90,22 @@ template<class T>
 lkv_t<T>** pkv_t<T>::prep_lkv()
 {
     sflag_t    flag = flag1;
-    tid_t   t_count = g->get_total_types();
-    lkv_t<T>** lkv  = (lkv_t<T>**) calloc (sizeof(lkv_t<T>*), t_count);
     tid_t      pos  = 0;
-    sid_t super_id;
-    vid_t v_count;
+    tid_t   t_count = g->get_total_types();
+    
+    if (0 == lkv_out) {
+        lkv_out = (lkv_t<T>**) calloc (sizeof(lkv_t<T>*), t_count);
+    }
 
     for(tid_t i = 0; i < flag1_count; i++) {
         pos = __builtin_ctz(flag);
         flag ^= (1L << pos);//reset that position
-        super_id = g->get_type_scount(pos);
-        v_count = TO_VID(super_id);
-        lkv[pos] = new lkv_t<T>;
-        lkv[pos]->kv = (T*)calloc(sizeof(T), v_count);
-        lkv[pos]->super_id = super_id;
+        if (0 == lkv_out[pos]) {
+            lkv_out[pos] = new lkv_t<T>;
+            lkv_out[pos]->setup(pos);
+        }
     }
-    return lkv;
+    return lkv_out;
 }
 
 template <class T>
@@ -192,11 +205,13 @@ void pkv_t<T>::make_graph_baseline()
     flag1_count = __builtin_popcountll(flag1);
     
     //super bins memory allocation
-    lkv_out  = prep_lkv();
+    prep_lkv();
 
     //populate and get the original count back
     //handle kv_out as well.
     fill_kv_out();
+
+    cleanup();
 }
 
 template <class T>

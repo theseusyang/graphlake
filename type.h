@@ -181,21 +181,22 @@ private:
     beg_pos_t* beg_pos;
 
     //count in adj list. Used during setup only.
-    vid_t* nebr_count;
+    vid_t*   nebr_count;
+
+    vid_t    max_vcount;
 
 public:
+    inline sgraph_t() {
+        super_id = 0;
+        beg_pos = 0;
+        nebr_count = 0;
+        max_vcount = 0;
+    }
     //used during initial setup only
-    inline void setup(sid_t sid) {
-        //XXX: need to reserve more vertex id space then the current number.
-        super_id = sid;
-        vid_t v_count = TO_VID(sid);
-        beg_pos = (beg_pos_t*)calloc(sizeof(beg_pos_t), v_count);
-        nebr_count = (vid_t*)calloc(sizeof(vid_t), v_count);
-    }
+    void setup(tid_t tid); 
+    void setup_adjlist(); 
+
     inline void increment_count(vid_t vid) { ++nebr_count[vid]; }
-    inline void setup_adjlist(vid_t vid) {
-        beg_pos[vid].setup(nebr_count[vid]);
-    }
     inline void add_nebr(vid_t vid, sid_t sid) { 
         ++nebr_count[vid];
         beg_pos[vid].add_nebr(nebr_count[vid], sid);
@@ -216,15 +217,17 @@ public:
 //one type's key-value store
 class skv_t {
  private:
-    sid_t super_id;
+    sid_t  super_id;
+    vid_t  max_vcount;
     sid_t* kv;
 
  public:
-    inline void setup(sid_t sid) {
-        super_id = sid;
-        vid_t v_count = TO_VID(sid);
-        kv = (vid_t*)calloc(sizeof(vid_t), v_count);
+    inline skv_t() {
+        super_id = 0;
+        max_vcount = 0;
+        kv = 0;
     }
+    void setup(tid_t tid);
 
     inline sid_t* get_kv() { return kv; }
     inline tid_t get_tid() { return TO_TID(super_id);}

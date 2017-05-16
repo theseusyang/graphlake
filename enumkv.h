@@ -100,7 +100,7 @@ void enumkv_t<T>::make_graph_baseline()
     //prefix sum then reset the count
     prep_lgraph_internal(lgraph_in, ecount);
     
-    fill_Adj_list_kv(lkv_out, lgraph_in);
+    fill_adj_list_kv(lkv_out, lgraph_in);
 }
 
 
