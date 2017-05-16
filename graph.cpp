@@ -439,20 +439,21 @@ void pgraph_t::store_sgraph(sgraph_t** sgraph, string dir, string postfix)
 
 /******************** super kv *************************/
 //super bins memory allocation
-skv_t** pgraph_t::prep_skv(sflag_t ori_flag, tid_t flag_count)
+skv_t** pgraph_t::prep_skv(sflag_t ori_flag, skv_t** skv)
 {
-    sflag_t flag = ori_flag;
-    tid_t   t_count = g->get_total_types();
-    skv_t**  skv  = (skv_t**) calloc (sizeof(skv_t*), t_count);
     tid_t   pos  = 0;
     sid_t   super_id;
+    sflag_t flag       = ori_flag;
+    tid_t   flag_count = __builtin_popcountll(flag);
 
     for(tid_t i = 0; i < flag_count; i++) {
         pos = __builtin_ctz(flag);
         flag ^= (1L << pos);//reset that position
         super_id = g->get_type_scount(pos);
-        skv[pos] = new skv_t;
-        skv[pos]->setup(super_id);
+        if (0 == skv[pos]) {
+            skv[pos] = new skv_t;
+            skv[pos]->setup(super_id);
+        }
     }
     return skv;
 }

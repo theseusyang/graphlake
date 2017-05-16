@@ -1,17 +1,23 @@
 #include "graph.h"
 
+//We assume that no new vertex type is defined
 void dgraph_t::make_graph_baseline()
 {
+    if (batch_info[0].count == 0) return;
     flag1_count = __builtin_popcountll(flag1);
     flag2_count = __builtin_popcountll(flag2);
 
     //super bins memory allocation
     tid_t   t_count = g->get_total_types();
     
-    sgraph_out  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+    if (0 == sgraph_out) {
+        sgraph_out  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+    }
     prep_sgraph(flag1, sgraph_out);    
     
-    sgraph_in  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+    if (0 == sgraph_in) {
+        sgraph_in  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+    }
     prep_sgraph(flag2, sgraph_in);
 
     //estimate edge count
@@ -46,6 +52,9 @@ void dgraph_t::make_graph_update()
 
     //populate the adj list for new members at the end.
     fill_adj_list(sgraph_out, sgraph_in);
+    
+    //clean up
+    cleanup();
 
     //Do you want to sort it?, use merge sort
 }
@@ -62,6 +71,7 @@ void dgraph_t::store_graph_baseline(string dir)
 /*******************************************/
 void ugraph_t::make_graph_baseline()
 {
+    if (batch_info[0].count == 0) return;
     flag1 = flag1 | flag2;
     flag2 = flag1;
 
@@ -71,12 +81,13 @@ void ugraph_t::make_graph_baseline()
     //super bins memory allocation
     tid_t   t_count = g->get_total_types();
     
-    sgraph  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+    if (0 == sgraph) {
+        sgraph  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+    }
     prep_sgraph(flag1, sgraph);    
 
     //estimate edge count
     calc_edge_count(sgraph, sgraph);
-    
     
     //prefix sum then reset the count
     //Take symmetry into consideration
@@ -112,10 +123,16 @@ void many2one_t::make_graph_baseline()
     //super bins memory allocation
     tid_t   t_count = g->get_total_types();
     
-    sgraph_in  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+    if (0 == sgraph_in) {
+        sgraph_in  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+    }
     prep_sgraph(flag2, sgraph_in);
     
-    skv_out  = prep_skv(flag1, flag1_count);
+    if (0 == skv_out) {
+        skv_out  = (skv_t**) calloc (sizeof(skv_t*), t_count);
+    }
+
+    skv_out  = prep_skv(flag1, skv_out);
 
     //estimate edge count
     calc_edge_count_in(sgraph_in);
@@ -157,10 +174,16 @@ void one2many_t::make_graph_baseline()
     //super bins memory allocation
     tid_t   t_count = g->get_total_types();
     
-    sgraph_out  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+    if (0 == sgraph_out) {
+        sgraph_out  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+    }
     prep_sgraph(flag1, sgraph_out);
     
-    skv_in   = prep_skv(flag2, flag2_count);
+    if (0 == skv_in) {
+        skv_in  = (skv_t**) calloc (sizeof(skv_t*), t_count);
+    }
+    
+    skv_in   = prep_skv(flag2, skv_in);
 
     //estimate edge count
     calc_edge_count_out(sgraph_out);
@@ -198,10 +221,19 @@ void one2one_t::make_graph_baseline()
     if (batch_info[0].count == 0) return;
     flag1_count = __builtin_popcountll(flag1);
     flag2_count = __builtin_popcountll(flag2);
+    tid_t   t_count    = g->get_total_types();
 
     //super bins memory allocation
-    skv_out = prep_skv(flag1, flag1_count);
-    skv_in  = prep_skv(flag2, flag2_count);
+    
+    if (0 == skv_in) {
+        skv_in  = (skv_t**) calloc (sizeof(skv_t*), t_count);
+    }
+    skv_in  = prep_skv(flag2, skv_in);
+    
+    if (0 == skv_out) {
+        skv_out  = (skv_t**) calloc (sizeof(skv_t*), t_count);
+    }
+    skv_out = prep_skv(flag1, skv_out);
 
     //handle kv_out as well as kv_in.
     fill_skv(skv_out, skv_in);

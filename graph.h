@@ -128,7 +128,7 @@ class pgraph_t: public pinfo_t {
     pgraph_t();
  public:
     sgraph_t** prep_sgraph(sflag_t ori_flag, sgraph_t** a_sgraph);
-    skv_t** prep_skv(sflag_t ori_flag, tid_t flag_count);
+    skv_t** prep_skv(sflag_t ori_flag, skv_t** a_skv);
     
     void calc_edge_count(sgraph_t** sgraph_out, sgraph_t** sgraph_in); 
     void calc_edge_count_out(sgraph_t** sgraph_out);
