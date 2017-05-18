@@ -14,7 +14,8 @@
 
 graph* g;
 
-void ontology_lubm(string typefile, string idirname, string odirname);
+void ontology_lubm();
+void fill_lubm_inference_type();
 
 int main(int argc, char* argv[])
 {
@@ -68,7 +69,12 @@ int main(int argc, char* argv[])
 
     switch (convert) {
         case 0:
-            ontology_lubm(typefile, idir, odir);
+            ontology_lubm();
+            if (!typefile.empty()) {
+                g->prep_type(typefile);
+                fill_lubm_inference_type();
+            }
+            g->prep_graph(idir, odir);
             break;
         default:
             break;

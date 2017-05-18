@@ -370,7 +370,8 @@ void lubm()
     lubm_1();
     lubm_1_1();
     lubm_4(); 
-    lubm_4_1(); 
+    lubm_4_1();
+
     test3();
     /* */
 }

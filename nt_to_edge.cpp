@@ -12,33 +12,40 @@ using std::ifstream;
 
 void fill_lubm_inference_type();
 
-void graph::prep_graph(string typefile, string idirname, string odirname)
+void graph::prep_type(string typefile)
+{
+    string subject, predicate, object, useless_dot;
+    int file_count = 0;
+    
+    //Read typefile for types 
+    ifstream file(typefile.c_str());
+    int nt_count= 0;
+    file_count++;
+    file >> subject >> predicate >> object >> useless_dot;
+    file >> subject >> predicate >> object >> useless_dot;
+    propid_t pid;
+    map<string, propid_t>::iterator str2pid_iter;
+    while (file >> subject >> predicate >> object >> useless_dot) {
+        str2pid_iter = str2pid.find(predicate);
+        if (str2pid_iter == str2pid.end()) {
+            assert(0);
+        }
+        pid = str2pid_iter->second;
+        if( pid == 0) { // type
+            g->type_update(subject, object);
+            ++nt_count;
+        }
+    }
+    g->type_done();
+
+}
+
+void graph::prep_graph(string idirname, string odirname)
 {
     struct dirent *ptr;
     DIR *dir;
     string subject, predicate, object, useless_dot;
     int file_count = 0;
-    
-    //Read typefile for types 
-        ifstream file(typefile.c_str());
-        int nt_count= 0;
-        file_count++;
-        file >> subject >> predicate >> object >> useless_dot;
-        file >> subject >> predicate >> object >> useless_dot;
-        propid_t pid;
-        map<string, propid_t>::iterator str2pid_iter;
-        while (file >> subject >> predicate >> object >> useless_dot) {
-            str2pid_iter = str2pid.find(predicate);
-            if (str2pid_iter == str2pid.end()) {
-                assert(0);
-            }
-            pid = str2pid_iter->second;
-            if( pid == 0) { // type
-                g->type_update(subject, object);
-                ++nt_count;
-            }
-        }
-    g->type_done();
     
     
     //Read graph file
@@ -222,7 +229,7 @@ void fill_lubm_inference_type()
 
 }
 
-void ontology_lubm(string typefile, string idirname, string odirname)
+void ontology_lubm()
 {
     pinfo_t*  info = 0; 
     g->p_info       = new pinfo_t*[32];
@@ -325,6 +332,4 @@ void ontology_lubm(string typefile, string idirname, string odirname)
     info = new stringkv_t;
     info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#title>", "title");
 
-    g->prep_graph(typefile, idirname, odirname);
-    fill_lubm_inference_type();
 }
