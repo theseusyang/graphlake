@@ -332,6 +332,36 @@ void lubm_4_1()
     g->run_query(&query);
 }
 
+void test3()
+{
+    const char* src = "<http://www.Department10.University3.edu/UndergraduateStudent2>"; 
+    //const char* pred = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#advisor>"; 
+    const char* pred = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#takesCourse>"; 
+    //const char* dst = "<http://www.Department10.University1.edu/FullProfessor1>" ;
+    
+    query_clause query;
+    query_whereclause qwhere;
+    
+    
+    query_triple qt;
+    qt.set_src(src);
+    qt.set_pred(pred);
+    qt.set_dst("?x", 0);
+    qt.set_traverse(eTransform);
+    qt.set_query(&query);
+
+    qwhere.add_child(&qt);
+    query.add_whereclause(&qwhere);
+    query.setup_qid(1, 1);
+
+    srset_t* srset = query.get_srset(0);
+    srset->setup_select(1);
+    srset->create_select(0, "?x", 0);
+    
+    g->run_query(&query);
+}
+
+
 void lubm() 
 {
     
@@ -341,5 +371,6 @@ void lubm()
     lubm_1_1();
     lubm_4(); 
     lubm_4_1(); 
+    test3();
     /* */
 }

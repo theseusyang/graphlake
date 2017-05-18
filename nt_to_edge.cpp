@@ -12,19 +12,15 @@ using std::ifstream;
 
 void fill_lubm_inference_type();
 
-void graph::prep_graph(string idirname, string odirname)
+void graph::prep_graph(string typefile, string idirname, string odirname)
 {
     struct dirent *ptr;
     DIR *dir;
     string subject, predicate, object, useless_dot;
     int file_count = 0;
     
-    //Read graph file for types 
-    dir = opendir(idirname.c_str());
-    while (NULL != (ptr = readdir(dir))) {
-        if (ptr->d_name[0] == '.') continue;
-        
-        ifstream file((idirname + "/" + string(ptr->d_name)).c_str());
+    //Read typefile for types 
+        ifstream file(typefile.c_str());
         int nt_count= 0;
         file_count++;
         file >> subject >> predicate >> object >> useless_dot;
@@ -42,8 +38,6 @@ void graph::prep_graph(string idirname, string odirname)
                 ++nt_count;
             }
         }
-    }
-    closedir(dir);
     g->type_done();
     
     
@@ -68,6 +62,7 @@ void graph::prep_graph(string idirname, string odirname)
             if (pid != 0) { //non-type
                 p_info[pid]->batch_update(subject, object);
                 ++nt_count;
+            //} else { //Is already handled above
             }
         }
     }
@@ -227,7 +222,7 @@ void fill_lubm_inference_type()
 
 }
 
-void ontology_lubm(string idirname, string odirname)
+void ontology_lubm(string typefile, string idirname, string odirname)
 {
     pinfo_t*  info = 0; 
     g->p_info       = new pinfo_t*[32];
@@ -330,6 +325,6 @@ void ontology_lubm(string idirname, string odirname)
     info = new stringkv_t;
     info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#title>", "title");
 
-    g->prep_graph(idirname, odirname);
+    g->prep_graph(typefile, idirname, odirname);
     fill_lubm_inference_type();
 }
