@@ -361,6 +361,13 @@ void test3()
     g->run_query(&query);
 }
 
+void test_update()
+{
+    string idir = "/mnt/raid0_huge/rdfdata/lubm-4univ-seed0/nt-data-rest/";
+    string odir;
+    g->prep_graph(idir, odir);
+}
+
 
 void lubm() 
 {
@@ -371,7 +378,8 @@ void lubm()
     lubm_1_1();
     lubm_4(); 
     lubm_4_1();
-
+    test_update();
+    cout << "----------test3-------------" << endl;
     test3();
     /* */
 }
