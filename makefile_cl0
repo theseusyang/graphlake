@@ -12,7 +12,7 @@ SRC=main.cpp \
 	query_triple.cpp\
 	graph_query.cpp\
 	type.cpp\
-	test1.cpp\
+	lubm_test1.cpp\
 	
 
 HEADER=graph.h\

@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
                 break;
 		}
 	}
-
+    /*
     switch (convert) {
         case 0:
             ontology_lubm();
@@ -79,7 +79,8 @@ int main(int argc, char* argv[])
         default:
             break;
     }
+    */
 
-    lubm();
+    lubm_test(typefile, idir, odir);
     return 0;
 }
