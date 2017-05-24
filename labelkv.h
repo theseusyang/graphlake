@@ -15,12 +15,26 @@ class lkv_t {
     T* kv;
     sid_t super_id;
     vid_t max_vcount;
+
+    inline lkv_t() {
+        kv = 0;
+        super_id = 0;
+        max_vcount = 0;
+    }
     
     inline void setup(tid_t tid) {
-        super_id = g->get_type_scount(tid);
-        vid_t v_count = TO_VID(super_id);
-        max_vcount = (v_count << 1);
-        kv = (T*)calloc(sizeof(T), max_vcount);
+        if ( 0 == super_id ) {
+            super_id = g->get_type_scount(tid);
+            vid_t v_count = TO_VID(super_id);
+            max_vcount = (v_count << 1);
+            kv = (T*)calloc(sizeof(T), max_vcount);
+        } else {
+            super_id = g->get_type_scount(tid);
+            vid_t v_count = TO_VID(super_id);
+            if (max_vcount < v_count) {
+                assert(0);
+            }
+        }
     }
 };
 
