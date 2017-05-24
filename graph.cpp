@@ -229,8 +229,8 @@ sgraph_t** pgraph_t::prep_sgraph(sflag_t ori_flag, sgraph_t** sgraph )
         flag ^= (1L << pos);//reset that position
         if (0 == sgraph[pos]) {
             sgraph[pos] = new sgraph_t;
-            sgraph[pos]->setup(pos);
         }
+        sgraph[pos]->setup(pos);
     }
     return sgraph;
 }
@@ -443,8 +443,8 @@ skv_t** pgraph_t::prep_skv(sflag_t ori_flag, skv_t** skv)
         flag ^= (1L << pos);//reset that position
         if (0 == skv[pos]) {
             skv[pos] = new skv_t;
-            skv[pos]->setup(pos);
         }
+        skv[pos]->setup(pos);
     }
     return skv;
 }
