@@ -56,6 +56,7 @@ enum status_t {
 
 typedef union __univeral_type {
     char*    value_charp;
+    char     value_string;
     uint64_t value_64b;
     uint8_t  value_8b;
     uint16_t value16b;
