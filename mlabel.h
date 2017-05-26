@@ -6,6 +6,9 @@ class kv_t {
     uint8_t    value_type;
     univ_t     value;
 
+ public:
+    inline setup() {
+    }
 };
 
 class mkv_t {
@@ -16,18 +19,20 @@ class mkv_t {
  
 public: 
     void setup(tid_t tid);
+    void setup_adjlist(vid_t count);
 };
 
-class mpkv_t : public pinfo_t {
+class manykv_t : public pinfo_t {
     mkv_t**   mkv_out;
     vid_t*    nebr_count;
     
  public:
-    inline mpkv_t() {
+    inline manykv_t() {
         mkv_out = 0;
         nebr_count = 0;
     }
     mkv_t** prep_mkv();
     void fill_mkv_out();
+    status_t batch_update(const string& src, const string& dst);
     void make_graph_baseline();
 };
