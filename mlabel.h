@@ -22,7 +22,7 @@ public:
     void setup_adjlist(vid_t count);
 };
 
-class manykv_t : public pinfo_t {
+class manykv_t : public cfinfo_t {
     mkv_t**   mkv_out;
     vid_t*    nebr_count;
     

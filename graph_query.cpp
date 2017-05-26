@@ -97,7 +97,7 @@ status_t query_whereclause::execute()
     return eOK;
 }
 /*************************** extend *******************/
-status_t pinfo_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
+status_t cfinfo_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
 {
     assert(0);
     return eOK;
@@ -153,7 +153,7 @@ status_t one2many_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
     return eOK;
 }
 /*************************** transform ****************/
-status_t pinfo_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
+status_t cfinfo_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
 {
     assert(0);
     return eOK;

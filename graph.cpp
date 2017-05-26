@@ -5,8 +5,8 @@ using std::swap;
 
 graph::graph()
 {
-    p_info = 0;
-    p_count = 0;
+    cf_info = 0;
+    cf_count = 0;
     vert_count = 0;
     v_graph =  new vgraph_t;
 }
@@ -24,19 +24,19 @@ void free_buf(void* buf)
 
 sid_t graph::get_type_scount(tid_t type)
 {
-    typekv_t* typekv = dynamic_cast<typekv_t*>(p_info[0]);
+    typekv_t* typekv = dynamic_cast<typekv_t*>(cf_info[0]);
     return typekv->get_type_scount(type);
 }
 
 tid_t graph::get_total_types()
 {
-    typekv_t* typekv = dynamic_cast<typekv_t*>(p_info[0]);
+    typekv_t* typekv = dynamic_cast<typekv_t*>(cf_info[0]);
     return typekv->get_total_types();
 }
 
 void graph::type_update(const string& src, const string& dst)
 {
-    p_info[0]->batch_update(src, dst);
+    cf_info[0]->batch_update(src, dst);
 }
 
 void graph::type_done()
@@ -63,28 +63,28 @@ sid_t graph::get_sid(const char* src)
 }
 
 /////////////////////////////////////////
-status_t pinfo_t::batch_update(const string& src, const string& dst)
+status_t cfinfo_t::batch_update(const string& src, const string& dst)
 {
     assert(0);
     return  eOK;
 }
     
-void pinfo_t::make_graph_baseline()
+void cfinfo_t::make_graph_baseline()
 {
     assert(0);
 }
 
-void pinfo_t::make_graph_update()
+void cfinfo_t::make_graph_update()
 {
     assert(0);
 }
 
-void pinfo_t::store_graph_baseline(string dir)
+void cfinfo_t::store_graph_baseline(string dir)
 {
     assert(0);
 }
 
-void pinfo_t::store_graph_update(string dir)
+void cfinfo_t::store_graph_update(string dir)
 {
     assert(0);
 }
@@ -95,17 +95,17 @@ is_literal(string str) {
        return ('<' != str[0]);
 }
 */
-void pinfo_t::populate_property(const char* longname, const char* property_name)
+void cfinfo_t::populate_property(const char* longname, const char* property_name)
 {
-    g->p_info[g->p_count] = this;
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->cf_info[g->cf_count] = this;
+    g->str2pid[longname] = g->cf_count;
+    g->cf_count++;
     
     p_name = gstrdup(property_name);
     p_longname = gstrdup(longname);
 }
 
-pinfo_t::pinfo_t()
+cfinfo_t::cfinfo_t()
 {
     batch_info = (batchinfo_t*)calloc(sizeof(batchinfo_t), MAX_BCOUNT);
     batch_count = 0;
@@ -123,13 +123,13 @@ pinfo_t::pinfo_t()
     flag2_count = 0;
 }
 
-void pinfo_t::swap_log_buffer()
+void cfinfo_t::swap_log_buffer()
 {
     swap(batch_info, batch_info1);
     swap(batch_count, batch_count1);
 }
 
-void pinfo_t::cleanup()
+void cfinfo_t::cleanup()
 {
     batch_info[0].count = 0;
     for (uint32_t i = 1; i <= batch_count; ++i) {
@@ -140,7 +140,7 @@ void pinfo_t::cleanup()
     batch_count = 0;
 }
 
-void pinfo_t::reset_buffer0()
+void cfinfo_t::reset_buffer0()
 {
     batch_count = 0;
     for (uint32_t i = 0; i < MAX_BCOUNT; ++i) {
@@ -148,7 +148,7 @@ void pinfo_t::reset_buffer0()
     }
 }
 
-void pinfo_t::reset_buffer1()
+void cfinfo_t::reset_buffer1()
 {
     batch_count1 = 0;
     for (uint32_t i = 0; i < MAX_BCOUNT; ++i) {
@@ -156,7 +156,7 @@ void pinfo_t::reset_buffer1()
     }
 }
 
-void pinfo_t::reset()
+void cfinfo_t::reset()
 {
     flag1 = 0;
     flag2 = 0;
@@ -674,18 +674,18 @@ pgraph_t::extend_kv_td(skv_t** skv, srset_t* iset, srset_t* oset)
 }
 
 /*******label specific **********/
-status_t pinfo_t::filter(sid_t sid, univ_t value, filter_fn_t fn)
+status_t cfinfo_t::filter(sid_t sid, univ_t value, filter_fn_t fn)
 {
     assert(0);
     return eOK;
 }
 
-void pinfo_t::print_raw_dst(tid_t tid, vid_t vid)
+void cfinfo_t::print_raw_dst(tid_t tid, vid_t vid)
 {
     assert(0);
 }
 
-status_t pinfo_t::get_encoded_value(const char* value, univ_t* univ)
+status_t cfinfo_t::get_encoded_value(const char* value, univ_t* univ)
 {
     assert(0);
     return eQueryFail;

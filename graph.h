@@ -40,7 +40,7 @@ class batchinfo_t {
 
 /////////////////////////////////
 //One relationship or label
-class pinfo_t {
+class cfinfo_t {
  public:
     char*        p_name;
     char*        p_longname;
@@ -56,7 +56,7 @@ class pinfo_t {
     uint8_t     flag2_count;
    
  public: 
-    pinfo_t();   
+    cfinfo_t();   
     void reset();
  public:
     void populate_property(const char* longname, const char* property_name);
@@ -87,8 +87,8 @@ class vgraph_t;
 class graph {
  public:
     //graphs and labels store.
-    pinfo_t** p_info;
-    int       p_count;
+    cfinfo_t** cf_info;
+    int       cf_count;
     map <string, propid_t> str2pid;
 
     //vertex information
@@ -119,7 +119,7 @@ class graph {
 
 
 /******** graphs **************/
-class pgraph_t: public pinfo_t {
+class pgraph_t: public cfinfo_t {
   public:    
  
     //graph specific functions 

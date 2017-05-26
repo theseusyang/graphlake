@@ -36,7 +36,7 @@ typedef uint16_t qid_t;
 
 #define NO_QID 0xFFFF
 
-class pinfo_t;
+class cfinfo_t;
 class skv_t;
 class sgraph_t;
 
@@ -93,7 +93,7 @@ enum traverse_t {
 class filter_info_t {
  public:
     //always one count
-    pinfo_t* rgraph;
+    cfinfo_t* rgraph;
 
     qid_t count;
     //these could be more, controlled by count
@@ -106,7 +106,7 @@ class filter_info_t {
     }
  
  private:
-    inline void set_filterobj(pinfo_t* a_graph, univ_t a_value, filter_fn_t fn) {
+    inline void set_filterobj(cfinfo_t* a_graph, univ_t a_value, filter_fn_t fn) {
         rgraph = a_graph;
         value = a_value;
         filter_fn = fn;
@@ -119,7 +119,7 @@ class type_filter_t {
 };
 
 typedef struct __select_info_t {
-    pinfo_t* rgraph;
+    cfinfo_t* rgraph;
     string name; 
 } select_info_t;
 

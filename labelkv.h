@@ -44,7 +44,7 @@ typedef beg_pos_t lgraph_t;
 
 //base class for label graphs.
 template <class T>
-class pkv_t: public pinfo_t {
+class pkv_t: public cfinfo_t {
  public:
     lkv_t<T>** lkv_out;
     lgraph_t*  lgraph_in;

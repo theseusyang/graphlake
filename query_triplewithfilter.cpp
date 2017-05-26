@@ -72,13 +72,13 @@ query_triplewithfilter::execute()
             break;
     }
     
-    g->p_info[pid]->transform_withfilter(iset, oset, direction, &filter_info);
+    g->cf_info[pid]->transform_withfilter(iset, oset, direction, &filter_info);
 	
     return eOK;
 }
 
 /******************* transform_withfilter ******************/
-status_t pinfo_t::transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, filter_info_t* graph)
+status_t cfinfo_t::transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, filter_info_t* graph)
 {
     return eOK;
 }

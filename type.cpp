@@ -326,7 +326,7 @@ void srset_t::create_select(qid_t index, const char* a_name, const char* prop_na
 
     propid_t pid = g->get_pid(prop_name);
     assert(INVALID_PID != pid);
-    select_info[index].rgraph = g->p_info[pid];
+    select_info[index].rgraph = g->cf_info[pid];
 }
 
 

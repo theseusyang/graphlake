@@ -7,7 +7,7 @@
 
 void fill_lubm_inference_type()
 {
-    typekv_t* typekv = dynamic_cast<typekv_t*>(g->p_info[0]);
+    typekv_t* typekv = dynamic_cast<typekv_t*>(g->cf_info[0]);
     
     //students
     const char* name = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#Student>";
@@ -17,13 +17,13 @@ void fill_lubm_inference_type()
     tid_t* tlist = new tid_t[count];
 
     member  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#GraduateStudent>"; 
-    if (eOK != g->p_info[0]->get_encoded_value(member, &value)) {
+    if (eOK != g->cf_info[0]->get_encoded_value(member, &value)) {
         assert(0);
     }
     tlist[0] = value.value_tid;
     
     member  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#UndergraduateStudent>"; 
-    if (eOK != g->p_info[0]->get_encoded_value(member, &value)) {
+    if (eOK != g->cf_info[0]->get_encoded_value(member, &value)) {
         assert(0);
     }
     tlist[1] = value.value_tid;
@@ -36,25 +36,25 @@ void fill_lubm_inference_type()
     tlist = new tid_t[count];
 
     member  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#FullProfessor>"; 
-    if (eOK != g->p_info[0]->get_encoded_value(member, &value)) {
+    if (eOK != g->cf_info[0]->get_encoded_value(member, &value)) {
         assert(0);
     }
     tlist[0] = value.value_tid;
     
     member  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#AssociateProfessor>"; 
-    if (eOK != g->p_info[0]->get_encoded_value(member, &value)) {
+    if (eOK != g->cf_info[0]->get_encoded_value(member, &value)) {
         assert(0);
     }
     tlist[1] = value.value_tid;
 
     member  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#AssistantProfessor>"; 
-    if (eOK != g->p_info[0]->get_encoded_value(member, &value)) {
+    if (eOK != g->cf_info[0]->get_encoded_value(member, &value)) {
         assert(0);
     }
     tlist[2] = value.value_tid;
     
     member  = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#Lecturer>"; 
-    if (eOK != g->p_info[0]->get_encoded_value(member, &value)) {
+    if (eOK != g->cf_info[0]->get_encoded_value(member, &value)) {
         assert(0);
     }
     tlist[3] = value.value_tid;
@@ -64,8 +64,8 @@ void fill_lubm_inference_type()
 
 void ontology_lubm()
 {
-    pinfo_t*  info = 0; 
-    g->p_info       = new pinfo_t*[32];
+    cfinfo_t*  info = 0; 
+    g->cf_info       = new cfinfo_t*[32];
     
     info = new typekv_t;
     info->populate_property("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>", "type");
@@ -221,7 +221,7 @@ void test2()
     query_triple qt1;
     query_triple qt2;
     srset_t* srset;
-    typekv_t* typekv = dynamic_cast<typekv_t*>(g->p_info[0]);
+    typekv_t* typekv = dynamic_cast<typekv_t*>(g->cf_info[0]);
     
     //other setup
     query.add_whereclause(&qwhere);
@@ -293,7 +293,7 @@ void lubm_1()
     query.add_whereclause(&qwhere);
     query.setup_qid(1,1);
     srset_t* srset;
-    typekv_t* typekv = dynamic_cast<typekv_t*>(g->p_info[0]);
+    typekv_t* typekv = dynamic_cast<typekv_t*>(g->cf_info[0]);
 
     query_triple qt1;
     qt1.set_src("?x", 0);
@@ -347,7 +347,7 @@ void lubm_1_1()
     query.add_whereclause(&qwhere);
     query.setup_qid(1,1);
     srset_t* srset;
-    typekv_t* typekv = dynamic_cast<typekv_t*>(g->p_info[0]);
+    typekv_t* typekv = dynamic_cast<typekv_t*>(g->cf_info[0]);
 
     query_triple qt1;
     qt1.set_src("?x", 0);
@@ -403,7 +403,7 @@ void lubm_4()
     query.add_whereclause(&qwhere);
     query.setup_qid(1,1);
     srset_t* srset;
-    typekv_t* typekv = dynamic_cast<typekv_t*>(g->p_info[0]);
+    typekv_t* typekv = dynamic_cast<typekv_t*>(g->cf_info[0]);
     
     query_triple qt1;
     qt1.set_src("?x", 0);
@@ -462,7 +462,7 @@ void lubm_4_1()
     query.add_whereclause(&qwhere);
     query.setup_qid(1,1);
     srset_t* srset;
-    typekv_t* typekv = dynamic_cast<typekv_t*>(g->p_info[0]);
+    typekv_t* typekv = dynamic_cast<typekv_t*>(g->cf_info[0]);
     
     query_triple qt1;
     qt1.set_src("?x", 0);

@@ -75,10 +75,10 @@ query_triple::execute()
     }
     
     if (traverse == eTransform) {
-        g->p_info[pid]->transform(iset, oset, direction);
+        g->cf_info[pid]->transform(iset, oset, direction);
 
     } else if (traverse == eExtend) {
-        g->p_info[pid]->extend(iset, oset, direction);
+        g->cf_info[pid]->extend(iset, oset, direction);
     }
     
     return eOK;

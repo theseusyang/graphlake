@@ -67,7 +67,7 @@ void graph::prep_graph(string idirname, string odirname)
             }
             pid = str2pid_iter->second;
             if (pid != 0) { //non-type
-                p_info[pid]->batch_update(subject, object);
+                cf_info[pid]->batch_update(subject, object);
                 ++nt_count;
             //} else { //Is already handled above
             }
@@ -76,18 +76,18 @@ void graph::prep_graph(string idirname, string odirname)
     closedir(dir);
 
     //swap 
-    for (int i = 0; i < p_count; i++) {
-        p_info[i]->swap_log_buffer();
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->swap_log_buffer();
     }
     
     //make graph
-    for (int i = 0; i < p_count; i++) {
-        p_info[i]->make_graph_baseline();
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->make_graph_baseline();
     }
 
     //Store graph
-    for (int i = 0; i < p_count; i++) {
-        p_info[i]->store_graph_baseline(odirname);
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->store_graph_baseline(odirname);
     }
 }
 
@@ -99,8 +99,8 @@ void graph::update_graph(string idirname, string odirname)
     int file_count = 0;
 
     //reset the log buffer, flags
-    for (int i = 0; i < p_count; i++) {
-        p_info[i]->reset();
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->reset();
     }
     
     //Read graph file for types 
@@ -150,7 +150,7 @@ void graph::update_graph(string idirname, string odirname)
             }
             pid = str2pid_iter->second;
             if (pid != 0) { //non-type
-                p_info[pid]->batch_update(subject, object);
+                cf_info[pid]->batch_update(subject, object);
                 ++nt_count;
             }
         }
@@ -158,16 +158,16 @@ void graph::update_graph(string idirname, string odirname)
     closedir(dir);
 
     //swap 
-    for (int i = 0; i < p_count; i++) {
-        p_info[i]->swap_log_buffer();
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->swap_log_buffer();
     }
     //make graph
-    for (int i = 0; i < p_count; i++) {
-        p_info[i]->make_graph_update();
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->make_graph_update();
     }
 
     //Store graph
-    for (int i = 0; i < p_count; i++) {
-        p_info[i]->store_graph_update(odirname);
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->store_graph_update(odirname);
     }
 }

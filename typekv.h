@@ -16,7 +16,7 @@ class inference_tinfo_t {
 };
 
 //type class
-class typekv_t : public pinfo_t {
+class typekv_t : public cfinfo_t {
   private:
     
     //deleted vid list for each class
