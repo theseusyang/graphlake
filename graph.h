@@ -40,26 +40,42 @@ class batchinfo_t {
 
 /////////////////////////////////
 //One relationship or label
-class cfinfo_t {
- public:
+class pinfo_t {
+    public:
     char*        p_name;
     char*        p_longname;
-    batchinfo_t* batch_info;
-    uint8_t      batch_count;
+    propid_t     cf_id;
 
+ public:
+    void populate_property(const char* longname, const char* property_name);
+};
+
+//Column Family
+class cfinfo_t {
+ public:
+    pinfo_t*     p_info;
+    propid_t      p_count;
+
+    batchinfo_t* batch_info;
     batchinfo_t* batch_info1;
-    uint8_t      batch_count1;
     
     sflag_t     flag1;
     sflag_t     flag2;
+    
+    propid_t    cf_id;
+    uint8_t     batch_count;
+    uint8_t     batch_count1;
+    
     uint8_t     flag1_count;
     uint8_t     flag2_count;
    
  public: 
     cfinfo_t();   
     void reset();
+
  public:
-    void populate_property(const char* longname, const char* property_name);
+    void create_columnfamily(propid_t prop_count = 1);
+    void add_column(pinfo_t* prop_info);
     virtual status_t batch_update(const string& src, const string& dst);
     void swap_log_buffer(); 
     void cleanup();
@@ -88,7 +104,11 @@ class graph {
  public:
     //graphs and labels store.
     cfinfo_t** cf_info;
-    int       cf_count;
+    pinfo_t *  p_info;
+
+    int   cf_count;
+    propid_t   p_count;
+
     map <string, propid_t> str2pid;
 
     //vertex information

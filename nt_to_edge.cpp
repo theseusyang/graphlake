@@ -10,8 +10,6 @@
 
 using std::ifstream;
 
-void fill_lubm_inference_type();
-
 void graph::prep_type(string typefile)
 {
     string subject, predicate, object, useless_dot;

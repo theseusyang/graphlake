@@ -5,8 +5,10 @@ using std::swap;
 
 graph::graph()
 {
-    cf_info = 0;
+    cf_info  = 0;
     cf_count = 0;
+    p_info   = 0;
+    p_count  = 0;
     vert_count = 0;
     v_graph =  new vgraph_t;
 }
@@ -63,6 +65,17 @@ sid_t graph::get_sid(const char* src)
 }
 
 /////////////////////////////////////////
+void pinfo_t::populate_property(const char* longname, const char* property_name)
+{
+    g->str2pid[longname] = g->p_count;
+    //g->p_info[g->p_count] = this;
+    g->p_count++;
+
+    p_name  = gstrdup(property_name);
+    p_longname = gstrdup(longname);
+    cf_id = 0;//will be corrected later
+}
+
 status_t cfinfo_t::batch_update(const string& src, const string& dst)
 {
     assert(0);
@@ -95,14 +108,24 @@ is_literal(string str) {
        return ('<' != str[0]);
 }
 */
-void cfinfo_t::populate_property(const char* longname, const char* property_name)
+
+void cfinfo_t::create_columnfamily(propid_t prop_count)
+{
+    p_info = new pinfo_t;//[prop_count];
+    p_count = 1;
+}
+
+void cfinfo_t::add_column(pinfo_t* prop_info)
 {
     g->cf_info[g->cf_count] = this;
-    g->str2pid[longname] = g->cf_count;
+    cf_id = g->cf_count;
     g->cf_count++;
     
-    p_name = gstrdup(property_name);
-    p_longname = gstrdup(longname);
+    //p_info = new pinfo_t;
+    p_count = 1;
+    p_info = prop_info;
+    prop_info->cf_id = cf_id;
+    
 }
 
 cfinfo_t::cfinfo_t()
@@ -121,6 +144,7 @@ cfinfo_t::cfinfo_t()
     flag2 = 0;
     flag1_count = 0;
     flag2_count = 0;
+    
 }
 
 void cfinfo_t::swap_log_buffer()

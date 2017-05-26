@@ -64,48 +64,71 @@ void fill_lubm_inference_type()
 
 void ontology_lubm()
 {
-    cfinfo_t*  info = 0; 
-    g->cf_info       = new cfinfo_t*[32];
+    g->cf_info  = new cfinfo_t*[32];
     
+    g->p_info       = new pinfo_t[32];
+    pinfo_t* p_info = g->p_info;
+    cfinfo_t* info = 0; 
+    
+    p_info->populate_property("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>", "type");
     info = new typekv_t;
-    info->populate_property("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>", "type");
-    
-    info = new many2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#advisor>", "advisor");
-    
-    info = new many2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#affiliatedOrganizationOf>", "affiliatedOrganizationOf");
+    info->add_column(p_info);
+    ++p_info;
 
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#advisor>", "advisor");
     info = new many2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#affiliateOf>","affiliateOf");
+    info->add_column(p_info);
+    ++p_info;
     
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#affiliatedOrganizationOf>", "affiliatedOrganizationOf");
     info = new many2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#degreeFrom>", "degreeFrom");
+    info->add_column(p_info);
+    ++p_info;
+
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#affiliateOf>","affiliateOf");
+    info = new many2one_t;
+    info->add_column(p_info);
+    ++p_info;
     
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#degreeFrom>", "degreeFrom");
     info = new many2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#doctoralDegreeFrom>","doctoralDegreeFrom");
+    info->add_column(p_info);
+    ++p_info;
+    
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#doctoralDegreeFrom>","doctoralDegreeFrom");
+    info = new many2one_t;
+    info->add_column(p_info);
+    ++p_info;
     
     //inference, inverse of degree from
     //info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#hasAlumnus>");
     
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#headOf>", "headOf");
     info = new one2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#headOf>", "headOf");
+    info->add_column(p_info);
+    ++p_info;
     
     //info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#listedCourse>","listedCourse");
     
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#mastersDegreeFrom>","mastersDegreeFrom");
     info = new many2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#mastersDegreeFrom>","mastersDegreeFrom");
+    info->add_column(p_info);
+    ++p_info;
     
     //inference, inverse of memberof
     //info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#member>", "member");
     
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#memberOf>", "memberOf");
     info = new many2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#memberOf>", "memberOf");
+    info->add_column(p_info);
+    ++p_info;
     
     //info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#orgPublication>", "orgPublication");
     
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#publicationAuthor>", "publicationAuthor");
     info = new dgraph_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#publicationAuthor>", "publicationAuthor");
+    info->add_column(p_info);
+    ++p_info;
     
     
     //info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#publicationResearch>", "publicationResearch");
@@ -114,56 +137,85 @@ void ontology_lubm()
     
     //info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#softwareDocumentation>", "softwareDocumentation");
     
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#takesCourse>", "takesCourse");
     info = new dgraph_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#takesCourse>", "takesCourse");
+    info->add_column(p_info);
+    ++p_info;
     
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#teacherOf>", "teacherOf");
     info = new one2many_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#teacherOf>", "teacherOf");
+    info->add_column(p_info);
+    ++p_info;
     
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#teachingAssistantOf>", "teachingAssistantOf");
     info = new one2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#teachingAssistantOf>", "teachingAssistantOf");
+    info->add_column(p_info);
+    ++p_info;
     
     //info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#tenured>", "tenured");
     
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#undergraduateDegreeFrom>", "undergraduateDegreeFrom");
     info = new many2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#undergraduateDegreeFrom>", "undergraduateDegreeFrom");
+    info->add_column(p_info);
+    ++p_info;
     
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#worksFor>", "worksFor");
     info = new many2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#worksFor>", "worksFor");
+    info->add_column(p_info);
+    ++p_info;
     
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#subOrganizationOf>", "subOrganizationOf");
     info = new many2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#subOrganizationOf>", "subOrganizationOf");
+    info->add_column(p_info);
+    ++p_info;
     
     
     /*********************************************/
-    
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#publicationDate>", "publicationDate");
     info = new stringkv_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#publicationDate>", "publicationDate");
+    info->add_column(p_info);
+    ++p_info;
     
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#softwareVersion>", "softwareVersion");
     info = new stringkv_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#softwareVersion>", "softwareVersion");
+    info->add_column(p_info);
+    ++p_info;
     
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#age>", "age");
     info = new uint8kv_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#age>", "age");
+    info->add_column(p_info);
+    ++p_info;
     
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#emailAddress>", "emailAddress");
     info = new stringkv_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#emailAddress>", "emailAddress");
+    info->add_column(p_info);
+    ++p_info;
     
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#name>", "name");
     info = new stringkv_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#name>", "name");
+    info->add_column(p_info);
+    ++p_info;
     
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#officeNumber>", "officeNumber");
     info = new uint64kv_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#officeNumber>", "officeNumber");
+    info->add_column(p_info);
+    ++p_info;
     
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#researchInterest>", "researchInterest");
     info = new stringkv_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#researchInterest>", "researchInterest");
+    info->add_column(p_info);
+    ++p_info;
     
     //info = new uint64kv_t;
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#telephone>", "telephone");
     info = new stringkv_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#telephone>", "telephone");
+    info->add_column(p_info);
+    ++p_info;
     
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#title>", "title");
     info = new stringkv_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#title>", "title");
+    info->add_column(p_info);
+    ++p_info;
 
 }
 
