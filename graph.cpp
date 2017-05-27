@@ -45,7 +45,12 @@ void graph::type_done()
 {
     v_graph->make_graph_baseline();
 }
- 
+
+propid_t graph::get_cfid(propid_t pid)
+{
+    return p_info[pid].cf_id;
+}
+
 propid_t graph::get_cfid(const char* predicate)
 {
     propid_t pid = get_pid(predicate);
