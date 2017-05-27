@@ -5,7 +5,7 @@ typedef struct __label_int64_t {
     int64_t dst_id;
 } label_int64_t;
 
-status_t int64kv_t::batch_update(const string& src, const string& dst)
+status_t int64kv_t::batch_update(const string& src, const string& dst, propid_t pid /* = 0*/)
 {
     vid_t src_id;
     uint64_t dst_id;
@@ -68,7 +68,7 @@ typedef struct __label_int8_t {
     uint8_t dst_id;
 } label_int8_t;
 
-void int8kv_t::batch_update(const string& src, const string& dst)
+void int8kv_t::batch_update(const string& src, const string& dst, propid_t pid /* = 0*/)
 {
     vid_t src_id;
     uint8_t dst_id;

@@ -57,6 +57,7 @@ void graph::prep_graph(string idirname, string odirname)
         file >> subject >> predicate >> object >> useless_dot;
         file >> subject >> predicate >> object >> useless_dot;
         propid_t pid;
+        propid_t cf_id;
         map<string, propid_t>::iterator str2pid_iter;
         while (file >> subject >> predicate >> object >> useless_dot) {
             str2pid_iter = str2pid.find(predicate);
@@ -64,8 +65,9 @@ void graph::prep_graph(string idirname, string odirname)
                 assert(0);
             }
             pid = str2pid_iter->second;
+            cf_id = get_cfid(pid);
             if (pid != 0) { //non-type
-                cf_info[pid]->batch_update(subject, object);
+                cf_info[cf_id]->batch_update(subject, object, pid);
                 ++nt_count;
             //} else { //Is already handled above
             }
@@ -89,6 +91,7 @@ void graph::prep_graph(string idirname, string odirname)
     }
 }
 
+/*
 void graph::update_graph(string idirname, string odirname)
 {
     struct dirent *ptr;
@@ -169,3 +172,4 @@ void graph::update_graph(string idirname, string odirname)
         cf_info[i]->store_graph_update(odirname);
     }
 }
+*/

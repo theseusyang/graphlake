@@ -72,7 +72,7 @@ class pkv_t: public cfinfo_t {
 class stringkv_t : public pkv_t<char*> {
  protected:
  public:
-    status_t batch_update(const string& src, const string& dst);
+    status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     void store_graph_baseline(string dir);
 
     void get_raw_dst(tid_t tid, vid_t vid);

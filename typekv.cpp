@@ -1,6 +1,6 @@
 #include "typekv.h"
 
-status_t typekv_t::batch_update(const string& src, const string& dst)
+status_t typekv_t::batch_update(const string& src, const string& dst, propid_t pid /*=0*/)
 {
     vid_t       src_id;
     tid_t       type_id;

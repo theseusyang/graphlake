@@ -30,7 +30,7 @@ class enumkv_t : public pkv_t<T> {
     enumkv_t();
     void init_enum(int enumcount);
     void populate_enum(const char* e);
-    status_t batch_update(const string& src, const string& dst);
+    status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     void make_graph_baseline();
     void store_graph_baseline(string dir);
 
@@ -42,7 +42,7 @@ class enumkv_t : public pkv_t<T> {
 };
 
 template<class T>
-status_t enumkv_t<T>::batch_update(const string& src, const string& dst)
+status_t enumkv_t<T>::batch_update(const string& src, const string& dst, propid_t pid /*= 0*/)
 {
     vid_t src_id;
     T     dst_id;

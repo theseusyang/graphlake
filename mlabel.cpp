@@ -53,7 +53,7 @@ void manykv_t::make_graph_baseline()
 {
 }
 
-status_t manykv_t::batch_update(const string& src, const string& dst)
+status_t manykv_t::batch_update(const string& src, const string& dst, propid_t pid /*=0*/)
 {
     return eOK;
 }

@@ -87,7 +87,7 @@ void pinfo_t::populate_property(const char* longname, const char* property_name)
     cf_id = 0;//will be corrected later
 }
 
-status_t cfinfo_t::batch_update(const string& src, const string& dst)
+status_t cfinfo_t::batch_update(const string& src, const string& dst, propid_t pid /* = 0*/)
 {
     assert(0);
     return  eOK;
@@ -211,7 +211,7 @@ pgraph_t::pgraph_t()
 }
 
 //Applicable to graphs only, labels should be aware of it.
-status_t pgraph_t::batch_update(const string& src, const string& dst)
+status_t pgraph_t::batch_update(const string& src, const string& dst, propid_t pid /* = 0 */)
 {
     vid_t src_id, dst_id;
     index_t index = 0;

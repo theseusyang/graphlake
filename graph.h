@@ -76,7 +76,7 @@ class cfinfo_t {
  public:
     void create_columnfamily(propid_t prop_count = 1);
     void add_column(pinfo_t* prop_info);
-    virtual status_t batch_update(const string& src, const string& dst);
+    virtual status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     void swap_log_buffer(); 
     void cleanup();
     void reset_buffer0();
@@ -132,7 +132,7 @@ class graph {
     
     void prep_type(string typefile);
     void prep_graph(string idirname, string odirname);
-    void update_graph(string idirname, string odirname);
+    //void update_graph(string idirname, string odirname);
 
     //queries
     void run_query(query_clause* q);
@@ -145,7 +145,7 @@ class pgraph_t: public cfinfo_t {
   public:    
  
     //graph specific functions 
-    status_t batch_update(const string& src, const string& dst);
+    status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
  
  public:
     pgraph_t();

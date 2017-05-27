@@ -33,6 +33,6 @@ class manykv_t : public cfinfo_t {
     }
     mkv_t** prep_mkv();
     void fill_mkv_out();
-    status_t batch_update(const string& src, const string& dst);
+    status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     void make_graph_baseline();
 };

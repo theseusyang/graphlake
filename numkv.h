@@ -31,7 +31,7 @@ class numkv_t : public pkv_t<T>
     //lkv_t<T>* lkv_out; 
     
   public:
-    status_t batch_update(const string& src, const string& dst);
+    status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     void store_graph_baseline(string dir);
 
     status_t filter(sid_t sid, void* value);
@@ -46,7 +46,7 @@ class numkv_t : public pkv_t<T>
 };
 
 template<class T>
-status_t numkv_t<T>::batch_update(const string& src, const string& dst)
+status_t numkv_t<T>::batch_update(const string& src, const string& dst, propid_t pid /*= 0*/)
 {
     vid_t src_id;
     T     dst_id;
