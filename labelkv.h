@@ -66,7 +66,7 @@ class pkv_t: public cfinfo_t {
     void calc_edge_count(lgraph_t* lgraph_in);
     void make_graph_baseline();
 
-    void print_raw_dst(tid_t tid, vid_t vid);
+    void print_raw_dst(tid_t tid, vid_t vid, propid_t pid = 0);
 };
 
 class stringkv_t : public pkv_t<char*> {
@@ -235,7 +235,7 @@ void pkv_t<T>::store_lgraph(lgraph_t* lgraph_in, string dir, string postfix)
     
 }
 template <class T>
-void pkv_t<T>::print_raw_dst(tid_t tid, vid_t vid)
+void pkv_t<T>::print_raw_dst(tid_t tid, vid_t vid, propid_t pid /* = 0 */)
 {
     cout << lkv_out[tid]->kv[vid];
 }

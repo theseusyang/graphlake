@@ -15,8 +15,8 @@ query_triple::execute()
     srset_t* oset;
     
     //get the property id
-    propid_t pid = g->get_pid(pred);
-    if (pid == INVALID_PID) return eInvalidPID; 
+    propid_t cf_id = g->get_cfid(pred);
+    if (cf_id == INVALID_PID) return eInvalidPID; 
     
     int value = (src_qid == NO_QID) + ((dst_qid == NO_QID) << 1);
 
@@ -75,10 +75,10 @@ query_triple::execute()
     }
     
     if (traverse == eTransform) {
-        g->cf_info[pid]->transform(iset, oset, direction);
+        g->cf_info[cf_id]->transform(iset, oset, direction);
 
     } else if (traverse == eExtend) {
-        g->cf_info[pid]->extend(iset, oset, direction);
+        g->cf_info[cf_id]->extend(iset, oset, direction);
     }
     
     return eOK;

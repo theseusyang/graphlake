@@ -120,6 +120,7 @@ class type_filter_t {
 
 typedef struct __select_info_t {
     cfinfo_t* rgraph;
+    propid_t pid;
     string name; 
 } select_info_t;
 

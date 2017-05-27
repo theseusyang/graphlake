@@ -45,7 +45,13 @@ void graph::type_done()
 {
     v_graph->make_graph_baseline();
 }
-    
+ 
+propid_t graph::get_cfid(const char* predicate)
+{
+    propid_t pid = get_pid(predicate);
+    return p_info[pid].cf_id;
+}
+
 propid_t graph::get_pid(const char* predicate)
 {
     map<string, propid_t>::iterator str2pid_iter = str2pid.find(predicate);
@@ -704,7 +710,7 @@ status_t cfinfo_t::filter(sid_t sid, univ_t value, filter_fn_t fn)
     return eOK;
 }
 
-void cfinfo_t::print_raw_dst(tid_t tid, vid_t vid)
+void cfinfo_t::print_raw_dst(tid_t tid, vid_t vid, propid_t pid /* = 0 */)
 {
     assert(0);
 }

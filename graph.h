@@ -94,7 +94,7 @@ class cfinfo_t {
     
     //label specific
     virtual status_t filter(sid_t sid, univ_t value, filter_fn_t fn);
-    virtual void print_raw_dst(tid_t tid, vid_t vid);
+    virtual void print_raw_dst(tid_t tid, vid_t vid, propid_t pid = 0);
     virtual status_t get_encoded_value(const char* value, univ_t* univ);
 };
 
@@ -125,6 +125,7 @@ class graph {
     void type_update(const string& src, const string& dst);
     void type_done();
 
+    propid_t get_cfid(const char* property);
     propid_t get_pid(const char* property);
     sid_t get_sid(const char* src);
     
