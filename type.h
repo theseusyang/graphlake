@@ -152,7 +152,7 @@ public:
     inline void setup(vid_t a_count) {
         vid_t count = a_count;
         if (adj_list) {
-            count += adj_list[0];
+            //count += adj_list[0];
             adj_list = (vid_t*) realloc(adj_list, sizeof(vid_t)*(count+1));
         } else {
             adj_list = (vid_t*) calloc(sizeof(vid_t), count+1);

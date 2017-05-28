@@ -14,7 +14,7 @@ class kvarray_t {
     inline void setup(vid_t a_count) {
         vid_t count = a_count;
         if (adj_list) {
-            count += adj_list[0].pid;
+            //count += adj_list[0].pid;
             adj_list = (kv_t*) realloc(adj_list, sizeof(kv_t)*(count+1));
         } else {
             adj_list = (kv_t*) calloc(sizeof(kv_t), count+1);
