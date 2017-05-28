@@ -186,16 +186,6 @@ void ontology_lubm()
     info->add_column(p_info);
     ++p_info;
     
-    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#emailAddress>", "emailAddress");
-    info = new stringkv_t;
-    info->add_column(p_info);
-    ++p_info;
-    
-    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#name>", "name");
-    info = new stringkv_t;
-    info->add_column(p_info);
-    ++p_info;
-    
     p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#officeNumber>", "officeNumber");
     info = new uint64kv_t;
     info->add_column(p_info);
@@ -206,17 +196,27 @@ void ontology_lubm()
     info->add_column(p_info);
     ++p_info;
     
-    //info = new uint64kv_t;
-    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#telephone>", "telephone");
-    info = new stringkv_t;
-    info->add_column(p_info);
-    ++p_info;
     
     p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#title>", "title");
     info = new stringkv_t;
     info->add_column(p_info);
     ++p_info;
-
+    
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#name>", "name");
+    info = new stringkv_t;
+    info->add_column(p_info);
+    ++p_info;
+    
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#emailAddress>", "emailAddress");
+    info = new stringkv_t;
+    info->add_column(p_info);
+    ++p_info;
+    
+    //info = new uint64kv_t;
+    p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#telephone>", "telephone");
+    info = new stringkv_t;
+    info->add_column(p_info);
+    ++p_info;
 }
 
 void test1()
