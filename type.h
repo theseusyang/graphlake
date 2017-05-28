@@ -132,6 +132,13 @@ public:
     sid_t dst_id;
 };
 
+class pedge_t {
+    public:
+    propid_t pid;
+    sid_t src_id;
+    char* dst_id;
+};
+
 //One vertex's neighbor information
 class beg_pos_t {
 public:

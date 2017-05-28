@@ -5,6 +5,7 @@ SRC=main.cpp \
 	ugraph.cpp\
 	dgraph.cpp\
 	sgraph.cpp\
+	mlabel.cpp\
 	stringkv.cpp\
 	typekv.cpp\
     vgraph.cpp\
@@ -13,12 +14,14 @@ SRC=main.cpp \
 	graph_query.cpp\
 	type.cpp\
 	lubm_test1.cpp\
+
 	
 
 HEADER=graph.h\
 	labelkv.h\
 	enumkv.h\
 	numkv.h\
+	mlabel.h\
 	typekv.h\
 	query_node.h\
 	query_triple.h\

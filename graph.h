@@ -27,6 +27,7 @@ void* alloc_buf();
 #define bu_factor 0.07
 #define MAX_BCOUNT 256
 #define MAX_ECOUNT 1000000
+#define MAX_PECOUNT 670000
 
 //class pkv_t;
 class graph;
