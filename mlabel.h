@@ -89,9 +89,11 @@ class manykv_t : public cfinfo_t {
     void fill_mkv_out();
     void calc_edge_count();
     void prep_mkv_internal();
+    void update_count();
+    
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     void make_graph_baseline();
-    void update_count();
-
+    void store_graph_baseline(string dir);
+    
     void print_raw_dst(tid_t tid, vid_t vid, propid_t pid);
 };

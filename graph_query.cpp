@@ -44,7 +44,7 @@ void query_clause::print_result()
                 }
                 
                 for (int m = 0; m < select_count; ++m) {
-                    select_info[m].rgraph->print_raw_dst(tid, frontier);
+                    select_info[m].rgraph->print_raw_dst(tid, frontier, select_info[m].pid);
                     cout << "\t";
                 }
 
@@ -67,7 +67,7 @@ void query_clause::print_result()
                 frontier = varray[j];
                 
                 for (int m = 0; m < select_count; ++m) {
-                    select_info[m].rgraph->print_raw_dst(tid, frontier);
+                    select_info[m].rgraph->print_raw_dst(tid, frontier, select_info[m].pid);
                     cout << "\t";
                 }
                  

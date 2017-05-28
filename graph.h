@@ -246,4 +246,4 @@ class one2many_t: public pgraph_t {
 
 /*----------- labels ------------------ */
 #include "labelkv.h"
-
+#include "mlabel.h"

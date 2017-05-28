@@ -74,7 +74,7 @@ void rset_t::print_vlist(select_info_t* select_info, qid_t select_count)
     for (vid_t j = 0; j < v_count; ++j) {
         frontier = varray[j];
         for (int j = 0; j < select_count; ++j) {
-            select_info[j].rgraph->print_raw_dst(tid, frontier);
+            select_info[j].rgraph->print_raw_dst(tid, frontier, select_info[j].pid);
             cout << ",";
         }
     }
@@ -97,7 +97,7 @@ void rset_t::print_adjlist(select_info_t* select_info, qid_t select_count, vid_t
         tid = TO_TID(sid);
         
         for (int j = 0; j < select_count; ++j) {
-            select_info[j].rgraph->print_raw_dst(tid, frontier);
+            select_info[j].rgraph->print_raw_dst(tid, frontier, select_info[j].pid);
             cout << ",";
         }
     }
@@ -111,7 +111,7 @@ void rset_t::print_kv(select_info_t* select_info, qid_t select_count, vid_t pos)
     tid_t tid = TO_TID(sid);
 
     for (int j = 0; j < select_count; ++j) {
-        select_info[j].rgraph->print_raw_dst(tid, frontier);
+        select_info[j].rgraph->print_raw_dst(tid, frontier, select_info[j].pid);
         cout << ",";
     }
 }
@@ -141,7 +141,7 @@ void rset_t::print_barray(select_info_t* select_info, qid_t select_count)
             frontier = pos + base;
             //Print
             for (int j = 0; j < select_count; ++j) {
-                select_info[j].rgraph->print_raw_dst(tid, frontier);
+                select_info[j].rgraph->print_raw_dst(tid, frontier, select_info[j].pid);
                 cout << ",";
             }
         }
