@@ -120,10 +120,10 @@ is_literal(string str) {
 }
 */
 
-void cfinfo_t::create_columnfamily(propid_t prop_count)
+void cfinfo_t::create_columnfamily(propid_t prop_count /* = 1 */)
 {
-    p_info = new pinfo_t;//[prop_count];
-    p_count = 1;
+    p_info = new pinfo_t* [prop_count];
+    p_count = 0;
 }
 
 void cfinfo_t::add_column(pinfo_t* prop_info)
@@ -133,8 +133,8 @@ void cfinfo_t::add_column(pinfo_t* prop_info)
     g->cf_count++;
     
     //p_info = new pinfo_t;
-    p_count = 1;
-    p_info = prop_info;
+    p_info[p_count] = prop_info;
+    ++p_count;
     prop_info->cf_id = cf_id;
     
 }
