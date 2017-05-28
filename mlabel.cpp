@@ -175,3 +175,15 @@ void manykv_t::update_count()
         }
     }
 }
+
+void manykv_t::print_raw_dst(tid_t tid, vid_t vid, propid_t pid)
+{
+    kvarray_t* kv = mkv_out[tid]->get_nebrlist(vid);
+    propid_t count = kv->get_nebrcount();
+    for (propid_t i = 1; i < count; ++i) {
+        if (pid == kv->get_pid(i)) {
+            cout << kv->get_value(i);
+            break;
+        }
+    }
+}

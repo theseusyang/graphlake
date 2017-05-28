@@ -33,6 +33,15 @@ class kvarray_t {
     inline vid_t get_nebrcount() {
         return adj_list[0].pid;
     }
+
+    inline propid_t get_pid(propid_t i) {
+        return adj_list[i].pid;
+    }
+
+    inline char* get_value(propid_t i) {
+        return adj_list[i].value;
+    }
+    
     //
     inline kvarray_t() {
         adj_list = 0;
@@ -53,7 +62,6 @@ public:
         ++nebr_count[vid];
         kv_array[vid].add_nebr(nebr_count[vid], pid, dst);
     }
-    
     inline void update_count(vid_t vid) {
         kv_array[vid].set_nebrcount(nebr_count[vid]);
     }
@@ -62,6 +70,9 @@ public:
         nebr_count[vid] = kv_array[vid].get_nebrcount();
     }
     
+    inline kvarray_t* get_nebrlist(vid_t vid) {
+        return kv_array + vid;
+    }
     inline vid_t get_vcount() { return TO_VID(super_id);}
     inline tid_t get_tid() { return TO_TID(super_id);}
     
@@ -81,4 +92,6 @@ class manykv_t : public cfinfo_t {
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     void make_graph_baseline();
     void update_count();
+
+    void print_raw_dst(tid_t tid, vid_t vid, propid_t pid);
 };
