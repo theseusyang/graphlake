@@ -442,30 +442,87 @@ void pgraph_t::update_count(sgraph_t** sgraph)
     }
 }
 
+class disk_vtable_t {
+    public:
+    uint64_t degree;
+    uint64_t file_offset;
+};
+
 void pgraph_t::store_sgraph(sgraph_t** sgraph, string dir, string postfix)
 {
-    /*
-    vid_t v_count;
-    //base name using relationship type
-    string basefile = dir + p_name;
-    string file;
-    FILE* f;
-    tid_t flag_count = __builtin_popcountll(flag);
-
-    //Write individual files.
-    for (tid_t i = 0; i < flag_count; ++i) {
-        v_count = TO_VID(sgraph[i].super_id);
-        file = basefile + itoa(i) + "beg_pos" + postfix;
-        f = fopen(file.c_str(), "wb");
-        assert(f != 0);
-        fwrite(sgraph[i].beg_pos, sizeof(), v_count + 1);
-    }
-
-    */
+    //const char* name = 0;
+    char name[8];
+    string   vtfile, etfile;
+    FILE     *vtf, *etf;
+    typekv_t* typekv = g->get_typekv();
+    tid_t    t_count = g->get_total_types();
     
+    //base name using relationship type
+    string  basefile = dir + p_info[0]->p_name;
+    vid_t   v_count;
+
+    if (sgraph == 0) return;
+    
+    // For each file.
+    for (tid_t i = 0; i < t_count; ++i) {
+        if (sgraph[i] == 0) continue;
+
+        //name = typekv->get_type_name(i);
+        sprintf(name, "%d.", i);
+        vtfile = basefile + name + "vtable" + postfix;
+        vtf = fopen(vtfile.c_str(), "wb");
+        assert(vtf != 0);
+        
+        etfile = basefile + name + "etable" + postfix;
+        etf = fopen(etfile.c_str(), "wb");
+        assert(etf != 0);
+        
+        v_count = sgraph[i]->get_vcount();
+        sid_t* adj_list = sgraph[i]->get_begpos()->get_adjlist();
+        disk_vtable_t* dvt = (disk_vtable_t*)calloc(sizeof(disk_vtable_t), v_count);
+        //Convert the pointer to offset
+        uint64_t prefix = 0;
+        for (vid_t v = 0; v < v_count; v++) {
+            dvt[v].degree =  adj_list[0];
+            dvt[v].file_offset = prefix; 
+            prefix += dvt[v].degree +  1;
+            fwrite(adj_list, sizeof(sid_t), dvt[v].degree + 1, etf);
+        }
+        fwrite(dvt, sizeof(disk_vtable_t), v_count, vtf);
+    }
 }
 
 /******************** super kv *************************/
+void pgraph_t::store_skv(skv_t** skv, string dir, string postfix)
+{
+    //const char* name = 0;
+    char name[8];
+    string vtfile;
+    FILE* vtf;
+    typekv_t*   typekv = g->get_typekv();
+    tid_t       t_count = g->get_total_types();
+    
+    //base name using relationship type
+    string basefile = dir + p_info[0]->p_name;
+    vid_t v_count;
+    
+    if (skv == 0) return;
+
+    // For each file.
+    for (tid_t i = 0; i < t_count; ++i) {
+        if (skv[i] == 0) continue;
+        //name = typekv->get_type_name(i);
+        sprintf(name, "%d.", i);
+        vtfile = basefile + name + "kv" + postfix;
+        vtf = fopen(vtfile.c_str(), "wb");
+        assert(vtf != 0);
+        
+        v_count = skv[i]->get_vcount();
+        sid_t* kv = skv[i]->get_kv();
+        fwrite(kv, sizeof(kv), v_count, vtf);
+    }
+}
+
 //super bins memory allocation
 skv_t** pgraph_t::prep_skv(sflag_t ori_flag, skv_t** skv)
 {
@@ -482,27 +539,6 @@ skv_t** pgraph_t::prep_skv(sflag_t ori_flag, skv_t** skv)
         skv[pos]->setup(pos);
     }
     return skv;
-}
-
-void pgraph_t::store_skv(skv_t** skv, string dir, string postfix)
-{
-    /*
-    vid_t v_count;
-    //base name using relationship type
-    string basefile = dir + p_name;
-    string file;
-    FILE* f;
-    tid_t flag_count = __builtin_popcountll(flag);
-
-    //Write individual files.
-    for (tid_t i = 0; i < flag_count; ++i) {
-        v_count = TO_VID(sgraph[i].super_id);
-        file = basefile + itoa(i) + "beg_pos" + postfix;
-        f = fopen(file.c_str(), "wb");
-        assert(f != 0);
-        //fwrite(sgraph[i].beg_pos, sizeof(), v_count + 1);
-    }
-    */
 }
 
 void pgraph_t::fill_skv(skv_t** skv_out, skv_t** skv_in)

@@ -28,6 +28,8 @@ void* alloc_buf();
 #define MAX_BCOUNT 256
 #define MAX_ECOUNT 1000000
 #define MAX_PECOUNT 670000
+#define BUF_SCOUNT  2000000
+#define BUF_SIZE   16000000
 
 //class pkv_t;
 class graph;
@@ -100,6 +102,7 @@ class cfinfo_t {
 };
 
 class vgraph_t;
+class typekv_t;
 ////////////main class/////////////////////
 class graph {
  public:
@@ -121,6 +124,7 @@ class graph {
 
  public:
     graph();
+    inline typekv_t* get_typekv() { return (typekv_t*)cf_info[0]; }
     sid_t get_type_scount(tid_t type);
     tid_t get_total_types();
     void type_update(const string& src, const string& dst);

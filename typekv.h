@@ -58,6 +58,9 @@ class typekv_t : public cfinfo_t {
     inline  sid_t get_type_scount(tid_t type) {
         return t_info[type].vert_id;
     }
+    inline const char* get_type_name(tid_t type) {
+        return t_info[type].type_name;
+    }
     inline tid_t get_total_types() {
         return t_count;
     }

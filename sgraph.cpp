@@ -61,7 +61,6 @@ void dgraph_t::make_graph_update()
 
 void dgraph_t::store_graph_baseline(string dir)
 {
-    if (batch_info[0].count == 0) return;
     string postfix = "out";
     store_sgraph(sgraph_out, dir, postfix);
     postfix = "in";
@@ -108,7 +107,6 @@ void ugraph_t::make_graph_update()
 
 void ugraph_t::store_graph_baseline(string dir)
 {
-    if (batch_info[0].count == 0) return;
     string postfix = "";
     store_sgraph(sgraph, dir, postfix);
 }
@@ -157,7 +155,6 @@ void many2one_t::make_graph_update()
 
 void many2one_t::store_graph_baseline(string dir)
 {
-    if (batch_info[0].count == 0) return;
     string postfix = "out";
     store_skv(skv_out, dir, postfix);
     postfix = "in";
@@ -208,7 +205,6 @@ void one2many_t::make_graph_update()
 
 void one2many_t::store_graph_baseline(string dir)
 {
-    if (batch_info[0].count == 0) return;
     string postfix = "out";
     store_sgraph(sgraph_out, dir, postfix);
     postfix = "in";
@@ -249,7 +245,6 @@ void one2one_t::make_graph_update()
 
 void one2one_t::store_graph_baseline(string dir)
 {
-    if (batch_info[0].count == 0) return;
     string postfix = "out";
     store_skv(skv_out, dir, postfix);
     postfix = "in";
