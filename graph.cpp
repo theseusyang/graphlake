@@ -442,26 +442,19 @@ void pgraph_t::update_count(sgraph_t** sgraph)
     }
 }
 
-class disk_vtable_t {
-    public:
-    uint64_t degree;
-    uint64_t file_offset;
-};
-
 void pgraph_t::store_sgraph(sgraph_t** sgraph, string dir, string postfix)
 {
-    //const char* name = 0;
-    char name[8];
+    if (sgraph == 0) return;
+    
     string   vtfile, etfile;
-    FILE     *vtf, *etf;
-    typekv_t* typekv = g->get_typekv();
     tid_t    t_count = g->get_total_types();
     
     //base name using relationship type
+    //const char* name = 0;
+    //typekv_t* typekv = g->get_typekv();
+    char name[8];
     string  basefile = dir + p_info[0]->p_name;
-    vid_t   v_count;
 
-    if (sgraph == 0) return;
     
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
@@ -470,25 +463,10 @@ void pgraph_t::store_sgraph(sgraph_t** sgraph, string dir, string postfix)
         //name = typekv->get_type_name(i);
         sprintf(name, "%d.", i);
         vtfile = basefile + name + "vtable" + postfix;
-        vtf = fopen(vtfile.c_str(), "wb");
-        assert(vtf != 0);
-        
         etfile = basefile + name + "etable" + postfix;
-        etf = fopen(etfile.c_str(), "wb");
-        assert(etf != 0);
-        
-        v_count = sgraph[i]->get_vcount();
-        sid_t* adj_list = sgraph[i]->get_begpos()->get_adjlist();
-        disk_vtable_t* dvt = (disk_vtable_t*)calloc(sizeof(disk_vtable_t), v_count);
-        //Convert the pointer to offset
-        uint64_t prefix = 0;
-        for (vid_t v = 0; v < v_count; v++) {
-            dvt[v].degree =  adj_list[0];
-            dvt[v].file_offset = prefix; 
-            prefix += dvt[v].degree +  1;
-            fwrite(adj_list, sizeof(sid_t), dvt[v].degree + 1, etf);
-        }
-        fwrite(dvt, sizeof(disk_vtable_t), v_count, vtf);
+         
+        sgraph[i]->persist_edgelog(etfile);
+        sgraph[i]->persist_vlog(vtfile);
     }
 }
 
@@ -499,7 +477,7 @@ void pgraph_t::store_skv(skv_t** skv, string dir, string postfix)
     char name[8];
     string vtfile;
     FILE* vtf;
-    typekv_t*   typekv = g->get_typekv();
+    //typekv_t*   typekv = g->get_typekv();
     tid_t       t_count = g->get_total_types();
     
     //base name using relationship type

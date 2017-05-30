@@ -623,8 +623,8 @@ void lubm_test(const string& typefile, const string& idir, const string& odir)
     lubm_1_1();
     lubm_4(); 
     lubm_4_1();
-    /*test_update();
+    test_update();
     cout << "----------test3-------------" << endl;
-    test3();*/
+    test3();
     /* */
 }

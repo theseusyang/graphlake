@@ -139,6 +139,13 @@ class pedge_t {
     char* dst_id;
 };
 
+class disk_vtable_t {
+    public:
+    vid_t    vid;
+    uint64_t degree;
+    uint64_t file_offset;
+};
+
 //One vertex's neighbor information
 class beg_pos_t {
 public:
@@ -146,7 +153,7 @@ public:
     //nebr list of one vertex. First member is a spl member
     //count, flag for snapshot, XXX: smart pointer count
     sid_t*   adj_list;
-
+    friend class sgraph_t;
  public:
 
     inline void setup(vid_t a_count) {
@@ -189,10 +196,25 @@ private:
     //array of adj list of vertices
     beg_pos_t* beg_pos;
 
-    //count in adj list. Used during setup only.
+    //count in adj list. Used for book-keeping purpose during setup and update.
     vid_t*   nebr_count;
 
     vid_t    max_vcount;
+
+    //edgetable file related log
+    sid_t*   log_beg;  //memory log pointer
+    sid_t    log_count;//size of memory log
+    sid_t    log_head; // current log write position
+    sid_t    log_tail; //current log cleaning position
+    sid_t    log_wpos; //Write this pointer for write persistency
+
+    //vertex table file related log
+    disk_vtable_t* dvt;
+    vid_t    dvt_count; 
+    vid_t    dvt_max_count;
+
+    FILE*    vtf;   //vertex table file
+    FILE*    etf;   //edge table file
 
 public:
     inline sgraph_t() {
@@ -200,10 +222,27 @@ public:
         beg_pos = 0;
         nebr_count = 0;
         max_vcount = 0;
+        log_count = (1L << 25);//32*8 MB
+        //log_beg = (sid_t*)calloc(sizeof(sid_t), log_count);
+        if (posix_memalign((void**)&log_beg, 2097152, log_count*sizeof(sid_t))) {
+            perror("posix memalign edge log");
+        }
+        log_head = 0;
+        log_tail = 0;
+        log_wpos = 0;
+        
+        dvt_count = 0;
+        dvt_max_count = (1L << 20);
+        if (posix_memalign((void**) &dvt, 2097152, 
+                           dvt_max_count*sizeof(disk_vtable_t*))) {
+            perror("posix memalign vertex log");    
+        }
+        vtf = 0;
+        etf = 0;
     }
-    //used during initial setup only
+    
     void setup(tid_t tid); 
-    void setup_adjlist(); 
+    void setup_adjlist();
 
     inline void increment_count(vid_t vid) { ++nebr_count[vid]; }
     inline void add_nebr(vid_t vid, sid_t sid) { 
@@ -220,7 +259,9 @@ public:
     inline beg_pos_t* get_begpos() { return beg_pos;}
     inline vid_t get_vcount() { return TO_VID(super_id);}
     inline tid_t get_tid() { return TO_TID(super_id);}
-    
+
+    void persist_edgelog(const string& etfile);
+    void persist_vlog(const string& vtfile); 
 };
 
 //one type's key-value store

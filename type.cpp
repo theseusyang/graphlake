@@ -384,9 +384,65 @@ void sgraph_t::setup(tid_t tid)
 void sgraph_t::setup_adjlist()
 {
     vid_t v_count = TO_VID(super_id);
+    sid_t count;
+    sid_t* adj_list = 0;
+    vid_t v = 0;
+
     for (vid_t vid = 0; vid < v_count; ++vid) {
-        beg_pos[vid].setup(nebr_count[vid]);
-        reset_count(vid);
+        adj_list = beg_pos[vid].adj_list;
+        count = nebr_count[vid];
+
+        if (adj_list && adj_list[0] != count) {
+            beg_pos[vid].adj_list = log_beg + log_head;
+            log_head += count + 1;
+            memcpy(beg_pos[vid].adj_list, adj_list, adj_list[0]*sizeof(sid_t));
+            
+            dvt[v].vid = vid;
+            dvt[v].degree = count;
+            dvt[v].file_offset = log_head;
+            ++v;
+        } else {
+            beg_pos[vid].adj_list = log_beg + log_head; //calloc(sizeof(vid_t), count+1);
+            log_head += count + 1; 
+            
+            dvt[v].vid = vid;
+            dvt[v].degree = count;
+            dvt[v].file_offset = log_head;
+            ++v;
+        }
+        nebr_count[vid] = beg_pos[vid].get_nebrcount();
     }
+    dvt_count = v;
 }
 
+void sgraph_t::persist_edgelog(const string& etfile)
+{
+    //Make a copy
+    sid_t wpos = log_wpos;
+    
+    //Update the mark
+    log_wpos = log_head;
+        
+    //Write the file.
+    if (etf == 0) {
+        etf = fopen(etfile.c_str(), "a+b");//append/write + binary
+        assert(etf != 0);
+    }
+    fwrite(log_beg+wpos, sizeof(sid_t), log_head-wpos, etf);
+}
+
+void sgraph_t::persist_vlog(const string& vtfile)
+{
+    //Make a copy
+    sid_t count =  dvt_count;
+
+    //update the mark
+    dvt_count = 0;
+
+    //Write the file
+    if(vtf == 0) {
+        vtf = fopen(vtfile.c_str(), "a+b");
+        assert(vtf != 0);
+    }
+    fwrite(dvt, sizeof(disk_vtable_t), count, vtf);
+}
