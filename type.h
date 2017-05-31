@@ -269,6 +269,12 @@ public:
     void read_vtable(const string& vtfile); 
 };
 
+class disk_kv_t {
+    public:
+    vid_t    vid;
+    sid_t    dst;
+};
+
 //one type's key-value store
 class skv_t {
  private:
@@ -276,12 +282,27 @@ class skv_t {
     vid_t  max_vcount;
     sid_t* kv;
 
+    disk_kv_t* dvt;
+    vid_t dvt_count;
+    vid_t dvt_max_count;
+
+    FILE* vtf;
+
  public:
     inline skv_t() {
         super_id = 0;
         max_vcount = 0;
         kv = 0;
+        
+        dvt_count = 0;
+        dvt_max_count = (1L << 20);
+        if (posix_memalign((void**) &dvt, 2097152, 
+                           dvt_max_count*sizeof(disk_kv_t*))) {
+            perror("posix memalign vertex log");    
+        }
+        vtf = 0;
     }
+
     void setup(tid_t tid);
 
     inline sid_t* get_kv() { return kv; }
@@ -291,6 +312,8 @@ class skv_t {
     inline void set_value(vid_t vert1_id, sid_t dst) {
         kv[vert1_id] = dst;
     }
+    void persist_kvlog(const string& kvfile);
+    void read_kv(const string& kvfile); 
 };
 
 class sdegree_t {

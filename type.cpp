@@ -503,3 +503,43 @@ void sgraph_t::read_vtable(const string& vtfile)
     dvt_count = 0;
 }
 
+void skv_t::persist_kvlog(const string& vtfile)
+{
+    //Make a copy
+    sid_t count =  dvt_count;
+
+    //update the mark
+    dvt_count = 0;
+
+    //Write the file
+    if(vtf == 0) {
+        vtf = fopen(vtfile.c_str(), "a+b");
+        assert(vtf != 0);
+    }
+    fwrite(dvt, sizeof(disk_kv_t), count, vtf);
+}
+
+void skv_t::read_kv(const string& vtfile)
+{
+    //Write the file
+    if(vtf == 0) {
+        vtf = fopen(vtfile.c_str(), "r+b");
+        assert(vtf != 0);
+    }
+
+    off_t size = fsize(vtfile.c_str());
+    if (size == -1L) {
+        assert(0);
+    }
+    vid_t count = (size/sizeof(disk_vtable_t));
+
+    //read in batches
+    while (count !=0) {
+        vid_t read_count = fread(dvt, sizeof(disk_kv_t), dvt_max_count, vtf);
+        for (vid_t v = 0; v < read_count; ++v) {
+            kv[dvt[v].vid] = dvt[v].dst;
+        }
+        count -= read_count;
+    }
+    dvt_count = 0;
+}
