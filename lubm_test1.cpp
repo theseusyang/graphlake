@@ -617,6 +617,7 @@ void lubm_test(const string& typefile, const string& idir, const string& odir)
         fill_lubm_inference_type();
     }
     g->prep_graph(idir, odir);
+    
     test1();
     test2();
     lubm_1();
@@ -627,4 +628,9 @@ void lubm_test(const string& typefile, const string& idir, const string& odir)
     cout << "----------test3-------------" << endl;
     test3();
     /* */
+}
+
+void lubm_test1(const string& odir)
+{
+
 }

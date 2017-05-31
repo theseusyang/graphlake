@@ -66,21 +66,16 @@ int main(int argc, char* argv[])
                 break;
 		}
 	}
-    /*
     switch (convert) {
         case 0:
-            ontology_lubm();
-            if (!typefile.empty()) {
-                g->prep_type(typefile);
-                fill_lubm_inference_type();
-            }
-            g->prep_graph(idir, odir);
+        lubm_test(typefile, idir, odir);
+            break;
+        case 1:
+        lubm_test1(odir);
             break;
         default:
             break;
     }
-    */
 
-    lubm_test(typefile, idir, odir);
     return 0;
 }

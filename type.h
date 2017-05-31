@@ -222,9 +222,11 @@ public:
         beg_pos = 0;
         nebr_count = 0;
         max_vcount = 0;
+        
+        //XXX everything is in memory
         log_count = (1L << 25);//32*8 MB
-        //log_beg = (sid_t*)calloc(sizeof(sid_t), log_count);
         if (posix_memalign((void**)&log_beg, 2097152, log_count*sizeof(sid_t))) {
+            //log_beg = (sid_t*)calloc(sizeof(sid_t), log_count);
             perror("posix memalign edge log");
         }
         log_head = 0;
@@ -261,7 +263,10 @@ public:
     inline tid_t get_tid() { return TO_TID(super_id);}
 
     void persist_edgelog(const string& etfile);
-    void persist_vlog(const string& vtfile); 
+    void persist_vlog(const string& vtfile);
+
+    void read_edgelog(const string& etfile);
+    void read_vtable(const string& vtfile); 
 };
 
 //one type's key-value store

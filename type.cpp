@@ -1,8 +1,20 @@
 #include <assert.h>
 #include <iostream>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "type.h"
 #include "graph.h"
+
+off_t fsize(const string& fname)
+{
+    struct stat st;
+    if (stat(fname.c_str(), &st)) {
+        return st.st_size;
+    }
+    return -1L;
+}
 
 void rset_t::bitwise2vlist()
 {
@@ -446,3 +458,48 @@ void sgraph_t::persist_vlog(const string& vtfile)
     }
     fwrite(dvt, sizeof(disk_vtable_t), count, vtf);
 }
+
+void sgraph_t::read_edgelog(const string& etfile)
+{
+    if (etf == 0) {
+        etf = fopen(etfile.c_str(), "r+b");//append/write + binary
+        assert(etf != 0);
+    }
+
+    off_t size = fsize(etfile.c_str());
+    if (size == -1L) {
+        assert(0);
+    }
+    sid_t edge_count = size/sizeof(sid_t);
+    fread(log_beg, sizeof(sid_t), edge_count, etf);
+
+    log_head = edge_count;
+    log_wpos = log_head;
+}
+
+void sgraph_t::read_vtable(const string& vtfile)
+{
+    //Write the file
+    if(vtf == 0) {
+        vtf = fopen(vtfile.c_str(), "r+b");
+        assert(vtf != 0);
+    }
+
+    off_t size = fsize(vtfile.c_str());
+    if (size == -1L) {
+        assert(0);
+    }
+    vid_t count = (size/sizeof(disk_vtable_t));
+
+    //read in batches
+    while (count !=0 ) {
+        vid_t read_count = fread(dvt, sizeof(disk_vtable_t), dvt_max_count, vtf);
+        for (vid_t v = 0; v < read_count; ++v) {
+            nebr_count[dvt[v].vid] = dvt[v].degree;
+            beg_pos[dvt[v].vid].adj_list = log_beg + dvt[v].file_offset;
+        }
+        count -= read_count;
+    }
+    dvt_count = 0;
+}
+
