@@ -602,7 +602,7 @@ void test3()
 void test_update()
 {
     string idir = "/mnt/raid0_huge/rdfdata/lubm-4univ-seed0/nt-data-rest/";
-    string odir;
+    string odir = "del/";
     string typefile = "/mnt/raid0_huge/rdfdata/lubm-4univ-seed0/type-rest.txt";
     g->prep_type(typefile);
     g->prep_graph(idir, odir);

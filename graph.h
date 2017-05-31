@@ -56,8 +56,8 @@ class pinfo_t {
 //Column Family
 class cfinfo_t {
  public:
-    pinfo_t**     p_info;
-    propid_t      p_count;
+    pinfo_t**     col_info;
+    propid_t      col_count;
 
     batchinfo_t* batch_info;
     batchinfo_t* batch_info1;

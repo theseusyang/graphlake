@@ -42,7 +42,7 @@ class lkv_t {
 //as this graphs' src id may be an enum (e.g.)
 typedef beg_pos_t lgraph_t;
 
-//base class for label graphs.
+//base class for label property store.
 template <class T>
 class pkv_t: public cfinfo_t {
  public:
@@ -67,15 +67,6 @@ class pkv_t: public cfinfo_t {
     void make_graph_baseline();
 
     void print_raw_dst(tid_t tid, vid_t vid, propid_t pid = 0);
-};
-
-class stringkv_t : public pkv_t<char*> {
- protected:
- public:
-    status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
-    void store_graph_baseline(string dir);
-
-    void get_raw_dst(tid_t tid, vid_t vid);
 };
 
 /*---------------vinfo--------------------*/

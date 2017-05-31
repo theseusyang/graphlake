@@ -40,6 +40,8 @@ class cfinfo_t;
 class skv_t;
 class sgraph_t;
 
+off_t fsize(const string& fname);
+
 enum direction_t {
     eout = 0, 
     ein
@@ -311,6 +313,9 @@ class skv_t {
     
     inline void set_value(vid_t vert1_id, sid_t dst) {
         kv[vert1_id] = dst;
+        dvt[dvt_count].vid = vert1_id;
+        dvt[dvt_count].dst = dst; 
+        ++dvt_count;
     }
     void persist_kvlog(const string& kvfile);
     void read_kv(const string& kvfile); 

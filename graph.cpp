@@ -79,7 +79,6 @@ sid_t graph::get_sid(const char* src)
 void pinfo_t::populate_property(const char* longname, const char* property_name)
 {
     g->str2pid[longname] = g->p_count;
-    //g->p_info[g->p_count] = this;
     g->p_count++;
 
     p_name  = gstrdup(property_name);
@@ -122,8 +121,8 @@ is_literal(string str) {
 
 void cfinfo_t::create_columnfamily(propid_t prop_count /* = 1 */)
 {
-    p_info = new pinfo_t* [prop_count];
-    p_count = 0;
+    col_info = new pinfo_t* [prop_count];
+    col_count = 0;
 }
 
 void cfinfo_t::add_column(pinfo_t* prop_info)
@@ -132,9 +131,8 @@ void cfinfo_t::add_column(pinfo_t* prop_info)
     cf_id = g->cf_count;
     g->cf_count++;
     
-    //p_info = new pinfo_t;
-    p_info[p_count] = prop_info;
-    ++p_count;
+    col_info[col_count] = prop_info;
+    ++col_count;
     prop_info->cf_id = cf_id;
     
 }
@@ -453,7 +451,7 @@ void pgraph_t::store_sgraph(sgraph_t** sgraph, string dir, string postfix)
     //const char* name = 0;
     //typekv_t* typekv = g->get_typekv();
     char name[8];
-    string  basefile = dir + p_info[0]->p_name;
+    string  basefile = dir + col_info[0]->p_name;
 
     
     // For each file.
@@ -473,18 +471,16 @@ void pgraph_t::store_sgraph(sgraph_t** sgraph, string dir, string postfix)
 /******************** super kv *************************/
 void pgraph_t::store_skv(skv_t** skv, string dir, string postfix)
 {
+    if (skv == 0) return;
+
     //const char* name = 0;
-    char name[8];
-    string vtfile;
-    FILE* vtf;
     //typekv_t*   typekv = g->get_typekv();
+    char name[8];
     tid_t       t_count = g->get_total_types();
     
     //base name using relationship type
-    string basefile = dir + p_info[0]->p_name;
-    vid_t v_count;
-    
-    if (skv == 0) return;
+    string basefile = dir + col_info[0]->p_name;
+    string vtfile;
 
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
@@ -492,12 +488,8 @@ void pgraph_t::store_skv(skv_t** skv, string dir, string postfix)
         //name = typekv->get_type_name(i);
         sprintf(name, "%d.", i);
         vtfile = basefile + name + "kv" + postfix;
-        vtf = fopen(vtfile.c_str(), "wb");
-        assert(vtf != 0);
-        
-        v_count = skv[i]->get_vcount();
-        sid_t* kv = skv[i]->get_kv();
-        fwrite(kv, sizeof(kv), v_count, vtf);
+
+        skv[i]->persist_kvlog(vtfile);
     }
 }
 
