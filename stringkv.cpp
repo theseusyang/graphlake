@@ -26,6 +26,8 @@ status_t stringkv_t::batch_update(const string& src, const string& dst, propid_t
     flag1 |= (1L << type_id);
     
     dst_id = gstrdup(dst.c_str());
+    //dst_id = log_beg + log_head;
+    //log_head += sizeof(dst.c_str());
 
     index = batch_info1[batch_count1].count++;
     edges = (edgeT_t<char*>*) batch_info1[batch_count1].buf;
