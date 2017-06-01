@@ -123,13 +123,14 @@ void cfinfo_t::create_columnfamily(propid_t prop_count /* = 1 */)
 {
     col_info = new pinfo_t* [prop_count];
     col_count = 0;
+    
+    g->cf_info[g->cf_count] = this;
+    cf_id = g->cf_count;
+    g->cf_count++;
 }
 
 void cfinfo_t::add_column(pinfo_t* prop_info)
 {
-    g->cf_info[g->cf_count] = this;
-    cf_id = g->cf_count;
-    g->cf_count++;
     
     col_info[col_count] = prop_info;
     ++col_count;

@@ -74,9 +74,10 @@ class strkv_t {
 
     inline void set_value(vid_t vid, char* value) {
         char* ptr = log_beg + log_head;
-        log_head += strlen(value);
-        memcpy(ptr, value, strlen(value));
+        log_head += strlen(value) + 1;
+        memcpy(ptr, value, strlen(value) + 1);
         free(value);
+
         kv[vid] = ptr;
         dvt[dvt_count].vid = vid;
         dvt[dvt_count].offset = ptr - log_beg; 
@@ -171,6 +172,12 @@ class mkv_t {
     vid_t max_vcount;
  
 public: 
+    inline mkv_t() {
+        super_id = 0;
+        kv_array = 0;
+        nebr_count = 0;
+        max_vcount = 0;
+    }
     void setup(tid_t tid);
     void setup_adjlist();
     inline void increment_count(vid_t vid) { ++nebr_count[vid]; }
