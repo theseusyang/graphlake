@@ -32,7 +32,7 @@ void mkv_t::setup_adjlist()
     for (vid_t vid = 0; vid < v_count; ++vid) {
         adj_list = kv_array[vid].adj_list;
         //XXX align it
-        size = nebr_count[vid].offset;
+        size = (nebr_count[vid].offset + 1) & 0xFFFE;
         degree = nebr_count[vid].pid;
 
         if (adj_list && adj_list[1] != degree ) {
@@ -83,7 +83,7 @@ void mkv_t::setup_adjlist()
             dvt[v].size = size + additional_size;//additional size should be added only once
             dvt[v].file_offset = log_head;
             
-            log_head += size;
+            log_head += size + additional_size;
             ++v;
         }
     }
@@ -341,12 +341,13 @@ void manykv_t::print_raw_dst(tid_t tid, vid_t vid, propid_t pid)
 
 void mkv_t::print_raw_dst(vid_t vid, propid_t pid) 
 {
-    kv_t*  kv = (kv_t*)(kv_array->adj_list + 2);
+    kv_t*  kv = (kv_t*)(kv_array[vid].adj_list + 2);
+    propid_t count = kv_array[vid].get_nebrcount();
     
-    propid_t count = kv_array->get_nebrcount();
-    for (propid_t i = 1; i <= count; ++i) {
+    char* adj_list = (char*)(kv_array[vid].adj_list);
+    for (propid_t i = 0; i <= count; ++i) {
         if (pid == kv[i].pid) {
-            cout << log_beg + kv[i].offset;
+            cout << adj_list + kv[i].offset;
             break;
         }
     }

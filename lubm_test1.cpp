@@ -222,6 +222,7 @@ void ontology_lubm()
     info->add_column(p_info);
     ++p_info;
     
+    
     /*
     p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#name>", "name");
     info = new stringkv_t;
@@ -281,7 +282,6 @@ void ontology_lubm()
     //info->create_columnfamily();
     info->add_column(p_info);
     ++p_info;
-    
 }
 
 void test1()
