@@ -9,7 +9,7 @@ void mkv_t::setup(tid_t tid)
         vid_t v_count = TO_VID(super_id);
         max_vcount = (v_count << 1);
         kv_array = (kvarray_t*)calloc(sizeof(kvarray_t), max_vcount);
-        nebr_count = (vid_t*)calloc(sizeof(vid_t), max_vcount);
+        nebr_count = (kv_t*)calloc(sizeof(kv_t), max_vcount);
     } else {
         super_id = g->get_type_scount(tid);
         vid_t v_count = TO_VID(super_id);
@@ -22,10 +22,54 @@ void mkv_t::setup(tid_t tid)
 void mkv_t::setup_adjlist()
 {
     vid_t v_count = TO_VID(super_id);
+    propid_t size = 0;
+    propid_t degree = 0;
+    kv_t* adj_list = 0;
+    vid_t v = 0;
+
     for (vid_t vid = 0; vid < v_count; ++vid) {
-        kv_array[vid].setup(nebr_count[vid]);
-        reset_count(vid);
+        adj_list = kv_array[vid].adj_list;
+        //XXX align it
+        size = nebr_count[vid].offset + sizeof(propid_t);
+
+        if (adj_list && adj_list[0] ! = size) {
+            adj_list = log_beg + log_head;
+            memcpy(adj_list, kv_array[vid].adj_list, kv_array[vid].adj_list[0]);
+            kv_array[v].adj_list = adj_list;
+            
+            dvt[v].vid = vid;
+            dvt[v].degree = nebr_count[vid].pid;
+            dvt[v].size = size;
+            dvt[v].file_offset = log head;
+            
+            log_head += size;
+            ++v;
+
+        } else {
+            kv_array[vid].adj_list = log_beg + log_head;
+
+            dvt[v].vid = vid;
+            dvt[v].degree = nebr_count[vid].pid;
+            dvt[v].size = size;
+            dvt[v].file_offset = log head;
+            
+            log_head += size;
+            ++v;
+        }
+        nebr_count[vid].size = kv_array[vid].get_size();
+        nebr_count[vid].degree = kv_array[vid].get_nebr_count();
     }
+    dvt_count = v;
+}
+    
+void manykv_t::add_nebr(vid_t vid, propid_t pid, char* dst) 
+{
+    kv_t* kv = (kv_t*)(kv_array[vid] + 2);
+    kv[nebr_count[vid]].pid = pid;
+    kv[nebr_count[vid]].offset = log_beg; 
+  
+    kv_array[vid].add_nebr(nebr_count[vid], pid, dst);
+    ++nebr_count[vid].pid;
 }
 
 /*****************/
@@ -121,7 +165,7 @@ void manykv_t::calc_edge_count()
             src = edges[i].src_id;
             src_index = TO_TID(src);
             vert1_id = TO_VID(src);
-            mkv_out[src_index]->increment_count(vert1_id);
+            mkv_out[src_index]->increment_count(vert1_id, strlen(edges[i].dst_id) + 1);
         }
     }
 }

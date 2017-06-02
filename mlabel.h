@@ -8,6 +8,14 @@ class disk_strkv_t {
     sid_t offset;
 };
 
+class disk_manykv_t {
+    public:
+    vid_t    vid;
+    propid_t size;
+    propid_t degree;
+    uint64_t file_offset;
+};
+
 class strkv_t {
  public:
     char** kv;
@@ -120,24 +128,20 @@ class stringkv_t : public cfinfo_t {
 
 class kv_t {
  public:
-    propid_t   pid;//name
-    char*      value;
+    propid_t   pid;
+    propid_t   offset;//character count offset from beg of blob
+    //char*      value;
 };
 
 class kvarray_t {
-    kv_t* adj_list;
-    
- public:
-    inline void setup(vid_t a_count) {
-        vid_t count = a_count;
-        if (adj_list) {
-            //count += adj_list[0].pid;
-            adj_list = (kv_t*) realloc(adj_list, sizeof(kv_t)*(count+1));
-        } else {
-            adj_list = (kv_t*) calloc(sizeof(kv_t), count+1);
-        }
-    }
+    //It is an array of  blob. One blob per vertex. 
+    // first 2bytes for total byte count
+    // next 2bytes is the count of number of properties
+    // from 5th bits onwards, it is an array of propid_t (2 bytes) and offset (2 bytes) from this pointer
+    // All the string values (char*) are at the end.
+    propid_t* adj_list;
 
+ public:
     inline void add_nebr(vid_t index, propid_t pid, char* value) { 
         adj_list[index].pid = pid; 
         adj_list[index].value = value;
@@ -147,8 +151,12 @@ class kvarray_t {
         adj_list[0].pid = count;
     }
 
-    inline vid_t get_nebrcount() {
-        return adj_list[0].pid;
+    inline propid_t get_size() {
+        return adj_list[0];
+    }
+    
+    inline propid_t get_nebrcount() {
+        return adj_list[1].pid;
     }
 
     inline propid_t get_pid(propid_t i) {
@@ -168,8 +176,28 @@ class kvarray_t {
 class mkv_t {
     sid_t super_id;
     kvarray_t* kv_array;
-    vid_t* nebr_count; 
+
+    //number of properties, number of character for their values, allocated for blob
+    kv_t* nebr_count;
+
     vid_t max_vcount;
+    
+    //edgetable file related log
+    char*    log_beg;  //memory log pointer
+    sid_t    log_count;//size of memory log
+    sid_t    log_head; // current log write position
+    sid_t    log_tail; //current log cleaning position
+    sid_t    log_wpos; //Write this pointer for write persistency
+
+    //vertex table file related log
+    disk_manykv_t* dvt;
+    vid_t    dvt_count; 
+    vid_t    dvt_max_count;
+
+    FILE*    vtf;   //vertex table file
+    FILE*    etf;   //edge table file
+    
+    friend class mkv_t;
  
 public: 
     inline mkv_t() {
@@ -177,14 +205,35 @@ public:
         kv_array = 0;
         nebr_count = 0;
         max_vcount = 0;
+        
+        //XXX everything is in memory
+        log_count = (1L << 25);//32*8 MB
+        if (posix_memalign((void**)&log_beg, 2097152, log_count*sizeof(char))) {
+            //log_beg = (sid_t*)calloc(sizeof(sid_t), log_count);
+            perror("posix memalign edge log");
+        }
+        log_head = 0;
+        log_tail = 0;
+        log_wpos = 0;
+        
+        dvt_count = 0;
+        dvt_max_count = (1L << 20);
+        if (posix_memalign((void**) &dvt, 2097152, 
+                           dvt_max_count*sizeof(disk_strkv_t*))) {
+            perror("posix memalign vertex log");    
+        }
+        vtf = 0;
+        etf = 0;
     }
     void setup(tid_t tid);
     void setup_adjlist();
-    inline void increment_count(vid_t vid) { ++nebr_count[vid]; }
-    inline void add_nebr(vid_t vid, propid_t pid, char* dst) {
-        ++nebr_count[vid];
-        kv_array[vid].add_nebr(nebr_count[vid], pid, dst);
+    inline void increment_count(vid_t vid, propid_t size) { 
+        nebr_count[vid].pid += 1;
+        nebr_count[vid].offset += size + sizeof(propid_t);//size of value + size of key
     }
+
+    void add_nebr(vid_t vid, propid_t pid, char* dst);
+    
     inline void update_count(vid_t vid) {
         kv_array[vid].set_nebrcount(nebr_count[vid]);
     }

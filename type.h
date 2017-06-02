@@ -7,7 +7,7 @@
 using std::string;
 
 
-typedef uint32_t propid_t;
+typedef uint16_t propid_t;
 typedef uint64_t vid_t;
 typedef uint64_t sid_t;
 typedef uint64_t index_t;
@@ -30,7 +30,7 @@ typedef uint16_t qid_t;
 #define WORD_COUNT(count) ((count + 63) >> 6)
 
 
-#define INVALID_PID 0xFFFFFFFF
+#define INVALID_PID 0xFFFF
 #define INVALID_TID 0xFFFFFFFF
 #define INVALID_SID 0xFFFFFFFFFFFFFFFF
 

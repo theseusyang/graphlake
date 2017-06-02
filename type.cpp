@@ -405,21 +405,25 @@ void sgraph_t::setup_adjlist()
         count = nebr_count[vid];
 
         if (adj_list && adj_list[0] != count) {
-            beg_pos[vid].adj_list = log_beg + log_head;
-            log_head += count + 1;
-            memcpy(beg_pos[vid].adj_list, adj_list, adj_list[0]*sizeof(sid_t));
+            adj_list = log_beg + log_head;
+
+            memcpy(adj_list, beg_pos[vid].adj_list, beg_pos[vid].adj_list[0]*sizeof(sid_t));
+            beg_pos[vid].adj_list = adj_list;
             
             dvt[v].vid = vid;
             dvt[v].degree = count;
             dvt[v].file_offset = log_head;
+            
+            log_head += count + 1;
             ++v;
         } else {
             beg_pos[vid].adj_list = log_beg + log_head; //calloc(sizeof(vid_t), count+1);
-            log_head += count + 1; 
             
             dvt[v].vid = vid;
             dvt[v].degree = count;
             dvt[v].file_offset = log_head;
+            
+            log_head += count + 1; 
             ++v;
         }
         nebr_count[vid] = beg_pos[vid].get_nebrcount();
