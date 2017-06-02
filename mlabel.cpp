@@ -36,7 +36,7 @@ void mkv_t::setup_adjlist()
         degree = nebr_count[vid].pid;
 
         if (adj_list && adj_list[1] != degree ) {
-            adj_list = log_beg + log_head;
+            adj_list = (propid_t*)(log_beg + log_head);
 
             //key, offset copying
             propid_t copy_sz = kv_array[vid].adj_list[1]*sizeof(kv_t) + additional_size;
@@ -52,20 +52,20 @@ void mkv_t::setup_adjlist()
             kv_array[v].adj_list = adj_list;
         
             //values will be allocated from this place.
-            nebr_count[vid].offset = new_offset + rem_size;
+            nebr_count[vid].offset = new_offset + rem_sz;
             //reset the count
-            nebr_count[vid].pid = kv_array[vid].get_nebr_count();
+            nebr_count[vid].pid = adj_list[1];
             
             dvt[v].vid = vid;
             dvt[v].degree = degree;
             dvt[v].size = size;
-            dvt[v].file_offset = log head;
+            dvt[v].file_offset = log_head;
             
             log_head += size + dvt[v].size;
             ++v;
 
         } else {
-            adj_list = log_beg + log_head;
+            adj_list = (propid_t*)(log_beg + log_head);
             
             //Doesn't matter
             adj_list[0] = additional_size;
@@ -81,7 +81,7 @@ void mkv_t::setup_adjlist()
             dvt[v].vid = vid;
             dvt[v].degree = nebr_count[vid].pid;
             dvt[v].size = size + additional_size;//additional size should be added only once
-            dvt[v].file_offset = log head;
+            dvt[v].file_offset = log_head;
             
             log_head += size;
             ++v;
@@ -92,16 +92,17 @@ void mkv_t::setup_adjlist()
     
 void mkv_t::add_nebr(vid_t vid, propid_t pid, char* dst) 
 {
+    propid_t* adj_list = kv_array[vid].adj_list;
     //First two members are size and degree;
     kv_t* kv = (kv_t*)(kv_array[vid].adj_list + 2);
     propid_t value_size = strlen(dst) + 1;
 
     kv[nebr_count[vid].pid].pid = pid;
     kv[nebr_count[vid].pid].offset = nebr_count[vid].offset;
-    memcpy(kv[nebr_count[vid].offset], dst, value_size);
+    memcpy((char*)adj_list + nebr_count[vid].offset, dst, value_size);
     
     nebr_count[vid].pid += 1;
-    nebr_count[vid].offset +=  vakue_size;
+    nebr_count[vid].offset += value_size;
   
 }
 
@@ -119,7 +120,7 @@ void mkv_t::persist_edgelog(const string& etfile)
         etf = fopen(etfile.c_str(), "a+b");//append/write + binary
         assert(etf != 0);
     }
-    fwrite(log_beg+wpos, sizeof(sid_t), log_head-wpos, etf);
+    fwrite(log_beg+wpos, sizeof(char), log_head-wpos, etf);
 }
 
 void mkv_t::persist_vlog(const string& vtfile)
@@ -135,10 +136,10 @@ void mkv_t::persist_vlog(const string& vtfile)
         vtf = fopen(vtfile.c_str(), "a+b");
         assert(vtf != 0);
     }
-    fwrite(dvt, sizeof(disk_vtable_t), count, vtf);
+    fwrite(dvt, sizeof(disk_manykv_t), count, vtf);
 }
 
-void mkv_t::read_edgelog(const string& etfile)
+void mkv_t::read_etable(const string& etfile)
 {
     if (etf == 0) {
         etf = fopen(etfile.c_str(), "r+b");//append/write + binary
@@ -149,8 +150,8 @@ void mkv_t::read_edgelog(const string& etfile)
     if (size == -1L) {
         assert(0);
     }
-    sid_t edge_count = size/sizeof(sid_t);
-    fread(log_beg, sizeof(sid_t), edge_count, etf);
+    sid_t edge_count = size;
+    fread(log_beg, sizeof(char), edge_count, etf);
 
     log_head = edge_count;
     log_wpos = log_head;
@@ -168,14 +169,17 @@ void mkv_t::read_vtable(const string& vtfile)
     if (size == -1L) {
         assert(0);
     }
-    vid_t count = (size/sizeof(disk_vtable_t));
+    vid_t count = (size/sizeof(disk_manykv_t));
 
     //read in batches
     while (count !=0 ) {
-        vid_t read_count = fread(dvt, sizeof(disk_vtable_t), dvt_max_count, vtf);
+        vid_t read_count = fread(dvt, sizeof(disk_manykv_t), dvt_max_count, vtf);
         for (vid_t v = 0; v < read_count; ++v) {
-            nebr_count[dvt[v].vid] = dvt[v].degree;
-            beg_pos[dvt[v].vid].adj_list = log_beg + dvt[v].file_offset;
+            nebr_count[dvt[v].vid].pid = dvt[v].degree;
+            nebr_count[dvt[v].vid].offset = dvt[v].file_offset;
+
+
+            kv_array[dvt[v].vid].adj_list = (propid_t*) (log_beg + dvt[v].file_offset);
         }
         count -= read_count;
     }
@@ -332,11 +336,17 @@ void manykv_t::update_count()
 
 void manykv_t::print_raw_dst(tid_t tid, vid_t vid, propid_t pid)
 {
-    kvarray_t* kv = mkv_out[tid]->get_nebrlist(vid);
-    propid_t count = kv->get_nebrcount();
+    mkv_out[tid]->print_raw_dst(vid, pid);
+}
+
+void mkv_t::print_raw_dst(vid_t vid, propid_t pid) 
+{
+    kv_t*  kv = (kv_t*)(kv_array->adj_list + 2);
+    
+    propid_t count = kv_array->get_nebrcount();
     for (propid_t i = 1; i <= count; ++i) {
-        if (pid == kv->get_pid(i)) {
-            cout << kv->get_value(i);
+        if (pid == kv[i].pid) {
+            cout << log_beg + kv[i].offset;
             break;
         }
     }

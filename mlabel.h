@@ -8,14 +8,6 @@ class disk_strkv_t {
     sid_t offset;
 };
 
-class disk_manykv_t {
-    public:
-    vid_t    vid;
-    propid_t size;
-    propid_t degree;
-    uint64_t file_offset;
-};
-
 class strkv_t {
  public:
     char** kv;
@@ -125,6 +117,13 @@ class stringkv_t : public cfinfo_t {
     }
 };
 
+class disk_manykv_t {
+    public:
+    vid_t    vid;
+    propid_t size;
+    propid_t degree;
+    uint64_t file_offset;
+};
 
 class kv_t {
  public:
@@ -140,6 +139,8 @@ class kvarray_t {
     // from 5th bits onwards, it is an array of propid_t (2 bytes) and offset (2 bytes) from this pointer
     // All the string values (char*) are at the end.
     propid_t* adj_list;
+    
+    friend class mkv_t;
 
  public:
     inline propid_t get_size() {
@@ -149,16 +150,22 @@ class kvarray_t {
     inline propid_t get_nebrcount() {
         return adj_list[1];
     }
+    
+    inline propid_t* get_adjlist() {
+        return adj_list;
+    }
 
-    //XXX, is wrong
+    /*
+    //i is position 
     inline propid_t get_pid(propid_t i) {
-        return adj_list[i].pid;
+        kv_t*  kv = (kv_t*)(adj_list + 2);
+        return kv[i].pid;
     }
 
     inline char* get_value(propid_t i) {
         return adj_list[i].value;
     }
-    
+   */ 
     inline kvarray_t() {
         adj_list = 0;
     }
@@ -188,8 +195,6 @@ class mkv_t {
     FILE*    vtf;   //vertex table file
     FILE*    etf;   //edge table file
     
-    friend class mkv_t;
- 
 public: 
     inline mkv_t() {
         super_id = 0;
@@ -231,15 +236,17 @@ public:
         adj_list[1] = nebr_count[vid].pid;
     }
     
-    inline void reset_count(vid_t vid) {
-        nebr_count[vid] = kv_array[vid].get_nebrcount();
-    }
-    
     inline kvarray_t* get_nebrlist(vid_t vid) {
         return kv_array + vid;
     }
     inline vid_t get_vcount() { return TO_VID(super_id);}
     inline tid_t get_tid() { return TO_TID(super_id);}
+    void print_raw_dst(vid_t vid, propid_t pid);
+
+    void persist_edgelog(const string& etfile);
+    void persist_vlog(const string& vtfile);
+    void read_etable(const string& etfile);
+    void read_vtable(const string& vtfile);
     
 };
 
