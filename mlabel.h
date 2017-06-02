@@ -142,23 +142,15 @@ class kvarray_t {
     propid_t* adj_list;
 
  public:
-    inline void add_nebr(vid_t index, propid_t pid, char* value) { 
-        adj_list[index].pid = pid; 
-        adj_list[index].value = value;
-    }
-
-    inline void set_nebrcount(vid_t count) {
-        adj_list[0].pid = count;
-    }
-
     inline propid_t get_size() {
         return adj_list[0];
     }
     
     inline propid_t get_nebrcount() {
-        return adj_list[1].pid;
+        return adj_list[1];
     }
 
+    //XXX, is wrong
     inline propid_t get_pid(propid_t i) {
         return adj_list[i].pid;
     }
@@ -167,7 +159,6 @@ class kvarray_t {
         return adj_list[i].value;
     }
     
-    //
     inline kvarray_t() {
         adj_list = 0;
     }
@@ -227,15 +218,17 @@ public:
     }
     void setup(tid_t tid);
     void setup_adjlist();
-    inline void increment_count(vid_t vid, propid_t size) { 
+    inline void increment_count(vid_t vid, propid_t value_size) { 
         nebr_count[vid].pid += 1;
-        nebr_count[vid].offset += size + sizeof(propid_t);//size of value + size of key
+        nebr_count[vid].offset += value_size + sizeof(kv_t);//size of value + key + offset
     }
 
     void add_nebr(vid_t vid, propid_t pid, char* dst);
     
     inline void update_count(vid_t vid) {
-        kv_array[vid].set_nebrcount(nebr_count[vid]);
+        propid_t* adj_list = kv_array[vid].adj_list;
+        adj_list[0] = nebr_count[vid].offset;
+        adj_list[1] = nebr_count[vid].pid;
     }
     
     inline void reset_count(vid_t vid) {
