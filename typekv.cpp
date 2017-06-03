@@ -116,10 +116,44 @@ void typekv_t::store_graph_baseline(string dir)
 
     fwrite(log_beg + wpos, sizeof(char), log_head-wpos, etf);
 
-    //Write down the str2enum
+    //str2enum: No need to write. We make it from disk during initial read.
     //XXX: write down the deleted id list
     
-    //write down the str2vid
+}
+
+void typekv_t::read_graph_baseline(string dir)
+{
+    string vtfile, etfile;
+    vtfile = dir + "typekv.vtable";
+    etfile = dir + "typekv.etable";
+    
+    if (etf == 0) {
+        etf = fopen(etfile.c_str(), "r+b");
+        assert(etf != 0);
+    }
+
+    off_t size = fsize(etfile.c_str());
+    if (size == -1L) {
+        assert(0);
+    }
+    
+    sid_t edge_count = size/sizeof(char);
+    fread(log_beg, sizeof(char), edge_count, etf);
+
+    log_head = edge_count;
+    log_wpos = log_head;
+
+    if (vtf == 0) {
+        vtf = fopen(vtfile.c_str(), "r+b");
+        assert(vtf != 0);
+    }
+    
+    size = fsize(etfile.c_str());
+    if (size == -1L) {
+        assert(0);
+    }
+    t_count = size/sizeof(tinfo_t);
+    fread(t_info, sizeof(tinfo_t), t_count, vtf);
 }
 
 typekv_t::typekv_t()
