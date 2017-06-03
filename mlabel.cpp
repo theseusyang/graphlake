@@ -107,7 +107,7 @@ void mkv_t::add_nebr(vid_t vid, propid_t pid, char* dst)
 }
 
 
-void mkv_t::persist_edgelog(const string& etfile)
+void mkv_t::persist_elog(const string& etfile)
 {
     //Make a copy
     sid_t wpos = log_wpos;
@@ -355,4 +355,28 @@ void mkv_t::print_raw_dst(vid_t vid, propid_t pid)
 
 void manykv_t::store_graph_baseline(string dir)
 {
+    if (mkv_out == 0) return;
+    
+    string postfix = "out";
+
+    //const char* name = 0;
+    //typekv_t*   typekv = g->get_typekv();
+    char name[8];
+    tid_t       t_count = g->get_total_types();
+    
+    //base name using relationship type
+    string basefile = dir + col_info[0]->p_name + "family";
+    string vtfile, etfile;
+
+    // For each file.
+    for (tid_t i = 0; i < t_count; ++i) {
+        if (mkv_out[i] == 0) continue;
+        //name = typekv->get_type_name(i);
+        sprintf(name, "%d.", i);
+        vtfile = basefile + name + "vtable" + postfix;
+        etfile = basefile + name + "etable" + postfix;
+
+        mkv_out[i]->persist_vlog(vtfile);
+        mkv_out[i]->persist_elog(etfile);
+    }
 }

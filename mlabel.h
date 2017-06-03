@@ -129,7 +129,7 @@ public:
     inline tid_t get_tid() { return TO_TID(super_id);}
     void print_raw_dst(vid_t vid, propid_t pid);
 
-    void persist_edgelog(const string& etfile);
+    void persist_elog(const string& etfile);
     void persist_vlog(const string& vtfile);
     void read_etable(const string& etfile);
     void read_vtable(const string& vtfile);
