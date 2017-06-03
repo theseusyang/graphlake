@@ -4,8 +4,8 @@
 
 class tinfo_t {
  public:
+    sid_t   vert_id;
     char*   type_name;
-    sid_t vert_id;
 };
 
 class inference_tinfo_t {
@@ -13,6 +13,12 @@ class inference_tinfo_t {
     char* type_name;
     tid_t count;
     tid_t* tlist;
+};
+
+class disk_typekv_t {
+    public:
+    sid_t sid;
+    sid_t offset;
 };
 
 //type class
@@ -34,11 +40,24 @@ class typekv_t : public cfinfo_t {
 
     tid_t       max_count;
 
+    //edgetable file related log
+    char*    log_beg;  //memory log pointer
+    sid_t    log_count;//size of memory log
+    sid_t    log_head; // current log write position
+    sid_t    log_tail; //current log cleaning position
+    sid_t    log_wpos; //Write this pointer for write persistency
+
+    //vertex table file related log
+    disk_typekv_t* dvt;
+    vid_t    dvt_count; 
+    vid_t    dvt_max_count;
+
+    FILE*    vtf;   //vertex table file
+    FILE*    etf;   //edge table file
 
   public:
-    typekv_t() {
-        init_enum(256);
-    };
+
+    typekv_t();
     inline void init_enum(int enumcount) {
         max_count = enumcount;
         t_count = 0;
@@ -67,7 +86,7 @@ class typekv_t : public cfinfo_t {
     
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     inline void make_graph_baseline();
-    void store_graph_baseline(string dir) {}
+    void store_graph_baseline(string dir); 
 
   public:
     virtual status_t filter(sid_t sid, univ_t value, filter_fn_t fn);

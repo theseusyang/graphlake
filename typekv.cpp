@@ -12,7 +12,9 @@ status_t typekv_t::batch_update(const string& src, const string& dst, propid_t p
         vert_id = TO_SUPER(type_id);
         str2enum[dst] = type_id;
         t_info[type_id].vert_id = vert_id; 
-        t_info[type_id].type_name = gstrdup(dst.c_str());
+        t_info[type_id].type_name = log_beg + log_head; //gstrdup(dst.c_str());
+        memcpy(log_beg + log_head, dst.c_str(), strlen(dst.c_str()) + 1);
+        log_head += strlen(dst.c_str()) + 1;
     } else {
         type_id = str2enum_iter->second;
         vert_id = t_info[type_id].vert_id;
@@ -87,4 +89,38 @@ status_t typekv_t::get_encoded_values(const char* value, tid_t** tids, qid_t* co
 void typekv_t::make_graph_baseline() 
 {
     
+}
+
+void typekv_t::store_graph_baseline(string dir)
+{
+    //write down the type info, t_info
+    
+
+    //Write down the str2enum
+    //XXX: write down the deleted id list
+    
+    //write down the str2vid
+}
+
+typekv_t::typekv_t()
+{
+    init_enum(256);
+    //XXX everything is in memory
+    log_count = (1L << 25);//32*8 MB
+    if (posix_memalign((void**)&log_beg, 2097152, log_count*sizeof(char))) {
+        //log_beg = (sid_t*)calloc(sizeof(sid_t), log_count);
+        perror("posix memalign edge log");
+    }
+    log_head = 0;
+    log_tail = 0;
+    log_wpos = 0;
+    
+    dvt_count = 0;
+    dvt_max_count = (1L << 20);
+    if (posix_memalign((void**) &dvt, 2097152, 
+                       dvt_max_count*sizeof(disk_typekv_t*))) {
+        perror("posix memalign vertex log");    
+    }
+    vtf = 0;
+    etf = 0;
 }
