@@ -12,7 +12,7 @@ status_t typekv_t::batch_update(const string& src, const string& dst, propid_t p
         vert_id = TO_SUPER(type_id);
         str2enum[dst] = type_id;
         t_info[type_id].vert_id = vert_id; 
-        t_info[type_id].type_name = log_beg + log_head; //gstrdup(dst.c_str());
+        t_info[type_id].type_name = log_head; //gstrdup(dst.c_str());
         memcpy(log_beg + log_head, dst.c_str(), strlen(dst.c_str()) + 1);
         log_head += strlen(dst.c_str()) + 1;
     } else {
@@ -94,7 +94,27 @@ void typekv_t::make_graph_baseline()
 void typekv_t::store_graph_baseline(string dir)
 {
     //write down the type info, t_info
+    string vtfile, etfile;
+    vtfile = dir + "typekv.vtable";
+    etfile = dir + "typekv.etable";
+
+    if (vtf == 0) {
+        vtf = fopen(vtfile.c_str(), "a+b");
+        assert(vtf != 0); 
+    }
+    fwrite(t_info, sizeof(tinfo_t), t_count, vtf);
+
+    //Make a copy
+    sid_t wpos = log_wpos;
+
+    //Update the mark
+    log_wpos = log_head;
     
+    if (etf == 0) {
+        etf = fopen(etfile.c_str(), "a+b");
+    }
+
+    fwrite(log_beg + wpos, sizeof(char), log_head-wpos, etf);
 
     //Write down the str2enum
     //XXX: write down the deleted id list

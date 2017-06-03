@@ -5,7 +5,7 @@
 class tinfo_t {
  public:
     sid_t   vert_id;
-    char*   type_name;
+    sid_t   type_name;
 };
 
 class inference_tinfo_t {
@@ -78,7 +78,7 @@ class typekv_t : public cfinfo_t {
         return t_info[type].vert_id;
     }
     inline const char* get_type_name(tid_t type) {
-        return t_info[type].type_name;
+        return log_beg + t_info[type].type_name;
     }
     inline tid_t get_total_types() {
         return t_count;
