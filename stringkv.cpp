@@ -110,7 +110,12 @@ void stringkv_t::store_graph_baseline(string dir)
     tid_t       t_count = g->get_total_types();
     
     //base name using relationship type
-    string basefile = dir + col_info[0]->p_name;
+    string basefile;
+    if (col_count) {
+        basefile = dir + col_info[0]->p_name;
+    } else {
+        basefile = dir;
+    }
     string vtfile, etfile;
 
     // For each file.

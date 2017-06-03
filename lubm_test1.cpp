@@ -645,7 +645,7 @@ void test_update()
     string idir = "/mnt/raid0_huge/rdfdata/lubm-4univ-seed0/nt-data-rest/";
     string odir = "del/";
     string typefile = "/mnt/raid0_huge/rdfdata/lubm-4univ-seed0/type-rest.txt";
-    g->prep_type(typefile);
+    g->prep_type(typefile, odir);
     g->prep_graph(idir, odir);
 }
 
@@ -654,7 +654,7 @@ void lubm_test(const string& typefile, const string& idir, const string& odir)
 {
     ontology_lubm();
     if (!typefile.empty()) {
-        g->prep_type(typefile);
+        g->prep_type(typefile, odir);
         fill_lubm_inference_type();
     }
     g->prep_graph(idir, odir);

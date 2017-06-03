@@ -69,20 +69,6 @@ class pkv_t: public cfinfo_t {
     void print_raw_dst(tid_t tid, vid_t vid, propid_t pid = 0);
 };
 
-/*---------------vinfo--------------------*/
-class vgraph_t: public pkv_t<char*>
-{
-
- public:    
-    void id2name(vid_t src_id, const string& src); 
-
- public:
-    const char* get_value(tid_t tid, vid_t vid);
-
- public:
-    vgraph_t();
-    ~vgraph_t();
-};
 
 /**************/
 //super bins memory allocation

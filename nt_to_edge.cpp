@@ -10,7 +10,7 @@
 
 using std::ifstream;
 
-void graph::prep_type(string typefile)
+void graph::prep_type(string typefile, string odir)
 {
     string subject, predicate, object, useless_dot;
     int file_count = 0;
@@ -34,7 +34,10 @@ void graph::prep_type(string typefile)
             ++nt_count;
         }
     }
-    g->type_done();
+
+    v_graph->make_graph_baseline();
+    v_graph->store_graph_baseline(odir);
+    //g->type_done();
 
 }
 

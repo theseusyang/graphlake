@@ -111,8 +111,26 @@ class stringkv_t : public cfinfo_t {
     strkv_t** prep_strkv();
     void fill_kv_out();
 
-    void get_raw_dst(tid_t tid, vid_t vid);
+    inline const char* get_value(tid_t tid, vid_t vid) {
+        return strkv_out[tid]->kv[vid];
+    }
+
     inline void print_raw_dst(tid_t tid, vid_t vid, propid_t pid = 0) {
         cout << strkv_out[tid]->kv[vid];
     }
+};
+
+/*---------------vinfo--------------------*/
+class vgraph_t: public stringkv_t 
+{
+
+ public:    
+    void id2name(vid_t src_id, const string& src); 
+
+ public:
+    const char* get_value(tid_t tid, vid_t vid);
+
+ public:
+    vgraph_t();
+    ~vgraph_t();
 };

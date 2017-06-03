@@ -28,7 +28,8 @@ void vgraph_t::id2name(vid_t src_id, const string& src)
     edges[index].dst_id = dst_id;
 }
 
+/*
 const char* vgraph_t::get_value(tid_t tid, vid_t vid)
 {
     return lkv_out[tid]->kv[vid];
-}
+}*/

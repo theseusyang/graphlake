@@ -11,6 +11,9 @@ graph::graph()
     p_count  = 0;
     vert_count = 0;
     v_graph =  new vgraph_t;
+    //v_graph->create_columnfamily();
+    //pinfo_t *info = new pinfo_t;
+    //v_graph->add_column(info);
 }
 
 void* alloc_buf()
@@ -154,6 +157,9 @@ cfinfo_t::cfinfo_t()
     flag2 = 0;
     flag1_count = 0;
     flag2_count = 0;
+
+    col_info = 0;
+    col_count = 0;
     
 }
 

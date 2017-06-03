@@ -135,7 +135,7 @@ class graph {
     propid_t get_pid(const char* property);
     sid_t get_sid(const char* src);
     
-    void prep_type(string typefile);
+    void prep_type(string typefile, string odirname);
     void prep_graph(string idirname, string odirname);
     //void update_graph(string idirname, string odirname);
 
