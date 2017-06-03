@@ -1,4 +1,5 @@
 #include "graph.h"
+#include "stringkv.h"
 
 status_t stringkv_t::batch_update(const string& src, const string& dst, propid_t pid /* = 0*/)
 {
