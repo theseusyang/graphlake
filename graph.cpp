@@ -78,6 +78,14 @@ sid_t graph::get_sid(const char* src)
     return str2vid_iter->second;
 }
 
+void graph::read_graph_baseline(const string& odir)
+{
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->read_graph_baseline(odir);
+    }
+    v_graph->read_graph_baseline(odir);
+}
+
 /////////////////////////////////////////
 void pinfo_t::populate_property(const char* longname, const char* property_name)
 {
@@ -111,6 +119,11 @@ void cfinfo_t::store_graph_baseline(string dir)
 }
 
 void cfinfo_t::store_graph_update(string dir)
+{
+    assert(0);
+}
+
+void cfinfo_t::read_graph_baseline(const string& dir)
 {
     assert(0);
 }
@@ -475,7 +488,17 @@ void pgraph_t::store_sgraph(sgraph_t** sgraph, string dir, string postfix)
     }
 }
 
+void pgraph_t::read_sgraph(sgraph_t** sgraph, string dir, string postfix)
+{
+
+}
+
 /******************** super kv *************************/
+void pgraph_t::read_skv(skv_t** skv, string dir, string postfix)
+{
+
+}
+
 void pgraph_t::store_skv(skv_t** skv, string dir, string postfix)
 {
     if (skv == 0) return;

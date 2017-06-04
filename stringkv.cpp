@@ -131,7 +131,40 @@ void stringkv_t::store_graph_baseline(string dir)
     }
 }
 
+void stringkv_t::read_graph_baseline(const string& dir)
+{
+    if (strkv_out == 0) return;
+    
+    string postfix = "out";
 
+    //const char* name = 0;
+    //typekv_t*   typekv = g->get_typekv();
+    char name[8];
+    tid_t       t_count = g->get_total_types();
+    
+    //base name using relationship type
+    string basefile;
+    if (col_count) {
+        basefile = dir + col_info[0]->p_name;
+    } else {
+        basefile = dir;
+    }
+    string vtfile, etfile;
+
+    // For each file.
+    for (tid_t i = 0; i < t_count; ++i) {
+        if (strkv_out[i] == 0) continue;
+        //name = typekv->get_type_name(i);
+        sprintf(name, "%d.", i);
+        vtfile = basefile + name + "vtable" + postfix;
+        etfile = basefile + name + "etable" + postfix;
+
+        strkv_out[i]->read_vtable(vtfile);
+        strkv_out[i]->read_etable(etfile);
+    }
+}
+
+////////////////////////////////////////////////////////////////
 void strkv_t::persist_elog(const string& etfile)
 {
     //Make a copy

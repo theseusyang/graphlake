@@ -67,6 +67,15 @@ void dgraph_t::store_graph_baseline(string dir)
     store_sgraph(sgraph_in,  dir, postfix);
 }
 
+void dgraph_t::read_graph_baseline(const string& dir)
+{
+    string postfix = "out";
+    store_sgraph(sgraph_out, dir, postfix);
+    postfix = "in";
+    read_sgraph(sgraph_in,  dir, postfix);
+}
+
+
 /*******************************************/
 void ugraph_t::make_graph_baseline()
 {
@@ -110,6 +119,14 @@ void ugraph_t::store_graph_baseline(string dir)
     string postfix = "";
     store_sgraph(sgraph, dir, postfix);
 }
+
+void ugraph_t::read_graph_baseline(const string& dir)
+{
+    string postfix = "";
+    read_sgraph(sgraph, dir, postfix);
+    
+}
+
 
 /***************************************/
 void many2one_t::make_graph_baseline()
@@ -159,6 +176,14 @@ void many2one_t::store_graph_baseline(string dir)
     store_skv(skv_out, dir, postfix);
     postfix = "in";
     store_sgraph(sgraph_in, dir, postfix);
+}
+
+void many2one_t::read_graph_baseline(const string& dir)
+{
+    string postfix = "out";
+    read_skv(skv_out, dir, postfix);
+    postfix = "in";
+    read_sgraph(sgraph_in, dir, postfix);
 }
 
 /*******************************************/
@@ -211,6 +236,14 @@ void one2many_t::store_graph_baseline(string dir)
     store_skv(skv_in, dir, postfix);
 }
 
+void one2many_t::read_graph_baseline(const string& dir)
+{
+    string postfix = "out";
+    read_sgraph(sgraph_out, dir, postfix);
+    postfix = "in";
+    read_skv(skv_in, dir, postfix);
+}
+
 /************************************************/
 void one2one_t::make_graph_baseline()
 {
@@ -250,3 +283,12 @@ void one2one_t::store_graph_baseline(string dir)
     postfix = "in";
     store_skv(skv_in, dir, postfix);
 }
+
+void one2one_t::read_graph_baseline(const string& dir)
+{
+    string postfix = "out";
+    read_skv(skv_out, dir, postfix);
+    postfix = "in";
+    read_skv(skv_in, dir, postfix);
+}
+

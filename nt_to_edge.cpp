@@ -92,6 +92,8 @@ void graph::prep_graph(string idirname, string odirname)
     for (int i = 0; i < cf_count; i++) {
         cf_info[i]->store_graph_baseline(odirname);
     }
+
+    //XXX Write down the lables and relationship informations.
 }
 
 /*

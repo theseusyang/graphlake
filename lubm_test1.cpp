@@ -197,19 +197,23 @@ void ontology_lubm()
     info->create_columnfamily();
     info->add_column(p_info);
     ++p_info;
-    
+  
+  /*  
     p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#age>", "age");
     info = new uint8kv_t;
     info->create_columnfamily();
     info->add_column(p_info);
     ++p_info;
-    
+*/
+
+    /*
     p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#officeNumber>", "officeNumber");
     info = new uint64kv_t;
     info->create_columnfamily();
     info->add_column(p_info);
     ++p_info;
-    
+    */
+
     p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#researchInterest>", "researchInterest");
     info = new stringkv_t;
     info->create_columnfamily();
@@ -673,5 +677,8 @@ void lubm_test(const string& typefile, const string& idir, const string& odir)
 
 void lubm_test1(const string& odir)
 {
-
+    ontology_lubm();
+    g->read_graph_baseline(odir);
+    test1();
+    test2();
 }

@@ -109,6 +109,7 @@ class stringkv_t : public cfinfo_t {
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     void make_graph_baseline();
     void store_graph_baseline(string dir);
+    void read_graph_baseline(const string& dir);
 
     strkv_t** prep_strkv();
     void fill_kv_out();

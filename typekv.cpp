@@ -121,7 +121,7 @@ void typekv_t::store_graph_baseline(string dir)
     
 }
 
-void typekv_t::read_graph_baseline(string dir)
+void typekv_t::read_graph_baseline(const string& dir)
 {
     string vtfile, etfile;
     vtfile = dir + "typekv.vtable";
