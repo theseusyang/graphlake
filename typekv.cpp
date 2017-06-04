@@ -154,6 +154,13 @@ void typekv_t::read_graph_baseline(string dir)
     }
     t_count = size/sizeof(tinfo_t);
     fread(t_info, sizeof(tinfo_t), t_count, vtf);
+
+    //Populate str2enum now.
+    string dst;
+    for (tid_t t = 0; t < t_count; ++t) {
+        dst = log_head + t_info[t].type_name;
+        str2enum[dst] = t;
+    }
 }
 
 typekv_t::typekv_t()

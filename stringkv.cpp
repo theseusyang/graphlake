@@ -206,3 +206,13 @@ void strkv_t::read_vtable(const string& vtfile)
     }
     dvt_count = 0;
 }
+
+void strkv_t::prep_str2sid(map<string, sid_t>& str2sid)
+{
+    string dst;
+    sid_t sid = TO_THIGH(super_id);
+    for(sid_t v = sid; v < super_id; ++v) {
+        dst = kv[v - sid];
+        str2sid[dst] = v;
+    } 
+}

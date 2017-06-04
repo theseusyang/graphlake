@@ -94,6 +94,8 @@ class strkv_t {
     void persist_elog(const string& etfile);
     void read_vtable(const string& vtfile);
     void read_etable(const string& etfile);
+
+    void prep_str2sid(map<string, sid_t>& str2sid);
 };
 
 class stringkv_t : public cfinfo_t {
@@ -126,7 +128,7 @@ class vgraph_t: public stringkv_t
 
  public:    
     void id2name(vid_t src_id, const string& src); 
-
+    void prep_str2sid(map<string, sid_t>& str2sid);
  public:
     const char* get_value(tid_t tid, vid_t vid);
 

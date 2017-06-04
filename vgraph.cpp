@@ -33,3 +33,15 @@ const char* vgraph_t::get_value(tid_t tid, vid_t vid)
 {
     return lkv_out[tid]->kv[vid];
 }*/
+
+
+void vgraph_t::prep_str2sid(map<string, sid_t>& str2sid)
+{
+    strkv_t* str_kv = 0;
+    tid_t t_count = g->get_total_types();
+    for (tid_t t = 0; t < t_count; ++t) {
+        str_kv = strkv_out[t];
+        if (0 == str_kv) continue;
+        str_kv->prep_str2sid(str2sid);
+    }
+}
