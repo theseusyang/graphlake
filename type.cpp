@@ -463,7 +463,7 @@ void sgraph_t::persist_vlog(const string& vtfile)
     fwrite(dvt, sizeof(disk_vtable_t), count, vtf);
 }
 
-void sgraph_t::read_edgelog(const string& etfile)
+void sgraph_t::read_etable(const string& etfile)
 {
     if (etf == 0) {
         etf = fopen(etfile.c_str(), "r+b");//append/write + binary

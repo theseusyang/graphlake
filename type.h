@@ -267,7 +267,7 @@ public:
     void persist_edgelog(const string& etfile);
     void persist_vlog(const string& vtfile);
 
-    void read_edgelog(const string& etfile);
+    void read_etable(const string& etfile);
     void read_vtable(const string& vtfile); 
 };
 

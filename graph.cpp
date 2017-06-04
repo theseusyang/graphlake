@@ -490,12 +490,56 @@ void pgraph_t::store_sgraph(sgraph_t** sgraph, string dir, string postfix)
 
 void pgraph_t::read_sgraph(sgraph_t** sgraph, string dir, string postfix)
 {
+    if (sgraph == 0) return;
+    
+    string   vtfile, etfile;
+    tid_t    t_count = g->get_total_types();
+    
+    //base name using relationship type
+    //const char* name = 0;
+    //typekv_t* typekv = g->get_typekv();
+    char name[8];
+    string  basefile = dir + col_info[0]->p_name;
+
+    
+    // For each file.
+    for (tid_t i = 0; i < t_count; ++i) {
+        if (sgraph[i] == 0) continue;
+
+        //name = typekv->get_type_name(i);
+        sprintf(name, "%d.", i);
+        vtfile = basefile + name + "vtable" + postfix;
+        etfile = basefile + name + "etable" + postfix;
+         
+        sgraph[i]->read_vtable(etfile);
+        sgraph[i]->read_etable(vtfile);
+    }
 
 }
 
 /******************** super kv *************************/
 void pgraph_t::read_skv(skv_t** skv, string dir, string postfix)
 {
+    if (skv == 0) return;
+
+    //const char* name = 0;
+    //typekv_t*   typekv = g->get_typekv();
+    char name[8];
+    tid_t       t_count = g->get_total_types();
+    
+    //base name using relationship type
+    string basefile = dir + col_info[0]->p_name;
+    string vtfile;
+
+    // For each file.
+    for (tid_t i = 0; i < t_count; ++i) {
+        if (skv[i] == 0) continue;
+        //name = typekv->get_type_name(i);
+        sprintf(name, "%d.", i);
+        vtfile = basefile + name + "kv" + postfix;
+
+        skv[i]->read_kv(vtfile);
+    }
 
 }
 
