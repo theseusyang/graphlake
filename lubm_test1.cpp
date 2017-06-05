@@ -669,9 +669,9 @@ void lubm_test(const string& typefile, const string& idir, const string& odir)
     lubm_1_1();
     lubm_4(); 
     lubm_4_1();
-    test_update();
+    //test_update();
     cout << "----------test3-------------" << endl;
-    test3();
+    //test3();
     /* */
 }
 
@@ -681,4 +681,8 @@ void lubm_test1(const string& odir)
     g->read_graph_baseline(odir);
     test1();
     test2();
+    lubm_1();
+    lubm_1_1();
+    lubm_4(); 
+    lubm_4_1();
 }

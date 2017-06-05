@@ -10,9 +10,10 @@
 off_t fsize(const string& fname)
 {
     struct stat st;
-    if (stat(fname.c_str(), &st)) {
+    if (0 == stat(fname.c_str(), &st)) {
         return st.st_size;
     }
+    perror("stat issue");
     return -1L;
 }
 
@@ -535,7 +536,7 @@ void skv_t::read_kv(const string& vtfile)
     if (size == -1L) {
         assert(0);
     }
-    vid_t count = (size/sizeof(disk_vtable_t));
+    vid_t count = (size/sizeof(disk_kv_t));
 
     //read in batches
     while (count !=0) {

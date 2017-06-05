@@ -133,14 +133,16 @@ void stringkv_t::store_graph_baseline(string dir)
 
 void stringkv_t::read_graph_baseline(const string& dir)
 {
-    if (strkv_out == 0) return;
+    tid_t   t_count = g->get_total_types();
+    if (0 == strkv_out) {
+        strkv_out  = (strkv_t**) calloc (sizeof(strkv_t*), t_count);
+    }
     
     string postfix = "out";
 
     //const char* name = 0;
     //typekv_t*   typekv = g->get_typekv();
     char name[8];
-    tid_t       t_count = g->get_total_types();
     
     //base name using relationship type
     string basefile;
@@ -153,12 +155,15 @@ void stringkv_t::read_graph_baseline(const string& dir)
 
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
-        if (strkv_out[i] == 0) continue;
         //name = typekv->get_type_name(i);
         sprintf(name, "%d.", i);
         vtfile = basefile + name + "vtable" + postfix;
         etfile = basefile + name + "etable" + postfix;
 
+        FILE* vtf = fopen(vtfile.c_str(), "r+b");
+        if (vtf == 0) continue;
+        strkv_out[i] = new strkv_t;
+        strkv_out[i]->setup(i);
         strkv_out[i]->read_vtable(vtfile);
         strkv_out[i]->read_etable(etfile);
     }
@@ -227,7 +232,7 @@ void strkv_t::read_vtable(const string& vtfile)
     if (size == -1L) {
         assert(0);
     }
-    vid_t count = (size/sizeof(disk_vtable_t));
+    vid_t count = (size/sizeof(disk_strkv_t));
 
     //read in batches
     while (count !=0) {

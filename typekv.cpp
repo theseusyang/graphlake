@@ -158,7 +158,7 @@ void typekv_t::read_graph_baseline(const string& dir)
     //Populate str2enum now.
     string dst;
     for (tid_t t = 0; t < t_count; ++t) {
-        dst = log_head + t_info[t].type_name;
+        dst = log_beg + t_info[t].type_name;
         str2enum[dst] = t;
     }
 }

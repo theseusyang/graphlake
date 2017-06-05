@@ -84,6 +84,7 @@ void graph::read_graph_baseline(const string& odir)
         cf_info[i]->read_graph_baseline(odir);
     }
     v_graph->read_graph_baseline(odir);
+    v_graph->prep_str2sid(str2vid);
 }
 
 /////////////////////////////////////////
@@ -104,11 +105,6 @@ status_t cfinfo_t::batch_update(const string& src, const string& dst, propid_t p
 }
     
 void cfinfo_t::make_graph_baseline()
-{
-    assert(0);
-}
-
-void cfinfo_t::make_graph_update()
 {
     assert(0);
 }
@@ -504,15 +500,20 @@ void pgraph_t::read_sgraph(sgraph_t** sgraph, string dir, string postfix)
     
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
-        if (sgraph[i] == 0) continue;
 
         //name = typekv->get_type_name(i);
         sprintf(name, "%d.", i);
         vtfile = basefile + name + "vtable" + postfix;
         etfile = basefile + name + "etable" + postfix;
-         
-        sgraph[i]->read_vtable(etfile);
-        sgraph[i]->read_etable(vtfile);
+        
+        FILE* vtf = fopen(vtfile.c_str(), "r+b");
+        if (vtf == 0)  continue;
+        fclose(vtf); 
+        
+        sgraph[i] = new sgraph_t;
+        sgraph[i]->setup(i);
+        sgraph[i]->read_vtable(vtfile);
+        sgraph[i]->read_etable(etfile);
     }
 
 }
@@ -533,11 +534,17 @@ void pgraph_t::read_skv(skv_t** skv, string dir, string postfix)
 
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
-        if (skv[i] == 0) continue;
+        
         //name = typekv->get_type_name(i);
         sprintf(name, "%d.", i);
         vtfile = basefile + name + "kv" + postfix;
+        
+        FILE* vtf = fopen(vtfile.c_str(), "r+b");
+        if (vtf == 0)  continue; 
+        fclose(vtf); 
 
+        skv[i] = new skv_t;
+        skv[i]->setup(i);
         skv[i]->read_kv(vtfile);
     }
 

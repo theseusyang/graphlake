@@ -383,14 +383,16 @@ void manykv_t::store_graph_baseline(string dir)
     
 void manykv_t::read_graph_baseline( const string& dir)
 {
-    if (mkv_out == 0) return;
-    
-    string postfix = "out";
+    string  postfix = "out";
+    tid_t   t_count = g->get_total_types();
+
+    if (0 == mkv_out) {
+        mkv_out = (mkv_t**) calloc (sizeof(mkv_t*), t_count);
+    }
 
     //const char* name = 0;
     //typekv_t*   typekv = g->get_typekv();
     char name[8];
-    tid_t       t_count = g->get_total_types();
     
     //base name using relationship type
     string basefile = dir + col_info[0]->p_name + "family";
@@ -398,12 +400,14 @@ void manykv_t::read_graph_baseline( const string& dir)
 
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
-        if (mkv_out[i] == 0) continue;
-        //name = typekv->get_type_name(i);
         sprintf(name, "%d.", i);
         vtfile = basefile + name + "vtable" + postfix;
         etfile = basefile + name + "etable" + postfix;
+        FILE* vtf = fopen(vtfile.c_str(), "r+b");
+        if (vtf == 0) continue;
 
+        mkv_out[i] = new mkv_t;
+        mkv_out[i]->setup(i);
         mkv_out[i]->read_vtable(vtfile);
         mkv_out[i]->read_etable(etfile);
     }

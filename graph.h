@@ -87,7 +87,6 @@ class cfinfo_t {
     virtual void make_graph_baseline();
     virtual void store_graph_baseline(string dir);
     
-    virtual void make_graph_update();
     virtual void store_graph_update(string dir);
     virtual void read_graph_baseline(const string& dir);
 
@@ -195,7 +194,6 @@ class ugraph_t: public pgraph_t {
 
  public:
     void make_graph_baseline();
-    virtual void make_graph_update();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
     
@@ -210,7 +208,6 @@ class dgraph_t: public pgraph_t {
     sgraph_t** sgraph_in; 
  public:
     void make_graph_baseline();
-    virtual void make_graph_update();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
     
@@ -225,7 +222,6 @@ class many2one_t: public pgraph_t {
 
  public:
     void make_graph_baseline();
-    virtual void make_graph_update();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
     
@@ -240,7 +236,6 @@ class one2one_t: public pgraph_t {
 
  public:
     void make_graph_baseline();
-    virtual void make_graph_update();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
     
@@ -255,7 +250,6 @@ class one2many_t: public pgraph_t {
 
  public:
     void make_graph_baseline();
-    virtual void make_graph_update();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
     
