@@ -64,7 +64,7 @@ void mkv_t::setup_adjlist()
             log_head += size + dvt[v].size;
             ++v;
 
-        } else {
+        } else if (!adj_list) {
             adj_list = (propid_t*)(log_beg + log_head);
             
             //Doesn't matter
@@ -79,7 +79,7 @@ void mkv_t::setup_adjlist()
             nebr_count[vid].pid = 0;
 
             dvt[v].vid = vid;
-            dvt[v].degree = nebr_count[vid].pid;
+            dvt[v].degree = degree;
             dvt[v].size = size + additional_size;//additional size should be added only once
             dvt[v].file_offset = log_head;
             
@@ -370,7 +370,7 @@ void manykv_t::store_graph_baseline(string dir)
 
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
-        if (mkv_out[i] == 0) continue;
+        if (0 == mkv_out[i]) continue;
         //name = typekv->get_type_name(i);
         sprintf(name, "%d.", i);
         vtfile = basefile + name + "vtable" + postfix;
@@ -403,8 +403,10 @@ void manykv_t::read_graph_baseline( const string& dir)
         sprintf(name, "%d.", i);
         vtfile = basefile + name + "vtable" + postfix;
         etfile = basefile + name + "etable" + postfix;
+        
         FILE* vtf = fopen(vtfile.c_str(), "r+b");
         if (vtf == 0) continue;
+        fclose(vtf);
 
         mkv_out[i] = new mkv_t;
         mkv_out[i]->setup(i);

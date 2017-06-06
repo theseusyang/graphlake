@@ -686,4 +686,6 @@ void lubm_test1(const string& odir)
     lubm_1_1();
     lubm_4(); 
     lubm_4_1();
+    cout << "----------test3-------------" << endl;
+    test3();
 }
