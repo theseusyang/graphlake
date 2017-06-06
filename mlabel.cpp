@@ -1,6 +1,32 @@
 #include "graph.h"
 #include "mlabel.h"
 
+mkv_t::mkv_t()
+{
+    super_id = 0;
+    kv_array = 0;
+    nebr_count = 0;
+    max_vcount = 0;
+    
+    //XXX everything is in memory
+    log_count = (1L << 25);//32*8 MB
+    if (posix_memalign((void**)&log_beg, 2097152, log_count*sizeof(char))) {
+        //log_beg = (sid_t*)calloc(sizeof(sid_t), log_count);
+        perror("posix memalign edge log");
+    }
+    log_head = 0;
+    log_tail = 0;
+    log_wpos = 0;
+    
+    dvt_count = 0;
+    dvt_max_count = (1L << 20);
+    if (posix_memalign((void**) &dvt, 2097152, 
+                       dvt_max_count*sizeof(disk_manykv_t*))) {
+        perror("posix memalign vertex log");    
+    }
+    vtf = 0;
+    etf = 0;
+}
 
 void mkv_t::setup(tid_t tid)
 {
@@ -103,7 +129,6 @@ void mkv_t::add_nebr(vid_t vid, propid_t pid, char* dst)
     
     nebr_count[vid].pid += 1;
     nebr_count[vid].offset += value_size;
-  
 }
 
 
@@ -184,6 +209,20 @@ void mkv_t::read_vtable(const string& vtfile)
         count -= read_count;
     }
     dvt_count = 0;
+}
+
+void mkv_t::print_raw_dst(vid_t vid, propid_t pid) 
+{
+    kv_t*  kv = (kv_t*)(kv_array[vid].adj_list + 2);
+    propid_t count = kv_array[vid].get_nebrcount();
+    
+    char* adj_list = (char*)(kv_array[vid].adj_list);
+    for (propid_t i = 0; i <= count; ++i) {
+        if (pid == kv[i].pid) {
+            cout << adj_list + kv[i].offset;
+            break;
+        }
+    }
 }
 
 /*****************/
@@ -337,20 +376,6 @@ void manykv_t::update_count()
 void manykv_t::print_raw_dst(tid_t tid, vid_t vid, propid_t pid)
 {
     mkv_out[tid]->print_raw_dst(vid, pid);
-}
-
-void mkv_t::print_raw_dst(vid_t vid, propid_t pid) 
-{
-    kv_t*  kv = (kv_t*)(kv_array[vid].adj_list + 2);
-    propid_t count = kv_array[vid].get_nebrcount();
-    
-    char* adj_list = (char*)(kv_array[vid].adj_list);
-    for (propid_t i = 0; i <= count; ++i) {
-        if (pid == kv[i].pid) {
-            cout << adj_list + kv[i].offset;
-            break;
-        }
-    }
 }
 
 void manykv_t::store_graph_baseline(string dir)

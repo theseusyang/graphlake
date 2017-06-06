@@ -172,6 +172,62 @@ void stringkv_t::read_graph_baseline(const string& dir)
 }
 
 ////////////////////////////////////////////////////////////////
+
+strkv_t::strkv_t()
+{
+    kv = 0;
+    super_id = 0;
+    max_vcount = 0;
+    
+    //XXX everything is in memory
+    log_count = (1L << 25);//32*8 MB
+    if (posix_memalign((void**)&log_beg, 2097152, log_count*sizeof(char))) {
+        //log_beg = (sid_t*)calloc(sizeof(sid_t), log_count);
+        perror("posix memalign edge log");
+    }
+    log_head = 0;
+    log_tail = 0;
+    log_wpos = 0;
+    
+    dvt_count = 0;
+    dvt_max_count = (1L << 20);
+    if (posix_memalign((void**) &dvt, 2097152, 
+                       dvt_max_count*sizeof(disk_strkv_t*))) {
+        perror("posix memalign vertex log");    
+    }
+    vtf = 0;
+    etf = 0;
+}
+
+void strkv_t::set_value(vid_t vid, char* value)
+{
+    char* ptr = log_beg + log_head;
+    log_head += strlen(value) + 1;
+    memcpy(ptr, value, strlen(value) + 1);
+    free(value);
+
+    kv[vid] = ptr;
+    dvt[dvt_count].vid = vid;
+    dvt[dvt_count].offset = ptr - log_beg; 
+    ++dvt_count;
+}
+
+void strkv_t::setup(tid_t tid) 
+{
+    if ( 0 == super_id ) {
+        super_id = g->get_type_scount(tid);
+        vid_t v_count = TO_VID(super_id);
+        max_vcount = (v_count << 1);
+        kv = (char**)calloc(sizeof(char*), max_vcount);
+    } else {
+        super_id = g->get_type_scount(tid);
+        vid_t v_count = TO_VID(super_id);
+        if (max_vcount < v_count) {
+            assert(0);
+        }
+    }
+}
+
 void strkv_t::persist_elog(const string& etfile)
 {
     //Make a copy

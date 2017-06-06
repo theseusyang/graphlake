@@ -1,8 +1,6 @@
 #pragma once
 #include "type.h"
 
-
-
 class disk_manykv_t {
     public:
     vid_t    vid;
@@ -29,32 +27,11 @@ class kvarray_t {
     friend class mkv_t;
 
  public:
-    inline propid_t get_size() {
-        return adj_list[0];
-    }
+    inline kvarray_t() { adj_list = 0; }
     
-    inline propid_t get_nebrcount() {
-        return adj_list[1];
-    }
-    
-    inline propid_t* get_adjlist() {
-        return adj_list;
-    }
-
-    /*
-    //i is position 
-    inline propid_t get_pid(propid_t i) {
-        kv_t*  kv = (kv_t*)(adj_list + 2);
-        return kv[i].pid;
-    }
-
-    inline char* get_value(propid_t i) {
-        return adj_list[i].value;
-    }
-   */ 
-    inline kvarray_t() {
-        adj_list = 0;
-    }
+    inline propid_t get_size() { return adj_list[0]; }
+    inline propid_t get_nebrcount() { return adj_list[1]; }
+    inline propid_t* get_adjlist() { return adj_list; }
 };
 
 class mkv_t {
@@ -82,31 +59,7 @@ class mkv_t {
     FILE*    etf;   //edge table file
     
 public: 
-    inline mkv_t() {
-        super_id = 0;
-        kv_array = 0;
-        nebr_count = 0;
-        max_vcount = 0;
-        
-        //XXX everything is in memory
-        log_count = (1L << 25);//32*8 MB
-        if (posix_memalign((void**)&log_beg, 2097152, log_count*sizeof(char))) {
-            //log_beg = (sid_t*)calloc(sizeof(sid_t), log_count);
-            perror("posix memalign edge log");
-        }
-        log_head = 0;
-        log_tail = 0;
-        log_wpos = 0;
-        
-        dvt_count = 0;
-        dvt_max_count = (1L << 20);
-        if (posix_memalign((void**) &dvt, 2097152, 
-                           dvt_max_count*sizeof(disk_manykv_t*))) {
-            perror("posix memalign vertex log");    
-        }
-        vtf = 0;
-        etf = 0;
-    }
+    mkv_t(); 
     void setup(tid_t tid);
     void setup_adjlist();
     inline void increment_count(vid_t vid, propid_t value_size) { 
