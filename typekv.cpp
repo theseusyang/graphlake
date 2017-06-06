@@ -148,7 +148,7 @@ void typekv_t::read_graph_baseline(const string& dir)
         assert(vtf != 0);
     }
     
-    size = fsize(etfile.c_str());
+    size = fsize(vtfile.c_str());
     if (size == -1L) {
         assert(0);
     }
@@ -159,7 +159,7 @@ void typekv_t::read_graph_baseline(const string& dir)
     string dst;
     for (tid_t t = 0; t < t_count; ++t) {
         dst = log_beg + t_info[t].type_name;
-        str2enum[dst] = t;
+        str2enum[dst] = TO_TID(t_info[t].vert_id);
     }
 }
 

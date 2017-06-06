@@ -405,7 +405,7 @@ void sgraph_t::setup_adjlist()
         adj_list = beg_pos[vid].adj_list;
         count = nebr_count[vid];
 
-        if (adj_list && adj_list[0] != count) {
+        if (adj_list && adj_list[0] != count) {// new nebrs added
             adj_list = log_beg + log_head;
 
             memcpy(adj_list, beg_pos[vid].adj_list, beg_pos[vid].adj_list[0]*sizeof(sid_t));
@@ -417,7 +417,7 @@ void sgraph_t::setup_adjlist()
             
             log_head += count + 1;
             ++v;
-        } else {
+        } else if (!adj_list) {//first time
             beg_pos[vid].adj_list = log_beg + log_head; //calloc(sizeof(vid_t), count+1);
             
             dvt[v].vid = vid;
