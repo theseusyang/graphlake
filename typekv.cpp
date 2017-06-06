@@ -98,11 +98,12 @@ void typekv_t::store_graph_baseline(string dir)
     vtfile = dir + "typekv.vtable";
     etfile = dir + "typekv.etable";
 
-    if (vtf == 0) {
-        vtf = fopen(vtfile.c_str(), "a+b");
-        assert(vtf != 0); 
-    }
+    //if (vtf == 0) {
+    vtf = fopen(vtfile.c_str(), "wb");
+    assert(vtf != 0); 
+    //}
     fwrite(t_info, sizeof(tinfo_t), t_count, vtf);
+    fclose(vtf);
 
     //Make a copy
     sid_t wpos = log_wpos;
@@ -148,12 +149,14 @@ void typekv_t::read_graph_baseline(const string& dir)
         assert(vtf != 0);
     }
     
+    //read vtable
     size = fsize(vtfile.c_str());
     if (size == -1L) {
         assert(0);
     }
     t_count = size/sizeof(tinfo_t);
     fread(t_info, sizeof(tinfo_t), t_count, vtf);
+    fclose(vtf);
 
     //Populate str2enum now.
     string dst;

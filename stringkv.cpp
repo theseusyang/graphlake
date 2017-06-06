@@ -162,6 +162,8 @@ void stringkv_t::read_graph_baseline(const string& dir)
 
         FILE* vtf = fopen(vtfile.c_str(), "r+b");
         if (vtf == 0) continue;
+        fclose(vtf);
+
         strkv_out[i] = new strkv_t;
         strkv_out[i]->setup(i);
         strkv_out[i]->read_vtable(vtfile);
