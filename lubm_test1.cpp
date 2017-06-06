@@ -679,6 +679,7 @@ void lubm_test1(const string& odir)
 {
     ontology_lubm();
     g->read_graph_baseline(odir);
+    fill_lubm_inference_type();
     test1();
     test2();
     lubm_1();
