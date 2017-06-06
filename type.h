@@ -264,7 +264,7 @@ public:
     inline vid_t get_vcount() { return TO_VID(super_id);}
     inline tid_t get_tid() { return TO_TID(super_id);}
 
-    void persist_edgelog(const string& etfile);
+    void persist_elog(const string& etfile);
     void persist_vlog(const string& vtfile);
 
     void read_etable(const string& etfile);

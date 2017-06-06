@@ -479,7 +479,7 @@ void pgraph_t::store_sgraph(sgraph_t** sgraph, string dir, string postfix)
         vtfile = basefile + name + "vtable" + postfix;
         etfile = basefile + name + "etable" + postfix;
          
-        sgraph[i]->persist_edgelog(etfile);
+        sgraph[i]->persist_elog(etfile);
         sgraph[i]->persist_vlog(vtfile);
     }
 }

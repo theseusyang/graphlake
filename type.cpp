@@ -432,7 +432,7 @@ void sgraph_t::setup_adjlist()
     dvt_count = v;
 }
 
-void sgraph_t::persist_edgelog(const string& etfile)
+void sgraph_t::persist_elog(const string& etfile)
 {
     //Make a copy
     sid_t wpos = log_wpos;
