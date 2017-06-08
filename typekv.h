@@ -93,5 +93,4 @@ class typekv_t : public cfinfo_t {
     virtual status_t filter(sid_t sid, univ_t value, filter_fn_t fn);
     virtual status_t get_encoded_value(const char* value, univ_t* univ);
     virtual status_t get_encoded_values(const char* value, tid_t** tids, qid_t* counts);
-    
 };

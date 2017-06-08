@@ -114,11 +114,6 @@ void cfinfo_t::store_graph_baseline(string dir)
     assert(0);
 }
 
-void cfinfo_t::store_graph_update(string dir)
-{
-    assert(0);
-}
-
 void cfinfo_t::read_graph_baseline(const string& dir)
 {
     assert(0);

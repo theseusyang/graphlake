@@ -126,8 +126,6 @@ typedef struct __select_info_t {
     string name; 
 } select_info_t;
 
-
-
 class edge_t {
 public:
     sid_t src_id;
@@ -138,7 +136,7 @@ class pedge_t {
     public:
     propid_t pid;
     sid_t src_id;
-    char* dst_id;
+    univ_t dst_id;
 };
 
 class disk_vtable_t {

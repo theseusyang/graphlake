@@ -228,10 +228,10 @@ void mkv_t::print_raw_dst(vid_t vid, propid_t pid)
 /*****************/
 status_t manykv_t::batch_update(const string& src, const string& dst, propid_t pid /*=0*/)
 {
-    vid_t src_id;
-    char* dst_id;
+    sid_t src_id;
     index_t index = 0;
     pedge_t* edges;
+    char* dst_id;
     
     if (batch_info1[batch_count1].count == MAX_PECOUNT) {
         void* mem = alloc_buf();
@@ -252,12 +252,11 @@ status_t manykv_t::batch_update(const string& src, const string& dst, propid_t p
     flag1 |= (1L << type_id);
     
     dst_id = gstrdup(dst.c_str());
-
     index = batch_info1[batch_count1].count++;
     edges = (pedge_t*) batch_info1[batch_count1].buf;
     edges[index].pid = pid;
     edges[index].src_id = src_id; 
-    edges[index].dst_id = dst_id;
+    edges[index].dst_id.value_charp = dst_id;//gstrdup(dst.c_str);
     return eOK;
 }
 
@@ -318,7 +317,7 @@ void manykv_t::calc_edge_count()
             src = edges[i].src_id;
             src_index = TO_TID(src);
             vert1_id = TO_VID(src);
-            mkv_out[src_index]->increment_count(vert1_id, strlen(edges[i].dst_id) + 1);
+            mkv_out[src_index]->increment_count(vert1_id, strlen(edges[i].dst_id.value_charp) + 1);
         }
     }
 }
@@ -350,7 +349,7 @@ void manykv_t::fill_mkv_out()
         for (index_t i = 0; i < count; ++i) {
             pid = edges[i].pid;
             src = edges[i].src_id;
-            dst = edges[i].dst_id;
+            dst = edges[i].dst_id.value_charp;
             src_index = TO_TID(src);
             vert1_id = TO_VID(src);
             
