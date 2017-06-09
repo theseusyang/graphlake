@@ -14,6 +14,7 @@ typedef uint64_t index_t;
 typedef uint32_t tid_t;
 typedef uint64_t sflag_t;
 typedef uint16_t qid_t;
+typedef uint32_t pos_t; //adj list position, how long an adj list can be
 //typedef int32_t status_t;
 
 #define VBIT 40
@@ -53,6 +54,7 @@ enum status_t {
     eInvalidVID,
     eQueryFail,
     eEndBatch,
+    eDelete,
     eUnknown        
 };
 

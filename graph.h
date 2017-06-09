@@ -90,6 +90,8 @@ class cfinfo_t {
     virtual void store_graph_baseline(string dir);
     virtual void read_graph_baseline(const string& dir);
 
+    virtual status_t calc_deletededge_count(pedge_t* edge) {return eOK;};
+
     //Graph specific
     virtual status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     //virtual status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, filter_info_t* filter_info);
@@ -147,6 +149,7 @@ class graph {
 
     //queries
     void run_query(query_clause* q);
+    void make_graph_baseline();
     void read_graph_baseline(const string& odir);
 };
 
@@ -167,7 +170,11 @@ class pgraph_t: public cfinfo_t {
     
     void calc_edge_count(sgraph_t** sgraph_out, sgraph_t** sgraph_in); 
     void calc_edge_count_out(sgraph_t** sgraph_out);
-    void calc_edge_count_in(sgraph_t** sgraph_in); 
+    void calc_edge_count_in(sgraph_t** sgraph_in);
+    
+    //void calc_deletededge_count(sgraph_t** sgraph_out, sgraph_t** sgraph_in); 
+    void calc_deletededge_count_out(sgraph_t** sgraph_out);
+    void calc_deletededge_count_in(sgraph_t** sgraph_in);
     
     void prep_sgraph_internal(sgraph_t** sgraph);
     void update_count(sgraph_t** sgraph);
@@ -202,6 +209,7 @@ class ugraph_t: public pgraph_t {
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
+    //status_t calc_deletededge_count(pedge_t* edge);
     
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);

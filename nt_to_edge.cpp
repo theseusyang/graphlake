@@ -162,3 +162,22 @@ status_t graph::remove_edge(const string& idirname, const string& odirname)
     closedir(dir);
     return eOK;
 }
+
+void graph::make_graph_baseline()
+{
+    propid_t  cf_id;
+    pedge_t*  edges;
+    index_t   count;
+
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (pedge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+        for (index_t i = 0; i < count; ++i) {
+            cf_id = 0;//XXX
+            if (eOK != cf_info[cf_id]->calc_deletededge_count(edges+i)) {
+                //delete this one,
+            }
+        }
+    }
+    
+}
