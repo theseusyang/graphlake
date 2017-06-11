@@ -39,7 +39,6 @@ typedef uint32_t pos_t; //adj list position, how long an adj list can be
 
 class cfinfo_t;
 class skv_t;
-class sgraph_t;
 
 off_t fsize(const string& fname);
 
@@ -141,6 +140,8 @@ class pedge_t {
     univ_t dst_id;
 };
 
+//#include "sgraph.h"
+
 class disk_vtable_t {
     public:
     vid_t    vid;
@@ -148,23 +149,26 @@ class disk_vtable_t {
     uint64_t file_offset;
 };
 
+//class sgraph_t;
+
 //One vertex's neighbor information
-class beg_pos_t {
+template <class T>
+class vert_table_t {
 public:
  private:
     //nebr list of one vertex. First member is a spl member
     //count, flag for snapshot, XXX: smart pointer count
-    sid_t*   adj_list;
-    friend class sgraph_t;
+    T*   adj_list;
+    //friend class sgraph_t;
  public:
 
     inline void setup(vid_t a_count) {
         vid_t count = a_count;
         if (adj_list) {
             //count += adj_list[0];
-            adj_list = (vid_t*) realloc(adj_list, sizeof(vid_t)*(count+1));
+            adj_list = (T*) realloc(adj_list, sizeof(T)*(count+1));
         } else {
-            adj_list = (vid_t*) calloc(sizeof(vid_t), count+1);
+            adj_list = (T*) calloc(sizeof(T), count+1);
         }
     }
 
@@ -180,23 +184,27 @@ public:
         return adj_list[0];
     }
     //
-    inline void copy(beg_pos_t* beg_pos) {
+    inline void copy(vert_table_t<T>* beg_pos) {
         adj_list = beg_pos->adj_list;
     }
-    inline sid_t* get_adjlist() { return adj_list; }
-    inline beg_pos_t() {
+    inline T* get_adjlist() { return adj_list; }
+    inline void set_adjlist(T* adj_list1) { adj_list =  adj_list1;}
+    inline vert_table_t() {
         adj_list = 0;
     }
 };
 
+typedef vert_table_t<sid_t> beg_pos_t;
+
 //one type's graph
-class sgraph_t {
+template <class T>
+class onegraph_t {
 private:
     //type id and vertices count together
     sid_t      super_id;
 
     //array of adj list of vertices
-    beg_pos_t* beg_pos;
+    vert_table_t<T>* beg_pos;
 
     //count in adj list. Used for book-keeping purpose during setup and update.
     vid_t*   nebr_count;
@@ -204,7 +212,7 @@ private:
     vid_t    max_vcount;
 
     //edgetable file related log
-    sid_t*   log_beg;  //memory log pointer
+    T*       log_beg;  //memory log pointer
     sid_t    log_count;//size of memory log
     sid_t    log_head; // current log write position
     sid_t    log_tail; //current log cleaning position
@@ -219,7 +227,7 @@ private:
     FILE*    etf;   //edge table file
 
 public:
-    inline sgraph_t() {
+    inline onegraph_t() {
         super_id = 0;
         beg_pos = 0;
         nebr_count = 0;
@@ -227,7 +235,7 @@ public:
         
         //XXX everything is in memory
         log_count = (1L << 25);//32*8 MB
-        if (posix_memalign((void**)&log_beg, 2097152, log_count*sizeof(sid_t))) {
+        if (posix_memalign((void**)&log_beg, 2097152, log_count*sizeof(T))) {
             //log_beg = (sid_t*)calloc(sizeof(sid_t), log_count);
             perror("posix memalign edge log");
         }
@@ -245,7 +253,7 @@ public:
         etf = 0;
     }
     
-    void setup(tid_t tid); 
+    void setup(tid_t tid);
     void setup_adjlist();
 
     inline void increment_count(vid_t vid) { ++nebr_count[vid]; }
@@ -260,7 +268,7 @@ public:
     inline void reset_count(vid_t vid) {
         nebr_count[vid] = beg_pos[vid].get_nebrcount();
     }
-    inline beg_pos_t* get_begpos() { return beg_pos;}
+    inline vert_table_t<T>* get_begpos() { return beg_pos;}
     inline vid_t get_vcount() { return TO_VID(super_id);}
     inline tid_t get_tid() { return TO_TID(super_id);}
 
@@ -270,6 +278,8 @@ public:
     void read_etable(const string& etfile);
     void read_vtable(const string& vtfile); 
 };
+
+typedef onegraph_t<sid_t> sgraph_t;
 
 class disk_kv_t {
     public:
