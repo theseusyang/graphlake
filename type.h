@@ -38,7 +38,6 @@ typedef uint32_t pos_t; //adj list position, how long an adj list can be
 #define NO_QID 0xFFFF
 
 class cfinfo_t;
-class skv_t;
 
 off_t fsize(const string& fname);
 
@@ -162,6 +161,7 @@ class lite_nebr_t {
     sid_t second;
 };
 
+////
 inline void add_nebr1(sid_t* adj_list, vid_t index, sid_t value) {
     adj_list[index] = value;
 }
@@ -170,6 +170,7 @@ inline void add_nebr1(lite_nebr_t* adj_list, vid_t index, sid_t value) {
     adj_list[index].first = value;
 }
 
+////
 inline void set_nebrcount1(sid_t* adj_list, vid_t count) {
     adj_list[0] = count;
 }
@@ -184,6 +185,15 @@ inline vid_t get_nebrcount1(sid_t* adj_list) {
 
 inline vid_t get_nebrcount1(lite_nebr_t* adj_list) {
     return adj_list[0].first;
+}
+
+////
+inline void set_value1(sid_t* kv, vid_t vid, sid_t value) {
+    kv[vid] = value;
+}
+
+inline void set_value1(lite_nebr_t* kv, vid_t vid, sid_t value) {
+    kv[vid].first = value;
 }
 
 //One vertex's neighbor information
@@ -328,11 +338,12 @@ class disk_kv_t {
 };
 
 //one type's key-value store
-class skv_t {
+template <class T>
+class onekv_t {
  private:
     sid_t  super_id;
     vid_t  max_vcount;
-    sid_t* kv;
+    T* kv;
 
     disk_kv_t* dvt;
     vid_t dvt_count;
@@ -341,7 +352,7 @@ class skv_t {
     FILE* vtf;
 
  public:
-    inline skv_t() {
+    inline onekv_t() {
         super_id = 0;
         max_vcount = 0;
         kv = 0;
@@ -357,12 +368,13 @@ class skv_t {
 
     void setup(tid_t tid);
 
-    inline sid_t* get_kv() { return kv; }
+    inline T* get_kv() { return kv; }
     inline tid_t get_tid() { return TO_TID(super_id);}
     inline vid_t get_vcount() { return TO_VID(super_id); }
     
     inline void set_value(vid_t vert1_id, sid_t dst) {
-        kv[vert1_id] = dst;
+        set_value1(kv, vert1_id, dst);
+        //kv[vert1_id] = dst;
         dvt[dvt_count].vid = vert1_id;
         dvt[dvt_count].dst = dst; 
         ++dvt_count;
@@ -370,6 +382,8 @@ class skv_t {
     void persist_kvlog(const string& kvfile);
     void read_kv(const string& kvfile); 
 };
+
+typedef onekv_t<sid_t> skv_t; 
 
 class sdegree_t {
     //type id and vertex count together
@@ -408,8 +422,7 @@ class rset_t {
         sid_t*    kv;
     };
 
-
-    public:
+ public:
     friend class srset_t;
     inline rset_t() {
         scount = 0;
