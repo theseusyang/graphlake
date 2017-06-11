@@ -86,6 +86,8 @@ class cfinfo_t {
     void reset_buffer1();
 
     virtual status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
+    virtual status_t batch_update(sid_t sid, const string& dst, propid_t pid) {return eOK;};
+    
     virtual void make_graph_baseline();
     virtual void store_graph_baseline(string dir);
     virtual void read_graph_baseline(const string& dir);

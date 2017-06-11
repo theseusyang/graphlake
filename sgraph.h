@@ -203,13 +203,23 @@ void onekv_t<T>::read_kv(const string& vtfile)
 
 /******** graphs **************/
 class pgraph_t: public cfinfo_t {
-  public:    
+    //edge properties.
+    map <string, propid_t> str2pid;
+    cfinfo_t** cf_info;
+    pinfo_t *  p_info;
+    
+    propid_t   cf_count;
+    propid_t   p_count;
+    sid_t      edge_count;
+  
+ public:    
+    pgraph_t();
  
     //graph specific functions 
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
+    status_t batch_update(const string& src, const string& dst, propid_t pid, 
+                          propid_t count, prop_pair_t* prop_pair);
  
- public:
-    pgraph_t();
  public:
     sgraph_t** prep_sgraph(sflag_t ori_flag, sgraph_t** a_sgraph);
     skv_t** prep_skv(sflag_t ori_flag, skv_t** a_skv);

@@ -276,6 +276,12 @@ void cfinfo_t::reset()
 /************* Semantic graphs  *****************/
 pgraph_t::pgraph_t()
 {
+    cf_info = 0;
+    p_info = 0;
+
+    cf_count = 0;
+    p_count = 0;
+    edge_count = 0;
 }
 
 //Applicable to graphs only, labels should be aware of it.
@@ -316,6 +322,30 @@ status_t pgraph_t::batch_update(const string& src, const string& dst, propid_t p
 
     edges[index].src_id = src_id; 
     edges[index].dst_id = dst_id;
+    return eOK;
+}
+    
+status_t pgraph_t::batch_update(const string& src, const string& dst, propid_t pid,
+                                propid_t count, prop_pair_t* prop_pair)
+{
+    //edge id is implicit. How ???
+    batch_update(src, dst, pid);
+    
+    propid_t edge_pid;
+    propid_t cf_id;
+    map<string, propid_t>::iterator str2pid_iter;
+    
+    for (propid_t i = 0; i < count; i++) {
+        str2pid_iter = str2pid.find(prop_pair[i].name);
+        if (str2pid.end() == str2pid_iter) {
+            assert(0);
+        }
+        edge_pid = str2pid_iter->second;
+        cf_id = p_info[edge_pid].cf_id;
+        cf_info[cf_id]->batch_update(edge_count, prop_pair[i].value, edge_pid);
+    }
+    
+    ++edge_count;
     return eOK;
 }
 

@@ -76,7 +76,11 @@ class  edgeT_t {
     T     dst_id;
 };
 
-
+//property name value pair
+struct prop_pair_t {
+    char* name;
+    char* value;
+};
 
 typedef struct __sid_set_t {
 public:
