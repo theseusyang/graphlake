@@ -68,6 +68,13 @@ typedef union __univeral_type {
     sid_t    value_sid;
 }univ_t;
 
+template <class T>
+class  edgeT_t {
+ public:
+    vid_t src_id;
+    T     dst_id;
+};
+
 typedef struct __sid_set_t {
 public:
     int count;
@@ -149,7 +156,35 @@ class disk_vtable_t {
     uint64_t file_offset;
 };
 
-//class sgraph_t;
+class lite_nebr_t {
+ public:
+    sid_t first;
+    sid_t second;
+};
+
+inline void add_nebr1(sid_t* adj_list, vid_t index, sid_t value) {
+    adj_list[index] = value;
+}
+
+inline void add_nebr1(lite_nebr_t* adj_list, vid_t index, sid_t value) {
+    adj_list[index].first = value;
+}
+
+inline void set_nebrcount1(sid_t* adj_list, vid_t count) {
+    adj_list[0] = count;
+}
+
+inline void set_nebrcount1(lite_nebr_t* adj_list, vid_t count) {
+    adj_list[0].first = count;
+}
+
+inline vid_t get_nebrcount1(sid_t* adj_list) {
+    return adj_list[0];
+}
+
+inline vid_t get_nebrcount1(lite_nebr_t* adj_list) {
+    return adj_list[0].first;
+}
 
 //One vertex's neighbor information
 template <class T>
@@ -159,9 +194,11 @@ public:
     //nebr list of one vertex. First member is a spl member
     //count, flag for snapshot, XXX: smart pointer count
     T*   adj_list;
-    //friend class sgraph_t;
+ 
  public:
+    inline vert_table_t() { adj_list = 0; }
 
+    /*
     inline void setup(vid_t a_count) {
         vid_t count = a_count;
         if (adj_list) {
@@ -170,31 +207,31 @@ public:
         } else {
             adj_list = (T*) calloc(sizeof(T), count+1);
         }
-    }
+    }*/
 
     inline void add_nebr(vid_t index, sid_t sid) { 
-        adj_list[index] = sid; 
+        add_nebr1(adj_list, index, sid);
+        //adj_list[index] = sid; 
     }
 
     inline void set_nebrcount(vid_t count) {
-        adj_list[0] = count;
+        set_nebrcount1(adj_list, count);
+        //adj_list[0] = count;
     }
 
     inline vid_t get_nebrcount() {
-        return adj_list[0];
+        return get_nebrcount1(adj_list);
+        //return adj_list[0];
     }
-    //
+    
+    inline T* get_adjlist() { return adj_list; }
+    inline void set_adjlist(T* adj_list1) { adj_list =  adj_list1;}
+    
     inline void copy(vert_table_t<T>* beg_pos) {
         adj_list = beg_pos->adj_list;
     }
-    inline T* get_adjlist() { return adj_list; }
-    inline void set_adjlist(T* adj_list1) { adj_list =  adj_list1;}
-    inline vert_table_t() {
-        adj_list = 0;
-    }
 };
 
-typedef vert_table_t<sid_t> beg_pos_t;
 
 //one type's graph
 template <class T>
@@ -278,6 +315,9 @@ public:
     void read_etable(const string& etfile);
     void read_vtable(const string& vtfile); 
 };
+
+typedef vert_table_t<sid_t> beg_pos_t;
+typedef beg_pos_t  lgraph_t;
 
 typedef onegraph_t<sid_t> sgraph_t;
 

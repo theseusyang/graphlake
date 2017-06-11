@@ -2,12 +2,6 @@
 #include "type.h"
 
 //generic classes for label.
-template <class T>
-class  edgeT_t {
- public:
-    vid_t src_id;
-    T     dst_id;
-};
 
 template <class T>
 class lkv_t {
@@ -217,7 +211,6 @@ void pkv_t<T>::print_raw_dst(tid_t tid, vid_t vid, propid_t pid /* = 0 */)
     cout << lkv_out[tid]->kv[vid];
 }
 
-#include "typekv.h"
 #include "numkv.h"
 #include "enumkv.h"
 

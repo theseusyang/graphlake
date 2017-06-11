@@ -20,7 +20,6 @@ SRC=main.cpp \
 HEADER=graph.h\
 	sgraph.h\
 	stringkv.h\
-	labelkv.h\
 	enumkv.h\
 	numkv.h\
 	mlabel.h\
