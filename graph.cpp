@@ -49,6 +49,11 @@ void graph::type_done()
     v_graph->make_graph_baseline();
 }
 
+void graph::type_store(const string& odir)
+{
+    v_graph->store_graph_baseline(odir);
+}
+
 propid_t graph::get_cfid(propid_t pid)
 {
     return p_info[pid].cf_id;
@@ -76,6 +81,60 @@ sid_t graph::get_sid(const char* src)
         return INVALID_SID;
     }
     return str2vid_iter->second;
+}
+    
+status_t graph::batch_update(const string& src, const string& dst, const string& predicate)
+{
+    map<string, propid_t>::iterator str2pid_iter;
+    str2pid_iter = str2pid.find(predicate);
+    if (str2pid_iter == g->str2pid.end()) {
+        assert(0);
+    }
+    propid_t pid = str2pid_iter->second;
+    propid_t cf_id = g->get_cfid(pid);
+    if (pid != 0) { //non-type
+      return  cf_info[cf_id]->batch_update(src, dst, pid);
+    //} else { //Is already handled above
+    }
+    return eOK;
+}
+
+void graph::make_graph_baseline()
+{
+    /*
+    propid_t  cf_id;
+    pedge_t*  edges;
+    index_t   count;
+
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (pedge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+        for (index_t i = 0; i < count; ++i) {
+            cf_id = 0;//XXX
+            if (eOK != cf_info[cf_id]->calc_deletededge_count(edges+i)) {
+                //delete this one,
+            }
+        }
+    }
+    */
+    //swap 
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->swap_log_buffer();
+    }
+    
+    //make graph
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->make_graph_baseline();
+    }
+}
+
+void graph::store_graph_baseline(const string& odir)
+{
+    //Store graph
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->store_graph_baseline(odir);
+    }
+    
 }
 
 void graph::read_graph_baseline(const string& odir)

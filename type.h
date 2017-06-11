@@ -10,6 +10,7 @@ using std::string;
 typedef uint16_t propid_t;
 typedef uint64_t vid_t;
 typedef uint64_t sid_t;
+typedef uint64_t eid_t;
 typedef uint64_t index_t;
 typedef uint32_t tid_t;
 typedef uint64_t sflag_t;
@@ -67,12 +68,15 @@ typedef union __univeral_type {
     sid_t    value_sid;
 }univ_t;
 
+
 template <class T>
 class  edgeT_t {
  public:
     vid_t src_id;
     T     dst_id;
 };
+
+
 
 typedef struct __sid_set_t {
 public:
@@ -168,6 +172,18 @@ inline void add_nebr1(sid_t* adj_list, vid_t index, sid_t value) {
 
 inline void add_nebr1(lite_nebr_t* adj_list, vid_t index, sid_t value) {
     adj_list[index].first = value;
+}
+
+inline void add_nebr2(lite_nebr_t* adj_list, vid_t index, sid_t value, sid_t weight)
+{
+    adj_list[index].first = value;
+    adj_list[index].second = weight;
+}
+
+inline void add_nebr3(lite_nebr_t* adj_list, vid_t index, sid_t value, eid_t eid)
+{
+    adj_list[index].first = value;
+    adj_list[index].second = eid;
 }
 
 ////

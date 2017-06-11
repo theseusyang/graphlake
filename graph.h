@@ -135,21 +135,26 @@ class graph {
     inline typekv_t* get_typekv() { return (typekv_t*)cf_info[0]; }
     sid_t get_type_scount(tid_t type);
     tid_t get_total_types();
-    void type_update(const string& src, const string& dst);
-    void type_done();
 
     propid_t get_cfid(propid_t pid);
     propid_t get_cfid(const char* property);
     propid_t get_pid(const char* property);
     sid_t get_sid(const char* src);
     
-    void prep_type(string typefile, string odirname);
-    void prep_graph(string idirname, string odirname);
-    status_t remove_edge(const string& idir, const string& odir);
+    //void prep_type(string typefile, string odirname);
+    //void prep_graph(string idirname, string odirname);
+    //status_t remove_edge(const string& idir, const string& odir);
 
     //queries
     void run_query(query_clause* q);
+    
+    void type_update(const string& src, const string& dst);
+    void type_done();
+    void type_store(const string& odir);
+
+    status_t batch_update(const string& src, const string& dst, const string& predicate);
     void make_graph_baseline();
+    void store_graph_baseline(const string& odir);
     void read_graph_baseline(const string& odir);
 };
 
