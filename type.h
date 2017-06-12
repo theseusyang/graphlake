@@ -383,12 +383,11 @@ class disk_kv_t {
 };
 
 //one type's key-value store
-template <class T>
-class onekv_t {
+class skv_t {
  private:
     sid_t  super_id;
     vid_t  max_vcount;
-    T* kv;
+    sid_t* kv;
 
     disk_kv_t* dvt;
     vid_t dvt_count;
@@ -397,7 +396,7 @@ class onekv_t {
     FILE* vtf;
 
  public:
-    inline onekv_t() {
+    inline skv_t() {
         super_id = 0;
         max_vcount = 0;
         kv = 0;
@@ -413,31 +412,77 @@ class onekv_t {
 
     void setup(tid_t tid);
 
-    inline T* get_kv() { return kv; }
+    inline sid_t* get_kv() { return kv; }
     inline tid_t get_tid() { return TO_TID(super_id);}
     inline vid_t get_vcount() { return TO_VID(super_id); }
     
     inline void set_value(vid_t vert1_id, sid_t dst) {
-        set_value1(kv, vert1_id, dst);
-        //kv[vert1_id] = dst;
+        //set_value1(kv, vert1_id, dst);
+        kv[vert1_id] = dst;
         dvt[dvt_count].vid = vert1_id;
         dvt[dvt_count].dst = dst; 
         ++dvt_count;
     }
     
+    void persist_kvlog(const string& kvfile);
+    void read_kv(const string& kvfile); 
+};
+
+class disk_kvlite_t {
+    public:
+    vid_t    vid;
+    sid_t    dst;
+    eid_t    eid; 
+};
+
+
+class lite_skv_t {
+ private:
+    sid_t  super_id;
+    vid_t  max_vcount;
+    lite_edge_t* kv;
+
+    disk_kvlite_t* dvt;
+    vid_t dvt_count;
+    vid_t dvt_max_count;
+
+    FILE* vtf;
+
+ public:
+    inline lite_skv_t() {
+        super_id = 0;
+        max_vcount = 0;
+        kv = 0;
+        
+        dvt_count = 0;
+        dvt_max_count = (1L << 20);
+        if (posix_memalign((void**) &dvt, 2097152, 
+                           dvt_max_count*sizeof(disk_kvlite_t*))) {
+            perror("posix memalign vertex log");    
+        }
+        vtf = 0;
+    }
+
+    void setup(tid_t tid);
+
+    inline lite_edge_t* get_kv() { return kv; }
+    inline tid_t get_tid() { return TO_TID(super_id);}
+    inline vid_t get_vcount() { return TO_VID(super_id); }
+    
     inline void set_value_lite(vid_t vert1_id, sid_t dst, eid_t eid) {
-        set_value1(kv, vert1_id, dst, eid);
-        //kv[vert1_id] = dst;
+        kv[vert1_id].first = dst;
+        kv[vert1_id].second = eid;
         dvt[dvt_count].vid = vert1_id;
         dvt[dvt_count].dst = dst;
+        dvt[dvt_count].eid = eid;
         ++dvt_count;
     }
     void persist_kvlog(const string& kvfile);
     void read_kv(const string& kvfile); 
 };
 
-typedef onekv_t<sid_t> skv_t; 
-typedef onekv_t<lite_edge_t> lite_skv_t; 
+//typedef onekv_t<sid_t> skv_t; 
+//typedef onekv_t<lite_edge_t> lite_skv_t; 
 
 class sdegree_t {
     //type id and vertex count together

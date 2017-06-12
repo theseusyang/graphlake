@@ -362,7 +362,7 @@ void lite_pgraph_t::read_skv(lite_skv_t** skv, string dir, string postfix)
 
         skv[i] = new lite_skv_t;
         skv[i]->setup(i);
-        //XXX skv[i]->read_kv(vtfile);
+        skv[i]->read_kv(vtfile);
     }
 
 }

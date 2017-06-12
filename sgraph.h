@@ -140,66 +140,6 @@ void onegraph_t<T>::read_vtable(const string& vtfile)
     dvt_count = 0;
 }
 
-/**************** SKV ******************/
-template <class T>
-void onekv_t<T>::setup(tid_t tid)
-{
-    if (0 == super_id) {
-        super_id = g->get_type_scount(tid);
-        vid_t v_count = TO_VID(super_id);
-        max_vcount = (v_count << 2);
-        kv = (T*)calloc(sizeof(T), max_vcount);
-    } else {
-        super_id = g->get_type_scount(tid);
-        vid_t v_count = TO_VID(super_id);
-        if (max_vcount < v_count) {
-            assert(0);
-        }
-    }
-}
-
-template <class T>
-void onekv_t<T>::persist_kvlog(const string& vtfile)
-{
-    //Make a copy
-    sid_t count =  dvt_count;
-
-    //update the mark
-    dvt_count = 0;
-
-    //Write the file
-    if(vtf == 0) {
-        vtf = fopen(vtfile.c_str(), "a+b");
-        assert(vtf != 0);
-    }
-    fwrite(dvt, sizeof(disk_kv_t), count, vtf);
-}
-
-template <class T>
-void onekv_t<T>::read_kv(const string& vtfile)
-{
-    //Write the file
-    if(vtf == 0) {
-        vtf = fopen(vtfile.c_str(), "r+b");
-        assert(vtf != 0);
-    }
-
-    off_t size = fsize(vtfile.c_str());
-    if (size == -1L) {
-        assert(0);
-    }
-    vid_t count = (size/sizeof(disk_kv_t));
-
-    //read in batches
-    while (count !=0) {
-        vid_t read_count = fread(dvt, sizeof(disk_kv_t), dvt_max_count, vtf);
-        for (vid_t v = 0; v < read_count; ++v) {
-            kv[dvt[v].vid] = dvt[v].dst;
-        }
-        count -= read_count;
-    }
-    dvt_count = 0;
-}
 
 /******** graphs **************/
 class pgraph_t: public cfinfo_t {
