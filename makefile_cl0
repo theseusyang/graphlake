@@ -13,6 +13,7 @@ SRC=main.cpp \
 	query_triple.cpp\
 	graph_query.cpp\
 	type.cpp\
+	lite_pgraph.cpp\
 	lubm_test1.cpp\
 
 	

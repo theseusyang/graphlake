@@ -148,7 +148,7 @@ void onekv_t<T>::setup(tid_t tid)
         super_id = g->get_type_scount(tid);
         vid_t v_count = TO_VID(super_id);
         max_vcount = (v_count << 2);
-        kv = (vid_t*)calloc(sizeof(T), max_vcount);
+        kv = (T*)calloc(sizeof(T), max_vcount);
     } else {
         super_id = g->get_type_scount(tid);
         vid_t v_count = TO_VID(super_id);
@@ -203,22 +203,13 @@ void onekv_t<T>::read_kv(const string& vtfile)
 
 /******** graphs **************/
 class pgraph_t: public cfinfo_t {
-    //edge properties.
-    map <string, propid_t> str2pid;
-    cfinfo_t** cf_info;
-    pinfo_t *  p_info;
-    
-    propid_t   cf_count;
-    propid_t   p_count;
-    sid_t      edge_count;
   
  public:    
     pgraph_t();
  
     //graph specific functions 
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
-    status_t batch_update(const string& src, const string& dst, propid_t pid, 
-                          propid_t count, prop_pair_t* prop_pair);
+    
  
  public:
     sgraph_t** prep_sgraph(sflag_t ori_flag, sgraph_t** a_sgraph);
@@ -256,6 +247,45 @@ class pgraph_t: public cfinfo_t {
     status_t extend_kv_td(skv_t** skv, srset_t* iset, srset_t* oset);
 };
 
+class lite_pgraph_t : public pgraph_t {
+    //edge properties.
+    map <string, propid_t> str2pid;
+    cfinfo_t** cf_info;
+    pinfo_t *  p_info;
+    
+    propid_t   cf_count;
+    propid_t   p_count;
+    sid_t      edge_count;
+ 
+ public:
+    lite_pgraph_t();
+    status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
+    
+    //For heavy weight edges.
+    status_t batch_update(const string& src, const string& dst, propid_t pid, 
+                          propid_t count, prop_pair_t* prop_pair);
+    
+    lite_sgraph_t** prep_sgraph(sflag_t ori_flag, lite_sgraph_t** a_sgraph);
+    lite_skv_t** prep_skv(sflag_t ori_flag, lite_skv_t** a_skv);
+    
+    void prep_sgraph_internal(lite_sgraph_t** sgraph);
+    
+    void calc_edge_count(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgraph_in); 
+    void calc_edge_count_out(lite_sgraph_t** lite_sgraph_out);
+    void calc_edge_count_in(lite_sgraph_t** sgraph_in);
+    void update_count(lite_sgraph_t** sgraph);
+    
+    void fill_adj_list(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgraph_in);
+    void fill_adj_list_in(lite_skv_t** skv_out, lite_sgraph_t** sgraph_in); 
+    void fill_adj_list_out(lite_sgraph_t** sgraph_out, lite_skv_t** skv_in); 
+    void fill_skv(lite_skv_t** skv_out, lite_skv_t** skv_in);
+    
+    void store_sgraph(lite_sgraph_t** sgraph, string dir, string postfix);
+    void store_skv(lite_skv_t** skv, string dir, string postfix);
+    
+    void read_sgraph(lite_sgraph_t** sgraph, string dir, string postfix);
+    void read_skv(lite_skv_t** skv, string dir, string postfix);
+};
 
 class ugraph_t: public pgraph_t {
  protected:

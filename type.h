@@ -66,14 +66,39 @@ typedef union __univeral_type {
     tid_t    value_tid;
     vid_t    value_vid;
     sid_t    value_sid;
+    eid_t    value_eid;
 }univ_t;
 
 
 template <class T>
 class  edgeT_t {
  public:
-    vid_t src_id;
+    sid_t src_id;
     T     dst_id;
+};
+
+typedef edgeT_t<sid_t> edge_t;
+
+/*
+class edge_t {
+public:
+    sid_t src_id;
+    sid_t dst_id;
+};
+*/
+
+class pedge_t {
+ public:
+    propid_t pid;
+    sid_t src_id;
+    univ_t dst_id;
+};
+
+class ledge_t {
+ public:
+     sid_t src_id;
+     sid_t dst_id;
+     univ_t prop;
 };
 
 //property name value pair
@@ -141,18 +166,6 @@ typedef struct __select_info_t {
     string name; 
 } select_info_t;
 
-class edge_t {
-public:
-    sid_t src_id;
-    sid_t dst_id;
-};
-
-class pedge_t {
-    public:
-    propid_t pid;
-    sid_t src_id;
-    univ_t dst_id;
-};
 
 //#include "sgraph.h"
 
@@ -163,7 +176,8 @@ class disk_vtable_t {
     uint64_t file_offset;
 };
 
-class lite_nebr_t {
+//First can be nebr sid, while the second could be edge id/property
+class lite_edge_t {
  public:
     sid_t first;
     sid_t second;
@@ -174,20 +188,20 @@ inline void add_nebr1(sid_t* adj_list, vid_t index, sid_t value) {
     adj_list[index] = value;
 }
 
-inline void add_nebr1(lite_nebr_t* adj_list, vid_t index, sid_t value) {
+inline void add_nebr1(lite_edge_t* adj_list, vid_t index, sid_t value) {
     adj_list[index].first = value;
 }
 
-inline void add_nebr2(lite_nebr_t* adj_list, vid_t index, sid_t value, sid_t weight)
-{
-    adj_list[index].first = value;
-    adj_list[index].second = weight;
-}
-
-inline void add_nebr3(lite_nebr_t* adj_list, vid_t index, sid_t value, eid_t eid)
+inline void add_nebr2(lite_edge_t* adj_list, vid_t index, sid_t value, eid_t eid)
 {
     adj_list[index].first = value;
     adj_list[index].second = eid;
+}
+
+inline void add_nebr3(lite_edge_t* adj_list, vid_t index, sid_t value, sid_t weight)
+{
+    adj_list[index].first = value;
+    adj_list[index].second = weight;
 }
 
 ////
@@ -195,7 +209,7 @@ inline void set_nebrcount1(sid_t* adj_list, vid_t count) {
     adj_list[0] = count;
 }
 
-inline void set_nebrcount1(lite_nebr_t* adj_list, vid_t count) {
+inline void set_nebrcount1(lite_edge_t* adj_list, vid_t count) {
     adj_list[0].first = count;
 }
 
@@ -203,7 +217,7 @@ inline vid_t get_nebrcount1(sid_t* adj_list) {
     return adj_list[0];
 }
 
-inline vid_t get_nebrcount1(lite_nebr_t* adj_list) {
+inline vid_t get_nebrcount1(lite_edge_t* adj_list) {
     return adj_list[0].first;
 }
 
@@ -212,8 +226,9 @@ inline void set_value1(sid_t* kv, vid_t vid, sid_t value) {
     kv[vid] = value;
 }
 
-inline void set_value1(lite_nebr_t* kv, vid_t vid, sid_t value) {
+inline void set_value1(lite_edge_t* kv, vid_t vid, sid_t value, eid_t eid) {
     kv[vid].first = value;
+    kv[vid].second = eid;
 }
 
 //One vertex's neighbor information
@@ -242,6 +257,11 @@ public:
     inline void add_nebr(vid_t index, sid_t sid) { 
         add_nebr1(adj_list, index, sid);
         //adj_list[index] = sid; 
+    }
+
+    inline void add_nebr_lite(vid_t index, sid_t sid, eid_t eid) {
+        add_nebr2(adj_list, index, sid, eid);
+        
     }
 
     inline void set_nebrcount(vid_t count) {
@@ -328,6 +348,10 @@ public:
         ++nebr_count[vid];
         beg_pos[vid].add_nebr(nebr_count[vid], sid);
     }
+    inline void add_nebr_lite(vid_t vid, sid_t sid, eid_t eid) { 
+        ++nebr_count[vid];
+        beg_pos[vid].add_nebr_lite(nebr_count[vid], sid, eid);
+    }
 
     inline void update_count(vid_t vid) {
         beg_pos[vid].set_nebrcount(nebr_count[vid]);
@@ -350,6 +374,7 @@ typedef vert_table_t<sid_t> beg_pos_t;
 typedef beg_pos_t  lgraph_t;
 
 typedef onegraph_t<sid_t> sgraph_t;
+typedef onegraph_t<lite_edge_t>lite_sgraph_t;
 
 class disk_kv_t {
     public:
@@ -399,11 +424,20 @@ class onekv_t {
         dvt[dvt_count].dst = dst; 
         ++dvt_count;
     }
+    
+    inline void set_value_lite(vid_t vert1_id, sid_t dst, eid_t eid) {
+        set_value1(kv, vert1_id, dst, eid);
+        //kv[vert1_id] = dst;
+        dvt[dvt_count].vid = vert1_id;
+        dvt[dvt_count].dst = dst;
+        ++dvt_count;
+    }
     void persist_kvlog(const string& kvfile);
     void read_kv(const string& kvfile); 
 };
 
 typedef onekv_t<sid_t> skv_t; 
+typedef onekv_t<lite_edge_t> lite_skv_t; 
 
 class sdegree_t {
     //type id and vertex count together

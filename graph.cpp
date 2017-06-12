@@ -276,12 +276,6 @@ void cfinfo_t::reset()
 /************* Semantic graphs  *****************/
 pgraph_t::pgraph_t()
 {
-    cf_info = 0;
-    p_info = 0;
-
-    cf_count = 0;
-    p_count = 0;
-    edge_count = 0;
 }
 
 //Applicable to graphs only, labels should be aware of it.
@@ -325,29 +319,6 @@ status_t pgraph_t::batch_update(const string& src, const string& dst, propid_t p
     return eOK;
 }
     
-status_t pgraph_t::batch_update(const string& src, const string& dst, propid_t pid,
-                                propid_t count, prop_pair_t* prop_pair)
-{
-    //edge id is implicit. How ???
-    batch_update(src, dst, pid);
-    
-    propid_t edge_pid;
-    propid_t cf_id;
-    map<string, propid_t>::iterator str2pid_iter;
-    
-    for (propid_t i = 0; i < count; i++) {
-        str2pid_iter = str2pid.find(prop_pair[i].name);
-        if (str2pid.end() == str2pid_iter) {
-            assert(0);
-        }
-        edge_pid = str2pid_iter->second;
-        cf_id = p_info[edge_pid].cf_id;
-        cf_info[cf_id]->batch_update(edge_count, prop_pair[i].value, edge_pid);
-    }
-    
-    ++edge_count;
-    return eOK;
-}
 
 //super bins memory allocation
 sgraph_t** pgraph_t::prep_sgraph(sflag_t ori_flag, sgraph_t** sgraph )
@@ -599,7 +570,6 @@ void pgraph_t::read_sgraph(sgraph_t** sgraph, string dir, string postfix)
         sgraph[i]->read_vtable(vtfile);
         sgraph[i]->read_etable(etfile);
     }
-
 }
 
 /******************** super kv *************************/
@@ -703,7 +673,7 @@ void pgraph_t::fill_skv(skv_t** skv_out, skv_t** skv_in)
     }
 }
 
-
+/////////// QUERIES ///////////////////////////
 status_t pgraph_t::query_adjlist_td(sgraph_t** sgraph, srset_t* iset, srset_t* oset)
 {
     tid_t    iset_count = iset->get_rset_count();
