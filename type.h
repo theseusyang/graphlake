@@ -372,6 +372,7 @@ public:
 
 typedef vert_table_t<sid_t> beg_pos_t;
 typedef beg_pos_t  lgraph_t;
+typedef vert_table_t<lite_edge_t> lite_vtable_t;
 
 typedef onegraph_t<sid_t> sgraph_t;
 typedef onegraph_t<lite_edge_t>lite_sgraph_t;
@@ -518,6 +519,7 @@ class rset_t {
         uint64_t* status_array;
         vid_t*    vlist;
         beg_pos_t* adjlist;
+        lite_vtable_t* lite_adjlist;
         sid_t*    kv;
     };
 
@@ -559,6 +561,10 @@ class rset_t {
 	
     inline void add_adjlist_ro(vid_t index, beg_pos_t* begpos) {
         adjlist[index].copy(begpos);
+	}
+    
+    inline void add_adjlist_ro(vid_t index, lite_vtable_t* begpos) {
+        lite_adjlist[index].copy(begpos);
 	}
     
     inline void add_kv(vid_t index, sid_t sid) {
@@ -676,7 +682,9 @@ class srset_t {
   
     tid_t full_setup(sflag_t sflag);
     tid_t full_setup(sgraph_t** sgraph);
+    tid_t full_setup(lite_sgraph_t** sgraph);
     tid_t full_setup(skv_t** skv);
+    tid_t full_setup(lite_skv_t** skv);
     tid_t copy_setup(srset_t* iset, int union_type);
     
     

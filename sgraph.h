@@ -6,7 +6,6 @@ class pgraph_t: public cfinfo_t {
  public:    
     pgraph_t();
  
-    //graph specific functions 
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     
  

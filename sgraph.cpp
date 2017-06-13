@@ -45,7 +45,6 @@ status_t pgraph_t::batch_update(const string& src, const string& dst, propid_t p
     edges[index].dst_id = dst_id;
     return eOK;
 }
-    
 
 //super bins memory allocation
 sgraph_t** pgraph_t::prep_sgraph(sflag_t ori_flag, sgraph_t** sgraph )
@@ -65,7 +64,6 @@ sgraph_t** pgraph_t::prep_sgraph(sflag_t ori_flag, sgraph_t** sgraph )
     }
     return sgraph;
 }
-
 
 //estimate edge count
 void pgraph_t::calc_edge_count(sgraph_t** sgraph_out, sgraph_t** sgraph_in) 
@@ -328,7 +326,6 @@ void pgraph_t::read_skv(skv_t** skv, string dir, string postfix)
         skv[i]->setup(i);
         skv[i]->read_kv(vtfile);
     }
-
 }
 
 void pgraph_t::store_skv(skv_t** skv, string dir, string postfix)
@@ -693,3 +690,178 @@ void one2one_t::read_graph_baseline(const string& dir)
     read_skv(skv_in, dir, postfix);
 }
 
+/////////// QUERIES ///////////////////////////
+status_t pgraph_t::query_adjlist_td(sgraph_t** sgraph, srset_t* iset, srset_t* oset)
+{
+    tid_t    iset_count = iset->get_rset_count();
+    rset_t*        rset = 0;
+
+    for (tid_t i = 0; i < iset_count; ++i) {
+        rset = iset->rset + i;
+        vid_t v_count = rset->get_vcount();
+        vid_t* vlist = rset->get_vlist();
+        
+        //get the graph where we will traverse
+        tid_t        tid = rset->get_tid();
+        if (0 == sgraph[tid]) continue;
+        beg_pos_t* graph = sgraph[tid]->get_begpos();
+
+        
+        //Get the frontiers
+        vid_t     frontier;
+        for (vid_t v = 0; v < v_count; v++) {
+            frontier = vlist[v];
+            sid_t* adj_list = graph[frontier].get_adjlist();
+            vid_t nebr_count = adj_list[0];
+            ++adj_list;
+            
+            //traverse the adj list
+            for (vid_t k = 0; k < nebr_count; ++k) {
+                oset->set_status(adj_list[k]);
+            }
+        }
+    }
+    return eOK;
+}
+
+status_t pgraph_t::query_kv_td(skv_t** skv, srset_t* iset, srset_t* oset)
+{
+    tid_t    iset_count = iset->get_rset_count();
+    rset_t*        rset = 0;
+
+    for (tid_t i = 0; i < iset_count; ++i) {
+        rset = iset->rset + i;
+        vid_t v_count = rset->get_vcount();
+        vid_t* vlist = rset->get_vlist();
+        
+        //get the graph where we will traverse
+        tid_t        tid = rset->get_tid();
+        if (0 == skv[tid]) continue;
+        sid_t* kv = skv[tid]->get_kv(); 
+
+        //Get the frontiers
+        vid_t     frontier;
+        for (vid_t v = 0; v < v_count; v++) {
+            frontier = vlist[v];
+            oset->set_status(kv[frontier]);
+        }
+    }
+    return eOK;
+}
+
+//sgraph_in and oset share the same flag.
+status_t pgraph_t::query_adjlist_bu(sgraph_t** sgraph, srset_t* iset, srset_t* oset)
+{
+    rset_t* rset = 0;
+    tid_t   tid  = 0;
+    tid_t oset_count = oset->get_rset_count();
+
+    for (tid_t i = 0; i < oset_count; ++i) {
+        
+        //get the graph where we will traverse
+        rset = oset->rset + i;
+        tid  = rset->get_tid();
+        if (0 == sgraph[tid]) continue; 
+
+        beg_pos_t* graph = sgraph[tid]->get_begpos(); 
+        vid_t    v_count = sgraph[tid]->get_vcount();
+        
+        
+        for (vid_t v = 0; v < v_count; v++) {
+            //traverse the adj list
+            sid_t* adj_list = graph[v].get_adjlist();
+            vid_t nebr_count = adj_list[0];
+            ++adj_list;
+            for (vid_t k = 0; k < nebr_count; ++k) {
+                if (iset->get_status(adj_list[k])) {
+                    rset->set_status(v);
+                    break;
+                }
+            }
+        }
+    }
+    return eOK;
+}
+
+status_t pgraph_t::query_kv_bu(skv_t** skv, srset_t* iset, srset_t* oset) 
+{
+    rset_t*  rset = 0;
+    tid_t    tid  = 0;
+    tid_t    oset_count = oset->get_rset_count();
+    for (tid_t i = 0; i < oset_count; ++i) {
+
+        //get the graph where we will traverse
+        rset = oset->rset + i;
+        tid  = rset->get_tid(); 
+        if (0 == skv[tid]) continue;
+
+        vid_t*       kv = skv[tid]->get_kv(); 
+        sid_t   v_count = skv[tid]->get_vcount();
+        
+        for (vid_t v = 0; v < v_count; ++v) {
+            if (iset->get_status(kv[v])) {
+                rset->set_status(v);
+                break;
+            }
+        }
+    }
+    return eOK;
+}
+//////extend functions ------------------------
+status_t 
+pgraph_t::extend_adjlist_td(sgraph_t** sgraph, srset_t* iset, srset_t* oset)
+{
+    tid_t    iset_count = iset->get_rset_count();
+    rset_t*        rset = 0;
+    rset_t*        rset2 = 0;
+
+    iset->bitwise2vlist();
+    //prepare the output 1,2;
+    oset->copy_setup(iset, eAdjlist);
+
+    for (tid_t i = 0; i < iset_count; ++i) {
+        rset = iset->rset + i;
+        rset2 = oset->rset + i;
+        vid_t v_count = rset->get_vcount();
+        sid_t* varray = rset->get_vlist();
+        
+        //get the graph where we will traverse
+        tid_t        tid = rset->get_tid();
+        if (0 == sgraph[tid]) continue;
+        beg_pos_t* graph = sgraph[tid]->get_begpos(); 
+        
+        for (vid_t v = 0; v < v_count; v++) {
+            rset2->add_adjlist_ro(v, graph+varray[v]);
+        }
+    }
+    return eOK;
+}
+
+status_t 
+pgraph_t::extend_kv_td(skv_t** skv, srset_t* iset, srset_t* oset)
+{
+    tid_t    iset_count = iset->get_rset_count();
+    rset_t*        rset = 0;
+    rset_t*       rset2 = 0;
+
+    iset->bitwise2vlist();
+    //prepare the output 1,2;
+    oset->copy_setup(iset, eKV);
+
+    for (tid_t i = 0; i < iset_count; ++i) {
+        rset = iset->rset + i;
+        rset2 = oset->rset + i;
+        vid_t v_count = rset->get_vcount();
+        sid_t* varray = rset->get_vlist();
+        
+        //get the graph where we will traverse
+        tid_t     tid = rset->get_tid();
+        if (0 == skv[tid]) continue;
+        sid_t*  graph = skv[tid]->get_kv(); 
+        
+        for (vid_t v = 0; v < v_count; v++) {
+            rset2->add_kv(v, graph[varray[v]]);
+        }
+    }
+    return eOK;
+}

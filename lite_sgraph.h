@@ -1,7 +1,7 @@
 #pragma once
 #include "sgraph.h"
 
-class lite_pgraph_t : public pgraph_t {
+class lite_pgraph_t : public cfinfo_t {
     //edge properties.
     map <string, propid_t> str2pid;
     cfinfo_t** cf_info;
@@ -39,4 +39,84 @@ class lite_pgraph_t : public pgraph_t {
     
     void read_sgraph(lite_sgraph_t** sgraph, string dir, string postfix);
     void read_skv(lite_skv_t** skv, string dir, string postfix);
+    
+    status_t query_adjlist_td(lite_sgraph_t** sgraph, srset_t* iset, srset_t* oset);
+    status_t query_kv_td(lite_skv_t** skv, srset_t* iset, srset_t* oset);
+    status_t query_adjlist_bu(lite_sgraph_t** sgraph, srset_t* iset, srset_t* oset);
+    status_t query_kv_bu(lite_skv_t** skv, srset_t* iset, srset_t* oset);
+  
+    status_t extend_adjlist_td(lite_sgraph_t** skv, srset_t* iset, srset_t* oset);
+    status_t extend_kv_td(lite_skv_t** skv, srset_t* iset, srset_t* oset);
 };
+
+class lite_ugraph_t: public lite_pgraph_t {
+ protected:
+    lite_sgraph_t** sgraph;
+
+ public:
+    void make_graph_baseline();
+    void store_graph_baseline(string dir);
+    void read_graph_baseline(const string& dir);
+    //status_t calc_deletededge_count(pedge_t* edge);
+    
+    status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
+};
+
+class lite_dgraph_t: public lite_pgraph_t {
+ protected:
+    //count is hidden in type count
+    lite_sgraph_t** sgraph_out;
+    lite_sgraph_t** sgraph_in; 
+ public:
+    void make_graph_baseline();
+    void store_graph_baseline(string dir);
+    void read_graph_baseline(const string& dir);
+    
+    status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
+};
+
+class lite_many2one_t: public lite_pgraph_t {
+ protected:
+    lite_skv_t**     skv_out;
+    lite_sgraph_t**  sgraph_in;
+
+ public:
+    void make_graph_baseline();
+    void store_graph_baseline(string dir);
+    void read_graph_baseline(const string& dir);
+    
+    status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
+};
+
+class lite_one2one_t: public lite_pgraph_t {
+ protected:
+    lite_skv_t**   skv_in;
+    lite_skv_t**   skv_out;
+
+ public:
+    void make_graph_baseline();
+    void store_graph_baseline(string dir);
+    void read_graph_baseline(const string& dir);
+    
+    status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
+};
+
+class lite_one2many_t: public lite_pgraph_t {
+ protected:
+    lite_sgraph_t**   sgraph_out;
+    lite_skv_t**      skv_in;
+
+ public:
+    void make_graph_baseline();
+    void store_graph_baseline(string dir);
+    void read_graph_baseline(const string& dir);
+    
+    status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
+};
+
+
