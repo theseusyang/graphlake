@@ -438,3 +438,145 @@ void manykv_t::read_graph_baseline( const string& dir)
         mkv_out[i]->read_etable(etfile);
     }
 }
+
+/*****************/
+status_t edge_prop_t::batch_update(eid_t eid, const string& dst, propid_t pid /*=0*/)
+{
+    index_t  index = 0;
+    pedge_t* edges;
+    char*    dst_id;
+    
+    if (batch_info1[batch_count1].count == MAX_PECOUNT) {
+        void* mem = alloc_buf();
+        if (mem == 0) return eEndBatch;
+        ++batch_count1;
+        batch_info1[batch_count1].count = 0;
+        batch_info1[batch_count1].buf = mem; 
+    }
+
+    dst_id = gstrdup(dst.c_str());
+    index = batch_info1[batch_count1].count++;
+    edges = (pedge_t*) batch_info1[batch_count1].buf;
+    edges[index].pid = pid;
+    edges[index].src_id = eid; 
+    edges[index].dst_id.value_charp = dst_id;//gstrdup(dst.c_str);
+    return eOK;
+}
+
+void edge_prop_t::make_graph_baseline()
+{
+    if (batch_info[0].count == 0) return;
+    flag1_count = __builtin_popcountll(flag1);
+
+    //super bins memory allocation
+    prep_mkv();
+    
+    //estimate edge count
+    calc_edge_count();
+    
+    //prefix sum then reset the count
+    prep_mkv_internal();
+
+    //populate and get the original count back
+    fill_mkv_out();
+    update_count();
+    
+    //clean up
+    cleanup();
+}
+
+void edge_prop_t::prep_mkv()
+{
+    mkv_out.setup(0);
+}
+
+void edge_prop_t::calc_edge_count()
+{
+    eid_t     src;
+    pedge_t*  edges;
+    index_t   count;
+
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (pedge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+        for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
+            mkv_out.increment_count(src, strlen(edges[i].dst_id.value_charp) + 1);
+        }
+    }
+}
+
+void edge_prop_t::prep_mkv_internal()
+{
+    mkv_out.setup_adjlist();
+}
+
+void edge_prop_t::fill_mkv_out()
+{
+    sid_t src;
+    char* dst;
+    propid_t pid;
+    
+    pedge_t*  edges;
+    index_t   count;
+
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (pedge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+        for (index_t i = 0; i < count; ++i) {
+            pid = edges[i].pid;
+            src = edges[i].src_id;
+            dst = edges[i].dst_id.value_charp;
+            mkv_out.add_nebr(src, pid, dst);
+        }
+    }
+}
+
+void edge_prop_t::update_count()
+{
+    vid_t v_count = mkv_out.get_vcount();
+    
+    for (vid_t j = 0; j < v_count; ++j) {
+        mkv_out.update_count(j);
+    }
+}
+
+void edge_prop_t::print_raw_dst(tid_t tid, eid_t eid, propid_t pid)
+{
+    mkv_out.print_raw_dst(eid, pid);
+}
+
+void edge_prop_t::store_graph_baseline(string dir)
+{
+    string postfix = "out";
+
+    //base name using relationship type
+    string basefile = dir + col_info[0]->p_name + "family";
+    string vtfile, etfile;
+
+    vtfile = basefile +  ".vtable" + postfix;
+    etfile = basefile +  ".etable" + postfix;
+
+    mkv_out.persist_vlog(vtfile);
+    mkv_out.persist_elog(etfile);
+}
+    
+void edge_prop_t::read_graph_baseline( const string& dir)
+{
+    string  postfix = "out";
+
+    //base name using relationship type
+    string basefile = dir + col_info[0]->p_name + "family";
+    string vtfile, etfile;
+
+    vtfile = basefile + ".vtable" + postfix;
+    etfile = basefile + ".etable" + postfix;
+        
+    FILE* vtf = fopen(vtfile.c_str(), "r+b");
+    if (vtf == 0) assert(0);
+    fclose(vtf);
+
+    mkv_out.setup(0);
+    mkv_out.read_vtable(vtfile);
+    mkv_out.read_etable(etfile);
+}

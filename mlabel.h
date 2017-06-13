@@ -109,3 +109,24 @@ class manykv_t : public cfinfo_t {
     
     void print_raw_dst(tid_t tid, vid_t vid, propid_t pid);
 };
+
+class edge_prop_t : public cfinfo_t {
+    mkv_t mkv_out;
+
+ public:
+    inline edge_prop_t() {
+        //mkv_out = 0;
+    }
+    void prep_mkv();
+    void fill_mkv_out();
+    void calc_edge_count();
+    void prep_mkv_internal();
+    void update_count();
+    
+    status_t batch_update(eid_t eid, const string& dst, propid_t pid);
+    void make_graph_baseline();
+    void store_graph_baseline(string dir);
+    void read_graph_baseline( const string& dir);
+    
+    void print_raw_dst(tid_t tid, eid_t vid, propid_t pid);
+};

@@ -88,7 +88,7 @@ class cfinfo_t {
     virtual status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     
     //This interface is for edge properties.
-    virtual status_t batch_update(sid_t sid, const string& dst, propid_t pid) {return eOK;};
+    virtual status_t batch_update(eid_t eid, const string& dst, propid_t pid) {return eOK;};
     
     virtual void make_graph_baseline();
     virtual void store_graph_baseline(string dir);
