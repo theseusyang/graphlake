@@ -149,8 +149,6 @@ void graph::read_graph_baseline(const string& odir)
 /////////////////////////////////////////
 void pinfo_t::populate_property(const char* longname, const char* property_name)
 {
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
 
     p_name  = gstrdup(property_name);
     p_longname = gstrdup(longname);

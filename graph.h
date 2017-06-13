@@ -85,7 +85,12 @@ class cfinfo_t {
     void reset_buffer0();
     void reset_buffer1();
 
+    //edges and vertex properties
     virtual status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
+    
+    //For heavy weight edges.
+    status_t batch_update(const string& src, const string& dst, propid_t pid, 
+                          propid_t count, prop_pair_t* prop_pair);
     
     //This interface is for edge properties.
     virtual status_t batch_update(eid_t eid, const string& dst, propid_t pid) {return eOK;};
