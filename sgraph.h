@@ -1,5 +1,124 @@
 #pragma once
 
+/******** graphs **************/
+class pgraph_t: public cfinfo_t {
+  
+ public:    
+    pgraph_t();
+ 
+    //graph specific functions 
+    status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
+    
+ 
+ public:
+    sgraph_t** prep_sgraph(sflag_t ori_flag, sgraph_t** a_sgraph);
+    skv_t** prep_skv(sflag_t ori_flag, skv_t** a_skv);
+    
+    void calc_edge_count(sgraph_t** sgraph_out, sgraph_t** sgraph_in); 
+    void calc_edge_count_out(sgraph_t** sgraph_out);
+    void calc_edge_count_in(sgraph_t** sgraph_in);
+    
+    //void calc_deletededge_count(sgraph_t** sgraph_out, sgraph_t** sgraph_in); 
+    void calc_deletededge_count_out(sgraph_t** sgraph_out);
+    void calc_deletededge_count_in(sgraph_t** sgraph_in);
+    
+    void prep_sgraph_internal(sgraph_t** sgraph);
+    void update_count(sgraph_t** sgraph);
+    
+    void fill_adj_list(sgraph_t** sgraph_out, sgraph_t** sgraph_in);
+    void fill_adj_list_in(skv_t** skv_out, sgraph_t** sgraph_in); 
+    void fill_adj_list_out(sgraph_t** sgraph_out, skv_t** skv_in); 
+    void fill_skv(skv_t** skv_out, skv_t** skv_in);
+    
+    void store_sgraph(sgraph_t** sgraph, string dir, string postfix);
+    void store_skv(skv_t** skv, string dir, string postfix);
+    
+    void read_sgraph(sgraph_t** sgraph, string dir, string postfix);
+    void read_skv(skv_t** skv, string dir, string postfix);
+
+    status_t query_adjlist_td(sgraph_t** sgraph, srset_t* iset, srset_t* oset);
+    status_t query_kv_td(skv_t** skv, srset_t* iset, srset_t* oset);
+    status_t query_adjlist_bu(sgraph_t** sgraph, srset_t* iset, srset_t* oset);
+    status_t query_kv_bu(skv_t** skv, srset_t* iset, srset_t* oset);
+  
+    
+    status_t extend_adjlist_td(sgraph_t** skv, srset_t* iset, srset_t* oset);
+    status_t extend_kv_td(skv_t** skv, srset_t* iset, srset_t* oset);
+};
+
+class ugraph_t: public pgraph_t {
+ protected:
+    sgraph_t** sgraph;
+
+ public:
+    void make_graph_baseline();
+    void store_graph_baseline(string dir);
+    void read_graph_baseline(const string& dir);
+    //status_t calc_deletededge_count(pedge_t* edge);
+    
+    status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
+};
+
+class dgraph_t: public pgraph_t {
+ protected:
+    //count is hidden in type count
+    sgraph_t** sgraph_out;
+    sgraph_t** sgraph_in; 
+ public:
+    void make_graph_baseline();
+    void store_graph_baseline(string dir);
+    void read_graph_baseline(const string& dir);
+    
+    status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
+};
+
+class many2one_t: public pgraph_t {
+ protected:
+    skv_t**     skv_out;
+    sgraph_t**  sgraph_in;
+
+ public:
+    void make_graph_baseline();
+    void store_graph_baseline(string dir);
+    void read_graph_baseline(const string& dir);
+    
+    status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
+};
+
+class one2one_t: public pgraph_t {
+ protected:
+    skv_t**   skv_in;
+    skv_t**   skv_out;
+
+ public:
+    void make_graph_baseline();
+    void store_graph_baseline(string dir);
+    void read_graph_baseline(const string& dir);
+    
+    status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
+};
+
+class one2many_t: public pgraph_t {
+ protected:
+    sgraph_t**   sgraph_out;
+    skv_t**      skv_in;
+
+ public:
+    void make_graph_baseline();
+    void store_graph_baseline(string dir);
+    void read_graph_baseline(const string& dir);
+    
+    status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
+};
+
+
+/*****************************/
+
 template <class T>
 void onegraph_t<T>::setup(tid_t tid)
 {
@@ -141,158 +260,3 @@ void onegraph_t<T>::read_vtable(const string& vtfile)
 }
 
 
-/******** graphs **************/
-class pgraph_t: public cfinfo_t {
-  
- public:    
-    pgraph_t();
- 
-    //graph specific functions 
-    status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
-    
- 
- public:
-    sgraph_t** prep_sgraph(sflag_t ori_flag, sgraph_t** a_sgraph);
-    skv_t** prep_skv(sflag_t ori_flag, skv_t** a_skv);
-    
-    void calc_edge_count(sgraph_t** sgraph_out, sgraph_t** sgraph_in); 
-    void calc_edge_count_out(sgraph_t** sgraph_out);
-    void calc_edge_count_in(sgraph_t** sgraph_in);
-    
-    //void calc_deletededge_count(sgraph_t** sgraph_out, sgraph_t** sgraph_in); 
-    void calc_deletededge_count_out(sgraph_t** sgraph_out);
-    void calc_deletededge_count_in(sgraph_t** sgraph_in);
-    
-    void prep_sgraph_internal(sgraph_t** sgraph);
-    void update_count(sgraph_t** sgraph);
-    
-    void fill_adj_list(sgraph_t** sgraph_out, sgraph_t** sgraph_in);
-    void fill_adj_list_in(skv_t** skv_out, sgraph_t** sgraph_in); 
-    void fill_adj_list_out(sgraph_t** sgraph_out, skv_t** skv_in); 
-    void fill_skv(skv_t** skv_out, skv_t** skv_in);
-    
-    void store_sgraph(sgraph_t** sgraph, string dir, string postfix);
-    void store_skv(skv_t** skv, string dir, string postfix);
-    
-    void read_sgraph(sgraph_t** sgraph, string dir, string postfix);
-    void read_skv(skv_t** skv, string dir, string postfix);
-
-    status_t query_adjlist_td(sgraph_t** sgraph, srset_t* iset, srset_t* oset);
-    status_t query_kv_td(skv_t** skv, srset_t* iset, srset_t* oset);
-    status_t query_adjlist_bu(sgraph_t** sgraph, srset_t* iset, srset_t* oset);
-    status_t query_kv_bu(skv_t** skv, srset_t* iset, srset_t* oset);
-  
-    
-    status_t extend_adjlist_td(sgraph_t** skv, srset_t* iset, srset_t* oset);
-    status_t extend_kv_td(skv_t** skv, srset_t* iset, srset_t* oset);
-};
-
-class lite_pgraph_t : public pgraph_t {
-    //edge properties.
-    map <string, propid_t> str2pid;
-    cfinfo_t** cf_info;
-    pinfo_t *  p_info;
-    
-    propid_t   cf_count;
-    propid_t   p_count;
-    sid_t      edge_count;
- 
- public:
-    lite_pgraph_t();
-    status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
-    
-    //For heavy weight edges.
-    status_t batch_update(const string& src, const string& dst, propid_t pid, 
-                          propid_t count, prop_pair_t* prop_pair);
-    
-    lite_sgraph_t** prep_sgraph(sflag_t ori_flag, lite_sgraph_t** a_sgraph);
-    lite_skv_t** prep_skv(sflag_t ori_flag, lite_skv_t** a_skv);
-    
-    void prep_sgraph_internal(lite_sgraph_t** sgraph);
-    
-    void calc_edge_count(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgraph_in); 
-    void calc_edge_count_out(lite_sgraph_t** lite_sgraph_out);
-    void calc_edge_count_in(lite_sgraph_t** sgraph_in);
-    void update_count(lite_sgraph_t** sgraph);
-    
-    void fill_adj_list(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgraph_in);
-    void fill_adj_list_in(lite_skv_t** skv_out, lite_sgraph_t** sgraph_in); 
-    void fill_adj_list_out(lite_sgraph_t** sgraph_out, lite_skv_t** skv_in); 
-    void fill_skv(lite_skv_t** skv_out, lite_skv_t** skv_in);
-    
-    void store_sgraph(lite_sgraph_t** sgraph, string dir, string postfix);
-    void store_skv(lite_skv_t** skv, string dir, string postfix);
-    
-    void read_sgraph(lite_sgraph_t** sgraph, string dir, string postfix);
-    void read_skv(lite_skv_t** skv, string dir, string postfix);
-};
-
-class ugraph_t: public pgraph_t {
- protected:
-    sgraph_t** sgraph;
-
- public:
-    void make_graph_baseline();
-    void store_graph_baseline(string dir);
-    void read_graph_baseline(const string& dir);
-    //status_t calc_deletededge_count(pedge_t* edge);
-    
-    status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
-};
-
-class dgraph_t: public pgraph_t {
- protected:
-    //count is hidden in type count
-    sgraph_t** sgraph_out;
-    sgraph_t** sgraph_in; 
- public:
-    void make_graph_baseline();
-    void store_graph_baseline(string dir);
-    void read_graph_baseline(const string& dir);
-    
-    status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
-};
-
-class many2one_t: public pgraph_t {
- protected:
-    skv_t**     skv_out;
-    sgraph_t**  sgraph_in;
-
- public:
-    void make_graph_baseline();
-    void store_graph_baseline(string dir);
-    void read_graph_baseline(const string& dir);
-    
-    status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
-};
-
-class one2one_t: public pgraph_t {
- protected:
-    skv_t**   skv_in;
-    skv_t**   skv_out;
-
- public:
-    void make_graph_baseline();
-    void store_graph_baseline(string dir);
-    void read_graph_baseline(const string& dir);
-    
-    status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
-};
-
-class one2many_t: public pgraph_t {
- protected:
-    sgraph_t**   sgraph_out;
-    skv_t**      skv_in;
-
- public:
-    void make_graph_baseline();
-    void store_graph_baseline(string dir);
-    void read_graph_baseline(const string& dir);
-    
-    status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
-};

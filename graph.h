@@ -165,6 +165,7 @@ class graph {
 
 
 #include "sgraph.h"
+#include "lite_sgraph.h"
 /*----------- labels ------------------ */
 //#include "labelkv.h"
 #include "typekv.h"

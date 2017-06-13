@@ -13,13 +13,14 @@ SRC=main.cpp \
 	query_triple.cpp\
 	graph_query.cpp\
 	type.cpp\
-	lite_pgraph.cpp\
+	lite_sgraph.cpp\
 	lubm_test1.cpp\
 
 	
 
 HEADER=graph.h\
 	sgraph.h\
+	lite_sgraph.h\
 	stringkv.h\
 	enumkv.h\
 	numkv.h\
