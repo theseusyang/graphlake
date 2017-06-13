@@ -497,6 +497,8 @@ class sdegree_t {
 #define eFrontiers  1
 #define eAdjlist    2
 #define eKV         3
+#define eLiteadjlist 4
+#define eLiteKV     5
 
 
 class srset_t;
@@ -516,11 +518,12 @@ class rset_t {
     // in bu transform, status array is used in both (input and output)
     //In extend, input is vlist, output is kv or adjlist
     union {
-        uint64_t* status_array;
-        vid_t*    vlist;
-        beg_pos_t* adjlist;
+        uint64_t*   status_array;
+        vid_t*      vlist;
+        beg_pos_t*  adjlist;
+        sid_t*      kv;
         lite_vtable_t* lite_adjlist;
-        sid_t*    kv;
+        lite_edge_t* lite_kv;
     };
 
  public:
@@ -534,6 +537,9 @@ class rset_t {
     inline beg_pos_t* get_graph() { return adjlist;}
     inline uint64_t* get_barray() {return status_array;} 
     inline sid_t* get_kv() { return kv;};
+    inline lite_vtable_t* get_lite_graph() { return lite_adjlist;}
+    inline lite_edge_t*   get_lite_kv() { return lite_kv; }
+
     inline vid_t get_vcount() {return TO_VID(count2);}
     inline int   get_uniontype() {return TO_TID(count2);}
     inline tid_t get_tid() {return TO_TID(scount);}
@@ -571,8 +577,7 @@ class rset_t {
 		kv[index] = sid;
 	}
     
-   
-    private:
+ private:
     inline vid_t get_status(vid_t vid) {
         return status_array[word_offset(vid)] & ((uint64_t) 1L << bit_offset(vid));
     }
@@ -580,6 +585,8 @@ class rset_t {
     void print_result(select_info_t* select_info, qid_t select_count, vid_t pos);
     void print_adjlist(select_info_t* select_info, qid_t select_count, vid_t pos);
     void print_kv(select_info_t* select_info, qid_t select_count, vid_t pos);
+    void print_lite_adjlist(select_info_t* select_info, qid_t select_count, vid_t pos);
+    void print_lite_kv(select_info_t* select_info, qid_t select_count, vid_t pos);
     void print_barray(select_info_t* select_info, qid_t select_count);
     void print_vlist(select_info_t* select_info, qid_t select_count);
     
@@ -592,8 +599,6 @@ class rset_t {
         count2 = TO_SUPER(eStatusarray);
         status_array = (uint64_t*) calloc(sizeof(uint64_t*), w_count);
     }
-
-        
 };
 
 class srset_t {

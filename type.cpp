@@ -232,6 +232,42 @@ void rset_t::print_adjlist(select_info_t* select_info, qid_t select_count, vid_t
     }
 }
 
+void rset_t::print_lite_adjlist(select_info_t* select_info, qid_t select_count, vid_t pos)
+{
+    lite_vtable_t* varray = get_lite_graph();
+    lite_edge_t* v_adjlist = varray[pos].get_adjlist();
+    vid_t  v_count = v_adjlist[0].first;
+    ++v_adjlist;
+
+    sid_t sid;
+    vid_t frontier;
+    tid_t tid;
+
+    for (vid_t j = 0; j < v_count; ++j) {
+        sid = v_adjlist[j].first;
+        frontier = TO_VID(sid);
+        tid = TO_TID(sid);
+        
+        for (int j = 0; j < select_count; ++j) {
+            select_info[j].rgraph->print_raw_dst(tid, frontier, select_info[j].pid);
+            cout << ",";
+        }
+    }
+}
+
+void rset_t::print_lite_kv(select_info_t* select_info, qid_t select_count, vid_t pos)
+{
+    lite_edge_t* kv = get_lite_kv();
+    sid_t sid = kv[pos].first;
+    vid_t frontier = TO_VID(sid);
+    tid_t tid = TO_TID(sid);
+
+    for (int j = 0; j < select_count; ++j) {
+        select_info[j].rgraph->print_raw_dst(tid, frontier, select_info[j].pid);
+        cout << ",";
+    }
+}
+
 void rset_t::print_kv(select_info_t* select_info, qid_t select_count, vid_t pos)
 {
     sid_t* kv = get_kv();
@@ -288,6 +324,10 @@ void rset_t::print_result(select_info_t* select_info, qid_t select_count, vid_t 
         print_adjlist(select_info, select_count, vid_pos);
     } else if (uniontype == eKV) {
         print_kv(select_info, select_count, vid_pos);
+    } else if (uniontype == eLiteadjlist) {
+        print_lite_adjlist(select_info, select_count, vid_pos);
+    } else if (uniontype == eLiteKV) {
+        print_lite_kv(select_info, select_count, vid_pos);
     } else if (uniontype == eStatusarray) {
         assert(0);
         print_barray(select_info, select_count);;
