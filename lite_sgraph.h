@@ -13,7 +13,13 @@ class lite_pgraph_t : public cfinfo_t {
  
  public:
     lite_pgraph_t();
+    status_t add_property(const char* longname);
     void add_columnfamily(cfinfo_t* cf);
+    
+    propid_t get_cfid(propid_t pid);
+    propid_t get_cfid(const char* property);
+    propid_t get_pid(const char* property);
+    
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     
     //For heavy weight edges.
@@ -40,6 +46,10 @@ class lite_pgraph_t : public cfinfo_t {
     
     void read_sgraph(lite_sgraph_t** sgraph, string dir, string postfix);
     void read_skv(lite_skv_t** skv, string dir, string postfix);
+
+    void make_edge_properties();
+    void store_edge_properties(const string& odir);
+    void read_edge_properties(const string& odir);
     
     status_t query_adjlist_td(lite_sgraph_t** sgraph, srset_t* iset, srset_t* oset);
     status_t query_kv_td(lite_skv_t** skv, srset_t* iset, srset_t* oset);

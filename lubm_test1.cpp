@@ -64,11 +64,11 @@ void fill_lubm_inference_type()
 void ontology_lubm()
 {
     g->cf_info  = new cfinfo_t*[32];
-    
     g->p_info       = new pinfo_t[32];
-    pinfo_t* p_info = g->p_info;
-    cfinfo_t* info = 0;
-    const char* longname = 0;
+    
+    pinfo_t*    p_info    = g->p_info;
+    cfinfo_t*   info      = 0;
+    const char* longname  = 0;
     const char* shortname = 0;
     
     longname = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";

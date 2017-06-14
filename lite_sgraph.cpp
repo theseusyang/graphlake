@@ -17,6 +17,39 @@ void lite_pgraph_t::add_columnfamily(cfinfo_t* cf)
     cf_count++;
 }
 
+status_t lite_pgraph_t::add_property(const char* longname)
+{
+    map<string, propid_t>::iterator iter;
+    iter = str2pid.find(longname);
+    if (str2pid.end() == iter) {
+        str2pid[longname] = p_count;
+        p_count++;
+        return eOK;
+    }
+    //XXX
+    return eOK;
+}
+
+propid_t lite_pgraph_t::get_cfid(propid_t pid)
+{
+    return p_info[pid].cf_id;
+}
+
+propid_t lite_pgraph_t::get_cfid(const char* predicate)
+{
+    propid_t pid = get_pid(predicate);
+    return p_info[pid].cf_id;
+}
+
+propid_t lite_pgraph_t::get_pid(const char* predicate)
+{
+    map<string, propid_t>::iterator str2pid_iter = str2pid.find(predicate);
+    if (str2pid_iter == str2pid.end()) {
+        return INVALID_PID;
+    }
+    return str2pid_iter->second;
+}
+
 //Applicable to graphs only, labels should be aware of it.
 status_t lite_pgraph_t::batch_update(const string& src, const string& dst, propid_t pid /* = 0 */)
 {
@@ -70,12 +103,10 @@ status_t lite_pgraph_t::batch_update(const string& src, const string& dst, propi
     map<string, propid_t>::iterator str2pid_iter;
     
     for (propid_t i = 0; i < count; i++) {
-        str2pid_iter = str2pid.find(prop_pair[i].name);
-        if (str2pid.end() == str2pid_iter) {
+        if(INVALID_PID == (edge_pid = get_pid(prop_pair[i].name))) {
             assert(0);
         }
-        edge_pid = str2pid_iter->second;
-        cf_id = p_info[edge_pid].cf_id;
+        cf_id = get_cfid(edge_pid);
         
         cf_info[cf_id]->batch_update(edge_count, prop_pair[i].value, edge_pid);
     }
@@ -444,6 +475,34 @@ void lite_pgraph_t::fill_skv(lite_skv_t** skv_out, lite_skv_t** skv_in)
     }
 }
 
+void lite_pgraph_t::make_edge_properties()
+{
+    //swap 
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->swap_log_buffer();
+    }
+    
+    //make graph
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->make_graph_baseline();
+    }
+}
+
+void lite_pgraph_t::store_edge_properties(const string& odir)
+{
+    //Store graph
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->store_graph_baseline(odir);
+    }
+}
+
+void lite_pgraph_t::read_edge_properties(const string& odir)
+{
+    //Store graph
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->read_graph_baseline(odir);
+    }
+}
 /************* Semantic graphs  *****************/
 
 //We assume that no new vertex type is defined
@@ -481,6 +540,9 @@ void lite_dgraph_t::make_graph_baseline()
     
     //clean up
     cleanup();
+
+    //Make graph for properties
+    make_edge_properties();
 }
 
 
@@ -490,6 +552,8 @@ void lite_dgraph_t::store_graph_baseline(string dir)
     store_sgraph(sgraph_out, dir, postfix);
     postfix = "in";
     store_sgraph(sgraph_in,  dir, postfix);
+
+    store_edge_properties(dir);
 }
 
 void lite_dgraph_t::read_graph_baseline(const string& dir)
@@ -507,6 +571,8 @@ void lite_dgraph_t::read_graph_baseline(const string& dir)
         sgraph_in  = (lite_sgraph_t**) calloc (sizeof(lite_sgraph_t*), t_count);
     }
     read_sgraph(sgraph_in,  dir, postfix);
+
+    read_edge_properties(dir);
 }
 
 
@@ -541,12 +607,16 @@ void lite_ugraph_t::make_graph_baseline()
 
     //clean up
     cleanup();
+    //Make graph for properties
+    make_edge_properties();
 }
 
 void lite_ugraph_t::store_graph_baseline(string dir)
 {
     string postfix = "";
     store_sgraph(sgraph, dir, postfix);
+
+    store_edge_properties(dir);
 }
 
 void lite_ugraph_t::read_graph_baseline(const string& dir)
@@ -558,6 +628,8 @@ void lite_ugraph_t::read_graph_baseline(const string& dir)
         sgraph  = (lite_sgraph_t**) calloc (sizeof(lite_sgraph_t*), t_count);
     }
     read_sgraph(sgraph, dir, postfix);
+
+    read_edge_properties(dir);
 }
 
 
@@ -596,6 +668,8 @@ void lite_many2one_t::make_graph_baseline()
     
     //clean up
     cleanup();
+    //Make graph for properties
+    make_edge_properties();
 }
 
 void lite_many2one_t::store_graph_baseline(string dir)
@@ -604,6 +678,8 @@ void lite_many2one_t::store_graph_baseline(string dir)
     store_skv(skv_out, dir, postfix);
     postfix = "in";
     store_sgraph(sgraph_in, dir, postfix);
+
+    store_edge_properties(dir);
 }
 
 void lite_many2one_t::read_graph_baseline(const string& dir)
@@ -621,6 +697,8 @@ void lite_many2one_t::read_graph_baseline(const string& dir)
     }
     postfix = "in";
     read_sgraph(sgraph_in, dir, postfix);
+
+    read_edge_properties(dir);
 }
 
 /*******************************************/
@@ -658,6 +736,8 @@ void lite_one2many_t::make_graph_baseline()
     
     //clean up
     cleanup();
+    //Make graph for properties
+    make_edge_properties();
 }
 
 void lite_one2many_t::store_graph_baseline(string dir)
@@ -666,6 +746,8 @@ void lite_one2many_t::store_graph_baseline(string dir)
     store_sgraph(sgraph_out, dir, postfix);
     postfix = "in";
     store_skv(skv_in, dir, postfix);
+
+    store_edge_properties(dir);
 }
 
 void lite_one2many_t::read_graph_baseline(const string& dir)
@@ -683,6 +765,8 @@ void lite_one2many_t::read_graph_baseline(const string& dir)
     }
     postfix = "in";
     read_skv(skv_in, dir, postfix);
+
+    read_edge_properties(dir);
 }
 
 /************************************************/
@@ -710,6 +794,8 @@ void lite_one2one_t::make_graph_baseline()
     
     //clean up
     cleanup();
+    //Make graph for properties
+    make_edge_properties();
 }
 
 void lite_one2one_t::store_graph_baseline(string dir)
@@ -718,6 +804,8 @@ void lite_one2one_t::store_graph_baseline(string dir)
     store_skv(skv_out, dir, postfix);
     postfix = "in";
     store_skv(skv_in, dir, postfix);
+
+    store_edge_properties(dir);
 }
 
 void lite_one2one_t::read_graph_baseline(const string& dir)
@@ -735,6 +823,8 @@ void lite_one2one_t::read_graph_baseline(const string& dir)
         skv_in  = (lite_skv_t**) calloc (sizeof(lite_skv_t*), t_count);
     }
     read_skv(skv_in, dir, postfix);
+
+    read_edge_properties(dir);
 }
 
 /////////// QUERIES ///////////////////////////

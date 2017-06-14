@@ -82,6 +82,19 @@ sid_t graph::get_sid(const char* src)
     }
     return str2vid_iter->second;
 }
+
+status_t graph::add_property(const char* longname)
+{
+    map<string, propid_t>::iterator iter;
+    iter = str2pid.find(longname);
+    if (str2pid.end() == iter) {
+        str2pid[longname] = p_count;
+        p_count++;
+        return eOK;
+    }
+    //XXX
+    return eOK;
+}
     
 status_t graph::batch_update(const string& src, const string& dst, const string& predicate)
 {
@@ -134,7 +147,6 @@ void graph::store_graph_baseline(const string& odir)
     for (int i = 0; i < cf_count; i++) {
         cf_info[i]->store_graph_baseline(odir);
     }
-    
 }
 
 void graph::read_graph_baseline(const string& odir)
@@ -280,14 +292,13 @@ void cfinfo_t::reset()
     }
 }
 
-
 /*******label specific **********/
 status_t cfinfo_t::filter(sid_t sid, univ_t value, filter_fn_t fn)
 {
     assert(0);
     return eOK;
 }
-
+    
 void cfinfo_t::print_raw_dst(tid_t tid, vid_t vid, propid_t pid /* = 0 */)
 {
     assert(0);

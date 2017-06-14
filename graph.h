@@ -151,8 +151,10 @@ class graph {
     propid_t get_cfid(propid_t pid);
     propid_t get_cfid(const char* property);
     propid_t get_pid(const char* property);
-    sid_t get_sid(const char* src);
     
+    status_t add_property(const char* longname);
+    sid_t get_sid(const char* src);
+     
     //void prep_type(string typefile, string odirname);
     //void prep_graph(string idirname, string odirname);
     //status_t remove_edge(const string& idir, const string& odir);
