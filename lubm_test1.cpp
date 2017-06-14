@@ -73,8 +73,9 @@ void ontology_lubm()
     
     longname = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>";
     shortname = "type";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
+    //g->str2pid[longname] = g->p_count;
+    //g->p_count++;
     p_info->populate_property(longname, shortname);
     info = new typekv_t;
     g->add_columnfamily(info);
@@ -84,8 +85,7 @@ void ontology_lubm()
     
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#advisor>";
     shortname = "advisor";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
     g->add_columnfamily(info);
@@ -95,8 +95,7 @@ void ontology_lubm()
     
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#affiliatedOrganizationOf>";
     shortname =  "affiliatedOrganizationOf";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
     g->add_columnfamily(info);
@@ -106,8 +105,7 @@ void ontology_lubm()
 
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#affiliateOf>";
     shortname = "affiliateOf";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
     g->add_columnfamily(info);
@@ -117,8 +115,7 @@ void ontology_lubm()
     
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#degreeFrom>";
     shortname =  "degreeFrom";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
     g->add_columnfamily(info);
@@ -128,8 +125,7 @@ void ontology_lubm()
     
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#doctoralDegreeFrom>";
     shortname = "doctoralDegreeFrom";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
     g->add_columnfamily(info);
@@ -142,8 +138,7 @@ void ontology_lubm()
     
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#headOf>";
     shortname = "headOf";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new one2one_t;
     g->add_columnfamily(info);
@@ -155,8 +150,7 @@ void ontology_lubm()
     
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#mastersDegreeFrom>";
     shortname = "mastersDegreeFrom";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
     g->add_columnfamily(info);
@@ -169,8 +163,7 @@ void ontology_lubm()
     
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#memberOf>";
     shortname =  "memberOf";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
     g->add_columnfamily(info);
@@ -182,8 +175,7 @@ void ontology_lubm()
     
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#publicationAuthor>";
     shortname = "publicationAuthor";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new dgraph_t;
     g->add_columnfamily(info);
@@ -200,8 +192,7 @@ void ontology_lubm()
     
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#takesCourse>";
     shortname = "takesCourse";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new dgraph_t;
     g->add_columnfamily(info);
@@ -211,8 +202,7 @@ void ontology_lubm()
     
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#teacherOf>";
     shortname = "teacherOf";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new one2many_t;
     g->add_columnfamily(info);
@@ -222,8 +212,7 @@ void ontology_lubm()
     
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#teachingAssistantOf>";
     shortname = "teachingAssistantOf";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new one2one_t;
     g->add_columnfamily(info);
@@ -235,8 +224,7 @@ void ontology_lubm()
     
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#undergraduateDegreeFrom>";
     shortname = "undergraduateDegreeFrom";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
     g->add_columnfamily(info);
@@ -246,8 +234,7 @@ void ontology_lubm()
     
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#worksFor>";
     shortname = "worksFor";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
     g->add_columnfamily(info);
@@ -257,8 +244,7 @@ void ontology_lubm()
     
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#subOrganizationOf>";
     shortname = "subOrganizationOf";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
     g->add_columnfamily(info);
@@ -270,8 +256,7 @@ void ontology_lubm()
     /*********************************************/
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#publicationDate>";
     shortname = "publicationDate";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new stringkv_t;
     g->add_columnfamily(info);
@@ -281,8 +266,7 @@ void ontology_lubm()
     
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#softwareVersion>";
     shortname = "softwareVersion";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new stringkv_t;
     g->add_columnfamily(info);
@@ -310,8 +294,7 @@ void ontology_lubm()
 
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#researchInterest>";
     shortname = "researchInterest";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new stringkv_t;
     g->add_columnfamily(info);
@@ -321,8 +304,7 @@ void ontology_lubm()
     
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#title>";
     shortname = "title";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new stringkv_t;
     g->add_columnfamily(info);
@@ -376,8 +358,7 @@ void ontology_lubm()
     
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#name>";
     shortname = "name";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
     p_info->populate_property(longname, shortname);
     //info = new stringkv_t;
     info = new manykv_t;
@@ -389,8 +370,7 @@ void ontology_lubm()
     
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#emailAddress>";
     shortname = "emailAddress";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
     p_info->populate_property(longname, shortname);
     //info = new stringkv_t;
     //g->add_columnfamily(info);
@@ -401,8 +381,7 @@ void ontology_lubm()
     //info = new uint64kv_t;
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#telephone>";
     shortname =  "telephone";
-    g->str2pid[longname] = g->p_count;
-    g->p_count++;
+    g->add_property(longname);
     p_info->populate_property(longname, shortname);
     //info = new stringkv_t;
     //g->add_columnfamily(info);
