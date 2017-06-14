@@ -10,6 +10,13 @@ lite_pgraph_t::lite_pgraph_t()
     edge_count = 0;
 }
 
+void lite_pgraph_t::add_columnfamily(cfinfo_t* cf)
+{
+    cf_info[cf_count] = cf;
+    cf->cf_id = cf_count;
+    cf_count++;
+}
+
 //Applicable to graphs only, labels should be aware of it.
 status_t lite_pgraph_t::batch_update(const string& src, const string& dst, propid_t pid /* = 0 */)
 {

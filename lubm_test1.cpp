@@ -59,7 +59,6 @@ void fill_lubm_inference_type()
     }
     tlist[3] = value.value_tid;
     typekv->populate_inference_type(name, count, tlist);
-
 }
 
 void ontology_lubm()
@@ -78,7 +77,8 @@ void ontology_lubm()
     g->p_count++;
     p_info->populate_property(longname, shortname);
     info = new typekv_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
@@ -88,7 +88,8 @@ void ontology_lubm()
     g->p_count++;
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
@@ -98,7 +99,8 @@ void ontology_lubm()
     g->p_count++;
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
 
@@ -108,7 +110,8 @@ void ontology_lubm()
     g->p_count++;
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
@@ -118,7 +121,8 @@ void ontology_lubm()
     g->p_count++;
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
@@ -128,7 +132,8 @@ void ontology_lubm()
     g->p_count++;
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
@@ -141,7 +146,8 @@ void ontology_lubm()
     g->p_count++;
     p_info->populate_property(longname, shortname);
     info = new one2one_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
@@ -153,7 +159,8 @@ void ontology_lubm()
     g->p_count++;
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
@@ -166,7 +173,8 @@ void ontology_lubm()
     g->p_count++;
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
@@ -178,7 +186,8 @@ void ontology_lubm()
     g->p_count++;
     p_info->populate_property(longname, shortname);
     info = new dgraph_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
@@ -195,7 +204,8 @@ void ontology_lubm()
     g->p_count++;
     p_info->populate_property(longname, shortname);
     info = new dgraph_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
@@ -205,7 +215,8 @@ void ontology_lubm()
     g->p_count++;
     p_info->populate_property(longname, shortname);
     info = new one2many_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
@@ -215,7 +226,8 @@ void ontology_lubm()
     g->p_count++;
     p_info->populate_property(longname, shortname);
     info = new one2one_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
@@ -227,7 +239,8 @@ void ontology_lubm()
     g->p_count++;
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
@@ -237,7 +250,8 @@ void ontology_lubm()
     g->p_count++;
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
@@ -247,7 +261,8 @@ void ontology_lubm()
     g->p_count++;
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
@@ -259,7 +274,8 @@ void ontology_lubm()
     g->p_count++;
     p_info->populate_property(longname, shortname);
     info = new stringkv_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
@@ -269,14 +285,16 @@ void ontology_lubm()
     g->p_count++;
     p_info->populate_property(longname, shortname);
     info = new stringkv_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
   
   /*  
     p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#age>", "age");
     info = new uint8kv_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
 */
@@ -284,7 +302,8 @@ void ontology_lubm()
     /*
     p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#officeNumber>", "officeNumber");
     info = new uint64kv_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     */
@@ -295,7 +314,8 @@ void ontology_lubm()
     g->p_count++;
     p_info->populate_property(longname, shortname);
     info = new stringkv_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
@@ -305,7 +325,8 @@ void ontology_lubm()
     g->p_count++;
     p_info->populate_property(longname, shortname);
     info = new stringkv_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
@@ -313,7 +334,8 @@ void ontology_lubm()
     /*
     p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#name>", "name");
     info = new stringkv_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
@@ -327,7 +349,8 @@ void ontology_lubm()
     //info = new uint64kv_t;
     p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#telephone>", "telephone");
     //info = new stringkv_t;
-    //info->create_columnfamily();
+    //g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     */
@@ -335,14 +358,16 @@ void ontology_lubm()
     /*
     p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#emailAddress>", "emailAddress");
     info = new stringkv_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
     //info = new uint64kv_t;
     p_info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#telephone>", "telephone");
     info = new stringkv_t;
-    info->create_columnfamily();
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     */
@@ -356,7 +381,8 @@ void ontology_lubm()
     p_info->populate_property(longname, shortname);
     //info = new stringkv_t;
     info = new manykv_t;
-    info->create_columnfamily(3);
+    g->add_columnfamily(info);
+    info->create_columns(3);
     info->add_column(p_info);
     ++p_info;
     
@@ -367,7 +393,8 @@ void ontology_lubm()
     g->p_count++;
     p_info->populate_property(longname, shortname);
     //info = new stringkv_t;
-    //info->create_columnfamily();
+    //g->add_columnfamily(info);
+    //info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
@@ -378,7 +405,8 @@ void ontology_lubm()
     g->p_count++;
     p_info->populate_property(longname, shortname);
     //info = new stringkv_t;
-    //info->create_columnfamily();
+    //g->add_columnfamily(info);
+    //info->create_columns();
     info->add_column(p_info);
     ++p_info;
 }

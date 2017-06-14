@@ -183,14 +183,24 @@ is_literal(string str) {
 }
 */
 
-void cfinfo_t::create_columnfamily(propid_t prop_count /* = 1 */)
+void graph::add_columnfamily(cfinfo_t* cf) 
+{
+    cf_info[cf_count] = cf;
+    cf->cf_id = cf_count;
+    cf_count++;
+}
+
+
+void cfinfo_t::create_columns(propid_t prop_count /* = 1 */)
 {
     col_info = new pinfo_t* [prop_count];
     col_count = 0;
     
+    /*
     g->cf_info[g->cf_count] = this;
     cf_id = g->cf_count;
     g->cf_count++;
+    */
 }
 
 void cfinfo_t::add_column(pinfo_t* prop_info)

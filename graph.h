@@ -77,7 +77,7 @@ class cfinfo_t {
     void reset();
 
  public:
-    void create_columnfamily(propid_t prop_count = 1);
+    void create_columns(propid_t prop_count = 1);
     void add_column(pinfo_t* prop_info);
     
     void swap_log_buffer(); 
@@ -141,6 +141,9 @@ class graph {
 
  public:
     graph();
+    void add_columnfamily(cfinfo_t* cf);
+    //void create_columnfamilies(propid_t a_cf_count);
+    
     inline typekv_t* get_typekv() { return (typekv_t*)cf_info[0]; }
     sid_t get_type_scount(tid_t type);
     tid_t get_total_types();

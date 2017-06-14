@@ -13,6 +13,7 @@ class lite_pgraph_t : public cfinfo_t {
  
  public:
     lite_pgraph_t();
+    void add_columnfamily(cfinfo_t* cf);
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     
     //For heavy weight edges.
