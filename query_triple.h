@@ -46,7 +46,9 @@ public:
     inline void set_qplan(queryplan_t qplan) {
         query_plan = qplan;
     } 
-
+    inline void set_traverse(traverse_t t) {
+        traverse = t;
+    }
 protected:
 	char* src;//Can represent var or actual subject
 	char* pred;//Can represent var or actual predicate
@@ -55,4 +57,5 @@ protected:
     //uint8_t pred_qid;//Not supported yet.
     qid_t dst_qid;
     queryplan_t query_plan;
+    traverse_t  traverse;
 };

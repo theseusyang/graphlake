@@ -6,8 +6,6 @@
 template <class T>
 class enumkv_t : public pkv_t<T> {
   protected:
-    //lkv_t<T>* lkv_out; 
-    lgraph_t* lgraph_in;
     
     //mapping between enum and string
     map<string, T> str2enum;
@@ -16,27 +14,27 @@ class enumkv_t : public pkv_t<T> {
     T           max_count;
   
   private:
-    using pkv_t<T>::buf;
-    using pkv_t<T>::count;
+    using pkv_t<T>::batch_info1;
+    using pkv_t<T>::batch_count1;
+    using pkv_t<T>::batch_info;
+    using pkv_t<T>::batch_count;
     using pkv_t<T>::flag1;
     using pkv_t<T>::flag1_count;
     using pkv_t<T>::lkv_out;
     using pkv_t<T>::prep_lkv;
+    using pkv_t<T>::lgraph_in;
+    using pkv_t<T>::nebr_count;
+    using pkv_t<T>::cleanup;
 
   public:
     enumkv_t();
     void init_enum(int enumcount);
     void populate_enum(const char* e);
-    void batch_update(const string& src, const string& dst);
+    status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     void make_graph_baseline();
     void store_graph_baseline(string dir);
 
   public:
-
-
-    void fill_adj_list_kv(lkv_t<T>* lkv_out, lgraph_t* lgraph_in, 
-                 sflag_t flag1, edgeT_t<T>* edges, index_t count);
-
     void store_lkv(lkv_t<T>* lkv_out, string dir, string postfix);
     
     status_t filter(sid_t sid, void* value, filter_fn_t fn);
@@ -44,12 +42,20 @@ class enumkv_t : public pkv_t<T> {
 };
 
 template<class T>
-void enumkv_t<T>::batch_update(const string& src, const string& dst)
+status_t enumkv_t<T>::batch_update(const string& src, const string& dst, propid_t pid /*= 0*/)
 {
     vid_t src_id;
     T     dst_id;
     index_t index = 0;
-    edgeT_t<T>* edges = (edgeT_t<T>*) buf;
+    edgeT_t<T>* edges;
+    
+    if (batch_info1[batch_count1].count == MAX_ECOUNT) {
+        void* mem = alloc_buf();
+        if (mem == 0) return eEndBatch;
+        ++batch_count1;
+        batch_info1[batch_count1].count = 0;
+        batch_info1[batch_count1].buf = mem; 
+    }
 
     map<string, vid_t>::iterator str2vid_iter = g->str2vid.find(src);
     if (g->str2vid.end() == str2vid_iter) {
@@ -69,16 +75,19 @@ void enumkv_t<T>::batch_update(const string& src, const string& dst)
     } else {
         dst_id = str2enum_iter->second;
     }
-
-    index = count++;
+    
+    index = batch_info1[batch_count1].count++;
+    edges = (edgeT_t<T>*) batch_info1[batch_count1].buf;
+    
     edges[index].src_id = src_id; 
     edges[index].dst_id = dst_id;
+    return eOK;
 }
 
 template<class T>
 void enumkv_t<T>::make_graph_baseline()
 {
-    if (count == 0) return;
+    if (batch_info[0].count == 0) return;
    
     flag1_count = __builtin_popcountll(flag1);
     
@@ -87,40 +96,17 @@ void enumkv_t<T>::make_graph_baseline()
     lgraph_in = prep_lgraph(ecount);    
 
     //estimate edge count
-    edge_t* edges1 = (edge_t*) buf;
-    calc_edge_count(lgraph_in, edges1, count);
+    calc_edge_count(lgraph_in);
     
     //prefix sum then reset the count
-    prep_lgraph_internal(lgraph_in, ecount, count);
+    prep_lgraph_internal(lgraph_in, ecount);
     
-    //populate and get the original count back
-    //handle kv_out as well.
-    edgeT_t<T>* edges = (edgeT_t<T>*) buf;
-    fill_adj_list_kv(lkv_out, lgraph_in, flag1, edges, count);
+    fill_adj_list_kv(lkv_out, lgraph_in);
+    
+    //clean up
+    cleanup();
 }
 
-
-template<class T>
-void enumkv_t<T>::fill_adj_list_kv(lkv_t<T>* lkv_out, lgraph_t* lgraph_in, 
-                             sflag_t flag1, edgeT_t<T>* edges, index_t count)
-{
-    sid_t src;
-    T         dst;
-    vid_t     vert1_id;
-    tid_t     src_index;
-    beg_pos_t* beg_pos_in = lgraph_in;
-    
-    for (index_t i = 0; i < count; ++i) {
-        src = edges[i].src_id;
-        dst = edges[i].dst_id;
-        
-        vert1_id = TO_VID(src);
-        src_index = get_sindex(src, flag1); 
-        lkv_out[src_index].kv[vert1_id] = dst;
-        
-        beg_pos_in[dst].adj_list[beg_pos_in->count++] = src;
-    }
-}
 
 
 template<class T>
@@ -169,14 +155,13 @@ status_t enumkv_t<T>::filter(sid_t src, void* a_value, filter_fn_t fn)
     //value is already encoded, so typecast it
     T     dst = (T) a_value;
     vid_t vert1_id;
-    tid_t type1_id, src_index;
-    sflag_t flag1_mask;
+    tid_t src_index;
   
     assert(fn == fn_out); 
     
     vert1_id = TO_VID(src);
-	src_index = get_sindex(src, flag1);
-    if (lkv_out[src_index].kv[vert1_id] == dst) {
+	src_index = TO_TID(src);
+    if (lkv_out[src_index]->kv[vert1_id] == dst) {
         return eOK;
     }
     return eQueryFail;

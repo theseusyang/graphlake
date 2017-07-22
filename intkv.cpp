@@ -5,12 +5,22 @@ typedef struct __label_int64_t {
     int64_t dst_id;
 } label_int64_t;
 
-void int64kv_t::batch_update(const string& src, const string& dst)
+status_t int64kv_t::batch_update(const string& src, const string& dst, propid_t pid /* = 0*/)
 {
     vid_t src_id;
     uint64_t dst_id;
     index_t index = 0;
-    label_int64_t* edges = (label_int64_t*) buf;
+    label_int64_t* edges;
+    
+    if (batch_info1[batch_count1].count == MAX_ECOUNT) {
+        void* mem = alloc_buf();
+        if (mem == 0) return eEndBatch;
+        ++batch_count1;
+        batch_info1[batch_count1].count = 0;
+        batch_info1[batch_count1].buf = mem; 
+    }
+    edges = (edge_t*) batch_info1[batch_count1].buf;
+   
     map<string, vid_t>::iterator str2vid_iter = str2vid.find(src);
     if (str2vid.end() == str2vid_iter) {
         src_id = vert_count++;
@@ -23,23 +33,22 @@ void int64kv_t::batch_update(const string& src, const string& dst)
     index = count++;
     edges[index].src_id = src_id; 
     edges[index].dst_id = dst_id;
+    return eOk;
 }
     
 void int64kv_t::make_graph_baseline()
 {
-    if (count == 0) return;
+    if (batch_info[0].count == 0) return;
+    flag1_count = __builtin_popcountll(flag1);
+    
+    //super bins memory allocation
+    prep_lkv();
+    
+    fill_kv_out();
+    
+    //clean up
+    cleanup();
 
-    vid_t src;
-    int64_t dst;
-    label_int64_t* edges = (label_int64_t*) buf;
-    kv_out = (int64_t*)calloc(sizeof(int64_t), vert_count);
-
-    //populate
-    for (index_t i = 0; i < count; ++i) {
-        src = edges[i].src_id;
-        dst = edges[i].dst_id;
-        kv_out[src] = dst;
-    }
 }
 
     
@@ -59,12 +68,12 @@ typedef struct __label_int8_t {
     uint8_t dst_id;
 } label_int8_t;
 
-void int8kv_t::batch_update(const string& src, const string& dst)
+void int8kv_t::batch_update(const string& src, const string& dst, propid_t pid /* = 0*/)
 {
     vid_t src_id;
     uint8_t dst_id;
     index_t index = 0;
-    label_int8_t* edges = (label_int8_t*) buf;
+    label_int8_t* edges = (label_int8_t*) batch_info[batch_count].buf;
     map<string, vid_t>::iterator str2vid_iter = str2vid.find(src);
     if (str2vid.end() == str2vid_iter) {
         src_id = vert_count++;
@@ -83,11 +92,11 @@ void int8kv_t::make_graph_baseline()
 {
     vid_t src;
     uint8_t dst;
-    label_int8_t* edges = (label_int8_t*) buf;
+    label_int8_t* edges = (label_int8_t*) batch_info[batch_count].buf;
     kv_out = (uint8_t*)calloc(sizeof(uint8_t), vert_count);
 
     //populate
-    for (index_t i = 0; i < count; ++i) {
+    for (index_t i = 0; i < batch_info[batch_count].count; ++i) {
         src = edges[i].src_id;
         dst = edges[i].dst_id;
         kv_out[src] = dst;

@@ -1,27 +1,35 @@
 CC=g++
-CFLAGS=-g -Wall -fpermissive  -std=gnu++11  -march=native -fopenmp
+CFLAGS=-g -Wall -std=gnu++11  -march=native -fopenmp
 SRC=main.cpp \
 	graph.cpp\
 	ugraph.cpp\
 	dgraph.cpp\
 	sgraph.cpp\
+	mlabel.cpp\
 	stringkv.cpp\
 	typekv.cpp\
     vgraph.cpp\
 	nt_to_edge.cpp\
-	csv_to_edge.cpp\
 	query_triple.cpp\
-	query_triplewithfilter.cpp\
 	graph_query.cpp\
-	test1.cpp\
+	type.cpp\
+	lite_sgraph.cpp\
+	lubm_test1.cpp\
+
 	
 
 HEADER=graph.h\
+	sgraph.h\
+	lite_sgraph.h\
+	stringkv.h\
 	enumkv.h\
 	numkv.h\
+	mlabel.h\
 	typekv.h\
 	query_node.h\
 	query_triple.h\
+	type.h\
+    query_clause.h\
 
 INCLUDES= -Iantlr4/include -Iantlr4
 LIBDIRS= -Lantlr4/lib

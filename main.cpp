@@ -15,6 +15,7 @@
 graph* g;
 
 void ontology_lubm();
+void fill_lubm_inference_type();
 
 int main(int argc, char* argv[])
 {
@@ -26,16 +27,17 @@ int main(int argc, char* argv[])
 		{"odir",      required_argument,  0, 'o'},
 		{"convert",   required_argument,  0, 'c'},
 		{"qfile",     required_argument,  0, 'q'},
+        {"typefile",  required_argument,  0, 't'},
 		{0,			  0,				  0,  0},
 	};
 
 	int o;
 	int index = 0;
-	string idir, odir;
+	string typefile, idir, odir;
     string queryfile;
     int convert = -1;
     g = new graph; 
-	while ((o = getopt_long(argc, argv, "i:c:o:q:vh", longopts, &index)) != -1) {
+	while ((o = getopt_long(argc, argv, "i:c:o:q:t:vh", longopts, &index)) != -1) {
 		switch(o) {
 			case 'v':
 				cout << "1.0" << endl;
@@ -56,21 +58,24 @@ int main(int argc, char* argv[])
 				break;
             case 'q':
                 queryfile = optarg;
-               break; 
+                break;
+            case 't':
+                typefile = optarg;
+                break;
 			default:
                 break;
 		}
 	}
-
     switch (convert) {
         case 0:
-            ontology_lubm();
-            g->prep_graph(idir, odir);
+        lubm_test(typefile, idir, odir);
+            break;
+        case 1:
+        lubm_test1(odir);
             break;
         default:
             break;
     }
 
-    lubm();
     return 0;
 }

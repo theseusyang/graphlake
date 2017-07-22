@@ -5,20 +5,49 @@
 #include <assert.h>
 #include <string>
 #include <map>
+#include "nt_to_edge.h"
 #include "graph.h"
-
+#include "type.h"
 
 using std::ifstream;
 
+void ntriple_manager::prep_type(const string& typefile, const string& odir)
+{
+    string subject, predicate, object, useless_dot;
+    int file_count = 0;
+    
+    //Read typefile for types 
+    ifstream file(typefile.c_str());
+    int nt_count= 0;
+    file_count++;
+    file >> subject >> predicate >> object >> useless_dot;
+    file >> subject >> predicate >> object >> useless_dot;
+    propid_t pid;
+    map<string, propid_t>::iterator str2pid_iter;
+    while (file >> subject >> predicate >> object >> useless_dot) {
+        str2pid_iter = g->str2pid.find(predicate);
+        if (str2pid_iter == g->str2pid.end()) {
+            assert(0);
+        }
+        pid = str2pid_iter->second;
+        if( pid == 0) { // type
+            g->type_update(subject, object);
+            ++nt_count;
+        }
+    }
 
-void graph::prep_graph(string idirname, string odirname)
+    g->type_done();
+    g->type_store(odir);
+}
+
+void ntriple_manager::prep_graph(const string& idirname, const string& odirname)
 {
     struct dirent *ptr;
     DIR *dir;
     string subject, predicate, object, useless_dot;
     int file_count = 0;
     
-    //Read graph file for types 
+    //Read graph file
     dir = opendir(idirname.c_str());
     while (NULL != (ptr = readdir(dir))) {
         if (ptr->d_name[0] == '.') continue;
@@ -28,23 +57,29 @@ void graph::prep_graph(string idirname, string odirname)
         file_count++;
         file >> subject >> predicate >> object >> useless_dot;
         file >> subject >> predicate >> object >> useless_dot;
-        propid_t pid;
-        map<string, propid_t>::iterator str2pid_iter;
+        
         while (file >> subject >> predicate >> object >> useless_dot) {
-            str2pid_iter = str2pid.find(predicate);
-            if (str2pid_iter == str2pid.end()) {
-                assert(0);
-            }
-            pid = str2pid_iter->second;
-            if( pid == 0) { // type
-                g->type_update(subject, object);
-                ++nt_count;
-            }
+            g->batch_update(subject, object, predicate);
+            ++nt_count;
         }
     }
     closedir(dir);
-    g->type_done();
     
+    g->make_graph_baseline();
+    g->store_graph_baseline(odirname);
+}
+
+status_t ntriple_manager::remove_edge(const string& idirname, const string& odirname)
+{
+    /*
+    struct dirent *ptr;
+    DIR *dir;
+    string subject, predicate, object, useless_dot;
+    int file_count = 0;
+    sid_t src_id, dst_id;
+    pedge_t* edges;
+    sid_t index;
+    //propid_t cf_id;
     
     //Read graph file
     dir = opendir(idirname.c_str());
@@ -59,131 +94,50 @@ void graph::prep_graph(string idirname, string odirname)
         propid_t pid;
         map<string, propid_t>::iterator str2pid_iter;
         while (file >> subject >> predicate >> object >> useless_dot) {
-            str2pid_iter = str2pid.find(predicate);
-            if (str2pid_iter == str2pid.end()) {
-                assert(0);
+            str2pid_iter = g->str2pid.find(predicate);
+            if (str2pid_iter == g->str2pid.end()) {
+                assert(0);//can't delete
             }
             pid = str2pid_iter->second;
+            //cf_id = get_cfid(pid);
             if (pid != 0) { //non-type
-                p_info[pid]->batch_update(subject, object);
+                if (batch_info1[batch_count1].count == MAX_PECOUNT) {
+                    void* mem = alloc_buf();
+                    if (mem == 0) return eEndBatch;
+                    ++batch_count1;
+                    batch_info1[batch_count1].count = 0;
+                    batch_info1[batch_count1].buf = mem; 
+                }
+                
+                map<string, vid_t>::iterator str2vid_iter = str2vid.find(subject);
+                if (str2vid.end() == str2vid_iter) {
+                    assert(0);
+                } else {
+                    src_id = str2vid_iter->second;
+                }
+                //tid_t type_id = TO_TID(src_id);
+                //flag1 |= (1L << type_id);
+
+                str2vid_iter = str2vid.find(object);
+                if (str2vid.end() == str2vid_iter) {
+                    assert(0);
+                } else {
+                    dst_id = str2vid_iter->second;
+                }
+                
+                index = batch_info1[batch_count1].count++;
+                edges = (pedge_t*) batch_info1[batch_count1].buf;
+                edges[index].pid = pid;
+                edges[index].src_id = src_id; 
+                edges[index].dst_id.value_sid = dst_id;
+                
+                //cf_info[cf_id]->batch_update(subject, object, pid);
                 ++nt_count;
+            //} else { //don't delete a type!!!
             }
         }
     }
     closedir(dir);
-
-    //make graph
-    for (int i = 0; i < p_count; i++) {
-        p_info[i]->make_graph_baseline();
-    }
-
-    //Store graph
-    for (int i = 0; i < p_count; i++) {
-        p_info[i]->store_graph_baseline(odirname);
-    }
-}
-
-
-void ontology_lubm()
-{
-    pinfo_t*  info = 0; 
-    g->p_info       = new pinfo_t*[32];
-    
-    info = new typekv_t;
-    info->populate_property("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>", "type");
-    
-    info = new many2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#advisor>", "advisor");
-    
-    info = new many2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#affiliatedOrganizationOf>", "affiliatedOrganizationOf");
-
-    info = new many2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#affiliateOf>","affiliateOf");
-    
-    info = new many2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#degreeFrom>", "degreeFrom");
-    
-    info = new many2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#doctoralDegreeFrom>","doctoralDegreeFrom");
-    
-    //inference, inverse of degree from
-    //info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#hasAlumnus>");
-    
-    info = new one2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#headOf>", "headOf");
-    
-    //info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#listedCourse>","listedCourse");
-    
-    info = new many2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#mastersDegreeFrom>","mastersDegreeFrom");
-    
-    //inference, inverse of memberof
-    //info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#member>", "member");
-    
-    info = new many2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#memberOf>", "memberOf");
-    
-    //info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#orgPublication>", "orgPublication");
-    
-    info = new dgraph_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#publicationAuthor>", "publicationAuthor");
-    
-    
-    //info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#publicationResearch>", "publicationResearch");
-    
-    //info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#researchProject>", "researchProject");
-    
-    //info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#softwareDocumentation>", "softwareDocumentation");
-    
-    info = new dgraph_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#takesCourse>", "takesCourse");
-    
-    info = new one2many_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#teacherOf>", "teacherOf");
-    
-    info = new one2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#teachingAssistantOf>", "teachingAssistantOf");
-    
-    //info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#tenured>", "tenured");
-    
-    info = new many2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#undergraduateDegreeFrom>", "undergraduateDegreeFrom");
-    
-    info = new many2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#worksFor>", "worksFor");
-    
-    info = new many2one_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#subOrganizationOf>", "subOrganizationOf");
-    
-    
-    /*********************************************/
-    
-    info = new stringkv_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#publicationDate>", "publicationDate");
-    
-    info = new stringkv_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#softwareVersion>", "softwareVersion");
-    
-    info = new uint8kv_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#age>", "age");
-    
-    info = new stringkv_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#emailAddress>", "emailAddress");
-    
-    info = new stringkv_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#name>", "name");
-    
-    info = new uint64kv_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#officeNumber>", "officeNumber");
-    
-    info = new stringkv_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#researchInterest>", "researchInterest");
-    
-    //info = new uint64kv_t;
-    info = new stringkv_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#telephone>", "telephone");
-    
-    info = new stringkv_t;
-    info->populate_property("<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#title>", "title");
+    */
+    return eOK;
 }

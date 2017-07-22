@@ -1,18 +1,63 @@
 #include "graph.h"
 
-
-pgraph_t::pgraph_t()
+lite_pgraph_t::lite_pgraph_t()
 {
+    cf_info = 0;
+    p_info = 0;
+
+    cf_count = 0;
+    p_count = 0;
+    edge_count = 0;
+}
+
+void lite_pgraph_t::add_columnfamily(cfinfo_t* cf)
+{
+    cf_info[cf_count] = cf;
+    cf->cf_id = cf_count;
+    cf_count++;
+}
+
+status_t lite_pgraph_t::add_property(const char* longname)
+{
+    map<string, propid_t>::iterator iter;
+    iter = str2pid.find(longname);
+    if (str2pid.end() == iter) {
+        str2pid[longname] = p_count;
+        p_count++;
+        return eOK;
+    }
+    //XXX
+    return eOK;
+}
+
+propid_t lite_pgraph_t::get_cfid(propid_t pid)
+{
+    return p_info[pid].cf_id;
+}
+
+propid_t lite_pgraph_t::get_cfid(const char* predicate)
+{
+    propid_t pid = get_pid(predicate);
+    return p_info[pid].cf_id;
+}
+
+propid_t lite_pgraph_t::get_pid(const char* predicate)
+{
+    map<string, propid_t>::iterator str2pid_iter = str2pid.find(predicate);
+    if (str2pid_iter == str2pid.end()) {
+        return INVALID_PID;
+    }
+    return str2pid_iter->second;
 }
 
 //Applicable to graphs only, labels should be aware of it.
-status_t pgraph_t::batch_update(const string& src, const string& dst, propid_t pid /* = 0 */)
+status_t lite_pgraph_t::batch_update(const string& src, const string& dst, propid_t pid /* = 0 */)
 {
     vid_t src_id, dst_id;
     index_t index = 0;
-    edge_t* edges;
+    ledge_t* edges;
 
-    if (batch_info1[batch_count1].count == MAX_ECOUNT) {
+    if (batch_info1[batch_count1].count == MAX_PECOUNT) {
         void* mem = alloc_buf();
         if (mem == 0) return eEndBatch;
         ++batch_count1;
@@ -39,15 +84,38 @@ status_t pgraph_t::batch_update(const string& src, const string& dst, propid_t p
     flag2 |= TID_TO_SFLAG(type_id);
     
     index = batch_info1[batch_count1].count++;
-    edges = (edge_t*) batch_info1[batch_count1].buf;
+    edges = (ledge_t*) batch_info1[batch_count1].buf;
 
     edges[index].src_id = src_id; 
     edges[index].dst_id = dst_id;
+    edges[index].prop.value_eid = edge_count;//edge id is increment somewhere else.
     return eOK;
 }
 
-//super bins memory allocation
-sgraph_t** pgraph_t::prep_sgraph(sflag_t ori_flag, sgraph_t** sgraph )
+status_t lite_pgraph_t::batch_update(const string& src, const string& dst, propid_t pid,
+                                propid_t count, prop_pair_t* prop_pair)
+{
+    //edge id is implicit. How ???
+    batch_update(src, dst, pid);
+    
+    propid_t edge_pid;
+    propid_t cf_id;
+    map<string, propid_t>::iterator str2pid_iter;
+    
+    for (propid_t i = 0; i < count; i++) {
+        if(INVALID_PID == (edge_pid = get_pid(prop_pair[i].name))) {
+            assert(0);
+        }
+        cf_id = get_cfid(edge_pid);
+        
+        cf_info[cf_id]->batch_update(edge_count, prop_pair[i].value, edge_pid);
+    }
+    
+    ++edge_count;
+    return eOK;
+}
+
+lite_sgraph_t** lite_pgraph_t::prep_sgraph(sflag_t ori_flag, lite_sgraph_t** sgraph)
 {
     tid_t   pos = 0;//it is tid
     
@@ -58,7 +126,7 @@ sgraph_t** pgraph_t::prep_sgraph(sflag_t ori_flag, sgraph_t** sgraph )
         pos = __builtin_ctzll(flag);
         flag ^= (1L << pos);//reset that position
         if (0 == sgraph[pos]) {
-            sgraph[pos] = new sgraph_t;
+            sgraph[pos] = new lite_sgraph_t;
         }
         sgraph[pos]->setup(pos);
     }
@@ -66,16 +134,16 @@ sgraph_t** pgraph_t::prep_sgraph(sflag_t ori_flag, sgraph_t** sgraph )
 }
 
 //estimate edge count
-void pgraph_t::calc_edge_count(sgraph_t** sgraph_out, sgraph_t** sgraph_in) 
+void lite_pgraph_t::calc_edge_count(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgraph_in) 
 {
     sid_t     src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    edge_t*   edges;
+    ledge_t*   edges;
     index_t   count;
     
     for (int j = 0; j <= batch_count; ++j) { 
-        edges = (edge_t*)batch_info[j].buf;
+        edges = (ledge_t*)batch_info[j].buf;
         count = batch_info[j].count;
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
@@ -93,16 +161,16 @@ void pgraph_t::calc_edge_count(sgraph_t** sgraph_out, sgraph_t** sgraph_in)
 }
 
 //estimate edge count
-void pgraph_t::calc_edge_count_out(sgraph_t** sgraph_out)
+void lite_pgraph_t::calc_edge_count_out(lite_sgraph_t** sgraph_out)
 {
     sid_t     src;
     vid_t     vert1_id;
     tid_t     src_index;
-    edge_t*   edges;
+    ledge_t*   edges;
     index_t   count;
 
     for (int j = 0; j <= batch_count; ++j) { 
-        edges = (edge_t*)batch_info[j].buf;
+        edges = (ledge_t*)batch_info[j].buf;
         count = batch_info[j].count;
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
@@ -113,16 +181,16 @@ void pgraph_t::calc_edge_count_out(sgraph_t** sgraph_out)
     }
 }
 //estimate edge count
-void pgraph_t::calc_edge_count_in(sgraph_t** sgraph_in)
+void lite_pgraph_t::calc_edge_count_in(lite_sgraph_t** sgraph_in)
 {
     sid_t     dst;
     vid_t     vert2_id;
     tid_t     dst_index;
-    edge_t*   edges;
+    ledge_t*  edges;
     index_t   count;
     
     for (int j = 0; j <= batch_count; ++j) { 
-        edges = (edge_t*)batch_info[j].buf;
+        edges = (ledge_t*)batch_info[j].buf;
         count = batch_info[j].count;
         for (index_t i = 0; i < count; ++i) {
             dst = edges[i].dst_id;
@@ -134,7 +202,7 @@ void pgraph_t::calc_edge_count_in(sgraph_t** sgraph_in)
 }
 
 //prefix sum, allocate adj list memory then reset the count
-void pgraph_t::prep_sgraph_internal(sgraph_t** sgraph)
+void lite_pgraph_t::prep_sgraph_internal(lite_sgraph_t** sgraph)
 {
     tid_t       t_count = g->get_total_types();
     
@@ -144,85 +212,93 @@ void pgraph_t::prep_sgraph_internal(sgraph_t** sgraph)
     }
 }
 
-void pgraph_t::fill_adj_list(sgraph_t** sgraph_out, sgraph_t** sgraph_in)
+void lite_pgraph_t::fill_adj_list(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgraph_in)
+{
+    sid_t     src, dst;
+    vid_t     vert1_id, vert2_id;
+    tid_t     src_index, dst_index;
+    eid_t     eid;
+    
+    ledge_t*   edges;
+    index_t   count;
+
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (ledge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+        for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
+            dst = edges[i].dst_id;
+            eid = edges[i].prop.value_eid;
+            src_index = TO_TID(src);
+            dst_index = TO_TID(dst);
+            vert1_id = TO_VID(src);
+            vert2_id = TO_VID(dst);
+            
+            sgraph_out[src_index]->add_nebr_lite(vert1_id, dst, eid);
+            sgraph_in[dst_index]->add_nebr_lite(vert2_id, src, eid);
+        }
+    }
+}
+
+void lite_pgraph_t::fill_adj_list_in(lite_skv_t** skv_out, lite_sgraph_t** sgraph_in) 
 {
     sid_t src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
+    eid_t     eid;
     
-    edge_t*   edges;
+    ledge_t*   edges;
     index_t   count;
 
     for (int j = 0; j <= batch_count; ++j) { 
-        edges = (edge_t*)batch_info[j].buf;
+        edges = (ledge_t*)batch_info[j].buf;
         count = batch_info[j].count;
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
             dst = edges[i].dst_id;
+            eid = edges[i].prop.value_eid;
             src_index = TO_TID(src);
             dst_index = TO_TID(dst);
-            vert1_id = TO_VID(src);
-            vert2_id = TO_VID(dst);
             
-            sgraph_out[src_index]->add_nebr(vert1_id, dst);
-            sgraph_in[dst_index]->add_nebr(vert2_id, src);
+            vert1_id = TO_VID(src);
+            skv_out[src_index]->set_value_lite(vert1_id, dst, eid);
+            
+            vert2_id = TO_VID(dst);
+            sgraph_in[dst_index]->add_nebr_lite(vert2_id, src, eid);
         }
     }
 }
 
-void pgraph_t::fill_adj_list_in(skv_t** skv_out, sgraph_t** sgraph_in) 
+void lite_pgraph_t::fill_adj_list_out(lite_sgraph_t** sgraph_out, lite_skv_t** skv_in) 
 {
-    sid_t src, dst;
-    vid_t     vert1_id, vert2_id;
-    tid_t     src_index, dst_index;
-    edge_t*   edges;
+    sid_t   src, dst;
+    vid_t   vert1_id, vert2_id;
+    tid_t   src_index, dst_index; 
+    eid_t   eid;
+    
+    ledge_t*   edges;
     index_t   count;
     
     for (int j = 0; j <= batch_count; ++j) { 
-        edges = (edge_t*)batch_info[j].buf;
+        edges = (ledge_t*)batch_info[j].buf;
         count = batch_info[j].count;
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
             dst = edges[i].dst_id;
+            eid = edges[i].prop.value_eid;
             src_index = TO_TID(src);
             dst_index = TO_TID(dst);
             
             vert1_id = TO_VID(src);
-            skv_out[src_index]->set_value(vert1_id, dst);
+            sgraph_out[src_index]->add_nebr_lite(vert1_id, dst, eid);
             
             vert2_id = TO_VID(dst);
-            sgraph_in[dst_index]->add_nebr(vert2_id, src);
+            skv_in[dst_index]->set_value_lite(vert2_id, src, eid); 
         }
     }
 }
 
-void pgraph_t::fill_adj_list_out(sgraph_t** sgraph_out, skv_t** skv_in) 
-{
-    sid_t src, dst;
-    vid_t     vert1_id, vert2_id;
-    tid_t src_index, dst_index; 
-    edge_t*   edges;
-    index_t   count;
-    
-    for (int j = 0; j <= batch_count; ++j) { 
-        edges = (edge_t*)batch_info[j].buf;
-        count = batch_info[j].count;
-        for (index_t i = 0; i < count; ++i) {
-            src = edges[i].src_id;
-            dst = edges[i].dst_id;
-            src_index = TO_TID(src);
-            dst_index = TO_TID(dst);
-            
-            vert1_id = TO_VID(src);
-            sgraph_out[src_index]->add_nebr(vert1_id, dst);
-            
-            vert2_id = TO_VID(dst);
-            skv_in[dst_index]->set_value(vert2_id, src); 
-        }
-    }
-}
-
-void pgraph_t::update_count(sgraph_t** sgraph)
+void lite_pgraph_t::update_count(lite_sgraph_t** sgraph)
 {
     vid_t       v_count = 0;
     tid_t       t_count = g->get_total_types();
@@ -236,7 +312,7 @@ void pgraph_t::update_count(sgraph_t** sgraph)
     }
 }
 
-void pgraph_t::store_sgraph(sgraph_t** sgraph, string dir, string postfix)
+void lite_pgraph_t::store_sgraph(lite_sgraph_t** sgraph, string dir, string postfix)
 {
     if (sgraph == 0) return;
     
@@ -264,7 +340,7 @@ void pgraph_t::store_sgraph(sgraph_t** sgraph, string dir, string postfix)
     }
 }
 
-void pgraph_t::read_sgraph(sgraph_t** sgraph, string dir, string postfix)
+void lite_pgraph_t::read_sgraph(lite_sgraph_t** sgraph, string dir, string postfix)
 {
     if (sgraph == 0) return;
     
@@ -290,7 +366,7 @@ void pgraph_t::read_sgraph(sgraph_t** sgraph, string dir, string postfix)
         if (vtf == 0)  continue;
         fclose(vtf); 
         
-        sgraph[i] = new sgraph_t;
+        sgraph[i] = new lite_sgraph_t;
         sgraph[i]->setup(i);
         sgraph[i]->read_vtable(vtfile);
         sgraph[i]->read_etable(etfile);
@@ -298,7 +374,7 @@ void pgraph_t::read_sgraph(sgraph_t** sgraph, string dir, string postfix)
 }
 
 /******************** super kv *************************/
-void pgraph_t::read_skv(skv_t** skv, string dir, string postfix)
+void lite_pgraph_t::read_skv(lite_skv_t** skv, string dir, string postfix)
 {
     if (skv == 0) return;
 
@@ -322,13 +398,13 @@ void pgraph_t::read_skv(skv_t** skv, string dir, string postfix)
         if (vtf == 0)  continue; 
         fclose(vtf); 
 
-        skv[i] = new skv_t;
+        skv[i] = new lite_skv_t;
         skv[i]->setup(i);
         skv[i]->read_kv(vtfile);
     }
 }
 
-void pgraph_t::store_skv(skv_t** skv, string dir, string postfix)
+void lite_pgraph_t::store_skv(lite_skv_t** skv, string dir, string postfix)
 {
     if (skv == 0) return;
 
@@ -353,7 +429,7 @@ void pgraph_t::store_skv(skv_t** skv, string dir, string postfix)
 }
 
 //super bins memory allocation
-skv_t** pgraph_t::prep_skv(sflag_t ori_flag, skv_t** skv)
+lite_skv_t** lite_pgraph_t::prep_skv(sflag_t ori_flag, lite_skv_t** skv)
 {
     tid_t   pos  = 0;
     sflag_t flag       = ori_flag;
@@ -363,44 +439,74 @@ skv_t** pgraph_t::prep_skv(sflag_t ori_flag, skv_t** skv)
         pos = __builtin_ctz(flag);
         flag ^= (1L << pos);//reset that position
         if (0 == skv[pos]) {
-            skv[pos] = new skv_t;
+            skv[pos] = new lite_skv_t;
         }
         skv[pos]->setup(pos);
     }
     return skv;
 }
 
-void pgraph_t::fill_skv(skv_t** skv_out, skv_t** skv_in)
+void lite_pgraph_t::fill_skv(lite_skv_t** skv_out, lite_skv_t** skv_in)
 {
-    sid_t src, dst;
+    sid_t     src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    edge_t*   edges;
+    eid_t     eid;
+    ledge_t*   edges;
     index_t   count;
     
-    for (int j = 0; j <= batch_count; ++j) { 
-        edges = (edge_t*)batch_info[j].buf;
+    for (int j = 0; j <= batch_count; ++j) {
+        edges = (ledge_t*)batch_info[j].buf;
         count = batch_info[j].count;
     
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
             dst = edges[i].dst_id;
+            eid = edges[i].prop.value_eid;
             src_index = TO_TID(src);
             dst_index = TO_TID(dst);
             
             vert1_id = TO_VID(src);
-            skv_out[src_index]->set_value(vert1_id, dst); 
+            skv_out[src_index]->set_value_lite(vert1_id, dst, eid); 
             
             vert2_id = TO_VID(dst);
-            skv_in[dst_index]->set_value(vert2_id, src); 
+            skv_in[dst_index]->set_value_lite(vert2_id, src, eid); 
         }
     }
 }
 
+void lite_pgraph_t::make_edge_properties()
+{
+    //swap 
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->swap_log_buffer();
+    }
+    
+    //make graph
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->make_graph_baseline();
+    }
+}
+
+void lite_pgraph_t::store_edge_properties(const string& odir)
+{
+    //Store graph
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->store_graph_baseline(odir);
+    }
+}
+
+void lite_pgraph_t::read_edge_properties(const string& odir)
+{
+    //Store graph
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->read_graph_baseline(odir);
+    }
+}
 /************* Semantic graphs  *****************/
 
 //We assume that no new vertex type is defined
-void dgraph_t::make_graph_baseline()
+void lite_dgraph_t::make_graph_baseline()
 {
     if (batch_info[0].count == 0) return;
     flag1_count = __builtin_popcountll(flag1);
@@ -410,12 +516,12 @@ void dgraph_t::make_graph_baseline()
     tid_t   t_count = g->get_total_types();
     
     if (0 == sgraph_out) {
-        sgraph_out  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+        sgraph_out  = (lite_sgraph_t**) calloc (sizeof(lite_sgraph_t*), t_count);
     }
     prep_sgraph(flag1, sgraph_out);    
     
     if (0 == sgraph_in) {
-        sgraph_in  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+        sgraph_in  = (lite_sgraph_t**) calloc (sizeof(lite_sgraph_t*), t_count);
     }
     prep_sgraph(flag2, sgraph_in);
 
@@ -434,37 +540,44 @@ void dgraph_t::make_graph_baseline()
     
     //clean up
     cleanup();
+
+    //Make graph for properties
+    make_edge_properties();
 }
 
 
-void dgraph_t::store_graph_baseline(string dir)
+void lite_dgraph_t::store_graph_baseline(string dir)
 {
     string postfix = "out";
     store_sgraph(sgraph_out, dir, postfix);
     postfix = "in";
     store_sgraph(sgraph_in,  dir, postfix);
+
+    store_edge_properties(dir);
 }
 
-void dgraph_t::read_graph_baseline(const string& dir)
+void lite_dgraph_t::read_graph_baseline(const string& dir)
 {
     tid_t   t_count    = g->get_total_types();
     
     string postfix = "out";
     if (0 == sgraph_out) {
-        sgraph_out  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+        sgraph_out  = (lite_sgraph_t**) calloc (sizeof(lite_sgraph_t*), t_count);
     }
     read_sgraph(sgraph_out, dir, postfix);
     
     postfix = "in";
     if (0 == sgraph_in) {
-        sgraph_in  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+        sgraph_in  = (lite_sgraph_t**) calloc (sizeof(lite_sgraph_t*), t_count);
     }
     read_sgraph(sgraph_in,  dir, postfix);
+
+    read_edge_properties(dir);
 }
 
 
 /*******************************************/
-void ugraph_t::make_graph_baseline()
+void lite_ugraph_t::make_graph_baseline()
 {
     if (batch_info[0].count == 0) return;
     flag1 = flag1 | flag2;
@@ -477,7 +590,7 @@ void ugraph_t::make_graph_baseline()
     tid_t   t_count = g->get_total_types();
     
     if (0 == sgraph) {
-        sgraph  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+        sgraph  = (lite_sgraph_t**) calloc (sizeof(lite_sgraph_t*), t_count);
     }
     prep_sgraph(flag1, sgraph);    
 
@@ -494,28 +607,34 @@ void ugraph_t::make_graph_baseline()
 
     //clean up
     cleanup();
+    //Make graph for properties
+    make_edge_properties();
 }
 
-void ugraph_t::store_graph_baseline(string dir)
+void lite_ugraph_t::store_graph_baseline(string dir)
 {
     string postfix = "";
     store_sgraph(sgraph, dir, postfix);
+
+    store_edge_properties(dir);
 }
 
-void ugraph_t::read_graph_baseline(const string& dir)
+void lite_ugraph_t::read_graph_baseline(const string& dir)
 {
     tid_t   t_count = g->get_total_types();
     string postfix = "";
     
     if (0 == sgraph) {
-        sgraph  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+        sgraph  = (lite_sgraph_t**) calloc (sizeof(lite_sgraph_t*), t_count);
     }
     read_sgraph(sgraph, dir, postfix);
+
+    read_edge_properties(dir);
 }
 
 
 /***************************************/
-void many2one_t::make_graph_baseline()
+void lite_many2one_t::make_graph_baseline()
 {
     if (batch_info[0].count == 0) return;
     flag1_count = __builtin_popcountll(flag1);
@@ -525,12 +644,12 @@ void many2one_t::make_graph_baseline()
     tid_t   t_count = g->get_total_types();
     
     if (0 == sgraph_in) {
-        sgraph_in  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+        sgraph_in  = (lite_sgraph_t**) calloc (sizeof(lite_sgraph_t*), t_count);
     }
     prep_sgraph(flag2, sgraph_in);
     
     if (0 == skv_out) {
-        skv_out  = (skv_t**) calloc (sizeof(skv_t*), t_count);
+        skv_out  = (lite_skv_t**) calloc (sizeof(lite_skv_t*), t_count);
     }
 
     skv_out  = prep_skv(flag1, skv_out);
@@ -549,35 +668,41 @@ void many2one_t::make_graph_baseline()
     
     //clean up
     cleanup();
+    //Make graph for properties
+    make_edge_properties();
 }
 
-void many2one_t::store_graph_baseline(string dir)
+void lite_many2one_t::store_graph_baseline(string dir)
 {
     string postfix = "out";
     store_skv(skv_out, dir, postfix);
     postfix = "in";
     store_sgraph(sgraph_in, dir, postfix);
+
+    store_edge_properties(dir);
 }
 
-void many2one_t::read_graph_baseline(const string& dir)
+void lite_many2one_t::read_graph_baseline(const string& dir)
 {
     tid_t   t_count = g->get_total_types();
     
     if (0 == skv_out) {
-        skv_out  = (skv_t**) calloc (sizeof(skv_t*), t_count);
+        skv_out  = (lite_skv_t**) calloc (sizeof(lite_skv_t*), t_count);
     }
     string postfix = "out";
     read_skv(skv_out, dir, postfix);
     
     if (0 == sgraph_in) {
-        sgraph_in  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+        sgraph_in  = (lite_sgraph_t**) calloc (sizeof(lite_sgraph_t*), t_count);
     }
     postfix = "in";
     read_sgraph(sgraph_in, dir, postfix);
+
+    read_edge_properties(dir);
 }
 
 /*******************************************/
-void one2many_t::make_graph_baseline()
+void lite_one2many_t::make_graph_baseline()
 {
     if (batch_info[0].count == 0) return;
     flag1_count = __builtin_popcountll(flag1);
@@ -587,12 +712,12 @@ void one2many_t::make_graph_baseline()
     tid_t   t_count = g->get_total_types();
     
     if (0 == sgraph_out) {
-        sgraph_out  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+        sgraph_out  = (lite_sgraph_t**) calloc (sizeof(lite_sgraph_t*), t_count);
     }
     prep_sgraph(flag1, sgraph_out);
     
     if (0 == skv_in) {
-        skv_in  = (skv_t**) calloc (sizeof(skv_t*), t_count);
+        skv_in  = (lite_skv_t**) calloc (sizeof(lite_skv_t*), t_count);
     }
     
     skv_in   = prep_skv(flag2, skv_in);
@@ -611,35 +736,41 @@ void one2many_t::make_graph_baseline()
     
     //clean up
     cleanup();
+    //Make graph for properties
+    make_edge_properties();
 }
 
-void one2many_t::store_graph_baseline(string dir)
+void lite_one2many_t::store_graph_baseline(string dir)
 {
     string postfix = "out";
     store_sgraph(sgraph_out, dir, postfix);
     postfix = "in";
     store_skv(skv_in, dir, postfix);
+
+    store_edge_properties(dir);
 }
 
-void one2many_t::read_graph_baseline(const string& dir)
+void lite_one2many_t::read_graph_baseline(const string& dir)
 {
     tid_t   t_count = g->get_total_types();
     
     if (0 == sgraph_out) {
-        sgraph_out  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
+        sgraph_out  = (lite_sgraph_t**) calloc (sizeof(lite_sgraph_t*), t_count);
     }
     string postfix = "out";
     read_sgraph(sgraph_out, dir, postfix);
     
     if (0 == skv_in) {
-        skv_in  = (skv_t**) calloc (sizeof(skv_t*), t_count);
+        skv_in  = (lite_skv_t**) calloc (sizeof(lite_skv_t*), t_count);
     }
     postfix = "in";
     read_skv(skv_in, dir, postfix);
+
+    read_edge_properties(dir);
 }
 
 /************************************************/
-void one2one_t::make_graph_baseline()
+void lite_one2one_t::make_graph_baseline()
 {
     if (batch_info[0].count == 0) return;
     flag1_count = __builtin_popcountll(flag1);
@@ -649,12 +780,12 @@ void one2one_t::make_graph_baseline()
     //super bins memory allocation
     
     if (0 == skv_in) {
-        skv_in  = (skv_t**) calloc (sizeof(skv_t*), t_count);
+        skv_in  = (lite_skv_t**) calloc (sizeof(lite_skv_t*), t_count);
     }
     skv_in  = prep_skv(flag2, skv_in);
     
     if (0 == skv_out) {
-        skv_out  = (skv_t**) calloc (sizeof(skv_t*), t_count);
+        skv_out  = (lite_skv_t**) calloc (sizeof(lite_skv_t*), t_count);
     }
     skv_out = prep_skv(flag1, skv_out);
 
@@ -663,35 +794,41 @@ void one2one_t::make_graph_baseline()
     
     //clean up
     cleanup();
+    //Make graph for properties
+    make_edge_properties();
 }
 
-void one2one_t::store_graph_baseline(string dir)
+void lite_one2one_t::store_graph_baseline(string dir)
 {
     string postfix = "out";
     store_skv(skv_out, dir, postfix);
     postfix = "in";
     store_skv(skv_in, dir, postfix);
+
+    store_edge_properties(dir);
 }
 
-void one2one_t::read_graph_baseline(const string& dir)
+void lite_one2one_t::read_graph_baseline(const string& dir)
 {
     tid_t   t_count    = g->get_total_types();
     
     string postfix = "out";
     if (0 == skv_out) {
-        skv_out  = (skv_t**) calloc (sizeof(skv_t*), t_count);
+        skv_out  = (lite_skv_t**) calloc (sizeof(lite_skv_t*), t_count);
     }
     read_skv(skv_out, dir, postfix);
     
     postfix = "in";
     if (0 == skv_in) {
-        skv_in  = (skv_t**) calloc (sizeof(skv_t*), t_count);
+        skv_in  = (lite_skv_t**) calloc (sizeof(lite_skv_t*), t_count);
     }
     read_skv(skv_in, dir, postfix);
+
+    read_edge_properties(dir);
 }
 
 /////////// QUERIES ///////////////////////////
-status_t pgraph_t::query_adjlist_td(sgraph_t** sgraph, srset_t* iset, srset_t* oset)
+status_t lite_pgraph_t::query_adjlist_td(lite_sgraph_t** sgraph, srset_t* iset, srset_t* oset)
 {
     tid_t    iset_count = iset->get_rset_count();
     rset_t*        rset = 0;
@@ -704,27 +841,27 @@ status_t pgraph_t::query_adjlist_td(sgraph_t** sgraph, srset_t* iset, srset_t* o
         //get the graph where we will traverse
         tid_t        tid = rset->get_tid();
         if (0 == sgraph[tid]) continue;
-        beg_pos_t* graph = sgraph[tid]->get_begpos();
+        lite_vtable_t* graph = sgraph[tid]->get_begpos();
 
         
         //Get the frontiers
         vid_t     frontier;
         for (vid_t v = 0; v < v_count; v++) {
             frontier = vlist[v];
-            sid_t* adj_list = graph[frontier].get_adjlist();
-            vid_t nebr_count = adj_list[0];
+            lite_edge_t* adj_list = graph[frontier].get_adjlist();
+            vid_t nebr_count = adj_list[0].first;
             ++adj_list;
             
             //traverse the adj list
             for (vid_t k = 0; k < nebr_count; ++k) {
-                oset->set_status(adj_list[k]);
+                oset->set_status(adj_list[k].first);
             }
         }
     }
     return eOK;
 }
 
-status_t pgraph_t::query_kv_td(skv_t** skv, srset_t* iset, srset_t* oset)
+status_t lite_pgraph_t::query_kv_td(lite_skv_t** skv, srset_t* iset, srset_t* oset)
 {
     tid_t    iset_count = iset->get_rset_count();
     rset_t*        rset = 0;
@@ -737,20 +874,20 @@ status_t pgraph_t::query_kv_td(skv_t** skv, srset_t* iset, srset_t* oset)
         //get the graph where we will traverse
         tid_t        tid = rset->get_tid();
         if (0 == skv[tid]) continue;
-        sid_t* kv = skv[tid]->get_kv(); 
+        lite_edge_t* kv = skv[tid]->get_kv(); 
 
         //Get the frontiers
         vid_t     frontier;
         for (vid_t v = 0; v < v_count; v++) {
             frontier = vlist[v];
-            oset->set_status(kv[frontier]);
+            oset->set_status(kv[frontier].first);
         }
     }
     return eOK;
 }
 
 //sgraph_in and oset share the same flag.
-status_t pgraph_t::query_adjlist_bu(sgraph_t** sgraph, srset_t* iset, srset_t* oset)
+status_t lite_pgraph_t::query_adjlist_bu(lite_sgraph_t** sgraph, srset_t* iset, srset_t* oset)
 {
     rset_t* rset = 0;
     tid_t   tid  = 0;
@@ -763,17 +900,17 @@ status_t pgraph_t::query_adjlist_bu(sgraph_t** sgraph, srset_t* iset, srset_t* o
         tid  = rset->get_tid();
         if (0 == sgraph[tid]) continue; 
 
-        beg_pos_t* graph = sgraph[tid]->get_begpos(); 
+        lite_vtable_t* graph = sgraph[tid]->get_begpos(); 
         vid_t    v_count = sgraph[tid]->get_vcount();
         
         
         for (vid_t v = 0; v < v_count; v++) {
             //traverse the adj list
-            sid_t* adj_list = graph[v].get_adjlist();
-            vid_t nebr_count = adj_list[0];
+            lite_edge_t* adj_list = graph[v].get_adjlist();
+            vid_t nebr_count = adj_list[0].first;
             ++adj_list;
             for (vid_t k = 0; k < nebr_count; ++k) {
-                if (iset->get_status(adj_list[k])) {
+                if (iset->get_status(adj_list[k].first)) {
                     rset->set_status(v);
                     break;
                 }
@@ -783,7 +920,7 @@ status_t pgraph_t::query_adjlist_bu(sgraph_t** sgraph, srset_t* iset, srset_t* o
     return eOK;
 }
 
-status_t pgraph_t::query_kv_bu(skv_t** skv, srset_t* iset, srset_t* oset) 
+status_t lite_pgraph_t::query_kv_bu(lite_skv_t** skv, srset_t* iset, srset_t* oset) 
 {
     rset_t*  rset = 0;
     tid_t    tid  = 0;
@@ -795,11 +932,11 @@ status_t pgraph_t::query_kv_bu(skv_t** skv, srset_t* iset, srset_t* oset)
         tid  = rset->get_tid(); 
         if (0 == skv[tid]) continue;
 
-        vid_t*       kv = skv[tid]->get_kv(); 
+        lite_edge_t* kv = skv[tid]->get_kv(); 
         sid_t   v_count = skv[tid]->get_vcount();
         
         for (vid_t v = 0; v < v_count; ++v) {
-            if (iset->get_status(kv[v])) {
+            if (iset->get_status(kv[v].first)) {
                 rset->set_status(v);
                 break;
             }
@@ -809,7 +946,7 @@ status_t pgraph_t::query_kv_bu(skv_t** skv, srset_t* iset, srset_t* oset)
 }
 //////extend functions ------------------------
 status_t 
-pgraph_t::extend_adjlist_td(sgraph_t** sgraph, srset_t* iset, srset_t* oset)
+lite_pgraph_t::extend_adjlist_td(lite_sgraph_t** sgraph, srset_t* iset, srset_t* oset)
 {
     tid_t    iset_count = iset->get_rset_count();
     rset_t*        rset = 0;
@@ -828,7 +965,7 @@ pgraph_t::extend_adjlist_td(sgraph_t** sgraph, srset_t* iset, srset_t* oset)
         //get the graph where we will traverse
         tid_t        tid = rset->get_tid();
         if (0 == sgraph[tid]) continue;
-        beg_pos_t* graph = sgraph[tid]->get_begpos(); 
+        lite_vtable_t* graph = sgraph[tid]->get_begpos(); 
         
         for (vid_t v = 0; v < v_count; v++) {
             rset2->add_adjlist_ro(v, graph+varray[v]);
@@ -838,7 +975,7 @@ pgraph_t::extend_adjlist_td(sgraph_t** sgraph, srset_t* iset, srset_t* oset)
 }
 
 status_t 
-pgraph_t::extend_kv_td(skv_t** skv, srset_t* iset, srset_t* oset)
+lite_pgraph_t::extend_kv_td(lite_skv_t** skv, srset_t* iset, srset_t* oset)
 {
     tid_t    iset_count = iset->get_rset_count();
     rset_t*        rset = 0;
@@ -857,10 +994,10 @@ pgraph_t::extend_kv_td(skv_t** skv, srset_t* iset, srset_t* oset)
         //get the graph where we will traverse
         tid_t     tid = rset->get_tid();
         if (0 == skv[tid]) continue;
-        sid_t*  graph = skv[tid]->get_kv(); 
+        lite_edge_t*  graph = skv[tid]->get_kv(); 
         
         for (vid_t v = 0; v < v_count; v++) {
-            rset2->add_kv(v, graph[varray[v]]);
+            rset2->add_kv(v, graph[varray[v]].first);
         }
     }
     return eOK;

@@ -11,13 +11,12 @@ query_triple::execute()
     direction_t direction;
     sid_t sid;
     tid_t tid;
-    sflag_t flag;
     srset_t* iset;
     srset_t* oset;
     
     //get the property id
-    propid_t pid = g->get_pid(pred);
-    if (pid == INVALID_PID) return eInvalidPID; 
+    propid_t cf_id = g->get_cfid(pred);
+    if (cf_id == INVALID_PID) return eInvalidPID; 
     
     int value = (src_qid == NO_QID) + ((dst_qid == NO_QID) << 1);
 
@@ -44,10 +43,10 @@ query_triple::execute()
             sid = g->get_sid(src);
             if (sid == INVALID_SID) return eInvalidVID;
             tid = TO_TID(sid);
-            flag = TID_TO_SFLAG(tid);
             iset = new srset_t; 
-            iset->full_setup(flag);
-            iset->set_status(sid);
+            iset->setup(tid);
+            iset->rset->setup_frontiers(tid, 1);
+            iset->add_frontier(sid);
             
             oset = q->get_srset(dst_qid);
             break;
@@ -57,11 +56,11 @@ query_triple::execute()
             sid = g->get_sid(dst);
             if (sid == INVALID_SID) return eInvalidVID;
             tid = TO_TID(sid);
-            flag = TID_TO_SFLAG(tid);
             
             iset = new srset_t; 
-            iset->full_setup(flag);
-            iset->set_status(sid);
+            iset->setup(tid);
+            iset->rset->setup_frontiers(tid, 1);
+            iset->add_frontier(sid);
             
             oset = q->get_srset(src_qid);
             break;
@@ -75,7 +74,12 @@ query_triple::execute()
             break;
     }
     
-    g->p_info[pid]->transform(iset, oset, direction);
+    if (traverse == eTransform) {
+        g->cf_info[cf_id]->transform(iset, oset, direction);
+
+    } else if (traverse == eExtend) {
+        g->cf_info[cf_id]->extend(iset, oset, direction);
+    }
     
     return eOK;
 }
