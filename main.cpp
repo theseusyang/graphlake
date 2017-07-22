@@ -68,10 +68,13 @@ int main(int argc, char* argv[])
 	}
     switch (convert) {
         case 0:
-        lubm_test(typefile, idir, odir);
+        lubm_test0(typefile, idir, odir);
             break;
         case 1:
-        lubm_test1(odir);
+        lubm_test1(typefile, idir, odir);
+            break;
+        case 2:
+        lubm_test2(odir);
             break;
         default:
             break;

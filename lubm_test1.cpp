@@ -755,8 +755,28 @@ void test_update()
     ntriple_manager::prep_graph(idir, odir);
 }
 
+void lubm_test0(const string& typefile, const string& idir, const string& odir)
+{
+    ontology_lubm();
+    if (!typefile.empty()) {
+        ntriple_manager::prep_type(typefile, odir);
+        fill_lubm_inference_type();
+    }
+    ntriple_manager::prep_graph(idir, odir);
+    
+    test1();
+    test2();
+    lubm_1();
+    lubm_1_1();
+    lubm_4(); 
+    lubm_4_1();
+    cout << "----------test3-------------" << endl;
+    test3();
+    /* */
+}
 
-void lubm_test(const string& typefile, const string& idir, const string& odir)
+
+void lubm_test1(const string& typefile, const string& idir, const string& odir)
 {
     ontology_lubm();
     if (!typefile.empty()) {
@@ -777,7 +797,7 @@ void lubm_test(const string& typefile, const string& idir, const string& odir)
     /* */
 }
 
-void lubm_test1(const string& odir)
+void lubm_test2(const string& odir)
 {
     ontology_lubm();
     g->read_graph_baseline(odir);
