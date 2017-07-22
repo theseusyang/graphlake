@@ -94,6 +94,7 @@ class graph {
     sid_t get_sid(const char* src);
     
     void prep_graph(string idirname, string odirname);
+    void prep_graph_csv(string idirname, string odirname);
 
     //queries
     void run_query(query_clause* q);
