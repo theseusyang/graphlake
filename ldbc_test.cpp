@@ -155,8 +155,8 @@ void schema_ldbc()
     info->add_column(p_info);
     ++p_info;
 
-    longname = "person_hasInterest_tag"
-    shortname = "person_hasInterest_tag"
+    longname = "person_hasInterest_tag";
+    shortname = "person_hasInterest_tag";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new one2one_t;
@@ -165,8 +165,8 @@ void schema_ldbc()
     info->add_column(p_info);
     ++p_info;
     
-    longname = "person_isLocatedIn_place"
-    shortname = "person_isLocatedIn_place"
+    longname = "person_isLocatedIn_place";
+    shortname = "person_isLocatedIn_place";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new one2one_t;
@@ -175,28 +175,18 @@ void schema_ldbc()
     info->add_column(p_info);
     ++p_info;
     
-    longname = "person_knows_person"
-    shortname = "person_knows_person"
+    longname = "person_knows_person";
+    shortname = "person_knows_person";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new many2many_t;
+    info = new dgraph_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
-    longname = "person_likes_comment"
-    shortname = "person_likes_comment"
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
-    info = new one2one_t;
-    g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
-    ++p_info;
-    
-    longname = "person_likes_post"
-    shortname = "person_likes_post"
+    longname = "person_likes_comment";
+    shortname = "person_likes_comment";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new one2one_t;
@@ -205,8 +195,8 @@ void schema_ldbc()
     info->add_column(p_info);
     ++p_info;
     
-    longname = "person_speaks_language"
-    shortname = "person_speaks_language"
+    longname = "person_likes_post";
+    shortname = "person_likes_post";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new one2one_t;
@@ -215,8 +205,8 @@ void schema_ldbc()
     info->add_column(p_info);
     ++p_info;
     
-    longname = "person_studyAt_organisation"
-    shortname = "person_studyAt_organisation"
+    longname = "person_speaks_language";
+    shortname = "person_speaks_language";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new one2one_t;
@@ -225,8 +215,18 @@ void schema_ldbc()
     info->add_column(p_info);
     ++p_info;
     
-    longname = "person_workAt_organisation"
-    shortname = "person_workAt_organisation"
+    longname = "person_studyAt_organisation";
+    shortname = "person_studyAt_organisation";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new one2one_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
+    
+    longname = "person_workAt_organisation";
+    shortname = "person_workAt_organisation";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new one2one_t;
@@ -265,5 +265,155 @@ void schema_ldbc()
     info->add_column(p_info);
     ++p_info;
    
-   /*-------------------- Properties ---------------------------*/ 
+    /*-------------------- Properties ---------------------------*/
+    longname = "creationDate";
+    shortname = "creationDate";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new stringkv_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
+    
+    longname = "locationIP";
+    shortname = "locationIP";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new stringkv_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
+    
+    longname = "browserUsed";
+    shortname = "browserUsed";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new stringkv_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
+    
+    
+    longname = "content";
+    shortname = "content";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new stringkv_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
+    
+    longname = "length"; 
+    shortname = "length"; 
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new stringkv_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
+    
+    longname = "title"; 
+    shortname = "title"; 
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new stringkv_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
+    
+    longname = "type";
+    shortname = "type";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new stringkv_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
+    
+    longname = "name";
+    shortname = "name";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new stringkv_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
+
+    longname = "url";
+    shortname = "url";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new stringkv_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
+    
+    longname = "firstName";
+    shortname = "firstName";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new stringkv_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
+    
+    longname = "lastName";
+    shortname = "lastName";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new stringkv_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
+    
+    longname = "gender";
+    shortname = "gender";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new stringkv_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
+    
+    longname = "birthday";
+    shortname = "birthday";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new stringkv_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
+
+    longname = "imageFile";
+    shortname = "imageFile";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new stringkv_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
+    
+    longname = "language";
+    shortname = "language";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new stringkv_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
 }

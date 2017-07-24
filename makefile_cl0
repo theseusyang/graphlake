@@ -16,6 +16,7 @@ SRC=main.cpp \
 	type.cpp\
 	lite_sgraph.cpp\
 	lubm_test1.cpp\
+	ldbc_test.cpp\
 
 	
 
