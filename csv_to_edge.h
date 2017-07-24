@@ -7,6 +7,6 @@ using std::string;
 class csv_manager {
     static void prep_graph(const string& conf_file, 
                            const string& idir, const string& odir);
-    static void prep_vtable(const string& filename, const string& odir);
-    static void prep_etable(const string& filename, const string& odir);
+    static void prep_vtable(const string& filename, string predicate, const string& odir);
+    static void prep_etable(const string& filename, string predicate, const string& odir);
 };
