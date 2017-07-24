@@ -15,8 +15,8 @@ void schema_ldbc()
     const char* longname  = 0;
     const char* shortname = 0;
     
-    longname = "type";
-    shortname = "type";
+    longname = "gtype";
+    shortname = "gtype";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new typekv_t;
@@ -29,7 +29,7 @@ void schema_ldbc()
     longname = "comment_hasCreator_person";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new one2one_t;
+    info = new many2one_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -39,7 +39,7 @@ void schema_ldbc()
     longname = "comment_hasTag_tag";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new one2one_t;
+    info = new dgraph_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -49,7 +49,7 @@ void schema_ldbc()
     longname = "comment_isLocatedIn_place";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new one2one_t;
+    info = new many2one_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -59,7 +59,7 @@ void schema_ldbc()
     shortname = "comment_replyOf_comment";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new one2one_t;
+    info = new many2one_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -69,7 +69,7 @@ void schema_ldbc()
     shortname = "comment_replyof_post";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new one2one_t;
+    info = new many2one_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -79,7 +79,7 @@ void schema_ldbc()
     longname = "post_hasCreator_person";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new one2one_t;
+    info = new many2one_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -89,7 +89,7 @@ void schema_ldbc()
     longname = "post_hasTag_tag";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new one2one_t;
+    info = new dgraph_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -99,7 +99,7 @@ void schema_ldbc()
     shortname = "post_isLocatedIn_place";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new one2one_t;
+    info = new many2one_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -109,17 +109,18 @@ void schema_ldbc()
     shortname = "forum_containerOf_post";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new one2one_t;
+    info = new one2many_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
+    //Join Date is missing as property
     longname = "forum_hasMember_person";
     shortname = "forum_hasMember_person";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new one2one_t;
+    info = new dgraph_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -129,7 +130,7 @@ void schema_ldbc()
     shortname = "forum_hasModerator_person";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new one2one_t;
+    info = new many2one_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -139,7 +140,7 @@ void schema_ldbc()
     shortname = "forum_hasTag_tag";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new one2one_t;
+    info = new dgraph_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -149,7 +150,7 @@ void schema_ldbc()
     shortname = "organisation_isLocatedIn_place";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new one2one_t;
+    info = new many2one_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -159,7 +160,7 @@ void schema_ldbc()
     shortname = "person_hasInterest_tag";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new one2one_t;
+    info = new dgraph_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -169,14 +170,26 @@ void schema_ldbc()
     shortname = "person_isLocatedIn_place";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new one2one_t;
+    info = new many2one_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
+    //creation Date
     longname = "person_knows_person";
     shortname = "person_knows_person";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new ugraph_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
+   
+    //creation date 
+    longname = "person_likes_comment";
+    shortname = "person_likes_comment";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new dgraph_t;
@@ -185,51 +198,34 @@ void schema_ldbc()
     info->add_column(p_info);
     ++p_info;
     
-    longname = "person_likes_comment";
-    shortname = "person_likes_comment";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
-    info = new one2one_t;
-    g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
-    ++p_info;
-    
+    //creation date
     longname = "person_likes_post";
     shortname = "person_likes_post";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new one2one_t;
+    info = new dgraph_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
-    longname = "person_speaks_language";
-    shortname = "person_speaks_language";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
-    info = new one2one_t;
-    g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
-    ++p_info;
-    
+    //class year
     longname = "person_studyAt_organisation";
     shortname = "person_studyAt_organisation";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new one2one_t;
+    info = new many2one_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
+    //workfrom year
     longname = "person_workAt_organisation";
     shortname = "person_workAt_organisation";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new one2one_t;
+    info = new dgraph_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -239,7 +235,7 @@ void schema_ldbc()
     shortname = "place_isPartOf_place";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new one2one_t;
+    info = new many2one_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -249,7 +245,7 @@ void schema_ldbc()
     shortname = "tagclass_isSubclassOf_tagclass";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new one2one_t;
+    info = new many2one_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -259,13 +255,24 @@ void schema_ldbc()
     shortname = "tag_hasType_tagclass";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new one2one_t;
+    info = new many2one_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
     ++p_info;
    
     /*-------------------- Properties ---------------------------*/
+    //Easy target of enum
+    longname = "person_speaks_language";
+    shortname = "person_speaks_language";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new stringkv_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
+   
     longname = "creationDate";
     shortname = "creationDate";
     g->add_property(longname);
