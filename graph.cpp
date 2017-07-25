@@ -232,10 +232,13 @@ cfinfo_t::cfinfo_t()
     batch_count1 = 0;
     //Only first buffer is allocated.
     //Others are allocated at runtime
-    batch_info[0].buf = calloc(sizeof(edge_t), MAX_ECOUNT);
-    batch_info[0].count = 0; 
-    batch_info1[0].buf = calloc(sizeof(edge_t), MAX_ECOUNT);
-    batch_info1[0].count = 0; 
+    for (int i = 0; i < MAX_BCOUNT; ++i) {
+        batch_info[i].buf = calloc(sizeof(edge_t), MAX_ECOUNT);
+        batch_info[i].count = 0; 
+        batch_info1[i].buf = calloc(sizeof(edge_t), MAX_ECOUNT);
+        batch_info1[i].count = 0; 
+    }
+
     flag1 = 0;
     flag2 = 0;
     flag1_count = 0;

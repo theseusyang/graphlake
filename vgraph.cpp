@@ -22,6 +22,9 @@ void vgraph_t::id2name(vid_t src_id, const string& src)
         ++batch_count;
     }
     
+    if (batch_count == MAX_BCOUNT) {
+        assert(0);
+    } 
     edges = (edgeT_t<char*>*) batch_info[batch_count].buf;
     index = batch_info[batch_count].count++;
     edges[index].src_id = src_id; 

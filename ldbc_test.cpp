@@ -7,8 +7,8 @@
 
 void schema_ldbc()
 {
-    g->cf_info  = new cfinfo_t*[32];
-    g->p_info       = new pinfo_t[32];
+    g->cf_info  = new cfinfo_t*[64];
+    g->p_info       = new pinfo_t[64];
     
     pinfo_t*    p_info    = g->p_info;
     cfinfo_t*   info      = 0;
@@ -26,7 +26,7 @@ void schema_ldbc()
     ++p_info;
     
     longname = "comment_hasCreator_person";
-    longname = "comment_hasCreator_person";
+    shortname = "comment_hasCreator_person";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
@@ -36,7 +36,7 @@ void schema_ldbc()
     ++p_info;
     
     longname = "comment_hasTag_tag";
-    longname = "comment_hasTag_tag";
+    shortname = "comment_hasTag_tag";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new dgraph_t;
@@ -46,7 +46,7 @@ void schema_ldbc()
     ++p_info;
     
     longname = "comment_isLocatedIn_place";
-    longname = "comment_isLocatedIn_place";
+    shortname = "comment_isLocatedIn_place";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
@@ -76,7 +76,7 @@ void schema_ldbc()
     ++p_info;
     
     longname = "post_hasCreator_person";
-    longname = "post_hasCreator_person";
+    shortname = "post_hasCreator_person";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new many2one_t;
@@ -86,7 +86,7 @@ void schema_ldbc()
     ++p_info;
     
     longname = "post_hasTag_tag";
-    longname = "post_hasTag_tag";
+    shortname = "post_hasTag_tag";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new dgraph_t;
@@ -262,8 +262,19 @@ void schema_ldbc()
     ++p_info;
    
     /*-------------------- Properties ---------------------------*/
-    //Easy target of enum
+    //Easy target of enum, multiple languages XXX
     longname = "person_speaks_language";
+    shortname = "person_speaks_language";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new stringkv_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
+
+    //XXX : multiple email ids
+    longname = "person_email_emailaddress";
     shortname = "person_speaks_language";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);

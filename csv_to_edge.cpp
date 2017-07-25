@@ -23,7 +23,11 @@ void csv_manager::prep_graph(const string& conf_file,
                              const string& idirname, 
                              const string& odirname)
 {
-    string delim = " ";
+    char splchar = '%'; 
+
+    string v_str = "%%vertex%%";
+    string e_str = "%%edge%%";
+    string delim = " \n";
     string filename, predicate;
     
     conf_t v_conf;
@@ -33,8 +37,8 @@ void csv_manager::prep_graph(const string& conf_file,
     vector<conf_t> efile_list;
 
     //Read conf_file
-    char* line;
-    size_t len;
+    char* line = 0;
+    size_t len = 0;
     ssize_t read;
     char* saveptr;
     char* token;
@@ -44,9 +48,9 @@ void csv_manager::prep_graph(const string& conf_file,
     if (NULL == fp) assert(0);
     
     while((read = getline(&line, &len, fp)) != -1) {
-        if (line[0] == '%' && line[1] == '%') {
-            if (0 == strcmp(line, "%%vertex%%")) value = 0;
-            else if (0 == strcmp(line, "%%edge%%")) value = 1;
+        if (line[0] == splchar && line[1] == splchar) {
+            if (0 == strncmp(line, v_str.c_str(), 10)) value = 0;
+            else if (0 == strncmp(line, e_str.c_str(), 8 )) value = 1;
             else assert(0);
     
         } else {
@@ -71,6 +75,9 @@ void csv_manager::prep_graph(const string& conf_file,
             }
         }      
     }
+
+    fclose(fp);
+    fp = 0;
     
     //Read vertex file
     vector<conf_t>::iterator iter = vfile_list.begin();
@@ -94,15 +101,15 @@ void csv_manager::prep_graph(const string& conf_file,
 //predicate here is the vertex typpe
 void csv_manager::prep_vtable(const string& filename, string predicate, const string& odir)
 {
-    propid_t pid = 0;//type
-    string delim = "|";
+    string delim = "|\n";
     int pred_index = 0;
 
     string subject;
 
     //Read conf_file
-    char* line;
-    size_t len;
+    char* line = 0;
+    size_t len = 0;
+    size_t line_count = 1;
     ssize_t read;
 
     char* saveptr;
@@ -118,42 +125,43 @@ void csv_manager::prep_vtable(const string& filename, string predicate, const st
         token = strtok_r(line, delim.c_str(), &saveptr);
 
         //Other tokens are its properties
-        while (NULL == (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
+        while (NULL != (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
             vtoken.push_back(token);
         }
     }
     
     //read the values now.
     while((read = getline(&line, &len, fp)) != -1) {
-        
+        ++line_count;
         //First token is the id, which will be treated as name.
         subject = strtok_r(line, delim.c_str(), &saveptr);
-        if( pid == 0) { // type
-            g->type_update(subject, predicate);
-        }
+        g->type_update(subject, predicate);
 
         //Other tokens are its properties value
         pred_index = 0;
-        while (NULL == (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
+        while (NULL != (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
             //property value
             //could be optimized, as we can easily pass propid, instead of property name
             g->batch_update(subject, token, vtoken[pred_index]);
             ++pred_index;
         }
     }
+
+    fclose(fp);
 }
 
 //XXX We are avoiding the edge properties for time being.
 //predicate here is the edge type
 void csv_manager::prep_etable(const string& filename, string predicate, const string& odir)
 {
-    string delim = "|";
+    string delim = "|\n";
 
     string subject, object;
 
     //Read conf_file
-    char* line;
-    size_t len;
+    char* line = 0;
+    size_t len = 0;
+    size_t line_count = 1;
     ssize_t read;
 
     char* saveptr;
@@ -178,7 +186,7 @@ void csv_manager::prep_etable(const string& filename, string predicate, const st
     
     //read the edges now.
     while((read = getline(&line, &len, fp)) != -1) {
-        
+        ++line_count;
         //First token is the subject id, which will be treated as name.
         subject = strtok_r(line, delim.c_str(), &saveptr);
         
@@ -197,5 +205,5 @@ void csv_manager::prep_etable(const string& filename, string predicate, const st
             ++pred_index;
         }*/
     }
-
+    fclose(fp);
 }

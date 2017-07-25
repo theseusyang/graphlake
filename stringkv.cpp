@@ -180,7 +180,7 @@ strkv_t::strkv_t()
     max_vcount = 0;
     
     //XXX everything is in memory
-    log_count = (1L << 25);//32*8 MB
+    log_count = (1L << 28);//256*8 MB
     if (posix_memalign((void**)&log_beg, 2097152, log_count*sizeof(char))) {
         //log_beg = (sid_t*)calloc(sizeof(sid_t), log_count);
         perror("posix memalign edge log");
@@ -190,7 +190,7 @@ strkv_t::strkv_t()
     log_wpos = 0;
     
     dvt_count = 0;
-    dvt_max_count = (1L << 20);
+    dvt_max_count = (1L << 28);
     if (posix_memalign((void**) &dvt, 2097152, 
                        dvt_max_count*sizeof(disk_strkv_t*))) {
         perror("posix memalign vertex log");    
