@@ -39,9 +39,9 @@ tid_t graph::get_total_types()
     return typekv->get_total_types();
 }
 
-void graph::type_update(const string& src, const string& dst)
+status_t graph::type_update(const string& src, const string& dst)
 {
-    cf_info[0]->batch_update(src, dst);
+    return cf_info[0]->batch_update(src, dst);
 }
 
 void graph::type_done()

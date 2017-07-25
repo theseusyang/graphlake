@@ -135,7 +135,9 @@ void csv_manager::prep_vtable(const string& filename, string predicate, const st
         ++line_count;
         //First token is the id, which will be treated as name.
         subject = strtok_r(line, delim.c_str(), &saveptr);
-        g->type_update(subject, predicate);
+
+        //Couldn't insert successfully, don't add its property
+        if (eOK != g->type_update(subject, predicate)) continue;
 
         //Other tokens are its properties value
         pred_index = 0;

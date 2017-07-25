@@ -30,8 +30,20 @@ status_t typekv_t::batch_update(const string& src, const string& dst, propid_t p
         t_info[type_id].vert_id = vert_id;
         g->v_graph->id2name(src_id, src);
     } else {
-        //dublicate entry XXX
+        //dublicate entry 
+        //If type mismatch, delete original //XXX
         src_id = str2vid_iter->second;
+        tid_t old_tid = TO_TID(src_id);
+
+        if (old_tid != type_id) {
+            //Different types, delete
+            g->str2vid.erase(str2vid_iter);
+            cout << "Duplicate unique Id: " << src << " Deleting both. " ;
+            cout << "Existing Type: " << (char*)(log_beg + t_info[old_tid].type_name) << "\t";
+            cout << "New Type: " << (char*)(log_beg + t_info[type_id].type_name) << endl;
+            //assert(0);
+            return eInvalidVID;
+        }
     }
 
     return eOK;
