@@ -76,6 +76,9 @@ int main(int argc, char* argv[])
         case 2:
         lubm_test2(odir);
             break;
+        case 10:
+            ldbc_test(typefile, idir, odir);
+            break;
         default:
             break;
     }

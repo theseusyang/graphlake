@@ -390,7 +390,7 @@ void ontology_lubm()
     ++p_info;
 }
 
-void test1()
+static void test1()
 {
     const char* src = "<http://www.Department10.University1.edu/UndergraduateStudent2>"; 
     //const char* pred = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#advisor>"; 
@@ -419,7 +419,7 @@ void test1()
     g->run_query(&query);
 }
 
-void test2()
+static void test2()
 {
     /* select ?x ?Y1
      * where {
@@ -491,7 +491,7 @@ void test2()
 
 }
 
-void lubm_1()
+static void lubm_1()
 {
 /*    
 # Query1
@@ -545,7 +545,7 @@ void lubm_1()
     g->run_query(&query);
 }
 
-void lubm_1_1()
+static void lubm_1_1()
 {
 /*    
 # Query1
@@ -599,7 +599,7 @@ void lubm_1_1()
     g->run_query(&query);
 }
 
-void lubm_4()
+static void lubm_4()
 {
 
 /* Query 4
@@ -658,7 +658,7 @@ void lubm_4()
     g->run_query(&query);
 }
 
-void lubm_4_1()
+static void lubm_4_1()
 {
 
 /* Query 4
@@ -717,7 +717,7 @@ void lubm_4_1()
     g->run_query(&query);
 }
 
-void test3()
+static void test3()
 {
     const char* src = "<http://www.Department10.University3.edu/UndergraduateStudent2>"; 
     //const char* pred = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#advisor>"; 
@@ -746,7 +746,7 @@ void test3()
     g->run_query(&query);
 }
 
-void test_update()
+static void test_update()
 {
     string idir = "/mnt/raid0_huge/rdfdata/lubm-4univ-seed0/nt-data-rest/";
     string odir = "del/";

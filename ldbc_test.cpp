@@ -424,3 +424,15 @@ void schema_ldbc()
     info->add_column(p_info);
     ++p_info;
 }
+
+static void test1()
+{
+
+}
+
+void ldbc_test(const string& conf_file, const string& idir, const string& odir)
+{
+    schema_ldbc();
+    csv_manager::prep_graph(conf_file, idir, odir);
+    test1();
+}
