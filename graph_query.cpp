@@ -10,6 +10,7 @@ void graph::run_query(query_clause* q)
 
 status_t query_clause::execute()
 {
+    if (where_clause)
     where_clause->execute();
 
     return eOK;

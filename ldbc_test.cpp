@@ -438,12 +438,119 @@ void schema_ldbc()
 
 static void test1()
 {
+    const char* src = "person32985348838898";
+    const char* pred = "person_knows_person"; 
+    
+    query_clause query;
+    query_whereclause qwhere;
+    
+    
+    query_triple qt;
+    qt.set_src(src);
+    qt.set_pred(pred);
+    qt.set_dst("?x", 0);
+    qt.set_traverse(eTransform);
+    qt.set_query(&query);
 
+    qwhere.add_child(&qt);
+    query.add_whereclause(&qwhere);
+    query.setup_qid(1, 1);
+
+    srset_t* srset = query.get_srset(0);
+    srset->setup_select(1);
+    srset->create_select(0, "?x", 0);
+    
+    g->run_query(&query);
+}
+
+static void test2()
+{
+    const char* src = "person933"; 
+    const char* pred = "person_knows_person"; 
+    
+    query_clause query;
+    query_whereclause qwhere;
+    
+    
+    query_triple qt;
+    qt.set_src(src);
+    qt.set_pred(pred);
+    qt.set_dst("?x", 0);
+    qt.set_traverse(eTransform);
+    qt.set_query(&query);
+
+    qwhere.add_child(&qt);
+    query.add_whereclause(&qwhere);
+    query.setup_qid(1, 1);
+
+    srset_t* srset = query.get_srset(0);
+    srset->setup_select(1);
+    srset->create_select(0, "?x", 0);
+    
+    g->run_query(&query);
+
+}
+
+void test3()
+{
+    const char* dst = "person933"; 
+    const char* pred = "comment_hasCreator_person"; 
+    
+    query_clause query;
+    query_whereclause qwhere;
+    
+    
+    query_triple qt;
+    qt.set_dst(dst);
+    qt.set_pred(pred);
+    qt.set_src("?x", 0);
+    qt.set_traverse(eTransform);
+    qt.set_query(&query);
+
+    qwhere.add_child(&qt);
+    query.add_whereclause(&qwhere);
+    query.setup_qid(1, 1);
+
+    srset_t* srset = query.get_srset(0);
+    srset->setup_select(1);
+    srset->create_select(0, "?x", 0);
+    
+    g->run_query(&query);
+}
+
+void test4()
+{
+    const char* src = "person933"; 
+    const char* pred = "person_speaks_language"; 
+    
+    query_clause query;
+    query.setup_qid(1, 1);
+    srset_t* srset = query.get_srset(0);
+    srset->setup_select(2);
+    srset->create_select(0, "?x", 0);
+    srset->create_select(1, "?Y1", pred);
+            
+    sid_t sid = g->get_sid(src);
+    if (sid == INVALID_SID) assert(0);
+    tid_t tid = TO_TID(sid);
+    srset->setup(tid);
+    srset->rset->setup_frontiers(tid, 1);
+    srset->add_frontier(sid);
+
+    
+    g->run_query(&query);
 }
 
 void ldbc_test(const string& conf_file, const string& idir, const string& odir)
 {
     schema_ldbc();
     csv_manager::prep_graph(conf_file, idir, odir);
+    cout << "----------Test 4-----------------" << endl;
+    test4();
+    cout << "----------Test 1-----------------" << endl;
     test1();
+    cout << "----------Test 2-----------------" << endl;
+    test2();
+    cout << "----------Test 3-----------------" << endl;
+    test3();
 }

@@ -59,6 +59,8 @@ void csv_manager::prep_graph(const string& conf_file,
 
                 if (NULL != (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
                     v_conf.predicate = token;
+                } else {
+                    v_conf.predicate = "";
                 }
                 vfile_list.push_back(v_conf);
             } else if (value == 1) {
@@ -77,6 +79,8 @@ void csv_manager::prep_graph(const string& conf_file,
                 
                 if (NULL != (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
                     e_conf.dst_type = token;
+                } else {
+                    e_conf.dst_type = "";
                 }
                 efile_list.push_back(e_conf);
             }
@@ -106,7 +110,7 @@ void csv_manager::prep_graph(const string& conf_file,
     g->store_graph_baseline(odirname);
 }
 
-//predicate here is the vertex typpe
+//predicate here is the vertex type
 void csv_manager::prep_vtable(const string& filename, string predicate, const string& odir)
 {
     string delim = "|\n";
