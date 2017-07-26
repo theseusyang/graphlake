@@ -275,7 +275,7 @@ void schema_ldbc()
 
     //XXX : multiple email ids
     longname = "person_email_emailaddress";
-    shortname = "person_speaks_language";
+    shortname = "person_email_emailaddress";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new stringkv_t;
