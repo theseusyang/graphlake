@@ -14,10 +14,7 @@
 
 using std::vector;
 
-typedef struct __conf_t {
-    string filename;
-    string predicate;
-} conf_t; 
+
 
 void csv_manager::prep_graph(const string& conf_file, 
                              const string& idirname, 
@@ -30,11 +27,11 @@ void csv_manager::prep_graph(const string& conf_file,
     string delim = " \n";
     string filename, predicate;
     
-    conf_t v_conf;
-    conf_t e_conf;
+    vconf_t v_conf;
+    econf_t e_conf;
     
-    vector<conf_t> vfile_list;
-    vector<conf_t> efile_list;
+    vector<vconf_t> vfile_list;
+    vector<econf_t> efile_list;
 
     //Read conf_file
     char* line = 0;
@@ -54,23 +51,33 @@ void csv_manager::prep_graph(const string& conf_file,
             else assert(0);
     
         } else {
-            token = strtok_r(line, delim.c_str(), &saveptr);
-            if ( 0 != token) {
-               filename = token;
-            }
+            if (value == 0) {
+                token = strtok_r(line, delim.c_str(), &saveptr);
+                if ( 0 != token) {
+                   v_conf.filename = token;
+                }
 
-            if (NULL != (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
-                predicate = token;
-            }
-
-            //Other configuratins for this file
-            if(value == 0) {
-                v_conf.filename = filename;
-                v_conf.predicate = predicate;
+                if (NULL != (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
+                    v_conf.predicate = token;
+                }
                 vfile_list.push_back(v_conf);
             } else if (value == 1) {
-                e_conf.filename = filename;
-                e_conf.predicate = predicate;
+                token = strtok_r(line, delim.c_str(), &saveptr);
+                if ( 0 != token) {
+                   e_conf.filename = token;
+                }
+
+                if (NULL != (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
+                    e_conf.predicate = token;
+                }
+                
+                if (NULL != (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
+                    e_conf.src_type = token;
+                }
+                
+                if (NULL != (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
+                    e_conf.dst_type = token;
+                }
                 efile_list.push_back(e_conf);
             }
         }      
@@ -80,7 +87,7 @@ void csv_manager::prep_graph(const string& conf_file,
     fp = 0;
     
     //Read vertex file
-    vector<conf_t>::iterator iter = vfile_list.begin();
+    vector<vconf_t>::iterator iter = vfile_list.begin();
     for (; iter != vfile_list.end(); ++iter) {
         prep_vtable(idirname + iter->filename, iter->predicate, odirname);
     }
@@ -89,9 +96,10 @@ void csv_manager::prep_graph(const string& conf_file,
     g->type_store(odirname);
     
     //Read edge file
-    iter = efile_list.begin();
-    for (; iter != efile_list.end(); ++iter) {
-        prep_etable(idirname + iter->filename, iter->predicate, odirname);
+    vector<econf_t>::iterator e_iter = efile_list.begin();
+    for (; e_iter != efile_list.end(); ++e_iter) {
+        e_conf = *e_iter;
+        prep_etable(idirname + e_iter->filename, e_conf, odirname);
     }
     
     g->make_graph_baseline();
@@ -104,7 +112,7 @@ void csv_manager::prep_vtable(const string& filename, string predicate, const st
     string delim = "|\n";
     int pred_index = 0;
 
-    string subject;
+    string subject, object;
 
     //Read conf_file
     char* line = 0;
@@ -134,7 +142,8 @@ void csv_manager::prep_vtable(const string& filename, string predicate, const st
     while((read = getline(&line, &len, fp)) != -1) {
         ++line_count;
         //First token is the id, which will be treated as name.
-        subject = strtok_r(line, delim.c_str(), &saveptr);
+        token = strtok_r(line, delim.c_str(), &saveptr);
+        subject = predicate + token;
 
         //Couldn't insert successfully, don't add its property
         if (eOK != g->type_update(subject, predicate)) continue;
@@ -154,11 +163,13 @@ void csv_manager::prep_vtable(const string& filename, string predicate, const st
 
 //XXX We are avoiding the edge properties for time being.
 //predicate here is the edge type
-void csv_manager::prep_etable(const string& filename, string predicate, const string& odir)
+void csv_manager::prep_etable(const string& filename, const econf_t& e_conf, const string& odir)
 {
     string delim = "|\n";
 
     string subject, object;
+    string predicate = e_conf.predicate;
+
 
     //Read conf_file
     char* line = 0;
@@ -167,7 +178,7 @@ void csv_manager::prep_etable(const string& filename, string predicate, const st
     ssize_t read;
 
     char* saveptr;
-    //char* token;
+    char* token;
     vector<string> vtoken;
 
     FILE* fp = fopen(filename.c_str(), "r");
@@ -190,11 +201,13 @@ void csv_manager::prep_etable(const string& filename, string predicate, const st
     while((read = getline(&line, &len, fp)) != -1) {
         ++line_count;
         //First token is the subject id, which will be treated as name.
-        subject = strtok_r(line, delim.c_str(), &saveptr);
-        
+        token = strtok_r(line, delim.c_str(), &saveptr);
+        subject = e_conf.src_type + token;
+
         //Second token is the object id, which will be treated as name.
-        object = strtok_r(NULL, delim.c_str(), &saveptr);
-            
+        token = strtok_r(NULL, delim.c_str(), &saveptr);
+        object = e_conf.dst_type + token;
+
         g->batch_update(subject, object, predicate);
 
         /*
