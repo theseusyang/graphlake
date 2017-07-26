@@ -215,7 +215,7 @@ status_t cfinfo_t::transform(srset_t* iset, srset_t* oset, direction_t direction
 status_t ugraph_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
 {
     //prepare the output 1,2;
-    oset->full_setup(flag2);
+    oset->full_setup(sgraph);
     int total_count = 0;
     
     if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
