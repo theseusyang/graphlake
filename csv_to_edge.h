@@ -9,6 +9,7 @@ typedef struct __econf_t {
     string predicate;
     string src_type;
     string dst_type;
+    string edge_prop;
 } econf_t; 
 
 typedef struct __vconf_t {

@@ -169,6 +169,10 @@ class graph {
     void type_store(const string& odir);
 
     status_t batch_update(const string& src, const string& dst, const string& predicate);
+    //For edges with properties.
+    status_t batch_update(const string& src, const string& dst, propid_t pid, 
+                          propid_t count, prop_pair_t* prop_pair);
+    
     void make_graph_baseline();
     void store_graph_baseline(const string& odir);
     void read_graph_baseline(const string& odir);

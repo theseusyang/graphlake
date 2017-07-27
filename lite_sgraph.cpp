@@ -103,7 +103,7 @@ status_t lite_pgraph_t::batch_update(const string& src, const string& dst, propi
     map<string, propid_t>::iterator str2pid_iter;
     
     for (propid_t i = 0; i < count; i++) {
-        if(INVALID_PID == (edge_pid = get_pid(prop_pair[i].name))) {
+        if(INVALID_PID == (edge_pid = get_pid(prop_pair[i].name.c_str()))) {
             assert(0);
         }
         cf_id = get_cfid(edge_pid);

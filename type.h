@@ -105,8 +105,8 @@ class ledge_t {
 
 //property name value pair
 struct prop_pair_t {
-    char* name;
-    char* value;
+    string name;
+    string value;
 };
 
 typedef struct __sid_set_t {

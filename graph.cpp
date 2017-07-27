@@ -111,6 +111,17 @@ status_t graph::batch_update(const string& src, const string& dst, const string&
     }
     return eOK;
 }
+    
+status_t graph::batch_update(const string& src, const string& dst, propid_t pid, 
+                          propid_t count, prop_pair_t* prop_pair)
+{
+    propid_t cf_id = g->get_cfid(pid);
+    if (pid != 0) { //non-type
+      return  cf_info[cf_id]->batch_update(src, dst, pid, count, prop_pair);
+    //} else { //Is already handled above
+    }
+    return eOK;
+}
 
 void graph::make_graph_baseline()
 {
@@ -171,6 +182,13 @@ status_t cfinfo_t::batch_update(const string& src, const string& dst, propid_t p
 {
     assert(0);
     return  eOK;
+}
+    
+status_t cfinfo_t::batch_update(const string& src, const string& dst, propid_t pid, 
+                          propid_t count, prop_pair_t* prop_pair)
+{
+    assert(0);
+    return eOK;
 }
     
 void cfinfo_t::make_graph_baseline()
