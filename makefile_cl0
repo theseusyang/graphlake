@@ -14,6 +14,7 @@ SRC=main.cpp \
 	query_triple.cpp\
 	graph_query.cpp\
 	type.cpp\
+	p_sgraph.cpp\
 	lite_sgraph.cpp\
 	lubm_test1.cpp\
 	ldbc_test.cpp\
@@ -22,6 +23,7 @@ SRC=main.cpp \
 
 HEADER=graph.h\
 	sgraph.h\
+	p_sgraph.h\
 	lite_sgraph.h\
 	stringkv.h\
 	enumkv.h\

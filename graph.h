@@ -177,6 +177,7 @@ class graph {
 
 
 #include "sgraph.h"
+#include "p_sgraph.h"
 #include "lite_sgraph.h"
 /*----------- labels ------------------ */
 //#include "labelkv.h"

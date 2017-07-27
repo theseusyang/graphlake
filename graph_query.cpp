@@ -204,6 +204,56 @@ status_t lite_one2many_t::extend(srset_t* iset, srset_t* oset, direction_t direc
     return eOK;
 }
 
+status_t p_ugraph_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    return extend_adjlist_td(sgraph, iset, oset);
+}
+
+//due to many2one structure, we give preference to bottom up approach
+status_t p_many2one_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    if (direction == eout) {
+        return extend_kv_td(skv_out,  iset, oset);
+    } else {
+        assert(direction == ein);
+        return extend_adjlist_td(sgraph_in, iset, oset);
+    }
+    return eOK;
+}
+
+status_t p_dgraph_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    if (direction == eout) {
+        return extend_adjlist_td(sgraph_out, iset, oset);
+    } else {
+        assert(direction == ein);
+        return extend_adjlist_td(sgraph_in, iset, oset);
+    }
+    return eOK;
+}
+
+status_t p_one2one_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    if (direction == eout) {
+        return extend_kv_td(skv_out, iset, oset);
+    } else {
+        assert(direction == ein);
+        return extend_kv_td(skv_in, iset, oset);
+    }
+    return eOK;
+}
+
+status_t p_one2many_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    if (direction == eout) {
+        return extend_adjlist_td(sgraph_out, iset, oset);
+    } else {
+        assert(direction == ein);
+        return extend_kv_td(skv_in, iset, oset);
+    }
+    return eOK;
+}
+
 /*************************** transform ****************/
 status_t cfinfo_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
 {
@@ -413,6 +463,118 @@ status_t lite_one2one_t::transform(srset_t* iset, srset_t* oset, direction_t dir
 }
 
 status_t lite_one2many_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    int total_count = 0;
+    if (direction == eout) {
+        total_count = 0;
+        oset->full_setup(skv_in);
+        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
+            return query_adjlist_td(sgraph_out, iset, oset);
+        } else { //bottom up approach
+            return query_kv_bu(skv_in, iset, oset);
+        }
+    } else {
+        assert(direction == ein);
+        total_count = 0;
+        oset->full_setup(sgraph_out);
+        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
+            return query_kv_td(skv_in, iset, oset);
+        } else { //bottom up approach 
+            return query_adjlist_bu(sgraph_out, iset, oset);
+        }
+    }
+    return eOK;
+}
+
+status_t p_ugraph_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    //prepare the output 1,2;
+    oset->full_setup(flag2);
+    int total_count = 0;
+    
+    if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
+        return query_adjlist_td(sgraph, iset, oset);
+    } else { //bottom up approach
+        return query_adjlist_bu(sgraph, iset, oset);
+    }
+    return eOK;
+}
+
+//due to many2one structure, we give preference to bottom up approach
+status_t p_many2one_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    int total_count = 0;
+
+    if (direction == eout) {
+        oset->full_setup(sgraph_in);
+        total_count = 0;
+        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
+            return query_kv_td(skv_out, iset, oset);
+        } else { //bottom up approach
+            return query_adjlist_bu(sgraph_in, iset, oset);
+        }
+    } else {
+        assert(direction == ein);
+        oset->full_setup(skv_out);
+        total_count = 0;
+        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
+            return query_adjlist_td(sgraph_in, iset, oset);
+        } else { //bottom up approach 
+            return query_kv_bu(skv_out, iset, oset);
+        }
+    }
+    return eOK;
+}
+
+status_t p_dgraph_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    int total_count = 0;
+    if (direction == eout) {
+        total_count = 0;
+        oset->full_setup(sgraph_in);
+        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
+            return query_adjlist_td(sgraph_out, iset, oset);
+        } else { //bottom up approach
+            return query_adjlist_bu(sgraph_in, iset, oset);
+        }
+    } else {
+        assert(direction == ein);
+        total_count = 0;
+        oset->full_setup(sgraph_out);
+        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
+            return query_adjlist_td(sgraph_in, iset, oset);
+        } else { //bottom up approach 
+            return query_adjlist_bu(sgraph_out, iset, oset);
+        }
+    }
+    return eOK;
+}
+
+status_t p_one2one_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    int total_count = 0;
+    if (direction == eout) {
+        total_count = 0;
+        oset->full_setup(skv_in);
+        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
+            return query_kv_td(skv_out, iset, oset);
+        } else { //bottom up approach
+            return query_kv_bu(skv_in, iset, oset);
+        }
+    } else {
+        assert(direction == ein);
+        total_count = 0;
+        oset->full_setup(skv_out);
+        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
+            return query_kv_td(skv_in, iset, oset);
+        } else { //bottom up approach 
+            return query_kv_bu(skv_out, iset, oset);
+        }
+    }
+    return eOK;
+}
+
+status_t p_one2many_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
 {
     int total_count = 0;
     if (direction == eout) {

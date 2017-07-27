@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <limits.h>
 #include <string>
+#include <time.h>
 #include "bitmap.h"
 
 using std::string;
@@ -67,6 +68,7 @@ typedef union __univeral_type {
     vid_t    value_vid;
     sid_t    value_sid;
     eid_t    value_eid;
+    time_t   value_time;
 }univ_t;
 
 
@@ -376,6 +378,7 @@ typedef vert_table_t<lite_edge_t> lite_vtable_t;
 
 typedef onegraph_t<sid_t> sgraph_t;
 typedef onegraph_t<lite_edge_t>lite_sgraph_t;
+
 
 class disk_kv_t {
     public:
