@@ -207,7 +207,7 @@ void csv_manager::prep_etable(const string& filename, const econf_t& e_conf, con
         token = strtok_r(NULL, delim.c_str(), &saveptr); 
 
         //Other tokens are edge properties
-        while (NULL == (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
+        while (NULL != (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
             prop_token.push_back(token);
         }
     }
@@ -225,15 +225,18 @@ void csv_manager::prep_etable(const string& filename, const econf_t& e_conf, con
         token = strtok_r(NULL, delim.c_str(), &saveptr);
         object = e_conf.dst_type + token;
 
-        //g->batch_update(subject, object, predicate);
+        if (0 == prop_count) {
+            g->batch_update(subject, object, predicate);
+        } else {
 
-        //Other tokens are edge properties value
-        prop_index = 0;
-        while (NULL == (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
-            prop_pair.name = prop_token[prop_index];
-            prop_pair.value = token;
-            g->batch_update(subject, object, pid, prop_count, &prop_pair);
-            ++prop_index;
+            //Other tokens are edge properties value
+            prop_index = 0;
+            while (NULL != (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
+                prop_pair.name = prop_token[prop_index];
+                prop_pair.value = token;
+                g->batch_update(subject, object, pid, prop_count, &prop_pair);
+                ++prop_index;
+            }
         }
     }
     fclose(fp);

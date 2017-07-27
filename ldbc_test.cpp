@@ -181,7 +181,7 @@ void schema_ldbc()
     shortname = "person_knows_person";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new ugraph_t;
+    info = new p_ugraph_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);

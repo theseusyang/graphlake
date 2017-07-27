@@ -89,7 +89,7 @@ class cfinfo_t {
     virtual status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     
     //For heavy weight edges.
-    status_t batch_update(const string& src, const string& dst, propid_t pid, 
+    virtual status_t batch_update(const string& src, const string& dst, propid_t pid, 
                           propid_t count, prop_pair_t* prop_pair);
     
     //This interface is for edge properties.

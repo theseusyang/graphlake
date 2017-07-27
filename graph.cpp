@@ -187,7 +187,8 @@ status_t cfinfo_t::batch_update(const string& src, const string& dst, propid_t p
 status_t cfinfo_t::batch_update(const string& src, const string& dst, propid_t pid, 
                           propid_t count, prop_pair_t* prop_pair)
 {
-    assert(0);
+    //cout << "ignoring edge properties" << endl;
+    batch_update(src, dst, pid);
     return eOK;
 }
     
