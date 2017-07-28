@@ -192,7 +192,7 @@ void schema_ldbc()
     shortname = "person_likes_comment";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new dgraph_t;
+    info = new p_dgraph_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -203,7 +203,7 @@ void schema_ldbc()
     shortname = "person_likes_post";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new dgraph_t;
+    info = new p_dgraph_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -214,7 +214,7 @@ void schema_ldbc()
     shortname = "person_studyAt_organisation";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new many2one_t;
+    info = new p_many2one_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -225,7 +225,7 @@ void schema_ldbc()
     shortname = "person_workAt_organisation";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new dgraph_t;
+    info = new p_dgraph_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);

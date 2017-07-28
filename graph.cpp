@@ -3,6 +3,14 @@
 
 using std::swap;
 
+double bu_factor = 0.07;
+uint32_t MAX_BCOUNT = 256;
+uint64_t MAX_ECOUNT = 1000000;
+uint64_t MAX_PECOUNT = 666666;
+uint64_t BUF_SCOUNT = 2000000;
+uint64_t BUF_SIZE = 16000000;
+
+
 graph::graph()
 {
     cf_info  = 0;
@@ -251,7 +259,7 @@ cfinfo_t::cfinfo_t()
     batch_count1 = 0;
     //Only first buffer is allocated.
     //Others are allocated at runtime
-    for (int i = 0; i < MAX_BCOUNT; ++i) {
+    for (uint32_t i = 0; i < MAX_BCOUNT; ++i) {
         batch_info[i].buf = calloc(sizeof(edge_t), MAX_ECOUNT);
         batch_info[i].count = 0; 
         batch_info1[i].buf = calloc(sizeof(edge_t), MAX_ECOUNT);

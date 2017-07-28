@@ -24,12 +24,12 @@ inline char* gstrdup(const char* str)
     
 void* alloc_buf();
 
-#define bu_factor 0.07
-#define MAX_BCOUNT 256
-#define MAX_ECOUNT 1000000
-#define MAX_PECOUNT 670000
-#define BUF_SCOUNT  2000000
-#define BUF_SIZE   16000000
+extern double  bu_factor;
+extern uint32_t MAX_BCOUNT; //256
+extern uint64_t MAX_ECOUNT; //1000000
+extern uint64_t MAX_PECOUNT;//670000
+extern uint64_t BUF_SCOUNT;// 2000000
+extern uint64_t BUF_SIZE;// 16000000
 
 //class pkv_t;
 class graph;
