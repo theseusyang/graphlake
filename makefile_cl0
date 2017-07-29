@@ -16,6 +16,7 @@ SRC=main.cpp \
 	type.cpp\
 	p_sgraph.cpp\
 	lite_sgraph.cpp\
+	prop_encoder.cpp\
 	lubm_test1.cpp\
 	ldbc_test.cpp\
 
@@ -25,6 +26,7 @@ HEADER=graph.h\
 	sgraph.h\
 	p_sgraph.h\
 	lite_sgraph.h\
+	prop_encoder.h\
 	stringkv.h\
 	enumkv.h\
 	numkv.h\

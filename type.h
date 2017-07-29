@@ -3,6 +3,7 @@
 #include <limits.h>
 #include <string>
 #include <time.h>
+#include <assert.h>
 #include "bitmap.h"
 
 using std::string;
