@@ -1,9 +1,11 @@
 #pragma once
 #include "sgraph.h"
+#include "prop_encoder.h"
 
 class p_pgraph_t : public cfinfo_t {
     //edge properties are part of adj-list
     string edge_propname;
+    prop_encoder_t* encoder;
  
  public:
     p_pgraph_t();

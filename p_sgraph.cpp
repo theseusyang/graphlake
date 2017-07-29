@@ -2,6 +2,8 @@
 
 p_pgraph_t::p_pgraph_t()
 {
+    encoder = 0;
+    encoder = new time_encoder_t;
 }
 
 status_t p_pgraph_t::add_property(const char* longname)
@@ -52,7 +54,8 @@ status_t p_pgraph_t::batch_update(const string& src, const string& dst, propid_t
     edges[index].dst_id = dst_id;
 
     //solving for time type. XXX
-    edges[index].prop.value_time = 0;
+    
+    encoder->encode(prop_pair->value.c_str(), edges[index].prop);
 
     return eOK;
 }
