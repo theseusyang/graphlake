@@ -3,13 +3,12 @@
 p_pgraph_t::p_pgraph_t()
 {
     encoder = 0;
-    encoder = new time_encoder_t;
 }
 
-status_t p_pgraph_t::add_property(const char* longname)
+void p_pgraph_t::add_edge_property(const char* longname, prop_encoder_t* prop_encoder)
 {
     edge_propname = longname;
-    return eOK;
+    encoder = prop_encoder;
 }
 
 //Assuming only one edge property
@@ -162,7 +161,7 @@ void p_pgraph_t::fill_adj_list(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgrap
     sid_t     src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    time_t    time;
+    univ_t    univ;
     
     ledge_t*   edges;
     index_t   count;
@@ -173,14 +172,14 @@ void p_pgraph_t::fill_adj_list(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgrap
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
             dst = edges[i].dst_id;
-            time = edges[i].prop.value_time;
+            univ = edges[i].prop;
             src_index = TO_TID(src);
             dst_index = TO_TID(dst);
             vert1_id = TO_VID(src);
             vert2_id = TO_VID(dst);
             
-            sgraph_out[src_index]->add_nebr_lite(vert1_id, dst, time);
-            sgraph_in[dst_index]->add_nebr_lite(vert2_id, src, time);
+            sgraph_out[src_index]->add_nebr_lite(vert1_id, dst, univ);
+            sgraph_in[dst_index]->add_nebr_lite(vert2_id, src, univ);
         }
     }
 }
@@ -190,7 +189,7 @@ void p_pgraph_t::fill_adj_list_in(lite_skv_t** skv_out, lite_sgraph_t** sgraph_i
     sid_t src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    eid_t     eid;
+    univ_t    univ;
     
     ledge_t*   edges;
     index_t   count;
@@ -201,15 +200,15 @@ void p_pgraph_t::fill_adj_list_in(lite_skv_t** skv_out, lite_sgraph_t** sgraph_i
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
             dst = edges[i].dst_id;
-            eid = edges[i].prop.value_eid;
+            univ = edges[i].prop;
             src_index = TO_TID(src);
             dst_index = TO_TID(dst);
             
             vert1_id = TO_VID(src);
-            skv_out[src_index]->set_value_lite(vert1_id, dst, eid);
+            skv_out[src_index]->set_value_lite(vert1_id, dst, univ);
             
             vert2_id = TO_VID(dst);
-            sgraph_in[dst_index]->add_nebr_lite(vert2_id, src, eid);
+            sgraph_in[dst_index]->add_nebr_lite(vert2_id, src, univ);
         }
     }
 }
@@ -219,7 +218,7 @@ void p_pgraph_t::fill_adj_list_out(lite_sgraph_t** sgraph_out, lite_skv_t** skv_
     sid_t   src, dst;
     vid_t   vert1_id, vert2_id;
     tid_t   src_index, dst_index; 
-    eid_t   eid;
+    univ_t  univ;
     
     ledge_t*   edges;
     index_t   count;
@@ -230,15 +229,15 @@ void p_pgraph_t::fill_adj_list_out(lite_sgraph_t** sgraph_out, lite_skv_t** skv_
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
             dst = edges[i].dst_id;
-            eid = edges[i].prop.value_eid;
+            univ = edges[i].prop;
             src_index = TO_TID(src);
             dst_index = TO_TID(dst);
             
             vert1_id = TO_VID(src);
-            sgraph_out[src_index]->add_nebr_lite(vert1_id, dst, eid);
+            sgraph_out[src_index]->add_nebr_lite(vert1_id, dst, univ);
             
             vert2_id = TO_VID(dst);
-            skv_in[dst_index]->set_value_lite(vert2_id, src, eid); 
+            skv_in[dst_index]->set_value_lite(vert2_id, src, univ); 
         }
     }
 }
@@ -396,8 +395,8 @@ void p_pgraph_t::fill_skv(lite_skv_t** skv_out, lite_skv_t** skv_in)
     sid_t     src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    eid_t     eid;
-    ledge_t*   edges;
+    univ_t    univ;
+    ledge_t*  edges;
     index_t   count;
     
     for (int j = 0; j <= batch_count; ++j) {
@@ -407,15 +406,15 @@ void p_pgraph_t::fill_skv(lite_skv_t** skv_out, lite_skv_t** skv_in)
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
             dst = edges[i].dst_id;
-            eid = edges[i].prop.value_eid;
+            univ = edges[i].prop;
             src_index = TO_TID(src);
             dst_index = TO_TID(dst);
             
             vert1_id = TO_VID(src);
-            skv_out[src_index]->set_value_lite(vert1_id, dst, eid); 
+            skv_out[src_index]->set_value_lite(vert1_id, dst, univ); 
             
             vert2_id = TO_VID(dst);
-            skv_in[dst_index]->set_value_lite(vert2_id, src, eid); 
+            skv_in[dst_index]->set_value_lite(vert2_id, src, univ); 
         }
     }
 }

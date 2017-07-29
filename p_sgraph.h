@@ -9,8 +9,9 @@ class p_pgraph_t : public cfinfo_t {
  
  public:
     p_pgraph_t();
-    status_t add_property(const char* longname);
     void add_columnfamily(cfinfo_t* cf);
+    
+    void add_edge_property(const char* longname, prop_encoder_t* prop_encoder);
     
     //status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     

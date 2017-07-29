@@ -30,3 +30,16 @@ time_encoder_t::print(univ_t value)
 
     cout << buf << endl;
 } 
+
+status_t 
+int64_encoder_t::encode(const char* str, univ_t& value)
+{
+    sscanf(str, "%ld", &value.value_64b);
+    return eOK;
+}
+
+void
+int64_encoder_t::print(univ_t value)
+{
+    cout << value.value_64b << endl;
+}

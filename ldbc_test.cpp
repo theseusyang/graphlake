@@ -182,6 +182,7 @@ void schema_ldbc()
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new p_ugraph_t;
+    info->add_edge_property("creationDate", new time_encoder_t);
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -193,6 +194,7 @@ void schema_ldbc()
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new p_dgraph_t;
+    info->add_edge_property("creationDate", new time_encoder_t);
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -204,6 +206,7 @@ void schema_ldbc()
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new p_dgraph_t;
+    info->add_edge_property("creationDate", new time_encoder_t);
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -215,6 +218,7 @@ void schema_ldbc()
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new p_many2one_t;
+    info->add_edge_property("classYear", new int64_encoder_t);
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -227,6 +231,7 @@ void schema_ldbc()
     p_info->populate_property(longname, shortname);
     info = new p_dgraph_t;
     g->add_columnfamily(info);
+    info->add_edge_property("workFrom", new int64_encoder_t);
     info->create_columns();
     info->add_column(p_info);
     ++p_info;

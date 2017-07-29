@@ -116,7 +116,7 @@ void lite_skv_t::read_kv(const string& vtfile)
         vid_t read_count = fread(dvt, sizeof(disk_kvlite_t), dvt_max_count, vtf);
         for (vid_t v = 0; v < read_count; ++v) {
             kv[dvt[v].vid].first = dvt[v].dst;
-            kv[dvt[v].vid].second = dvt[v].eid;
+            kv[dvt[v].vid].second = dvt[v].univ;
         }
         count -= read_count;
     }

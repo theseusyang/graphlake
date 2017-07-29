@@ -217,7 +217,7 @@ void lite_pgraph_t::fill_adj_list(lite_sgraph_t** sgraph_out, lite_sgraph_t** sg
     sid_t     src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    eid_t     eid;
+    univ_t     eid;
     
     ledge_t*   edges;
     index_t   count;
@@ -228,7 +228,7 @@ void lite_pgraph_t::fill_adj_list(lite_sgraph_t** sgraph_out, lite_sgraph_t** sg
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
             dst = edges[i].dst_id;
-            eid = edges[i].prop.value_eid;
+            eid = edges[i].prop;
             src_index = TO_TID(src);
             dst_index = TO_TID(dst);
             vert1_id = TO_VID(src);
@@ -245,7 +245,7 @@ void lite_pgraph_t::fill_adj_list_in(lite_skv_t** skv_out, lite_sgraph_t** sgrap
     sid_t src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    eid_t     eid;
+    univ_t     eid;
     
     ledge_t*   edges;
     index_t   count;
@@ -256,7 +256,7 @@ void lite_pgraph_t::fill_adj_list_in(lite_skv_t** skv_out, lite_sgraph_t** sgrap
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
             dst = edges[i].dst_id;
-            eid = edges[i].prop.value_eid;
+            eid = edges[i].prop;
             src_index = TO_TID(src);
             dst_index = TO_TID(dst);
             
@@ -274,7 +274,7 @@ void lite_pgraph_t::fill_adj_list_out(lite_sgraph_t** sgraph_out, lite_skv_t** s
     sid_t   src, dst;
     vid_t   vert1_id, vert2_id;
     tid_t   src_index, dst_index; 
-    eid_t   eid;
+    univ_t   eid;
     
     ledge_t*   edges;
     index_t   count;
@@ -285,7 +285,7 @@ void lite_pgraph_t::fill_adj_list_out(lite_sgraph_t** sgraph_out, lite_skv_t** s
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
             dst = edges[i].dst_id;
-            eid = edges[i].prop.value_eid;
+            eid = edges[i].prop;
             src_index = TO_TID(src);
             dst_index = TO_TID(dst);
             
@@ -451,7 +451,7 @@ void lite_pgraph_t::fill_skv(lite_skv_t** skv_out, lite_skv_t** skv_in)
     sid_t     src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    eid_t     eid;
+    univ_t    eid;
     ledge_t*   edges;
     index_t   count;
     
@@ -462,7 +462,7 @@ void lite_pgraph_t::fill_skv(lite_skv_t** skv_out, lite_skv_t** skv_in)
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
             dst = edges[i].dst_id;
-            eid = edges[i].prop.value_eid;
+            eid = edges[i].prop;
             src_index = TO_TID(src);
             dst_index = TO_TID(dst);
             

@@ -244,11 +244,14 @@ void cfinfo_t::create_columns(propid_t prop_count /* = 1 */)
 
 void cfinfo_t::add_column(pinfo_t* prop_info)
 {
-    
     col_info[col_count] = prop_info;
     ++col_count;
     prop_info->cf_id = cf_id;
-    
+}
+
+void cfinfo_t::add_edge_property(const char* longname, prop_encoder_t* prop_encoder)
+{
+    assert(0);
 }
 
 cfinfo_t::cfinfo_t()

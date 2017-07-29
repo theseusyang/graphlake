@@ -11,6 +11,7 @@
 
 #include "type.h"
 #include "query_clause.h"
+#include "prop_encoder.h"
 
 using std::map;
 using std::cout;
@@ -102,6 +103,7 @@ class cfinfo_t {
     virtual status_t calc_deletededge_count(pedge_t* edge) {return eOK;};
 
     //Graph specific
+    virtual void add_edge_property(const char* longname, prop_encoder_t* prop_encoder);
     virtual status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     //virtual status_t transform_withfilter(srset_t* iset, srset_t* oset, direction_t direction, filter_info_t* filter_info);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);

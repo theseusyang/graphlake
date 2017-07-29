@@ -16,5 +16,11 @@ class time_encoder_t : public prop_encoder_t
     void print(univ_t value);
 
     //Add filters like <, > etc
+};
 
+class int64_encoder_t : public prop_encoder_t 
+{
+    public:
+    status_t encode(const char* str, univ_t& value);
+    void print(univ_t value);
 };

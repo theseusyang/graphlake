@@ -183,7 +183,7 @@ class disk_vtable_t {
 class lite_edge_t {
  public:
     sid_t first;
-    sid_t second;
+    univ_t second;
 };
 
 ////
@@ -195,17 +195,12 @@ inline void add_nebr1(lite_edge_t* adj_list, vid_t index, sid_t value) {
     adj_list[index].first = value;
 }
 
-inline void add_nebr2(lite_edge_t* adj_list, vid_t index, sid_t value, eid_t eid)
+inline void add_nebr2(lite_edge_t* adj_list, vid_t index, sid_t value, univ_t univ)
 {
     adj_list[index].first = value;
-    adj_list[index].second = eid;
+    adj_list[index].second = univ;
 }
 
-inline void add_nebr3(lite_edge_t* adj_list, vid_t index, sid_t value, sid_t weight)
-{
-    adj_list[index].first = value;
-    adj_list[index].second = weight;
-}
 
 ////
 inline void set_nebrcount1(sid_t* adj_list, vid_t count) {
@@ -229,9 +224,9 @@ inline void set_value1(sid_t* kv, vid_t vid, sid_t value) {
     kv[vid] = value;
 }
 
-inline void set_value1(lite_edge_t* kv, vid_t vid, sid_t value, eid_t eid) {
+inline void set_value1(lite_edge_t* kv, vid_t vid, sid_t value, univ_t univ) {
     kv[vid].first = value;
-    kv[vid].second = eid;
+    kv[vid].second = univ;
 }
 
 //One vertex's neighbor information
@@ -262,8 +257,8 @@ public:
         //adj_list[index] = sid; 
     }
 
-    inline void add_nebr_lite(vid_t index, sid_t sid, eid_t eid) {
-        add_nebr2(adj_list, index, sid, eid);
+    inline void add_nebr_lite(vid_t index, sid_t sid, univ_t value) {
+        add_nebr2(adj_list, index, sid, value);
         
     }
 
@@ -351,9 +346,9 @@ public:
         ++nebr_count[vid];
         beg_pos[vid].add_nebr(nebr_count[vid], sid);
     }
-    inline void add_nebr_lite(vid_t vid, sid_t sid, eid_t eid) { 
+    inline void add_nebr_lite(vid_t vid, sid_t sid, univ_t value) { 
         ++nebr_count[vid];
-        beg_pos[vid].add_nebr_lite(nebr_count[vid], sid, eid);
+        beg_pos[vid].add_nebr_lite(nebr_count[vid], sid, value);
     }
 
     inline void update_count(vid_t vid) {
@@ -437,7 +432,7 @@ class disk_kvlite_t {
     public:
     vid_t    vid;
     sid_t    dst;
-    eid_t    eid; 
+    univ_t   univ; 
 };
 
 
@@ -474,12 +469,12 @@ class lite_skv_t {
     inline tid_t get_tid() { return TO_TID(super_id);}
     inline vid_t get_vcount() { return TO_VID(super_id); }
     
-    inline void set_value_lite(vid_t vert1_id, sid_t dst, eid_t eid) {
+    inline void set_value_lite(vid_t vert1_id, sid_t dst, univ_t value) {
         kv[vert1_id].first = dst;
-        kv[vert1_id].second = eid;
+        kv[vert1_id].second = value;
         dvt[dvt_count].vid = vert1_id;
         dvt[dvt_count].dst = dst;
-        dvt[dvt_count].eid = eid;
+        dvt[dvt_count].univ = value;
         ++dvt_count;
     }
     void persist_kvlog(const string& kvfile);
