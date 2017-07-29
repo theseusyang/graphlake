@@ -188,5 +188,6 @@ class graph {
 /*----------- labels ------------------ */
 //#include "labelkv.h"
 #include "typekv.h"
+#include "propkv.h"
 #include "stringkv.h"
 #include "mlabel.h"

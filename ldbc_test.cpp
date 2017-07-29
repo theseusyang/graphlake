@@ -293,7 +293,8 @@ void schema_ldbc()
     shortname = "creationDate";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new stringkv_t;
+    info = new labelkv_t;
+    info->add_edge_property("creationDate", new time_encoder_t);
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -334,7 +335,8 @@ void schema_ldbc()
     shortname = "length"; 
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new stringkv_t;
+    info = new labelkv_t;
+    info->add_edge_property("length", new int64_encoder_t);
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -414,7 +416,8 @@ void schema_ldbc()
     shortname = "birthday";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new stringkv_t;
+    info = new labelkv_t;
+    info->add_edge_property("birthday", new time_encoder_t);
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
