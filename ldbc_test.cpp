@@ -272,7 +272,8 @@ void schema_ldbc()
     shortname = "person_speaks_language";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new stringkv_t;
+    info = new labelkv_t;
+    info->add_edge_property(longname, new embedstr_encoder_t);
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -294,7 +295,7 @@ void schema_ldbc()
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new labelkv_t;
-    info->add_edge_property("creationDate", new time_encoder_t);
+    info->add_edge_property(longname, new time_encoder_t);
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -406,7 +407,8 @@ void schema_ldbc()
     shortname = "gender";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new stringkv_t;
+    info = new labelkv_t;
+    info->add_edge_property("gender", new embedstr_encoder_t);
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -417,7 +419,7 @@ void schema_ldbc()
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new labelkv_t;
-    info->add_edge_property("birthday", new time_encoder_t);
+    info->add_edge_property(longname, new time_encoder_t);
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -438,6 +440,7 @@ void schema_ldbc()
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new stringkv_t;
+    //info->add_edge_property(longname, new embedstr_encoder_t);
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);

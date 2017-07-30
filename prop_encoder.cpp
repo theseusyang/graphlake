@@ -43,3 +43,17 @@ int64_encoder_t::print(univ_t value)
 {
     cout << value.value_64b << endl;
 }
+
+status_t 
+embedstr_encoder_t::encode(const char* str, univ_t& value)
+{
+    assert(strlen(str)  < sizeof(univ_t));
+    memcpy(value.value_string, str, strlen(str) + 1);
+    return eOK;
+}
+
+void
+embedstr_encoder_t::print(univ_t value)
+{
+    cout << value.value_string << endl;
+}
