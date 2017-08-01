@@ -1,10 +1,10 @@
 #include "typekv.h"
 
-status_t typekv_t::batch_update(const string& src, const string& dst, propid_t pid /*=0*/)
+sid_t typekv_t::type_update(const string& src, const string& dst)
 {
-    vid_t       src_id;
+    sid_t       src_id = 0;
+    sid_t       vert_id = 0;
     tid_t       type_id;
-    vid_t       vert_id = 0;
 
     map<string, tid_t>::iterator str2enum_iter = str2enum.find(dst);
     if (str2enum.end() == str2enum_iter) {
@@ -42,11 +42,11 @@ status_t typekv_t::batch_update(const string& src, const string& dst, propid_t p
             cout << "Existing Type: " << (char*)(log_beg + t_info[old_tid].type_name) << "\t";
             cout << "New Type: " << (char*)(log_beg + t_info[type_id].type_name) << endl;
             //assert(0);
-            return eInvalidVID;
+            return INVALID_SID;
         }
     }
 
-    return eOK;
+    return src_id;
 }
 
 

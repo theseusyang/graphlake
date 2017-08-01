@@ -4,19 +4,6 @@
 #include "type.h"
 using std::string;
 
-typedef struct __econf_t {
-    string filename;
-    string predicate;
-    string src_type;
-    string dst_type;
-    string edge_prop;
-} econf_t; 
-
-typedef struct __vconf_t {
-    string filename;
-    string predicate;
-} vconf_t; 
-
 
 class csv_manager {
  public:

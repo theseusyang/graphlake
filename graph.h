@@ -166,11 +166,13 @@ class graph {
     //queries
     void run_query(query_clause* q);
     
-    status_t type_update(const string& src, const string& dst);
+    sid_t type_update(const string& src, const string& dst);
     void type_done();
     void type_store(const string& odir);
 
     status_t batch_update(const string& src, const string& dst, const string& predicate);
+    //useful or properties
+    status_t batch_update(sid_t src_id, const string& dst, const string& predicate);
     //For edges with properties.
     status_t batch_update(const string& src, const string& dst, propid_t pid, 
                           propid_t count, prop_pair_t* prop_pair);

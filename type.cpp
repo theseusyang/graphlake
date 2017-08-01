@@ -7,6 +7,12 @@
 #include "type.h"
 #include "graph.h"
 
+propid_t INVALID_PID = 0xFFFF;
+tid_t    INVALID_TID  = 0xFFFFFFFF;
+sid_t    INVALID_SID  = 0xFFFFFFFFFFFFFFFF;
+
+
+
 /**************** SKV ******************/
 void skv_t::setup(tid_t tid)
 {

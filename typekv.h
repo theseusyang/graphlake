@@ -84,8 +84,8 @@ class typekv_t : public cfinfo_t {
         return t_count;
     }
     
-    status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
-    inline void make_graph_baseline();
+    sid_t type_update(const string& src, const string& dst);
+    void make_graph_baseline();
     void store_graph_baseline(string dir); 
     void read_graph_baseline(const string& dir); 
 

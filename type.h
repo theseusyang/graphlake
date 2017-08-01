@@ -33,10 +33,13 @@ typedef uint32_t pos_t; //adj list position, how long an adj list can be
 #define TID_TO_SFLAG(tid) (1L << tid)
 #define WORD_COUNT(count) ((count + 63) >> 6)
 
+extern propid_t INVALID_PID;
+extern tid_t    INVALID_TID;
+extern sid_t    INVALID_SID;
 
-#define INVALID_PID 0xFFFF
-#define INVALID_TID 0xFFFFFFFF
-#define INVALID_SID 0xFFFFFFFFFFFFFFFF
+//#define INVALID_PID 0xFFFF
+//#define INVALID_TID 0xFFFFFFFF
+//#define INVALID_SID 0xFFFFFFFFFFFFFFFF
 
 #define NO_QID 0xFFFF
 
@@ -697,3 +700,16 @@ class srset_t {
 
 };
 
+
+typedef struct __econf_t {
+    string filename;
+    string predicate;
+    string src_type;
+    string dst_type;
+    string edge_prop;
+} econf_t; 
+
+typedef struct __vconf_t {
+    string filename;
+    string predicate;
+} vconf_t; 
