@@ -11,6 +11,7 @@ SRC=main.cpp \
     vgraph.cpp\
 	nt_to_edge.cpp\
 	csv_to_edge.cpp\
+	darshan_to_edge.cpp\
 	query_triple.cpp\
 	graph_query.cpp\
 	type.cpp\
@@ -20,6 +21,7 @@ SRC=main.cpp \
 	propkv.cpp\
 	lubm_test1.cpp\
 	ldbc_test.cpp\
+	darshan_test.cpp\
 
 	
 
@@ -38,6 +40,7 @@ HEADER=graph.h\
     query_clause.h\
 	nt_to_edge.h\
 	csv_to_edge.h\
+	darshan_to_edge.h\
 
 INCLUDES= -Iantlr4/include -Iantlr4
 LIBDIRS= -Lantlr4/lib

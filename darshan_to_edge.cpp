@@ -12,10 +12,12 @@
 #include "graph.h"
 #include "type.h"
 
+using std::vector;
+
 void 
 darshan_manager::prep_graph(const string& conf_file, 
-                            const string& idir, 
-                            const string& odir)
+                            const string& idirname, 
+                            const string& odirname)
 {
     struct dirent *ptr;
     DIR *dir;
@@ -50,7 +52,7 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
     size_t len = 0;
     ssize_t read;
 
-    sid_t exe_id, uid, job_id;
+    sid_t exe_id, uid, job_id, sub_job_id, file_id;
     string exe, user, job;
     string subject, object, predicate;
 
@@ -61,33 +63,30 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
     }
         
     //exe id
-    object = "exe";
+    predicate = "exe";
     if (-1 != (read = getline(&line, &len, fp))) {
         if (line[read - 1] == '\n') line[read - 1] = '0';
         
         exe = line +7;
-        subject = exe;
-        exe_id = g->type_update(subject, object);
+        exe_id = g->type_update(exe, predicate);
     }
 
     //uid
-    object = "uid";
+    predicate = "uid";
     if (-1 != (read = getline(&line, &len, fp))) {
         if (line[read - 1] == '\n') line[read - 1] = '0';
         
         user = line +7;
-        subject = user;
-        uid = g->type_update(subject, object);
+        uid = g->type_update(user, predicate);
     }
 
     //job id
-    object = "job_id";
+    predicate = "job_id";
     if (-1 != (read = getline(&line, &len, fp))) {
         if (line[read - 1] == '\n') line[read - 1] = '0';
         
         job = line +9;
-        subject = job; 
-        job_id = g->type_update(subject, object);
+        job_id = g->type_update(job, predicate);
     }
    
     //job id and exe
@@ -96,7 +95,7 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
     
     //job id and uid
     predicate = "job_to_uid";
-    g->batch_update(job, uid, predicate);
+    g->batch_update(job, user, predicate);
 
     //start time
     predicate = "start_time";
@@ -138,13 +137,14 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
         getline(&line, &len, fp);
     }
 
-    //Mount points
     string delim = " ";
     char* myline = 0;
     char* saveptr;
     char* token;
     prop_pair_t prop_pair;
+    propid_t pid = 0;
 
+    //Mount points
     if (-1 != (read = getline(&line, &len, fp))) {
         if (line[read - 1] == '\n') line[read - 1] = '0';
          
@@ -156,11 +156,11 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
             g->type_update(subject, predicate);
         }
         
-        token = strtok_r(NULL, delim.c_str(), &saveptr);
-        if ( 0 != token) {
-            prdicate = "mounted_at"
-            object = token;//mount point
+        if ( 0 == (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
+            assert(0);
         }
+        predicate = "mounted_at";
+        object = token;//mount point
         
         token = strtok_r(NULL, delim.c_str(), &saveptr);
         if ( 0 == token) {
@@ -168,7 +168,8 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
         }
         prop_pair.name = "fs_type";
         prop_pair.value = token;//file system type value
-        g->batch_update(subject, object, predicated, 1, &prop_pair);
+        pid = 0;//XXX
+        g->batch_update(subject, object, pid, 1, &prop_pair);
     }
 
     //ignore 51 lines. 
@@ -177,38 +178,55 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
     }
     
     //IO operations
-    string filename_hash;
+    string rank = "-1";
+    string prev_rank = "-1";
+    string filename_hash, prev_filename_hash;
+    string sub_job, predicate_value, mount_fs, mount_point;
+    int int_value;
 
     while (-1 != (read = getline(&line, &len, fp))) {
         if (line[read - 1] == '\n') line[read - 1] = '0';
         
-        if ( 0 != (token = strtok_r(line, delim.c_str(), &saveptr))) {
+        //rank
+        if ( 0 == (token = strtok_r(line, delim.c_str(), &saveptr))) {
             assert(0);
         }
-        prop_pair[0].name = "rank";
-        prop_pair[0].value = token;
+        rank = token;
+        if (0 == rank.compare("-1")) {
+            sub_job = job;
+        } else if (0 != rank.compare(prev_rank)) {//not equal, create
+            predicate = "sub_job_type";
+            sub_job = rank; //XXX make a unique sub process
+            sub_job_id = g->type_update(rank, predicate);
+            predicate = "sub_job";
+            g->batch_update(job, sub_job, predicate);
+            prev_rank = rank;
+        }
         
+        //filename hash
         if(0 != (token = strtok_r(line, delim.c_str(), &saveptr))) {
             assert(0);
         }
         filename_hash = token;
 
+        //file operation type
         if ( 0 != (token = strtok_r(line, delim.c_str(), &saveptr))) {
             assert(0);
         }
         predicate = token;
         
+        //file operation value
         if ( 0 != (token = strtok_r(line, delim.c_str(), &saveptr))) {
             assert(0);
         }
         predicate_value = token;
-        sscanf(predicate_value.c_str(), "%d", int_value);
+        sscanf(predicate_value.c_str(), "%d", &int_value);
         
-        if (int_value == 0 || int_value) {
+        if (int_value == 0 || int_value == -1) {
             continue;
         }
-        prop_pair[1].name = ""; //XXX
-        prop_pair[1].value = predicate_value;
+        prop_pair.name = "count"; //XXX
+        prop_pair.value = predicate_value;
        
         //ignore file suffix
         if ( 0 != (token = strtok_r(line, delim.c_str(), &saveptr))) {
@@ -220,17 +238,23 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
             assert(0);
         }
         mount_point = token;
-
         
+        //file system type.
+        if ( 0 != (token = strtok_r(line, delim.c_str(), &saveptr))) {
+            assert(0);
+        }
+        mount_fs = token;
+
+        //filename should be a vertex
         if( 0 != prev_filename_hash.compare(filename_hash)) {//not equal
             prev_filename_hash = filename_hash;
-            g->type_update(filename_hash, mount_point); //XXX
+            file_id = g->type_update(filename_hash, mount_fs); //XXX
         }
 
-        //ignore the last word, i.e. file system type.
 
-        //Add this line to db
-        g->batch_update(job_id, filename_hash, predicate, 2, &prop_pair);
+        //Add this line to db, rank value and edge property value and 
+        pid = 0;//XXX
+        g->batch_update(sub_job, filename_hash, pid, 1, &prop_pair);
 
     } 
 
