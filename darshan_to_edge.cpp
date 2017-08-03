@@ -159,7 +159,6 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
         if ( 0 == (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
             assert(0);
         }
-        predicate = "mounted_at";
         object = token;//mount point
         
         token = strtok_r(NULL, delim.c_str(), &saveptr);
@@ -168,7 +167,9 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
         }
         prop_pair.name = "fs_type";
         prop_pair.value = token;//file system type value
-        pid = 0;//XXX
+        
+        predicate = "mounted_at";
+        pid = g->get_cfid(predicate.c_str());
         g->batch_update(subject, object, pid, 1, &prop_pair);
     }
 
@@ -196,10 +197,13 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
             sub_job = job;
         } else if (0 != rank.compare(prev_rank)) {//not equal, create
             predicate = "sub_job_type";
-            sub_job = rank; //XXX make a unique sub process
+            sub_job = job + rank; // make a unique sub process
             sub_job_id = g->type_update(rank, predicate);
             predicate = "sub_job";
-            g->batch_update(job, sub_job, predicate);
+            pid = g->get_cfid(predicate.c_str());
+            prop_pair.name = "rank";
+            prop_pair.value = rank;
+            g->batch_update(job, sub_job, pid, 1, &prop_pair);
             prev_rank = rank;
         }
         
@@ -225,7 +229,7 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
         if (int_value == 0 || int_value == -1) {
             continue;
         }
-        prop_pair.name = "count"; //XXX
+        prop_pair.name = "value";
         prop_pair.value = predicate_value;
        
         //ignore file suffix
@@ -248,15 +252,13 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
         //filename should be a vertex
         if( 0 != prev_filename_hash.compare(filename_hash)) {//not equal
             prev_filename_hash = filename_hash;
-            file_id = g->type_update(filename_hash, mount_fs); //XXX
+            // Any other predicate type for file names ??
+            file_id = g->type_update(filename_hash, mount_fs); 
         }
 
-
-        //Add this line to db, rank value and edge property value and 
-        pid = 0;//XXX
+        //Add this line and edge property value to db 
+        pid = g->get_cfid(predicate.c_str());
         g->batch_update(sub_job, filename_hash, pid, 1, &prop_pair);
-
     } 
-
 }
 

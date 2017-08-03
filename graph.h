@@ -152,6 +152,8 @@ class graph {
  public:
     graph();
     void register_instances();
+    void create_schema(propid_t count, const string& conf_file);
+
     void add_columnfamily(cfinfo_t* cf);
     //void create_columnfamilies(propid_t a_cf_count);
     
