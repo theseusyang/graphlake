@@ -897,3 +897,28 @@ p_pgraph_t::extend_kv_td(lite_skv_t** skv, srset_t* iset, srset_t* oset)
     }
     return eOK;
 }
+
+cfinfo_t* p_ugraph_t::create_instance()
+{
+    new p_ugraph_t;
+}
+
+cfinfo_t* p_dgraph_t::create_instance()
+{
+    new p_dgraph_t;
+}
+
+cfinfo_t* p_one2one_t::create_instance()
+{
+    new p_one2one_t;
+}
+
+cfinfo_t* p_many2one_t::create_instance()
+{
+    new p_many2one_t;
+}
+
+cfinfo_t* p_one2many_t::create_instance()
+{
+    new p_one2many_t;
+}

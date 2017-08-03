@@ -116,6 +116,14 @@ class cfinfo_t {
 
 class vgraph_t;
 class typekv_t;
+class prop_encoder_t;
+
+typedef cfinfo_t* (*get_graph_instance)();
+typedef prop_encoder_t* (*get_encoder_instance)();
+
+extern map<string, get_graph_instance>  graph_instance;
+extern map<string, get_encoder_instance>  encoder_instance;
+
 ////////////main class/////////////////////
 class graph {
  public:
@@ -143,6 +151,7 @@ class graph {
 
  public:
     graph();
+    void register_instances();
     void add_columnfamily(cfinfo_t* cf);
     //void create_columnfamilies(propid_t a_cf_count);
     

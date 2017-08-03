@@ -44,6 +44,8 @@ class labelkv_t : public cfinfo_t {
         kv_out = 0;
         encoder = 0;
     }
+
+    static cfinfo_t* create_instance();
    
     //used for encoder only
     void add_edge_property(const char* longname, prop_encoder_t* prop_encoder);

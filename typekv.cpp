@@ -200,3 +200,9 @@ typekv_t::typekv_t()
     vtf = 0;
     etf = 0;
 }
+
+cfinfo_t*
+typekv_t::create_instance()
+{
+    return new typekv_t;
+}

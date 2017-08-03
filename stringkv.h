@@ -58,7 +58,7 @@ class stringkv_t : public cfinfo_t {
     inline stringkv_t() {
         strkv_out = 0;
     }
-
+    static cfinfo_t* create_instance();
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     void make_graph_baseline();
     void store_graph_baseline(string dir);

@@ -6,6 +6,11 @@ void labelkv_t::add_edge_property(const char* longname, prop_encoder_t* prop_enc
     encoder = prop_encoder;
 }
 
+cfinfo_t* labelkv_t::create_instance()
+{
+    return new labelkv_t;
+}
+
 status_t labelkv_t::batch_update(const string& src, const string& dst, propid_t pid /* = 0*/)
 {
     vid_t src_id;

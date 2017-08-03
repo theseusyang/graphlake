@@ -2,6 +2,7 @@
 #include <algorithm>
 
 using std::swap;
+using std::pair;
 
 double bu_factor = 0.07;
 uint32_t MAX_BCOUNT = 256;
@@ -10,6 +11,9 @@ uint64_t MAX_PECOUNT = 666666;
 uint64_t BUF_SCOUNT = 2000000;
 uint64_t BUF_SIZE = 16000000;
 
+
+map<string, get_graph_instance>  graph_instance;
+map<string, get_encoder_instance>  encoder_instance;
 
 graph::graph()
 {
@@ -22,6 +26,25 @@ graph::graph()
     //v_graph->create_columnfamily();
     //pinfo_t *info = new pinfo_t;
     //v_graph->add_column(info);
+    register_instances();
+}
+    
+void graph::register_instances()
+{
+    graph_instance.insert(pair<string,get_graph_instance>("typekv_t", typekv_t::create_instance));
+    graph_instance.insert(pair<string,get_graph_instance>("labelkv_t", labelkv_t::create_instance));
+    graph_instance.insert(pair<string,get_graph_instance>("stringkv_t", stringkv_t::create_instance));
+    graph_instance.insert(pair<string,get_graph_instance>("ugraph_t", ugraph_t::create_instance));
+    graph_instance.insert(pair<string,get_graph_instance>("dgraph_t", dgraph_t::create_instance));
+    graph_instance.insert(pair<string,get_graph_instance>("one2one_t", one2one_t::create_instance));
+    graph_instance.insert(pair<string,get_graph_instance>("one2many_t", one2many_t::create_instance));
+    graph_instance.insert(pair<string,get_graph_instance>("many2one_t", many2one_t::create_instance));
+    graph_instance.insert(pair<string,get_graph_instance>("p_ugraph_t", p_ugraph_t::create_instance));
+    graph_instance.insert(pair<string,get_graph_instance>("p_dgraph_t", p_dgraph_t::create_instance));
+    graph_instance.insert(pair<string,get_graph_instance>("p_one2one_t", p_one2one_t::create_instance));
+    graph_instance.insert(pair<string,get_graph_instance>("p_one2many_t", p_one2many_t::create_instance));
+    graph_instance.insert(pair<string,get_graph_instance>("p_many2one_t", p_many2one_t::create_instance));
+
 }
 
 void* alloc_buf()

@@ -58,6 +58,7 @@ class p_ugraph_t: public p_pgraph_t {
     lite_sgraph_t** sgraph;
 
  public:
+    static cfinfo_t* create_instance();
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
@@ -73,6 +74,7 @@ class p_dgraph_t: public p_pgraph_t {
     lite_sgraph_t** sgraph_out;
     lite_sgraph_t** sgraph_in; 
  public:
+    static cfinfo_t* create_instance();
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
@@ -87,6 +89,7 @@ class p_many2one_t: public p_pgraph_t {
     lite_sgraph_t**  sgraph_in;
 
  public:
+    static cfinfo_t* create_instance();
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
@@ -101,6 +104,7 @@ class p_one2one_t: public p_pgraph_t {
     lite_skv_t**   skv_out;
 
  public:
+    static cfinfo_t* create_instance();
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
@@ -115,6 +119,7 @@ class p_one2many_t: public p_pgraph_t {
     lite_skv_t**      skv_in;
 
  public:
+    static cfinfo_t* create_instance();
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);

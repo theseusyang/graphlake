@@ -1,6 +1,12 @@
 #include "graph.h"
 #include "stringkv.h"
 
+
+cfinfo_t* stringkv_t::create_instance()
+{
+    return new stringkv_t;
+}
+
 status_t stringkv_t::batch_update(const string& src, const string& dst, propid_t pid /* = 0*/)
 {
     vid_t src_id;

@@ -4,12 +4,6 @@
 #include "query_triple.h"
 #include "query_triplewithfilter.h"
 
-typedef cfinfo_t* (*get_graph_instance)();
-typedef prop_encoder_t* (*get_encoder_instance)();
-
-
-map<string, get_graph_instance>  graph_instance;
-map<string, get_encoder_instance>  encoder_instance;
 
 void schema_darshan(const string& conf_file)
 {
