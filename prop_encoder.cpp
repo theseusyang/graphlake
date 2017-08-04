@@ -6,6 +6,12 @@
 using std::cout;
 using std::endl;
 
+prop_encoder_t* 
+time_encoder_t::create_instance()
+{
+    return new time_encoder_t;
+}
+
 status_t 
 time_encoder_t::encode(const char* str_time, univ_t& value)
 {
@@ -31,6 +37,12 @@ time_encoder_t::print(univ_t value)
     cout << buf << endl;
 } 
 
+prop_encoder_t* 
+int64_encoder_t::create_instance()
+{
+    return new int64_encoder_t;
+}
+
 status_t 
 int64_encoder_t::encode(const char* str, univ_t& value)
 {
@@ -42,6 +54,12 @@ void
 int64_encoder_t::print(univ_t value)
 {
     cout << value.value_64b << endl;
+}
+
+prop_encoder_t* 
+embedstr_encoder_t::create_instance()
+{
+    return new embedstr_encoder_t;
 }
 
 status_t 
@@ -56,6 +74,12 @@ void
 embedstr_encoder_t::print(univ_t value)
 {
     cout << value.value_string << endl;
+}
+
+prop_encoder_t* 
+double_encoder_t::create_instance()
+{
+    return new time_encoder_t;
 }
 
 status_t 

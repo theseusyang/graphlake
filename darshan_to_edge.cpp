@@ -65,7 +65,7 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
     //exe id
     predicate = "exe";
     if (-1 != (read = getline(&line, &len, fp))) {
-        if (line[read - 1] == '\n') line[read - 1] = '0';
+        if (line[read - 1] == '\n') line[read - 1] = 0;
         
         exe = line +7;
         exe_id = g->type_update(exe, predicate);
@@ -74,7 +74,7 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
     //uid
     predicate = "uid";
     if (-1 != (read = getline(&line, &len, fp))) {
-        if (line[read - 1] == '\n') line[read - 1] = '0';
+        if (line[read - 1] == '\n') line[read - 1] = 0;
         
         user = line +7;
         uid = g->type_update(user, predicate);
@@ -83,7 +83,7 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
     //job id
     predicate = "job_id";
     if (-1 != (read = getline(&line, &len, fp))) {
-        if (line[read - 1] == '\n') line[read - 1] = '0';
+        if (line[read - 1] == '\n') line[read - 1] = 0;
         
         job = line +9;
         job_id = g->type_update(job, predicate);
@@ -100,7 +100,7 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
     //start time
     predicate = "start_time";
     if (-1 != (read = getline(&line, &len, fp))) {
-        if (line[read - 1] == '\n') line[read - 1] = '0';
+        if (line[read - 1] == '\n') line[read - 1] = 0;
         
         object = line +14;
         g->batch_update(job, object, predicate);
@@ -113,7 +113,7 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
     //end time
     predicate = "end_time";
     if (-1 != (read = getline(&line, &len, fp))) {
-        if (line[read - 1] == '\n') line[read - 1] = '0';
+        if (line[read - 1] == '\n') line[read - 1] = 0;
         
         object = line +12;
         g->batch_update(job, object, predicate);
@@ -126,7 +126,7 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
     //nprocs
     predicate = "nprocs";
     if (-1 != (read = getline(&line, &len, fp))) {
-        if (line[read - 1] == '\n') line[read - 1] = '0';
+        if (line[read - 1] == '\n') line[read - 1] = 0;
         
         object = line +10;
         g->batch_update(job, object, predicate);
@@ -137,7 +137,7 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
         getline(&line, &len, fp);
     }
 
-    string delim = " ";
+    string delim = " \t";
     char* myline = 0;
     char* saveptr;
     char* token;
@@ -145,24 +145,26 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
     propid_t pid = 0;
 
     //Mount points
-    if (-1 != (read = getline(&line, &len, fp))) {
-        if (line[read - 1] == '\n') line[read - 1] = '0';
+    while (1 != (read = getline(&line, &len, fp))) {//blank line
+        if (line[read - 1] == '\n') line[read - 1] = 0;
          
         myline = line +15;//
         token = strtok_r(myline, delim.c_str(), &saveptr);
-        if ( 0 != token) {
-            predicate = "device_name";
-            subject = token;
-            g->type_update(subject, predicate);
+        if ( 0 == token) {
+            assert(0);
         }
-        
+        predicate = "device_name";
+        subject = token;
+        g->type_update(subject, predicate);
+
         if ( 0 == (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
             assert(0);
         }
-        object = token;//mount point
+        object = token;
+        predicate = "mount_point";
+        g->type_update(object, predicate);
         
-        token = strtok_r(NULL, delim.c_str(), &saveptr);
-        if ( 0 == token) {
+        if( 0 == (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
             assert(0);
         }
         prop_pair.name = "fs_type";
@@ -174,7 +176,7 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
     }
 
     //ignore 51 lines. 
-    for (int i = 0; i < 51; i++) {
+    for (int i = 0; i < 56; i++) {
         getline(&line, &len, fp);
     }
     
@@ -186,7 +188,7 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
     int int_value;
 
     while (-1 != (read = getline(&line, &len, fp))) {
-        if (line[read - 1] == '\n') line[read - 1] = '0';
+        if (line[read - 1] == '\n') line[read - 1] = 0;
         
         //rank
         if ( 0 == (token = strtok_r(line, delim.c_str(), &saveptr))) {
@@ -198,7 +200,7 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
         } else if (0 != rank.compare(prev_rank)) {//not equal, create
             predicate = "sub_job_type";
             sub_job = job + rank; // make a unique sub process
-            sub_job_id = g->type_update(rank, predicate);
+            sub_job_id = g->type_update(sub_job, predicate);
             predicate = "sub_job";
             pid = g->get_cfid(predicate.c_str());
             prop_pair.name = "rank";
@@ -208,19 +210,19 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
         }
         
         //filename hash
-        if(0 != (token = strtok_r(line, delim.c_str(), &saveptr))) {
+        if(0 == (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
             assert(0);
         }
         filename_hash = token;
 
         //file operation type
-        if ( 0 != (token = strtok_r(line, delim.c_str(), &saveptr))) {
+        if ( 0 == (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
             assert(0);
         }
         predicate = token;
         
         //file operation value
-        if ( 0 != (token = strtok_r(line, delim.c_str(), &saveptr))) {
+        if ( 0 == (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
             assert(0);
         }
         predicate_value = token;
@@ -233,18 +235,18 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
         prop_pair.value = predicate_value;
        
         //ignore file suffix
-        if ( 0 != (token = strtok_r(line, delim.c_str(), &saveptr))) {
+        if ( 0 == (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
             assert(0);
         }
         
         //mount point
-        if ( 0 != (token = strtok_r(line, delim.c_str(), &saveptr))) {
+        if ( 0 == (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
             assert(0);
         }
         mount_point = token;
         
         //file system type.
-        if ( 0 != (token = strtok_r(line, delim.c_str(), &saveptr))) {
+        if ( 0 == (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
             assert(0);
         }
         mount_fs = token;
@@ -259,6 +261,6 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
         //Add this line and edge property value to db 
         pid = g->get_cfid(predicate.c_str());
         g->batch_update(sub_job, filename_hash, pid, 1, &prop_pair);
-    } 
+    }
 }
 

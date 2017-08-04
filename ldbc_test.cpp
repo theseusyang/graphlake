@@ -502,7 +502,7 @@ static void test2()
 
 }
 
-void test3()
+static void test3()
 {
     const char* dst = "person933"; 
     const char* pred = "comment_hasCreator_person"; 
@@ -529,7 +529,7 @@ void test3()
     g->run_query(&query);
 }
 
-void test4()
+static void test4()
 {
     const char* src = "person933"; 
     const char* pred = "person_speaks_language"; 

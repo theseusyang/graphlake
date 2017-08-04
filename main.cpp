@@ -81,6 +81,9 @@ int main(int argc, char* argv[])
             break;
         case 12:
             ldbc_test2(odir);
+        case 20:
+            darshan_test0(typefile, idir, odir);
+            break;
         default:
             break;
     }
