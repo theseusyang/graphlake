@@ -40,6 +40,9 @@ darshan_manager::prep_graph(const string& conf_file,
         prep_vtable(*iter, odirname);
     }
     
+    g->type_done();
+    g->type_store(odirname);
+    
     g->make_graph_baseline();
     g->store_graph_baseline(odirname);
 }
@@ -158,6 +161,11 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
         g->type_update(subject, predicate);
 
         if ( 0 == (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
+            //Few files don't have IO operations
+            if (-1 == (read = getline(&line, &len, fp))) {//EOF
+                return;
+            }
+
             assert(0);
         }
         object = token;
@@ -185,7 +193,7 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
     string prev_rank = "-1";
     string filename_hash, prev_filename_hash;
     string sub_job, predicate_value, mount_fs, mount_point;
-    int int_value;
+    double int_value;
 
     while (-1 != (read = getline(&line, &len, fp))) {
         if (line[read - 1] == '\n') line[read - 1] = 0;
@@ -226,7 +234,7 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
             assert(0);
         }
         predicate_value = token;
-        sscanf(predicate_value.c_str(), "%d", &int_value);
+        sscanf(predicate_value.c_str(), "%lf", &int_value);
         
         if (int_value == 0 || int_value == -1) {
             continue;
@@ -255,7 +263,7 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
         if( 0 != prev_filename_hash.compare(filename_hash)) {//not equal
             prev_filename_hash = filename_hash;
             // Any other predicate type for file names ??
-            file_id = g->type_update(filename_hash, mount_fs); 
+            file_id = g->type_update(filename_hash, "file"); 
         }
 
         //Add this line and edge property value to db 
