@@ -525,6 +525,7 @@ class rset_t {
         vid_t*      vlist;
         beg_pos_t*  adjlist;
         sid_t*      kv;
+		uint8_t*    level_array;
         lite_vtable_t* lite_adjlist;
         lite_edge_t* lite_kv;
     };
@@ -560,6 +561,18 @@ class rset_t {
 		vid_t index = TO_VID(count2);
 		vlist[index] = sid;
 		++count2;
+	}
+
+	inline void set_8bitvalue(sid_t vid, uint8_t value) {
+		level_array[vid] = value;
+	}
+	
+	inline uint8_t get_8bitvalue(sid_t vid) {
+		return level_array[vid];
+	}
+
+	inline uint8_t* get_levelarray() {
+		return level_array;
 	}
 	
     inline void setup_frontiers(tid_t tid, vid_t max_count) {
@@ -666,6 +679,18 @@ class srset_t {
         return rset[index].get_status(vert_id);
     } 
     
+	inline void set_8bitvalue(sid_t sid, uint8_t value) {
+        tid_t index = get_sindex(sid);
+        vid_t vert_id = TO_VID(sid);
+        rset[index].set_8bitvalue(vert_id, value);
+	}
+
+	inline uint8_t get_8bitvalue(sid_t sid) {
+        tid_t index = get_sindex(sid);
+        vid_t vert_id = TO_VID(sid);
+        return rset[index].get_8bitvalue(vert_id);
+	}
+
     inline void add_frontier(sid_t sid) {
 		tid_t index = get_sindex(sid);
 		vid_t vert_id = TO_VID(sid);

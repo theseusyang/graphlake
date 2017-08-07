@@ -19,6 +19,7 @@ SRC=main.cpp \
 	lite_sgraph.cpp\
 	prop_encoder.cpp\
 	propkv.cpp\
+	bfs.cpp\
 	lubm_test1.cpp\
 	ldbc_test.cpp\
 	darshan_test.cpp\
