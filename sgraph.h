@@ -45,6 +45,7 @@ class pgraph_t: public cfinfo_t {
     status_t extend_kv_td(skv_t** skv, srset_t* iset, srset_t* oset);
 	
 	void bfs(sgraph_t** sgraph_out, sgraph_t** sgraph_in, sid_t root);
+	void pagerank(sgraph_t** sgraph_out, sgraph_t** sgraph_in, int iteration_count);
 	
 };
 

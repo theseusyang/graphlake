@@ -500,8 +500,10 @@ class sdegree_t {
 #define eFrontiers  1
 #define eAdjlist    2
 #define eKV         3
-#define eLiteadjlist 4
-#define eLiteKV     5
+#define eLevelarray 4
+#define eFloatarray 5
+#define eLiteadjlist 6
+#define eLiteKV     7
 
 
 class srset_t;
@@ -526,6 +528,7 @@ class rset_t {
         beg_pos_t*  adjlist;
         sid_t*      kv;
 		uint8_t*    level_array;
+		float*       float_array;
         lite_vtable_t* lite_adjlist;
         lite_edge_t* lite_kv;
     };
@@ -608,12 +611,29 @@ class rset_t {
     
     void bitwise2vlist();
     
-    inline void setup(sid_t super_id) {
+    inline void setup(sid_t super_id, int union_type = eStatusarray) {
         tid_t tid = TO_TID(super_id);
+		vid_t vert_count = TO_VID(super_id);
         vid_t w_count = WORD_COUNT(TO_VID(super_id));
         scount  = TO_SUPER(tid) + w_count;
-        count2 = TO_SUPER(eStatusarray);
-        status_array = (uint64_t*) calloc(sizeof(uint64_t*), w_count);
+		switch (union_type) {
+		case eStatusarray:
+			count2 = TO_SUPER(eStatusarray);
+			status_array = (uint64_t*) calloc(sizeof(uint64_t), w_count);
+			break;
+		case eLevelarray:
+			count2 = TO_SUPER(eLevelarray);
+			level_array = (uint8_t*) calloc(sizeof(uint8_t), vert_count);
+			break;
+		case eFloatarray:
+			count2 = TO_SUPER(eLevelarray);
+			float_array = (float*) calloc(sizeof(float), vert_count);
+			break;
+		default:
+			assert(0);
+			break;
+
+		}
     }
 };
 
@@ -713,11 +733,11 @@ class srset_t {
     void print_result(tid_t tid_pos, vid_t vid_pos);
     status_t apply_typefilter(tid_t tid);
   
-    tid_t full_setup(sflag_t sflag);
-    tid_t full_setup(sgraph_t** sgraph);
-    tid_t full_setup(lite_sgraph_t** sgraph);
-    tid_t full_setup(skv_t** skv);
-    tid_t full_setup(lite_skv_t** skv);
+    tid_t full_setup(sflag_t sflag, int union_type = eStatusarray);
+    tid_t full_setup(sgraph_t** sgraph, int union_type = eStatusarray);
+    tid_t full_setup(lite_sgraph_t** sgraph, int union_type = eStatusarray);
+    tid_t full_setup(skv_t** skv, int union_type = eStatusarray);
+    tid_t full_setup(lite_skv_t** skv, int union_type = eStatusarray);
     tid_t copy_setup(srset_t* iset, int union_type);
     
     

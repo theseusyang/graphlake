@@ -352,7 +352,7 @@ void srset_t::bitwise2vlist()
 }
 
 
-tid_t srset_t::full_setup(sflag_t a_flag) 
+tid_t srset_t::full_setup(sflag_t a_flag, int union_type) 
 {
     sflag_t sflag = 0;
     if (tfilter_count) {
@@ -376,13 +376,13 @@ tid_t srset_t::full_setup(sflag_t a_flag)
         sflag ^= (1L << pos);//reset that position
         super_id = g->get_type_scount(pos);
         flag[pos] = i;
-        rset[i].setup(super_id);
+        rset[i].setup(super_id, union_type);
        
     }
     return flag_count;
 }
 
-tid_t srset_t::full_setup(lite_sgraph_t** sgraph) 
+tid_t srset_t::full_setup(lite_sgraph_t** sgraph, int union_type) 
 {
     tid_t t_count = g->get_total_types();
     flag = (tid_t*) malloc(sizeof(tid_t)*t_count);
@@ -415,12 +415,12 @@ tid_t srset_t::full_setup(lite_sgraph_t** sgraph)
         if (INVALID_TID == flag[i]) continue;
         super_id = g->get_type_scount(i);
         pos = flag[i];
-        rset[pos].setup(super_id);
+        rset[pos].setup(super_id, union_type);
     }
     return flag_count;
 }
 
-tid_t srset_t::full_setup(sgraph_t** sgraph) 
+tid_t srset_t::full_setup(sgraph_t** sgraph, int union_type) 
 {
     tid_t t_count = g->get_total_types();
     flag = (tid_t*) malloc(sizeof(tid_t)*t_count);
@@ -453,12 +453,12 @@ tid_t srset_t::full_setup(sgraph_t** sgraph)
         if (INVALID_TID == flag[i]) continue;
         super_id = g->get_type_scount(i);
         pos = flag[i];
-        rset[pos].setup(super_id);
+        rset[pos].setup(super_id, union_type);
     }
     return flag_count;
 }
 
-tid_t srset_t::full_setup(skv_t** skv) 
+tid_t srset_t::full_setup(skv_t** skv, int union_type) 
 {
     tid_t t_count = g->get_total_types();
     flag = (tid_t*) malloc(sizeof(tid_t)*t_count);
@@ -491,12 +491,12 @@ tid_t srset_t::full_setup(skv_t** skv)
         if (INVALID_TID == flag[i]) continue;
         super_id = g->get_type_scount(i);
         pos = flag[i];
-        rset[pos].setup(super_id);
+        rset[pos].setup(super_id, union_type);
     }
     return flag_count;
 }
 
-tid_t srset_t::full_setup(lite_skv_t** skv) 
+tid_t srset_t::full_setup(lite_skv_t** skv, int union_type) 
 {
     tid_t t_count = g->get_total_types();
     flag = (tid_t*) malloc(sizeof(tid_t)*t_count);
@@ -529,7 +529,7 @@ tid_t srset_t::full_setup(lite_skv_t** skv)
         if (INVALID_TID == flag[i]) continue;
         super_id = g->get_type_scount(i);
         pos = flag[i];
-        rset[pos].setup(super_id);
+        rset[pos].setup(super_id, union_type);
     }
     return flag_count;
 }
