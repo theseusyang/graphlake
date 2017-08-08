@@ -50,7 +50,7 @@ bfs(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, sid_t root)
 					if (status[v] != level) continue;
 					
 					T* adj_list = graph[v].get_adjlist();
-					vid_t nebr_count = adj_list[0];
+					vid_t nebr_count = get_nebrcount1(adj_list);
 					++adj_list;
 					todo += nebr_count;
 					

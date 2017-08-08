@@ -321,7 +321,7 @@ class srset_t {
     void print_result(tid_t tid_pos, vid_t vid_pos);
     status_t apply_typefilter(tid_t tid);
   
-    tid_t full_setup(sflag_t sflag, int union_type = eStatusarray);
+    //tid_t full_setup(sflag_t sflag, int union_type = eStatusarray);
     tid_t full_setup(sgraph_t** sgraph, int union_type = eStatusarray);
     tid_t full_setup(lite_sgraph_t** sgraph, int union_type = eStatusarray);
     tid_t full_setup(skv_t** skv, int union_type = eStatusarray);

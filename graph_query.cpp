@@ -380,7 +380,7 @@ status_t one2many_t::transform(srset_t* iset, srset_t* oset, direction_t directi
 status_t lite_ugraph_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
 {
     //prepare the output 1,2;
-    oset->full_setup(flag2);
+    oset->full_setup(sgraph);
     int total_count = 0;
     
     if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
@@ -492,7 +492,7 @@ status_t lite_one2many_t::transform(srset_t* iset, srset_t* oset, direction_t di
 status_t p_ugraph_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
 {
     //prepare the output 1,2;
-    oset->full_setup(flag2);
+    oset->full_setup(sgraph);
     int total_count = 0;
     
     if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach

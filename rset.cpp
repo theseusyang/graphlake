@@ -231,7 +231,7 @@ void srset_t::bitwise2vlist()
     }
 }
 
-
+/*
 tid_t srset_t::full_setup(sflag_t a_flag, int union_type) 
 {
     sflag_t sflag = 0;
@@ -261,6 +261,7 @@ tid_t srset_t::full_setup(sflag_t a_flag, int union_type)
     }
     return flag_count;
 }
+*/
 
 tid_t srset_t::full_setup(lite_sgraph_t** sgraph, int union_type) 
 {

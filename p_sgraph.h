@@ -54,7 +54,7 @@ class p_pgraph_t : public cfinfo_t {
 };
 
 class p_ugraph_t: public p_pgraph_t {
- protected:
+ public:
     lite_sgraph_t** sgraph;
 
  public:
@@ -69,7 +69,7 @@ class p_ugraph_t: public p_pgraph_t {
 };
 
 class p_dgraph_t: public p_pgraph_t {
- protected:
+ public:
     //count is hidden in type count
     lite_sgraph_t** sgraph_out;
     lite_sgraph_t** sgraph_in; 
@@ -84,7 +84,7 @@ class p_dgraph_t: public p_pgraph_t {
 };
 
 class p_many2one_t: public p_pgraph_t {
- protected:
+ public:
     lite_skv_t**     skv_out;
     lite_sgraph_t**  sgraph_in;
 
@@ -99,7 +99,7 @@ class p_many2one_t: public p_pgraph_t {
 };
 
 class p_one2one_t: public p_pgraph_t {
- protected:
+ public:
     lite_skv_t**   skv_in;
     lite_skv_t**   skv_out;
 
@@ -114,7 +114,7 @@ class p_one2one_t: public p_pgraph_t {
 };
 
 class p_one2many_t: public p_pgraph_t {
- protected:
+ public:
     lite_sgraph_t**   sgraph_out;
     lite_skv_t**      skv_in;
 

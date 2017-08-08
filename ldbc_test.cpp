@@ -118,7 +118,9 @@ void schema_ldbc()
     shortname = "forum_hasMember_person";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new dgraph_t;
+    //info = new dgraph_t;
+    info = new p_dgraph_t;
+    info->add_edge_property("joinDate", new time_encoder_t);
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -179,9 +181,9 @@ void schema_ldbc()
     shortname = "person_knows_person";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new ugraph_t;
-    //info = new p_ugraph_t;
-    //info->add_edge_property("creationDate", new time_encoder_t);
+    //info = new ugraph_t;
+    info = new p_ugraph_t;
+    info->add_edge_property("creationDate", new time_encoder_t);
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -555,18 +557,18 @@ static void test_bfs()
 {
     const char* pred = "person_knows_person";
 	propid_t cf_id = g->get_cfid(pred);
-    ugraph_t* graph = (ugraph_t*)g->cf_info[cf_id];
+    p_ugraph_t* graph = (p_ugraph_t*)g->cf_info[cf_id];
 	tid_t tid = g->get_tid("person");
 	sid_t root = TO_SUPER(tid);
-	bfs<sid_t>(graph->sgraph, graph->sgraph, root);
+	bfs<lite_edge_t>(graph->sgraph, graph->sgraph, root);
 }
 
 static void test_pagerank()
 {
     const char* pred = "person_knows_person";
 	propid_t cf_id = g->get_cfid(pred);
-    ugraph_t* graph = (ugraph_t*)g->cf_info[cf_id];
-	pagerank<sid_t>(graph->sgraph, graph->sgraph, 5);
+    p_ugraph_t* graph = (p_ugraph_t*)g->cf_info[cf_id];
+	pagerank<lite_edge_t>(graph->sgraph, graph->sgraph, 5);
 }
 
 void ldbc_test0(const string& conf_file, const string& idir, const string& odir)
@@ -583,6 +585,8 @@ void ldbc_test0(const string& conf_file, const string& idir, const string& odir)
     test3();
 	cout << "-----------BFS -----------------" << endl;
 	test_bfs();
+	cout << "-----------Pagerank-------------" << endl;
+	test_pagerank();
 }
 
 void ldbc_test2(const string& odir)
