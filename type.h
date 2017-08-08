@@ -82,14 +82,15 @@ class  edgeT_t {
     T     dst_id;
 };
 
-typedef edgeT_t<sid_t> edge_t;
-
 //First can be nebr sid, while the second could be edge id/property
 class lite_edge_t {
  public:
     sid_t first;
     univ_t second;
 };
+
+typedef edgeT_t<sid_t> edge_t;
+//typedef edgeT_t<lite_edge_t> ledge_t;
 
 class pedge_t {
  public:
@@ -98,12 +99,14 @@ class pedge_t {
     univ_t dst_id;
 };
 
+
 class ledge_t {
  public:
      sid_t src_id;
      sid_t dst_id;
      univ_t prop;
 };
+
 
 class disk_vtable_t {
     public:

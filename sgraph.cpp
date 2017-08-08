@@ -1,7 +1,6 @@
 
 #include "sgraph.h"
 
-
 pgraph_t::pgraph_t()
 {
 }
@@ -24,7 +23,7 @@ status_t pgraph_t::batch_update(const string& src, const string& dst, propid_t p
     map<string, vid_t>::iterator str2vid_iter = g->str2vid.find(src);
     if (g->str2vid.end() == str2vid_iter) {
         cout << src << " is not found. See above log if src was invalid. OR is it out of order?? " << endl;
-        assert(0); 
+        assert(0);
     } else {
         src_id = str2vid_iter->second;
     }
@@ -149,7 +148,7 @@ void pgraph_t::prep_sgraph_internal(sgraph_t** sgraph)
 
 void pgraph_t::fill_adj_list(sgraph_t** sgraph_out, sgraph_t** sgraph_in)
 {
-    sid_t src, dst;
+    sid_t     src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
     
@@ -201,9 +200,9 @@ void pgraph_t::fill_adj_list_in(skv_t** skv_out, sgraph_t** sgraph_in)
 
 void pgraph_t::fill_adj_list_out(sgraph_t** sgraph_out, skv_t** skv_in) 
 {
-    sid_t src, dst;
-    vid_t     vert1_id, vert2_id;
-    tid_t src_index, dst_index; 
+    sid_t   src, dst;
+    vid_t   vert1_id, vert2_id;
+    tid_t   src_index, dst_index; 
     edge_t*   edges;
     index_t   count;
     
@@ -381,7 +380,7 @@ void pgraph_t::fill_skv(skv_t** skv_out, skv_t** skv_in)
     edge_t*   edges;
     index_t   count;
     
-    for (int j = 0; j <= batch_count; ++j) { 
+    for (int j = 0; j <= batch_count; ++j) {
         edges = (edge_t*)batch_info[j].buf;
         count = batch_info[j].count;
     
@@ -868,7 +867,6 @@ pgraph_t::extend_kv_td(skv_t** skv, srset_t* iset, srset_t* oset)
     }
     return eOK;
 }
-
 
 cfinfo_t* ugraph_t::create_instance()
 {

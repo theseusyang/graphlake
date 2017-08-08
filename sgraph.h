@@ -2,7 +2,6 @@
 
 #include "graph.h"
 
-/******** graphs **************/
 class pgraph_t: public cfinfo_t {
   
  public:    
@@ -14,14 +13,10 @@ class pgraph_t: public cfinfo_t {
  public:
     sgraph_t** prep_sgraph(sflag_t ori_flag, sgraph_t** a_sgraph);
     skv_t** prep_skv(sflag_t ori_flag, skv_t** a_skv);
-    
+
     void calc_edge_count(sgraph_t** sgraph_out, sgraph_t** sgraph_in); 
     void calc_edge_count_out(sgraph_t** sgraph_out);
     void calc_edge_count_in(sgraph_t** sgraph_in);
-    
-    //void calc_deletededge_count(sgraph_t** sgraph_out, sgraph_t** sgraph_in); 
-    void calc_deletededge_count_out(sgraph_t** sgraph_out);
-    void calc_deletededge_count_in(sgraph_t** sgraph_in);
     
     void prep_sgraph_internal(sgraph_t** sgraph);
     void update_count(sgraph_t** sgraph);
@@ -42,10 +37,12 @@ class pgraph_t: public cfinfo_t {
     status_t query_adjlist_bu(sgraph_t** sgraph, srset_t* iset, srset_t* oset);
     status_t query_kv_bu(skv_t** skv, srset_t* iset, srset_t* oset);
   
-    
     status_t extend_adjlist_td(sgraph_t** skv, srset_t* iset, srset_t* oset);
     status_t extend_kv_td(skv_t** skv, srset_t* iset, srset_t* oset);
-	
+
+    //void calc_deletededge_count(sgraph_t** sgraph_out, sgraph_t** sgraph_in); 
+    void calc_deletededge_count_out(sgraph_t** sgraph_out);
+    void calc_deletededge_count_in(sgraph_t** sgraph_in);
 };
 
 class ugraph_t: public pgraph_t {
@@ -64,7 +61,7 @@ class ugraph_t: public pgraph_t {
 };
 
 class dgraph_t: public pgraph_t {
- protected:
+ public:
     //count is hidden in type count
     sgraph_t** sgraph_out;
     sgraph_t** sgraph_in; 
@@ -79,7 +76,7 @@ class dgraph_t: public pgraph_t {
 };
 
 class many2one_t: public pgraph_t {
- protected:
+ public:
     skv_t**     skv_out;
     sgraph_t**  sgraph_in;
 
@@ -94,7 +91,7 @@ class many2one_t: public pgraph_t {
 };
 
 class one2one_t: public pgraph_t {
- protected:
+ public:
     skv_t**   skv_in;
     skv_t**   skv_out;
 
@@ -109,7 +106,7 @@ class one2one_t: public pgraph_t {
 };
 
 class one2many_t: public pgraph_t {
- protected:
+ public:
     sgraph_t**   sgraph_out;
     skv_t**      skv_in;
 

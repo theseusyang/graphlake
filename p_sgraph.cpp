@@ -31,6 +31,7 @@ status_t p_pgraph_t::batch_update(const string& src, const string& dst, propid_t
     
     map<string, vid_t>::iterator str2vid_iter = g->str2vid.find(src);
     if (g->str2vid.end() == str2vid_iter) {
+        cout << src << " is not found. See above log if src was invalid. OR is it out of order?? " << endl;
         assert(0);
     } else {
         src_id = str2vid_iter->second;
@@ -40,6 +41,7 @@ status_t p_pgraph_t::batch_update(const string& src, const string& dst, propid_t
     
     str2vid_iter = g->str2vid.find(dst);
     if (g->str2vid.end() == str2vid_iter) {
+       cout << dst << " is not found. See above log if dst was invalid. OR is it out of order?? " << endl; 
         assert(0);
     } else {
         dst_id = str2vid_iter->second;
@@ -53,8 +55,7 @@ status_t p_pgraph_t::batch_update(const string& src, const string& dst, propid_t
     edges[index].src_id = src_id; 
     edges[index].dst_id = dst_id;
 
-    //solving for time type. XXX
-    
+    //solving for time type.
     encoder->encode(prop_pair->value.c_str(), edges[index].prop);
 
     return eOK;
@@ -190,10 +191,9 @@ void p_pgraph_t::fill_adj_list_in(lite_skv_t** skv_out, lite_sgraph_t** sgraph_i
     sid_t src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    univ_t    univ;
-    
     ledge_t*   edges;
     index_t   count;
+    univ_t    univ;
 
     for (int j = 0; j <= batch_count; ++j) { 
         edges = (ledge_t*)batch_info[j].buf;
@@ -219,10 +219,10 @@ void p_pgraph_t::fill_adj_list_out(lite_sgraph_t** sgraph_out, lite_skv_t** skv_
     sid_t   src, dst;
     vid_t   vert1_id, vert2_id;
     tid_t   src_index, dst_index; 
-    univ_t  univ;
-    
     ledge_t*   edges;
     index_t   count;
+    univ_t  univ;
+    
     
     for (int j = 0; j <= batch_count; ++j) { 
         edges = (ledge_t*)batch_info[j].buf;
@@ -396,9 +396,9 @@ void p_pgraph_t::fill_skv(lite_skv_t** skv_out, lite_skv_t** skv_in)
     sid_t     src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    univ_t    univ;
     ledge_t*  edges;
     index_t   count;
+    univ_t    univ;
     
     for (int j = 0; j <= batch_count; ++j) {
         edges = (ledge_t*)batch_info[j].buf;
@@ -466,7 +466,6 @@ void p_dgraph_t::store_graph_baseline(string dir)
     store_sgraph(sgraph_out, dir, postfix);
     postfix = "in";
     store_sgraph(sgraph_in,  dir, postfix);
-
 }
 
 void p_dgraph_t::read_graph_baseline(const string& dir)
@@ -484,7 +483,6 @@ void p_dgraph_t::read_graph_baseline(const string& dir)
         sgraph_in  = (lite_sgraph_t**) calloc (sizeof(lite_sgraph_t*), t_count);
     }
     read_sgraph(sgraph_in,  dir, postfix);
-
 }
 
 
@@ -525,7 +523,6 @@ void p_ugraph_t::store_graph_baseline(string dir)
 {
     string postfix = "";
     store_sgraph(sgraph, dir, postfix);
-
 }
 
 void p_ugraph_t::read_graph_baseline(const string& dir)
@@ -537,7 +534,6 @@ void p_ugraph_t::read_graph_baseline(const string& dir)
         sgraph  = (lite_sgraph_t**) calloc (sizeof(lite_sgraph_t*), t_count);
     }
     read_sgraph(sgraph, dir, postfix);
-
 }
 
 
@@ -602,7 +598,6 @@ void p_many2one_t::read_graph_baseline(const string& dir)
     }
     postfix = "in";
     read_sgraph(sgraph_in, dir, postfix);
-
 }
 
 /*******************************************/
@@ -648,7 +643,6 @@ void p_one2many_t::store_graph_baseline(string dir)
     store_sgraph(sgraph_out, dir, postfix);
     postfix = "in";
     store_skv(skv_in, dir, postfix);
-
 }
 
 void p_one2many_t::read_graph_baseline(const string& dir)
@@ -666,7 +660,6 @@ void p_one2many_t::read_graph_baseline(const string& dir)
     }
     postfix = "in";
     read_skv(skv_in, dir, postfix);
-
 }
 
 /************************************************/
@@ -702,7 +695,6 @@ void p_one2one_t::store_graph_baseline(string dir)
     store_skv(skv_out, dir, postfix);
     postfix = "in";
     store_skv(skv_in, dir, postfix);
-
 }
 
 void p_one2one_t::read_graph_baseline(const string& dir)
@@ -720,7 +712,6 @@ void p_one2one_t::read_graph_baseline(const string& dir)
         skv_in  = (lite_skv_t**) calloc (sizeof(lite_skv_t*), t_count);
     }
     read_skv(skv_in, dir, postfix);
-
 }
 
 /////////// QUERIES ///////////////////////////
