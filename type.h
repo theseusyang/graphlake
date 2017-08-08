@@ -582,7 +582,7 @@ class rset_t {
 		float_array[vid] = value;
 	}
 	
-	inline uint8_t get_floatvalue(sid_t vid) {
+	inline float get_floatvalue(sid_t vid) {
 		return float_array[vid];
 	}
 
@@ -627,9 +627,12 @@ class rset_t {
         tid_t tid = TO_TID(super_id);
 		vid_t vert_count = TO_VID(super_id);
         vid_t w_count = WORD_COUNT(TO_VID(super_id));
-        scount  = TO_SUPER(tid) + w_count;
+        scount  = super_id;
+
 		switch (union_type) {
 		case eStatusarray:
+            w_count = WORD_COUNT(TO_VID(super_id));
+            scount  = TO_SUPER(tid) + w_count;
 			count2 = TO_SUPER(eStatusarray);
 			status_array = (uint64_t*) calloc(sizeof(uint64_t), w_count);
 			break;

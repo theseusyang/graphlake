@@ -181,8 +181,9 @@ void schema_ldbc()
     shortname = "person_knows_person";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new p_ugraph_t;
-    info->add_edge_property("creationDate", new time_encoder_t);
+    info = new ugraph_t;
+    //info = new p_ugraph_t;
+    //info->add_edge_property("creationDate", new time_encoder_t);
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -562,6 +563,14 @@ static void test_bfs()
 	graph->bfs(graph->sgraph, graph->sgraph, root);
 }
 
+static void test_pagerank()
+{
+    const char* pred = "person_knows_person";
+	propid_t cf_id = g->get_cfid(pred);
+    ugraph_t* graph = (ugraph_t*)g->cf_info[cf_id];
+	graph->pagerank(graph->sgraph, graph->sgraph, 5);
+}
+
 void ldbc_test0(const string& conf_file, const string& idir, const string& odir)
 {
     schema_ldbc();
@@ -590,4 +599,8 @@ void ldbc_test2(const string& odir)
     test2();
     cout << "----------Test 3-----------------" << endl;
     test3();
+	cout << "-----------BFS -----------------" << endl;
+	test_bfs();
+	cout << "-----------Pagerank-------------" << endl;
+	test_pagerank();
 }
