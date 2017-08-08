@@ -118,35 +118,39 @@ typedef float rank_t;
 void pgraph_t::pagerank(sgraph_t** sgraph_out, sgraph_t** sgraph_in, int iteration_count)
 {
 	srset_t* rank_array = new srset_t;
+	srset_t* prior_rank_array = new srset_t;
 	rank_array->full_setup(sgraph_in, eFloatarray);
+	prior_rank_array->full_setup(sgraph_in, eFloatarray);
 	
 	srset_t* degree_array = new srset_t;
 	degree_array->full_setup(sgraph_in, eFloatarray);//
 	
 	tid_t iset_count = rank_array->get_rset_count();
 	
-	rank_t	inv_v_count = 1.0f/vert_count;
+	rank_t	inv_v_count = 0.15;//1.0f/vert_count;
 	
 	//initialize the rank, and get the degree information
 	for (tid_t i = 0; i < iset_count; ++i) {
-		rset_t* rset = rank_array->rset + i;
+		rset_t* rset = prior_rank_array->rset + i;
 		//get the graph where we will traverse
 		tid_t        tid = rset->get_tid();
 		if (0 == sgraph_in[tid]) continue;
 
-		vid_t v_count = rset->get_vcount();
-		float* pr = rset->get_floatarray();
-		uint32_t dset = rset->get_uint32array();
+		float* prior_pr = rset->get_floatarray();
+		float* dset = rset->get_floatarray();
 		uint32_t degree = 0;
+		
+		vid_t v_count = rset->get_vcount();
 		beg_pos_t* graph = sgraph_out[tid]->get_begpos();
-		for (vid_t v = 0; v < vert_count; ++v) {
+		for (vid_t v = 0; v < v_count; ++v) {
 			degree = graph[v].get_nebrcount();
-			if (degree != 0) {//XXX
-			dset[v] = 1.0f/degree;
-			pr[v] = 1.0f/degree;
+			if (degree != 0) {
+				dset[v] = 1.0f/degree;
+				prior_pr[v] = inv_v_count;//XXX
+			} else {
+				dset[v] = 0;
+				prior_pr[v] = 0;
 			}
-			dset[v] = 0;
-			pr[v] = 0;
 		}
 	}
 
@@ -164,7 +168,7 @@ void pgraph_t::pagerank(sgraph_t** sgraph_out, sgraph_t** sgraph_in, int iterati
 
 				vid_t v_count = rset->get_vcount();
 				float* pr = rset->get_floatarray();
-				uint32_t dset = rset->get_uint32array();
+				float* dset = rset->get_floatarray();
 				beg_pos_t* graph = sgraph_in[tid]->get_begpos();
 
 				#pragma omp for schedule (guided) nowait

@@ -578,6 +578,18 @@ class rset_t {
 		return level_array;
 	}
 	
+	inline void set_floatvalue(sid_t vid, float value) {
+		float_array[vid] = value;
+	}
+	
+	inline uint8_t get_floatvalue(sid_t vid) {
+		return float_array[vid];
+	}
+
+	inline float* get_floatarray() {
+		return float_array;
+	}
+	
     inline void setup_frontiers(tid_t tid, vid_t max_count) {
 		scount = TO_SUPER(tid) + max_count;
 		count2 = TO_SUPER(1) + 0;
@@ -709,6 +721,12 @@ class srset_t {
         tid_t index = get_sindex(sid);
         vid_t vert_id = TO_VID(sid);
         return rset[index].get_8bitvalue(vert_id);
+	}
+	
+	inline float get_floatvalue(sid_t sid) {
+        tid_t index = get_sindex(sid);
+        vid_t vert_id = TO_VID(sid);
+        return rset[index].get_floatvalue(vert_id);
 	}
 
     inline void add_frontier(sid_t sid) {
