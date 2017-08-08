@@ -1,6 +1,7 @@
 #pragma once
 
 #include "type.h"
+#include "graph_base.h"
 
 #define eStatusarray 0
 #define eFrontiers  1

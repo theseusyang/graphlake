@@ -1,8 +1,7 @@
-#include "graph.h"
-#include <algorithm>
 
-using std::swap;
-using std::pair;
+#include "all.h"
+
+
 
 double bu_factor = 0.07;
 uint32_t MAX_BCOUNT = 256;

@@ -1,4 +1,7 @@
 #include "graph.h"
+#include "sgraph.h"
+#include "p_sgraph.h"
+#include "lite_sgraph.h"
 
 
 

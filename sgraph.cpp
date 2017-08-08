@@ -1,4 +1,5 @@
-#include "graph.h"
+
+#include "sgraph.h"
 
 
 pgraph_t::pgraph_t()

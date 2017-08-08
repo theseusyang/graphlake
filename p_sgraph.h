@@ -1,5 +1,5 @@
 #pragma once
-#include "sgraph.h"
+#include "graph.h"
 #include "prop_encoder.h"
 
 class p_pgraph_t : public cfinfo_t {

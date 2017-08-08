@@ -1,5 +1,5 @@
 #include "graph.h"
-
+#include "stringkv.h"
 
 vgraph_t::vgraph_t()
 {

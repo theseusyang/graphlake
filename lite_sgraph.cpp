@@ -1,4 +1,4 @@
-#include "graph.h"
+#include "lite_sgraph.h"
 
 lite_pgraph_t::lite_pgraph_t()
 {

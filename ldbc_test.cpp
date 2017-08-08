@@ -1,8 +1,6 @@
-#include "graph.h"
+#include "all.h"
 #include "csv_to_edge.h"
-#include "typekv.h"
-#include "query_triple.h"
-#include "query_triplewithfilter.h"
+#include "query.h"
 
 
 void schema_ldbc()

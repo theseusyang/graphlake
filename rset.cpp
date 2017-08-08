@@ -3,8 +3,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include "rset.h"
+
 #include "graph.h"
+#include "stringkv.h"
+#include "rset.h"
 
 off_t fsize(const string& fname)
 {

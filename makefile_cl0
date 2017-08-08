@@ -14,7 +14,7 @@ SRC=main.cpp \
 	darshan_to_edge.cpp\
 	query_triple.cpp\
 	graph_query.cpp\
-	type.cpp\
+	graph_base.cpp\
 	rset.cpp\
 	p_sgraph.cpp\
 	lite_sgraph.cpp\
@@ -39,6 +39,7 @@ HEADER=graph.h\
 	query_node.h\
 	query_triple.h\
 	type.h\
+	graph_base.h\
 	rset.h\
     query_clause.h\
 	nt_to_edge.h\

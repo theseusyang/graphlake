@@ -1,5 +1,7 @@
 #pragma once
 
+#include "graph.h"
+
 /******** graphs **************/
 class pgraph_t: public cfinfo_t {
   
@@ -123,7 +125,6 @@ class one2many_t: public pgraph_t {
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
-
 
 /*****************************/
 
@@ -266,5 +267,4 @@ void onegraph_t<T>::read_vtable(const string& vtfile)
     }
     dvt_count = 0;
 }
-
 

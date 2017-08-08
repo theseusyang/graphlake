@@ -177,7 +177,7 @@ propkv_t::propkv_t()
     dvt_count = 0;
     dvt_max_count = (1L << 28);
     if (posix_memalign((void**) &dvt, 2097152, 
-                       dvt_max_count*sizeof(disk_strkv_t*))) {
+                       dvt_max_count*sizeof(disk_propkv_t*))) {
         perror("posix memalign vertex log");    
     }
     vtf = 0;

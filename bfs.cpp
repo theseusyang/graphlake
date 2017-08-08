@@ -1,6 +1,8 @@
 #include <algorithm>
 #include "graph.h"
 #include "wtime.h"
+#include "sgraph.h"
+#include "p_sgraph.h"
 
 using std::swap;
 void
