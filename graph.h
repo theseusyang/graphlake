@@ -160,6 +160,7 @@ class graph {
     inline typekv_t* get_typekv() { return (typekv_t*)cf_info[0]; }
     sid_t get_type_scount(tid_t type);
     tid_t get_total_types();
+	tid_t get_tid(const char* type);
 
     propid_t get_cfid(propid_t pid);
     propid_t get_cfid(const char* property);

@@ -177,6 +177,14 @@ propid_t graph::get_cfid(const char* predicate)
     return p_info[pid].cf_id;
 }
 
+tid_t graph::get_tid(const char* type)
+{
+    typekv_t* typekv = get_typekv();
+	univ_t univ;
+   	typekv->get_encoded_value(type, &univ);
+	return univ.value_tid;
+}
+
 propid_t graph::get_pid(const char* predicate)
 {
     map<string, propid_t>::iterator str2pid_iter = str2pid.find(predicate);

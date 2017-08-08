@@ -50,7 +50,7 @@ class pgraph_t: public cfinfo_t {
 };
 
 class ugraph_t: public pgraph_t {
- protected:
+ public:
     sgraph_t** sgraph;
 
  public:

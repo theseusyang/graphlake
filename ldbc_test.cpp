@@ -552,6 +552,16 @@ static void test4()
     g->run_query(&query);
 }
 
+static void test_bfs()
+{
+    const char* pred = "person_knows_person";
+	propid_t cf_id = g->get_cfid(pred);
+    ugraph_t* graph = (ugraph_t*)g->cf_info[cf_id];
+	tid_t tid = g->get_tid("person");
+	sid_t root = TO_SUPER(tid);
+	graph->bfs(graph->sgraph, graph->sgraph, root);
+}
+
 void ldbc_test0(const string& conf_file, const string& idir, const string& odir)
 {
     schema_ldbc();
@@ -564,6 +574,8 @@ void ldbc_test0(const string& conf_file, const string& idir, const string& odir)
     test2();
     cout << "----------Test 3-----------------" << endl;
     test3();
+	cout << "-----------BFS -----------------" << endl;
+	test_bfs();
 }
 
 void ldbc_test2(const string& odir)
