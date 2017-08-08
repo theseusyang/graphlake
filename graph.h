@@ -10,6 +10,7 @@
 #include <fstream>
 
 #include "type.h"
+#include "rset.h"
 #include "query_clause.h"
 #include "prop_encoder.h"
 

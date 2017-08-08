@@ -31,8 +31,8 @@ status_t pgraph_t::batch_update(const string& src, const string& dst, propid_t p
     
     str2vid_iter = g->str2vid.find(dst);
     if (g->str2vid.end() == str2vid_iter) {
-        assert(0);
        cout << dst << " is not found. See above log if dst was invalid. OR is it out of order?? " << endl; 
+        assert(0);
     } else {
         dst_id = str2vid_iter->second;
     }

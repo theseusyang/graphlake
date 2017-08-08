@@ -1,6 +1,7 @@
 #pragma once
 
 #include "query_node.h"
+#include "rset.h"
 
 
 
