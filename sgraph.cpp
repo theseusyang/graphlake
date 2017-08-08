@@ -23,7 +23,8 @@ status_t pgraph_t::batch_update(const string& src, const string& dst, propid_t p
     
     map<string, vid_t>::iterator str2vid_iter = g->str2vid.find(src);
     if (g->str2vid.end() == str2vid_iter) {
-       cout << src << " is not found. See above log if src was invalid. OR is it out of order?? " << endl; 
+        cout << src << " is not found. See above log if src was invalid. OR is it out of order?? " << endl;
+        assert(0); 
     } else {
         src_id = str2vid_iter->second;
     }

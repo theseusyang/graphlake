@@ -3,6 +3,8 @@
 #include "type.h"
 #include "graph_base.h"
 
+class cfinfo_t;
+
 #define eStatusarray 0
 #define eFrontiers  1
 #define eAdjlist    2

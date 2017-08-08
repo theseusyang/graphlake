@@ -500,11 +500,11 @@ comment1511829670311
 
 
 -----------BFS -----------------
-Top down = 1 Level = 1 Time = 0.0082531 Frontier Count = 6 ToDo = 6
-Top down = 1 Level = 2 Time = 0.00490808 Frontier Count = 2256 ToDo = 2787
-Top down = 0 Level = 3 Time = 0.00508094 Frontier Count = 6715 ToDo = 221616
-Top down = 0 Level = 4 Time = 0.00485301 Frontier Count = 175 ToDo = 361
-Top down = 0 Level = 5 Time = 0.004951 Frontier Count = 0 ToDo = 0
+Top down = 1 Level = 1 Frontier Count = 6 ToDo = 6 Time = 0.00790405
+Top down = 1 Level = 2 Frontier Count = 2255 ToDo = 2787 Time = 0.00511599
+Top down = 0 Level = 3 Frontier Count = 6715 ToDo = 221616 Time = 0.00509095
+Top down = 0 Level = 4 Frontier Count = 175 ToDo = 361 Time = 0.00493193
+Top down = 0 Level = 5 Frontier Count = 0 ToDo = 0 Time = 0.0048399
 -----------Pagerank-------------
-Iteration time = 0.0261228
+Iteration time = 0.0261219
 

@@ -1,5 +1,6 @@
 CC=g++
-CFLAGS=-g -Wall -std=gnu++11  -march=native -fopenmp
+#CFLAGS=-g -Wall -std=gnu++11  -march=native -fopenmp
+CFLAGS=-O3 -Wall -std=gnu++11  -march=native -fopenmp
 SRC=main.cpp \
 	graph.cpp\
 	ugraph.cpp\
@@ -17,20 +18,18 @@ SRC=main.cpp \
 	graph_base.cpp\
 	rset.cpp\
 	p_sgraph.cpp\
-	lite_sgraph.cpp\
 	prop_encoder.cpp\
 	propkv.cpp\
-	bfs.cpp\
 	lubm_test1.cpp\
 	ldbc_test.cpp\
 	darshan_test.cpp\
+	lite_sgraph.cpp\
 
 	
 
 HEADER=graph.h\
 	sgraph.h\
 	p_sgraph.h\
-	lite_sgraph.h\
 	prop_encoder.h\
 	propkv.h\
 	stringkv.h\
@@ -45,6 +44,7 @@ HEADER=graph.h\
 	nt_to_edge.h\
 	csv_to_edge.h\
 	darshan_to_edge.h\
+	lite_sgraph.h\
 
 INCLUDES= -Iantlr4/include -Iantlr4
 LIBDIRS= -Lantlr4/lib

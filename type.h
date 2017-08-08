@@ -43,8 +43,6 @@ extern sid_t    INVALID_SID;
 
 #define NO_QID 0xFFFF
 
-class cfinfo_t;
-
 off_t fsize(const string& fname);
 
 enum direction_t {
@@ -119,8 +117,6 @@ struct prop_pair_t {
     string name;
     string value;
 };
-
-
 
 
 typedef struct __econf_t {

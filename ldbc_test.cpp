@@ -1,7 +1,7 @@
 #include "all.h"
 #include "csv_to_edge.h"
 #include "query.h"
-
+#include "iterative_analytics.h"
 
 void schema_ldbc()
 {
@@ -558,7 +558,7 @@ static void test_bfs()
     ugraph_t* graph = (ugraph_t*)g->cf_info[cf_id];
 	tid_t tid = g->get_tid("person");
 	sid_t root = TO_SUPER(tid);
-	graph->bfs(graph->sgraph, graph->sgraph, root);
+	bfs<sid_t>(graph->sgraph, graph->sgraph, root);
 }
 
 static void test_pagerank()
@@ -566,7 +566,7 @@ static void test_pagerank()
     const char* pred = "person_knows_person";
 	propid_t cf_id = g->get_cfid(pred);
     ugraph_t* graph = (ugraph_t*)g->cf_info[cf_id];
-	graph->pagerank(graph->sgraph, graph->sgraph, 5);
+	pagerank<sid_t>(graph->sgraph, graph->sgraph, 5);
 }
 
 void ldbc_test0(const string& conf_file, const string& idir, const string& odir)

@@ -1,5 +1,6 @@
 #pragma once
 #include "graph.h"
+#include "sgraph.h"
 
 class lite_pgraph_t : public cfinfo_t {
     //edge properties.
