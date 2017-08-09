@@ -90,21 +90,23 @@ class lite_edge_t {
 };
 
 typedef edgeT_t<sid_t> edge_t;
-//typedef edgeT_t<lite_edge_t> ledge_t;
+typedef edgeT_t<lite_edge_t> ledge_t;
+
+
+/*
+class ledge_t {
+ public:
+     sid_t src_id;
+     sid_t dst_id;
+     univ_t prop;
+};
+*/
 
 class pedge_t {
  public:
     propid_t pid;
     sid_t src_id;
     univ_t dst_id;
-};
-
-
-class ledge_t {
- public:
-     sid_t src_id;
-     sid_t dst_id;
-     univ_t prop;
 };
 
 

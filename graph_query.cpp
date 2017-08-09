@@ -1,7 +1,7 @@
 #include "graph.h"
 #include "sgraph.h"
 #include "p_sgraph.h"
-#include "lite_sgraph.h"
+//#include "lite_sgraph.h"
 
 
 
@@ -156,7 +156,7 @@ status_t one2many_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
     }
     return eOK;
 }
-
+/*
 status_t lite_ugraph_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
 {
     return extend_adjlist_td(sgraph, iset, oset);
@@ -206,7 +206,7 @@ status_t lite_one2many_t::extend(srset_t* iset, srset_t* oset, direction_t direc
     }
     return eOK;
 }
-
+*/
 status_t p_ugraph_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
 {
     return extend_adjlist_td(sgraph, iset, oset);
@@ -377,6 +377,7 @@ status_t one2many_t::transform(srset_t* iset, srset_t* oset, direction_t directi
     return eOK;
 }
 
+/*
 status_t lite_ugraph_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
 {
     //prepare the output 1,2;
@@ -488,7 +489,7 @@ status_t lite_one2many_t::transform(srset_t* iset, srset_t* oset, direction_t di
     }
     return eOK;
 }
-
+*/
 status_t p_ugraph_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
 {
     //prepare the output 1,2;

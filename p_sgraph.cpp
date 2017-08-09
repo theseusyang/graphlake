@@ -16,7 +16,6 @@ void p_pgraph_t::add_edge_property(const char* longname, prop_encoder_t* prop_en
 status_t p_pgraph_t::batch_update(const string& src, const string& dst, propid_t pid,
                                 propid_t count, prop_pair_t* prop_pair)
 {
-   
     vid_t src_id, dst_id;
     index_t index = 0;
     ledge_t* edges;
@@ -52,11 +51,13 @@ status_t p_pgraph_t::batch_update(const string& src, const string& dst, propid_t
     index = batch_info1[batch_count1].count++;
     edges = (ledge_t*) batch_info1[batch_count1].buf;
 
-    edges[index].src_id = src_id; 
-    edges[index].dst_id = dst_id;
 
-    //solving for time type.
-    encoder->encode(prop_pair->value.c_str(), edges[index].prop);
+    univ_t univ;
+    encoder->encode(prop_pair->value.c_str(), univ);
+    edges[index].src_id = src_id; 
+    edges[index].dst_id.first = dst_id;
+    edges[index].dst_id.second = univ;
+
 
     return eOK;
 }
@@ -93,7 +94,7 @@ void p_pgraph_t::calc_edge_count(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgr
         count = batch_info[j].count;
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
-            dst = edges[i].dst_id;
+            dst = edges[i].dst_id.first;
             
             src_index = TO_TID(src);
             dst_index = TO_TID(dst);
@@ -139,7 +140,7 @@ void p_pgraph_t::calc_edge_count_in(lite_sgraph_t** sgraph_in)
         edges = (ledge_t*)batch_info[j].buf;
         count = batch_info[j].count;
         for (index_t i = 0; i < count; ++i) {
-            dst = edges[i].dst_id;
+            dst = edges[i].dst_id.first;
             dst_index = TO_TID(dst);
             vert2_id = TO_VID(dst);
             sgraph_in[dst_index]->increment_count(vert2_id);
@@ -173,8 +174,8 @@ void p_pgraph_t::fill_adj_list(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgrap
         count = batch_info[j].count;
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
-            dst = edges[i].dst_id;
-            univ = edges[i].prop;
+            dst = edges[i].dst_id.first;
+            univ = edges[i].dst_id.second;
             src_index = TO_TID(src);
             dst_index = TO_TID(dst);
             vert1_id = TO_VID(src);
@@ -201,8 +202,8 @@ void p_pgraph_t::fill_adj_list_in(lite_skv_t** skv_out, lite_sgraph_t** sgraph_i
         count = batch_info[j].count;
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
-            dst = edges[i].dst_id;
-            univ = edges[i].prop;
+            dst = edges[i].dst_id.first;
+            univ = edges[i].dst_id.second;
             src_index = TO_TID(src);
             dst_index = TO_TID(dst);
             
@@ -233,8 +234,8 @@ void p_pgraph_t::fill_adj_list_out(lite_sgraph_t** sgraph_out, lite_skv_t** skv_
         count = batch_info[j].count;
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
-            dst = edges[i].dst_id;
-            univ = edges[i].prop;
+            dst = edges[i].dst_id.first;
+            univ = edges[i].dst_id.second;
             src_index = TO_TID(src);
             dst_index = TO_TID(dst);
             
@@ -412,8 +413,8 @@ void p_pgraph_t::fill_skv(lite_skv_t** skv_out, lite_skv_t** skv_in)
     
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
-            dst = edges[i].dst_id;
-            univ = edges[i].prop;
+            dst = edges[i].dst_id.first;
+            univ = edges[i].dst_id.second;
             src_index = TO_TID(src);
             dst_index = TO_TID(dst);
             

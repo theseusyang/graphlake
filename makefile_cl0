@@ -23,7 +23,8 @@ SRC=main.cpp \
 	lubm_test1.cpp\
 	ldbc_test.cpp\
 	darshan_test.cpp\
-	lite_sgraph.cpp\
+	
+#lite_sgraph.cpp\
 
 	
 
@@ -44,7 +45,8 @@ HEADER=graph.h\
 	nt_to_edge.h\
 	csv_to_edge.h\
 	darshan_to_edge.h\
-	lite_sgraph.h\
+
+#	lite_sgraph.h\
 
 INCLUDES= -Iantlr4/include -Iantlr4
 LIBDIRS= -Lantlr4/lib
