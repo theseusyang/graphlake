@@ -42,6 +42,18 @@ inline sid_t get_nebr(sid_t* adj, vid_t k) {
 inline sid_t get_nebr(lite_edge_t* adj, vid_t k) {
     return adj[k].first;
 }
+
+////
+inline sid_t get_sid(lite_edge_t lite_edge)
+{
+    return lite_edge.first;
+}
+
+inline sid_t get_sid(sid_t sid)
+{
+    return sid;
+}
+
 ////
 inline void set_value1(sid_t* kv, vid_t vid, sid_t value) {
     kv[vid] = value;

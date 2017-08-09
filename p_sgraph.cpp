@@ -3,7 +3,9 @@
 
 p_pgraph_t::p_pgraph_t()
 {
+    MAXX_ECOUNT = 666666;
     encoder = 0;
+    
 }
 
 void p_pgraph_t::add_edge_property(const char* longname, prop_encoder_t* prop_encoder)
@@ -20,7 +22,7 @@ status_t p_pgraph_t::batch_update(const string& src, const string& dst, propid_t
     index_t index = 0;
     ledge_t* edges;
 
-    if (batch_info1[batch_count1].count == MAX_PECOUNT) {
+    if (batch_info1[batch_count1].count == MAXX_ECOUNT) {
         void* mem = alloc_buf();
         if (mem == 0) return eEndBatch;
         ++batch_count1;
@@ -94,7 +96,7 @@ void p_pgraph_t::calc_edge_count(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgr
         count = batch_info[j].count;
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
-            dst = edges[i].dst_id.first;
+            dst = get_sid(edges[i].dst_id);
             
             src_index = TO_TID(src);
             dst_index = TO_TID(dst);
@@ -140,7 +142,7 @@ void p_pgraph_t::calc_edge_count_in(lite_sgraph_t** sgraph_in)
         edges = (ledge_t*)batch_info[j].buf;
         count = batch_info[j].count;
         for (index_t i = 0; i < count; ++i) {
-            dst = edges[i].dst_id.first;
+            dst = get_sid(edges[i].dst_id);
             dst_index = TO_TID(dst);
             vert2_id = TO_VID(dst);
             sgraph_in[dst_index]->increment_count(vert2_id);
@@ -174,7 +176,7 @@ void p_pgraph_t::fill_adj_list(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgrap
         count = batch_info[j].count;
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
-            dst = edges[i].dst_id.first;
+            dst = get_sid(edges[i].dst_id);
             univ = edges[i].dst_id.second;
             src_index = TO_TID(src);
             dst_index = TO_TID(dst);
@@ -202,7 +204,7 @@ void p_pgraph_t::fill_adj_list_in(lite_skv_t** skv_out, lite_sgraph_t** sgraph_i
         count = batch_info[j].count;
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
-            dst = edges[i].dst_id.first;
+            dst = get_sid(edges[i].dst_id);
             univ = edges[i].dst_id.second;
             src_index = TO_TID(src);
             dst_index = TO_TID(dst);
@@ -234,7 +236,7 @@ void p_pgraph_t::fill_adj_list_out(lite_sgraph_t** sgraph_out, lite_skv_t** skv_
         count = batch_info[j].count;
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
-            dst = edges[i].dst_id.first;
+            dst = get_sid(edges[i].dst_id);
             univ = edges[i].dst_id.second;
             src_index = TO_TID(src);
             dst_index = TO_TID(dst);
@@ -245,7 +247,7 @@ void p_pgraph_t::fill_adj_list_out(lite_sgraph_t** sgraph_out, lite_skv_t** skv_
             lite_edge.first = src;
             lite_edge.second = univ;
             vert2_id = TO_VID(dst);
-            skv_in[dst_index]->set_value_lite(vert2_id, src, univ); 
+            skv_in[dst_index]->set_value(vert2_id, lite_edge); 
         }
     }
 }
@@ -413,7 +415,7 @@ void p_pgraph_t::fill_skv(lite_skv_t** skv_out, lite_skv_t** skv_in)
     
         for (index_t i = 0; i < count; ++i) {
             src = edges[i].src_id;
-            dst = edges[i].dst_id.first;
+            dst = get_sid(edges[i].dst_id);
             univ = edges[i].dst_id.second;
             src_index = TO_TID(src);
             dst_index = TO_TID(dst);
@@ -743,12 +745,12 @@ status_t p_pgraph_t::query_adjlist_td(lite_sgraph_t** sgraph, srset_t* iset, srs
         for (vid_t v = 0; v < v_count; v++) {
             frontier = vlist[v];
             lite_edge_t* adj_list = graph[frontier].get_adjlist();
-            vid_t nebr_count = adj_list[0].first;
+            vid_t nebr_count = get_nebrcount1(adj_list);
             ++adj_list;
             
             //traverse the adj list
             for (vid_t k = 0; k < nebr_count; ++k) {
-                oset->set_status(adj_list[k].first);
+                oset->set_status(get_nebr(adj_list, k));
             }
         }
     }
@@ -774,7 +776,7 @@ status_t p_pgraph_t::query_kv_td(lite_skv_t** skv, srset_t* iset, srset_t* oset)
         vid_t     frontier;
         for (vid_t v = 0; v < v_count; v++) {
             frontier = vlist[v];
-            oset->set_status(kv[frontier].first);
+            oset->set_status(get_nebr(kv, frontier));
         }
     }
     return eOK;
@@ -801,10 +803,10 @@ status_t p_pgraph_t::query_adjlist_bu(lite_sgraph_t** sgraph, srset_t* iset, srs
         for (vid_t v = 0; v < v_count; v++) {
             //traverse the adj list
             lite_edge_t* adj_list = graph[v].get_adjlist();
-            vid_t nebr_count = adj_list[0].first;
+            vid_t nebr_count = get_nebrcount1(adj_list);
             ++adj_list;
             for (vid_t k = 0; k < nebr_count; ++k) {
-                if (iset->get_status(adj_list[k].first)) {
+                if (iset->get_status(get_nebr(adj_list, k))) {
                     rset->set_status(v);
                     break;
                 }
@@ -830,7 +832,7 @@ status_t p_pgraph_t::query_kv_bu(lite_skv_t** skv, srset_t* iset, srset_t* oset)
         sid_t   v_count = skv[tid]->get_vcount();
         
         for (vid_t v = 0; v < v_count; ++v) {
-            if (iset->get_status(kv[v].first)) {
+            if (iset->get_status(get_nebr(kv, v))) {
                 rset->set_status(v);
                 break;
             }
@@ -891,7 +893,7 @@ p_pgraph_t::extend_kv_td(lite_skv_t** skv, srset_t* iset, srset_t* oset)
         lite_edge_t*  graph = skv[tid]->get_kv(); 
         
         for (vid_t v = 0; v < v_count; v++) {
-            rset2->add_kv(v, graph[varray[v]].first);
+            rset2->add_kv(v, get_nebr(graph, varray[v]));
         }
     }
     return eOK;

@@ -3,9 +3,11 @@
 #include "prop_encoder.h"
 
 class p_pgraph_t : public cfinfo_t {
+    size_t MAXX_ECOUNT;
     //edge properties are part of adj-list
     string edge_propname;
     prop_encoder_t* encoder;
+
  
  public:
     p_pgraph_t();
