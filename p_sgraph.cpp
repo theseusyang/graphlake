@@ -194,6 +194,7 @@ void p_pgraph_t::fill_adj_list_in(lite_skv_t** skv_out, lite_sgraph_t** sgraph_i
     ledge_t*   edges;
     index_t   count;
     univ_t    univ;
+    lite_edge_t lite_edge;
 
     for (int j = 0; j <= batch_count; ++j) { 
         edges = (ledge_t*)batch_info[j].buf;
@@ -206,7 +207,9 @@ void p_pgraph_t::fill_adj_list_in(lite_skv_t** skv_out, lite_sgraph_t** sgraph_i
             dst_index = TO_TID(dst);
             
             vert1_id = TO_VID(src);
-            skv_out[src_index]->set_value_lite(vert1_id, dst, univ);
+            lite_edge.first = dst;
+            lite_edge.second = univ; 
+            skv_out[src_index]->set_value(vert1_id, lite_edge);
             
             vert2_id = TO_VID(dst);
             sgraph_in[dst_index]->add_nebr_lite(vert2_id, src, univ);
@@ -221,6 +224,7 @@ void p_pgraph_t::fill_adj_list_out(lite_sgraph_t** sgraph_out, lite_skv_t** skv_
     tid_t   src_index, dst_index; 
     ledge_t*   edges;
     index_t   count;
+    lite_edge_t lite_edge;
     univ_t  univ;
     
     
@@ -237,6 +241,8 @@ void p_pgraph_t::fill_adj_list_out(lite_sgraph_t** sgraph_out, lite_skv_t** skv_
             vert1_id = TO_VID(src);
             sgraph_out[src_index]->add_nebr_lite(vert1_id, dst, univ);
             
+            lite_edge.first = src;
+            lite_edge.second = univ;
             vert2_id = TO_VID(dst);
             skv_in[dst_index]->set_value_lite(vert2_id, src, univ); 
         }
