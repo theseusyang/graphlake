@@ -16,7 +16,7 @@ void p_pgraph_t::add_edge_property(const char* longname, prop_encoder_t* prop_en
 
 //Assuming only one edge property
 status_t p_pgraph_t::batch_update(const string& src, const string& dst, propid_t pid,
-                                propid_t count, prop_pair_t* prop_pair)
+                                propid_t count, prop_pair_t* prop_pair, int del /* = 0*/)
 {
     vid_t src_id, dst_id;
     index_t index = 0;
@@ -53,17 +53,22 @@ status_t p_pgraph_t::batch_update(const string& src, const string& dst, propid_t
     index = batch_info1[batch_count1].count++;
     edges = (ledge_t*) batch_info1[batch_count1].buf;
 
-
-    univ_t univ;
-    encoder->encode(prop_pair->value.c_str(), univ);
-    edges[index].src_id = src_id; 
-    edges[index].dst_id.first = dst_id;
-    edges[index].dst_id.second = univ;
+    if (0 == del) {
+        univ_t univ;
+        encoder->encode(prop_pair->value.c_str(), univ);
+        edges[index].src_id = src_id; 
+        edges[index].dst_id.first = dst_id;
+        edges[index].dst_id.second = univ;
+    } else {
+        edges[index].src_id = DEL_SID(src_id);
+        edges[index].dst_id.first = dst_id; 
+    }
 
 
     return eOK;
 }
 
+/*
 lite_sgraph_t** p_pgraph_t::prep_sgraph(sflag_t ori_flag, lite_sgraph_t** sgraph)
 {
     tid_t   pos = 0;//it is tid
@@ -103,8 +108,11 @@ void p_pgraph_t::calc_edge_count(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgr
             vert1_id = TO_VID(src);
             vert2_id = TO_VID(dst);
             
-            sgraph_out[src_index]->increment_count(vert1_id);
-            sgraph_in[dst_index]->increment_count(vert2_id);
+            if (!IS_DEL(src)) { 
+                sgraph_out[src_index]->increment_count(vert1_id);
+                sgraph_in[dst_index]->increment_count(vert2_id);
+            } else { 
+            }
         }
     }
 }
@@ -125,7 +133,10 @@ void p_pgraph_t::calc_edge_count_out(lite_sgraph_t** sgraph_out)
             src = edges[i].src_id;
             src_index = TO_TID(src);
             vert1_id = TO_VID(src);
-            sgraph_out[src_index]->increment_count(vert1_id);
+            if (!IS_DEL(src)) {
+                sgraph_out[src_index]->increment_count(vert1_id);
+            } else {
+            }
         }
     }
 }
@@ -150,6 +161,7 @@ void p_pgraph_t::calc_edge_count_in(lite_sgraph_t** sgraph_in)
     }
 }
 
+
 //prefix sum, allocate adj list memory then reset the count
 void p_pgraph_t::prep_sgraph_internal(lite_sgraph_t** sgraph)
 {
@@ -160,7 +172,7 @@ void p_pgraph_t::prep_sgraph_internal(lite_sgraph_t** sgraph)
         sgraph[i]->setup_adjlist();
     }
 }
-
+*/
 void p_pgraph_t::fill_adj_list(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgraph_in)
 {
     sid_t     src, dst;
@@ -252,6 +264,7 @@ void p_pgraph_t::fill_adj_list_out(lite_sgraph_t** sgraph_out, lite_skv_t** skv_
     }
 }
 
+/*
 void p_pgraph_t::update_count(lite_sgraph_t** sgraph)
 {
     vid_t       v_count = 0;
@@ -265,7 +278,6 @@ void p_pgraph_t::update_count(lite_sgraph_t** sgraph)
         }
     }
 }
-
 void p_pgraph_t::store_sgraph(lite_sgraph_t** sgraph, string dir, string postfix)
 {
     if (sgraph == 0) return;
@@ -326,8 +338,10 @@ void p_pgraph_t::read_sgraph(lite_sgraph_t** sgraph, string dir, string postfix)
         sgraph[i]->read_etable(etfile);
     }
 }
+*/
 
 /******************** super kv *************************/
+/*
 void p_pgraph_t::read_skv(lite_skv_t** skv, string dir, string postfix)
 {
     if (skv == 0) return;
@@ -399,7 +413,7 @@ lite_skv_t** p_pgraph_t::prep_skv(sflag_t ori_flag, lite_skv_t** skv)
     }
     return skv;
 }
-
+*/
 void p_pgraph_t::fill_skv(lite_skv_t** skv_out, lite_skv_t** skv_in)
 {
     sid_t     src, dst;
@@ -452,7 +466,7 @@ void p_dgraph_t::make_graph_baseline()
     prep_sgraph(flag2, sgraph_in);
 
     //estimate edge count
-    calc_edge_count(sgraph_out, sgraph_in);
+    calc_edge_count<lite_edge_t>(sgraph_out, sgraph_in);
     
     
     //prefix sum then reset the count
@@ -514,7 +528,7 @@ void p_ugraph_t::make_graph_baseline()
     prep_sgraph(flag1, sgraph);    
 
     //estimate edge count
-    calc_edge_count(sgraph, sgraph);
+    calc_edge_count<lite_edge_t>(sgraph, sgraph);
     
     //prefix sum then reset the count
     //Take symmetry into consideration

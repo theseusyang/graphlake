@@ -22,13 +22,16 @@ typedef uint32_t pos_t; //adj list position, how long an adj list can be
 
 #define VBIT 40
 #define VMASK 0xffffffffff
-#define THIGH_MASK 0xFFFFFF0000000000
+#define THIGH_MASK 0x7FFFFF0000000000
+#define DEL_MASK   0x8000000000000000
 
 
-#define TO_TID(sid) (sid >> VBIT)
+#define TO_TID(sid) ((sid & THIGH_MASK) >> VBIT)
 #define TO_VID(sid)  (sid & VMASK)
 #define TO_SUPER(tid) (((sid_t)(tid)) << VBIT)
 #define TO_THIGH(sid) (sid & THIGH_MASK)
+#define DEL_SID(sid) (sid | DEL_MASK)
+#define IS_DEL(sid) (sid & DEL_MASK)
 
 #define TID_TO_SFLAG(tid) (1L << tid)
 #define WORD_COUNT(count) ((count + 63) >> 6)

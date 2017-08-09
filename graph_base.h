@@ -87,9 +87,9 @@ public:
         }
     }*/
 
-    inline void add_nebr(vid_t index, sid_t sid) { 
-        add_nebr1(adj_list, index, sid);
-        //adj_list[index] = sid; 
+    inline void add_nebr(vid_t index, T sid) { 
+        //add_nebr1(adj_list, index, sid);
+        adj_list[index] = sid; 
     }
 
     inline void add_nebr_lite(vid_t index, sid_t sid, univ_t value) {

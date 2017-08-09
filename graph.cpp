@@ -304,7 +304,7 @@ status_t cfinfo_t::batch_update(const string& src, const string& dst, propid_t p
 }
     
 status_t cfinfo_t::batch_update(const string& src, const string& dst, propid_t pid, 
-                          propid_t count, prop_pair_t* prop_pair)
+                          propid_t count, prop_pair_t* prop_pair, int del /* = 0 */)
 {
     //cout << "ignoring edge properties" << endl;
     batch_update(src, dst, pid);
