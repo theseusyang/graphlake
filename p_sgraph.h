@@ -15,7 +15,6 @@ class p_pgraph_t : public cfinfo_t {
                           propid_t count, prop_pair_t* prop_pair);
     //status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     
-    void add_columnfamily(cfinfo_t* cf);
     void add_edge_property(const char* longname, prop_encoder_t* prop_encoder);
  
  public:
@@ -48,9 +47,6 @@ class p_pgraph_t : public cfinfo_t {
     status_t extend_adjlist_td(lite_sgraph_t** skv, srset_t* iset, srset_t* oset);
     status_t extend_kv_td(lite_skv_t** skv, srset_t* iset, srset_t* oset);
 
-    void make_edge_properties();
-    void store_edge_properties(const string& odir);
-    void read_edge_properties(const string& odir);
 };
 
 class p_ugraph_t: public p_pgraph_t {

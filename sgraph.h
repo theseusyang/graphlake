@@ -40,9 +40,6 @@ class pgraph_t: public cfinfo_t {
     status_t extend_adjlist_td(sgraph_t** skv, srset_t* iset, srset_t* oset);
     status_t extend_kv_td(skv_t** skv, srset_t* iset, srset_t* oset);
 
-    //void calc_deletededge_count(sgraph_t** sgraph_out, sgraph_t** sgraph_in); 
-    void calc_deletededge_count_out(sgraph_t** sgraph_out);
-    void calc_deletededge_count_in(sgraph_t** sgraph_in);
 };
 
 class ugraph_t: public pgraph_t {
