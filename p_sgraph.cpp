@@ -68,111 +68,6 @@ status_t p_pgraph_t::batch_update(const string& src, const string& dst, propid_t
     return eOK;
 }
 
-/*
-lite_sgraph_t** p_pgraph_t::prep_sgraph(sflag_t ori_flag, lite_sgraph_t** sgraph)
-{
-    tid_t   pos = 0;//it is tid
-    
-    sflag_t      flag = ori_flag;
-    tid_t  flag_count = __builtin_popcountll(flag);
-    
-    for(tid_t i = 0; i < flag_count; i++) {
-        pos = __builtin_ctzll(flag);
-        flag ^= (1L << pos);//reset that position
-        if (0 == sgraph[pos]) {
-            sgraph[pos] = new lite_sgraph_t;
-        }
-        sgraph[pos]->setup(pos);
-    }
-    return sgraph;
-}
-
-//estimate edge count
-void p_pgraph_t::calc_edge_count(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgraph_in) 
-{
-    sid_t     src, dst;
-    vid_t     vert1_id, vert2_id;
-    tid_t     src_index, dst_index;
-    ledge_t*   edges;
-    index_t   count;
-    
-    for (int j = 0; j <= batch_count; ++j) { 
-        edges = (ledge_t*)batch_info[j].buf;
-        count = batch_info[j].count;
-        for (index_t i = 0; i < count; ++i) {
-            src = edges[i].src_id;
-            dst = get_sid(edges[i].dst_id);
-            
-            src_index = TO_TID(src);
-            dst_index = TO_TID(dst);
-            vert1_id = TO_VID(src);
-            vert2_id = TO_VID(dst);
-            
-            if (!IS_DEL(src)) { 
-                sgraph_out[src_index]->increment_count(vert1_id);
-                sgraph_in[dst_index]->increment_count(vert2_id);
-            } else { 
-            }
-        }
-    }
-}
-
-//estimate edge count
-void p_pgraph_t::calc_edge_count_out(lite_sgraph_t** sgraph_out)
-{
-    sid_t     src;
-    vid_t     vert1_id;
-    tid_t     src_index;
-    ledge_t*   edges;
-    index_t   count;
-
-    for (int j = 0; j <= batch_count; ++j) { 
-        edges = (ledge_t*)batch_info[j].buf;
-        count = batch_info[j].count;
-        for (index_t i = 0; i < count; ++i) {
-            src = edges[i].src_id;
-            src_index = TO_TID(src);
-            vert1_id = TO_VID(src);
-            if (!IS_DEL(src)) {
-                sgraph_out[src_index]->increment_count(vert1_id);
-            } else {
-            }
-        }
-    }
-}
-//estimate edge count
-void p_pgraph_t::calc_edge_count_in(lite_sgraph_t** sgraph_in)
-{
-    sid_t     dst;
-    vid_t     vert2_id;
-    tid_t     dst_index;
-    ledge_t*  edges;
-    index_t   count;
-    
-    for (int j = 0; j <= batch_count; ++j) { 
-        edges = (ledge_t*)batch_info[j].buf;
-        count = batch_info[j].count;
-        for (index_t i = 0; i < count; ++i) {
-            dst = get_sid(edges[i].dst_id);
-            dst_index = TO_TID(dst);
-            vert2_id = TO_VID(dst);
-            sgraph_in[dst_index]->increment_count(vert2_id);
-        }
-    }
-}
-
-
-//prefix sum, allocate adj list memory then reset the count
-void p_pgraph_t::prep_sgraph_internal(lite_sgraph_t** sgraph)
-{
-    tid_t       t_count = g->get_total_types();
-    
-    for(tid_t i = 0; i < t_count; i++) {
-        if (0 == sgraph[i]) continue;
-        sgraph[i]->setup_adjlist();
-    }
-}
-*/
 void p_pgraph_t::fill_adj_list(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgraph_in)
 {
     sid_t     src, dst;
@@ -195,8 +90,13 @@ void p_pgraph_t::fill_adj_list(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgrap
             vert1_id = TO_VID(src);
             vert2_id = TO_VID(dst);
             
-            sgraph_out[src_index]->add_nebr_lite(vert1_id, dst, univ);
-            sgraph_in[dst_index]->add_nebr_lite(vert2_id, src, univ);
+            if (!IS_DEL(src)) {
+                sgraph_out[src_index]->add_nebr_lite(vert1_id, dst, univ);
+                sgraph_in[dst_index]->add_nebr_lite(vert2_id, src, univ);
+            } else {
+                sgraph_out[src_index]->del_nebr_lite(vert1_id, dst, univ);
+                sgraph_in[dst_index]->del_nebr_lite(vert2_id, TO_SID(src), univ);
+            }
         }
     }
 }
@@ -220,14 +120,19 @@ void p_pgraph_t::fill_adj_list_in(lite_skv_t** skv_out, lite_sgraph_t** sgraph_i
             univ = edges[i].dst_id.second;
             src_index = TO_TID(src);
             dst_index = TO_TID(dst);
-            
             vert1_id = TO_VID(src);
+            vert2_id = TO_VID(dst);
+            
             lite_edge.first = dst;
             lite_edge.second = univ; 
-            skv_out[src_index]->set_value(vert1_id, lite_edge);
             
-            vert2_id = TO_VID(dst);
-            sgraph_in[dst_index]->add_nebr_lite(vert2_id, src, univ);
+            if (!IS_DEL(src)) {
+                skv_out[src_index]->set_value(vert1_id, lite_edge);
+                sgraph_in[dst_index]->add_nebr_lite(vert2_id, src, univ);
+            } else {
+                skv_out[src_index]->del_value(vert1_id, lite_edge);
+                sgraph_in[dst_index]->del_nebr_lite(vert2_id, TO_SID(src), univ);
+            }
         }
     }
 }
@@ -254,12 +159,17 @@ void p_pgraph_t::fill_adj_list_out(lite_sgraph_t** sgraph_out, lite_skv_t** skv_
             dst_index = TO_TID(dst);
             
             vert1_id = TO_VID(src);
-            sgraph_out[src_index]->add_nebr_lite(vert1_id, dst, univ);
-            
+            vert2_id = TO_VID(dst);
             lite_edge.first = src;
             lite_edge.second = univ;
-            vert2_id = TO_VID(dst);
-            skv_in[dst_index]->set_value(vert2_id, lite_edge); 
+           
+            if (!IS_DEL(src)) {
+                sgraph_out[src_index]->add_nebr_lite(vert1_id, dst, univ);
+                skv_in[dst_index]->set_value(vert2_id, lite_edge);
+            } else {
+                sgraph_out[src_index]->del_nebr_lite(vert1_id, dst, univ);
+                skv_in[dst_index]->del_value_lite(vert2_id, TO_SID(src), univ);
+            }
         }
     }
 }
@@ -736,6 +646,112 @@ void p_one2one_t::read_graph_baseline(const string& dir)
     }
     read_skv(skv_in, dir, postfix);
 }
+
+/*
+lite_sgraph_t** p_pgraph_t::prep_sgraph(sflag_t ori_flag, lite_sgraph_t** sgraph)
+{
+    tid_t   pos = 0;//it is tid
+    
+    sflag_t      flag = ori_flag;
+    tid_t  flag_count = __builtin_popcountll(flag);
+    
+    for(tid_t i = 0; i < flag_count; i++) {
+        pos = __builtin_ctzll(flag);
+        flag ^= (1L << pos);//reset that position
+        if (0 == sgraph[pos]) {
+            sgraph[pos] = new lite_sgraph_t;
+        }
+        sgraph[pos]->setup(pos);
+    }
+    return sgraph;
+}
+
+//estimate edge count
+void p_pgraph_t::calc_edge_count(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgraph_in) 
+{
+    sid_t     src, dst;
+    vid_t     vert1_id, vert2_id;
+    tid_t     src_index, dst_index;
+    ledge_t*   edges;
+    index_t   count;
+    
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (ledge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+        for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
+            dst = get_sid(edges[i].dst_id);
+            
+            src_index = TO_TID(src);
+            dst_index = TO_TID(dst);
+            vert1_id = TO_VID(src);
+            vert2_id = TO_VID(dst);
+            
+            if (!IS_DEL(src)) { 
+                sgraph_out[src_index]->increment_count(vert1_id);
+                sgraph_in[dst_index]->increment_count(vert2_id);
+            } else { 
+            }
+        }
+    }
+}
+
+//estimate edge count
+void p_pgraph_t::calc_edge_count_out(lite_sgraph_t** sgraph_out)
+{
+    sid_t     src;
+    vid_t     vert1_id;
+    tid_t     src_index;
+    ledge_t*   edges;
+    index_t   count;
+
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (ledge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+        for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
+            src_index = TO_TID(src);
+            vert1_id = TO_VID(src);
+            if (!IS_DEL(src)) {
+                sgraph_out[src_index]->increment_count(vert1_id);
+            } else {
+            }
+        }
+    }
+}
+//estimate edge count
+void p_pgraph_t::calc_edge_count_in(lite_sgraph_t** sgraph_in)
+{
+    sid_t     dst;
+    vid_t     vert2_id;
+    tid_t     dst_index;
+    ledge_t*  edges;
+    index_t   count;
+    
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (ledge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+        for (index_t i = 0; i < count; ++i) {
+            dst = get_sid(edges[i].dst_id);
+            dst_index = TO_TID(dst);
+            vert2_id = TO_VID(dst);
+            sgraph_in[dst_index]->increment_count(vert2_id);
+        }
+    }
+}
+
+
+//prefix sum, allocate adj list memory then reset the count
+void p_pgraph_t::prep_sgraph_internal(lite_sgraph_t** sgraph)
+{
+    tid_t       t_count = g->get_total_types();
+    
+    for(tid_t i = 0; i < t_count; i++) {
+        if (0 == sgraph[i]) continue;
+        sgraph[i]->setup_adjlist();
+    }
+}
+*/
 
 /////////// QUERIES ///////////////////////////
 /*

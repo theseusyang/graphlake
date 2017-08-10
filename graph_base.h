@@ -177,15 +177,27 @@ public:
     void setup_adjlist();
 
     inline void increment_count(vid_t vid) { ++nebr_count[vid]; }
+    inline void decrement_count(vid_t vid) { ++nebr_count[vid]; }
+    
     inline void add_nebr(vid_t vid, sid_t sid) { 
         ++nebr_count[vid];
         beg_pos[vid].add_nebr(nebr_count[vid], sid);
     }
+    inline void del_nebr(vid_t vid, sid_t sid) { 
+        ++nebr_count[vid];
+        beg_pos[vid].add_nebr(nebr_count[vid], sid);
+    }
+    
     inline void add_nebr_lite(vid_t vid, sid_t sid, univ_t value) { 
         ++nebr_count[vid];
         beg_pos[vid].add_nebr_lite(nebr_count[vid], sid, value);
     }
-
+    
+    inline void del_nebr_lite(vid_t vid, sid_t sid, univ_t value) { 
+        ++nebr_count[vid];
+        beg_pos[vid].add_nebr_lite(nebr_count[vid], sid, value);
+    }
+    
     inline void update_count(vid_t vid) {
         beg_pos[vid].set_nebrcount(nebr_count[vid]);
     }
@@ -271,7 +283,24 @@ class onekv_t {
         ++dvt_count;
     }
     
+    inline void del_value(vid_t vert1_id, T dst) {
+        //set_value1(kv, vert1_id, dst);
+        kv[vert1_id] = dst;
+        dvt[dvt_count].vid = vert1_id;
+        dvt[dvt_count].dst = dst; 
+        ++dvt_count;
+    }
+    
     inline void set_value_lite(vid_t vert1_id, sid_t dst, univ_t value) {
+        kv[vert1_id].first = dst;
+        kv[vert1_id].second = value;
+        dvt[dvt_count].vid = vert1_id;
+        dvt[dvt_count].dst.first = dst;
+        dvt[dvt_count].dst.second = value;
+        ++dvt_count;
+    }
+    
+    inline void del_value_lite(vid_t vert1_id, sid_t dst, univ_t value) {
         kv[vert1_id].first = dst;
         kv[vert1_id].second = value;
         dvt[dvt_count].vid = vert1_id;

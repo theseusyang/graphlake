@@ -165,9 +165,14 @@ void pgraph_t::fill_adj_list(sgraph_t** sgraph_out, sgraph_t** sgraph_in)
             dst_index = TO_TID(dst);
             vert1_id = TO_VID(src);
             vert2_id = TO_VID(dst);
-            
-            sgraph_out[src_index]->add_nebr(vert1_id, dst);
-            sgraph_in[dst_index]->add_nebr(vert2_id, src);
+           
+            if (!IS_DEL(src)) { 
+                sgraph_out[src_index]->add_nebr(vert1_id, dst);
+                sgraph_in[dst_index]->add_nebr(vert2_id, src);
+            } else {
+                sgraph_out[src_index]->del_nebr(vert1_id, dst);
+                sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
+            }
         }
     }
 }
@@ -190,10 +195,16 @@ void pgraph_t::fill_adj_list_in(skv_t** skv_out, sgraph_t** sgraph_in)
             dst_index = TO_TID(dst);
             
             vert1_id = TO_VID(src);
-            skv_out[src_index]->set_value(vert1_id, dst);
-            
             vert2_id = TO_VID(dst);
-            sgraph_in[dst_index]->add_nebr(vert2_id, src);
+            
+            if (!IS_DEL(src)) { 
+                skv_out[src_index]->set_value(vert1_id, dst);
+                sgraph_in[dst_index]->add_nebr(vert2_id, src);
+            } else {
+            
+                skv_out[src_index]->del_value(vert1_id, dst);
+                sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
+            }
         }
     }
 }
@@ -216,10 +227,14 @@ void pgraph_t::fill_adj_list_out(sgraph_t** sgraph_out, skv_t** skv_in)
             dst_index = TO_TID(dst);
             
             vert1_id = TO_VID(src);
-            sgraph_out[src_index]->add_nebr(vert1_id, dst);
-            
             vert2_id = TO_VID(dst);
-            skv_in[dst_index]->set_value(vert2_id, src); 
+            if (!IS_DEL(src)) {
+                sgraph_out[src_index]->add_nebr(vert1_id, dst);
+                skv_in[dst_index]->set_value(vert2_id, src); 
+            } else {
+                sgraph_out[src_index]->del_nebr(vert1_id, dst);
+                skv_in[dst_index]->del_value(vert2_id, TO_SID(src));
+            }
         }
     }
 }

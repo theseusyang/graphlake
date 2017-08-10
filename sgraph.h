@@ -403,6 +403,8 @@ void pgraph_t::calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgrap
                 sgraph_out[src_index]->increment_count(vert1_id);
                 sgraph_in[dst_index]->increment_count(vert2_id);
             } else { 
+                sgraph_out[src_index]->decrement_count(vert1_id);
+                sgraph_in[dst_index]->decrement_count(vert2_id);
             }
         }
     }
@@ -428,6 +430,7 @@ void pgraph_t::calc_edge_count_out(onegraph_t<T>** sgraph_out)
             if (!IS_DEL(src)) {
                 sgraph_out[src_index]->increment_count(vert1_id);
             } else {
+                sgraph_out[src_index]->decrement_count(vert1_id);
             }
         }
     }
@@ -436,7 +439,7 @@ void pgraph_t::calc_edge_count_out(onegraph_t<T>** sgraph_out)
 template <class T>
 void pgraph_t::calc_edge_count_in(onegraph_t<T>** sgraph_in)
 {
-    sid_t     dst;
+    sid_t     src, dst;
     vid_t     vert2_id;
     tid_t     dst_index;
     edgeT_t<T>*  edges;
@@ -446,10 +449,15 @@ void pgraph_t::calc_edge_count_in(onegraph_t<T>** sgraph_in)
         edges = (edgeT_t<T>*)batch_info[j].buf;
         count = batch_info[j].count;
         for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
             dst = get_sid(edges[i].dst_id);
             dst_index = TO_TID(dst);
             vert2_id = TO_VID(dst);
-            sgraph_in[dst_index]->increment_count(vert2_id);
+            if (!IS_DEL(src)) {//XXX
+                sgraph_in[dst_index]->increment_count(vert2_id);
+            } else {
+                sgraph_in[dst_index]->decrement_count(vert2_id);
+            }
         }
     }
 }
