@@ -27,14 +27,14 @@ class p_pgraph_t : public pgraph_t {
     void fill_adj_list_out(lite_sgraph_t** sgraph_out, lite_skv_t** skv_in); 
     void fill_skv(lite_skv_t** skv_out, lite_skv_t** skv_in);
 
-    status_t query_adjlist_td(lite_sgraph_t** sgraph, srset_t* iset, srset_t* oset);
+    /*status_t query_adjlist_td(lite_sgraph_t** sgraph, srset_t* iset, srset_t* oset);
     status_t query_kv_td(lite_skv_t** skv, srset_t* iset, srset_t* oset);
     status_t query_adjlist_bu(lite_sgraph_t** sgraph, srset_t* iset, srset_t* oset);
     status_t query_kv_bu(lite_skv_t** skv, srset_t* iset, srset_t* oset);
   
     status_t extend_adjlist_td(lite_sgraph_t** skv, srset_t* iset, srset_t* oset);
     status_t extend_kv_td(lite_skv_t** skv, srset_t* iset, srset_t* oset);
-
+    */
 };
 
 class p_ugraph_t: public p_pgraph_t {

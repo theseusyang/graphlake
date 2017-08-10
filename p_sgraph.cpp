@@ -738,6 +738,7 @@ void p_one2one_t::read_graph_baseline(const string& dir)
 }
 
 /////////// QUERIES ///////////////////////////
+/*
 status_t p_pgraph_t::query_adjlist_td(lite_sgraph_t** sgraph, srset_t* iset, srset_t* oset)
 {
     tid_t    iset_count = iset->get_rset_count();
@@ -770,7 +771,6 @@ status_t p_pgraph_t::query_adjlist_td(lite_sgraph_t** sgraph, srset_t* iset, srs
     }
     return eOK;
 }
-
 status_t p_pgraph_t::query_kv_td(lite_skv_t** skv, srset_t* iset, srset_t* oset)
 {
     tid_t    iset_count = iset->get_rset_count();
@@ -854,6 +854,7 @@ status_t p_pgraph_t::query_kv_bu(lite_skv_t** skv, srset_t* iset, srset_t* oset)
     }
     return eOK;
 }
+
 //////extend functions ------------------------
 status_t 
 p_pgraph_t::extend_adjlist_td(lite_sgraph_t** sgraph, srset_t* iset, srset_t* oset)
@@ -912,7 +913,7 @@ p_pgraph_t::extend_kv_td(lite_skv_t** skv, srset_t* iset, srset_t* oset)
     }
     return eOK;
 }
-
+*/
 cfinfo_t* p_ugraph_t::create_instance()
 {
     return new p_ugraph_t;
