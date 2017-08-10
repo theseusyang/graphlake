@@ -238,6 +238,38 @@ void pgraph_t::fill_adj_list_out(sgraph_t** sgraph_out, skv_t** skv_in)
         }
     }
 }
+
+void pgraph_t::fill_skv(skv_t** skv_out, skv_t** skv_in)
+{
+    sid_t src, dst;
+    vid_t     vert1_id, vert2_id;
+    tid_t     src_index, dst_index;
+    edge_t*   edges;
+    index_t   count;
+    
+    for (int j = 0; j <= batch_count; ++j) {
+        edges = (edge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+    
+        for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
+            dst = edges[i].dst_id;
+            src_index = TO_TID(src);
+            dst_index = TO_TID(dst);
+            
+            vert1_id = TO_VID(src);
+            vert2_id = TO_VID(dst);
+            
+            if (!IS_DEL(src)) {
+                skv_out[src_index]->set_value(vert1_id, dst); 
+                skv_in[dst_index]->set_value(vert2_id, src); 
+            } else {
+                skv_out[src_index]->del_value(vert1_id, dst); 
+                skv_in[dst_index]->del_value(vert2_id, TO_SID(src)); 
+            }
+        }
+    }
+}
 /*
 void pgraph_t::update_count(sgraph_t** sgraph)
 {
@@ -388,32 +420,6 @@ skv_t** pgraph_t::prep_skv(sflag_t ori_flag, skv_t** skv)
     return skv;
 }
 */
-void pgraph_t::fill_skv(skv_t** skv_out, skv_t** skv_in)
-{
-    sid_t src, dst;
-    vid_t     vert1_id, vert2_id;
-    tid_t     src_index, dst_index;
-    edge_t*   edges;
-    index_t   count;
-    
-    for (int j = 0; j <= batch_count; ++j) {
-        edges = (edge_t*)batch_info[j].buf;
-        count = batch_info[j].count;
-    
-        for (index_t i = 0; i < count; ++i) {
-            src = edges[i].src_id;
-            dst = edges[i].dst_id;
-            src_index = TO_TID(src);
-            dst_index = TO_TID(dst);
-            
-            vert1_id = TO_VID(src);
-            skv_out[src_index]->set_value(vert1_id, dst); 
-            
-            vert2_id = TO_VID(dst);
-            skv_in[dst_index]->set_value(vert2_id, src); 
-        }
-    }
-}
 
 /************* Semantic graphs  *****************/
 

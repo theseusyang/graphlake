@@ -174,6 +174,40 @@ void p_pgraph_t::fill_adj_list_out(lite_sgraph_t** sgraph_out, lite_skv_t** skv_
     }
 }
 
+void p_pgraph_t::fill_skv(lite_skv_t** skv_out, lite_skv_t** skv_in)
+{
+    sid_t     src, dst;
+    vid_t     vert1_id, vert2_id;
+    tid_t     src_index, dst_index;
+    ledge_t*  edges;
+    index_t   count;
+    univ_t    univ;
+    
+    for (int j = 0; j <= batch_count; ++j) {
+        edges = (ledge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+    
+        for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
+            dst = get_sid(edges[i].dst_id);
+            univ = edges[i].dst_id.second;
+            src_index = TO_TID(src);
+            dst_index = TO_TID(dst);
+            
+            vert1_id = TO_VID(src);
+            vert2_id = TO_VID(dst);
+            
+            if (!IS_DEL(src)) {
+                skv_out[src_index]->set_value_lite(vert1_id, dst, univ); 
+                skv_in[dst_index]->set_value_lite(vert2_id, src, univ);
+            } else {
+                skv_out[src_index]->del_value_lite(vert1_id, dst, univ); 
+                skv_in[dst_index]->del_value_lite(vert2_id, TO_SID(src), univ);
+            }
+        }
+    }
+}
+
 /*
 void p_pgraph_t::update_count(lite_sgraph_t** sgraph)
 {
@@ -324,34 +358,6 @@ lite_skv_t** p_pgraph_t::prep_skv(sflag_t ori_flag, lite_skv_t** skv)
     return skv;
 }
 */
-void p_pgraph_t::fill_skv(lite_skv_t** skv_out, lite_skv_t** skv_in)
-{
-    sid_t     src, dst;
-    vid_t     vert1_id, vert2_id;
-    tid_t     src_index, dst_index;
-    ledge_t*  edges;
-    index_t   count;
-    univ_t    univ;
-    
-    for (int j = 0; j <= batch_count; ++j) {
-        edges = (ledge_t*)batch_info[j].buf;
-        count = batch_info[j].count;
-    
-        for (index_t i = 0; i < count; ++i) {
-            src = edges[i].src_id;
-            dst = get_sid(edges[i].dst_id);
-            univ = edges[i].dst_id.second;
-            src_index = TO_TID(src);
-            dst_index = TO_TID(dst);
-            
-            vert1_id = TO_VID(src);
-            skv_out[src_index]->set_value_lite(vert1_id, dst, univ); 
-            
-            vert2_id = TO_VID(dst);
-            skv_in[dst_index]->set_value_lite(vert2_id, src, univ); 
-        }
-    }
-}
 
 /************* Semantic graphs  *****************/
 
