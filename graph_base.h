@@ -72,20 +72,10 @@ public:
     //nebr list of one vertex. First member is a spl member
     //count, flag for snapshot, XXX: smart pointer count
     T*   adj_list;
+    snapT_t<T>*   snap_blob;
  
  public:
-    inline vert_table_t() { adj_list = 0; }
-
-    /*
-    inline void setup(vid_t a_count) {
-        vid_t count = a_count;
-        if (adj_list) {
-            //count += adj_list[0];
-            adj_list = (T*) realloc(adj_list, sizeof(T)*(count+1));
-        } else {
-            adj_list = (T*) calloc(sizeof(T), count+1);
-        }
-    }*/
+    inline vert_table_t() { adj_list = 0; snap_blob = 0;}
 
     inline void add_nebr(vid_t index, T sid) { 
         //add_nebr1(adj_list, index, sid);
@@ -94,7 +84,6 @@ public:
 
     inline void add_nebr_lite(vid_t index, sid_t sid, univ_t value) {
         add_nebr2(adj_list, index, sid, value);
-        
     }
 
     inline void set_nebrcount(vid_t count) {
@@ -109,6 +98,7 @@ public:
     
     inline T* get_adjlist() { return adj_list; }
     inline void set_adjlist(T* adj_list1) { adj_list =  adj_list1;}
+    
     
     inline void copy(vert_table_t<T>* beg_pos) {
         adj_list = beg_pos->adj_list;
@@ -145,7 +135,7 @@ private:
 
     FILE*    vtf;   //vertex table file
     FILE*    etf;   //edge table file
-
+    FILE*    stf;   //snapshot table file
 public:
     inline onegraph_t() {
         super_id = 0;
@@ -171,6 +161,7 @@ public:
         }
         vtf = 0;
         etf = 0;
+        stf = 0;
     }
     
     void setup(tid_t tid);
@@ -221,6 +212,55 @@ typedef vert_table_t<lite_edge_t> lite_vtable_t;
 
 typedef onegraph_t<sid_t> sgraph_t;
 typedef onegraph_t<lite_edge_t>lite_sgraph_t;
+
+
+
+/*
+class lite_skv_t {
+ private:
+    sid_t  super_id;
+    vid_t  max_vcount;
+    lite_edge_t* kv;
+
+    disk_kvlite_t* dvt;
+    vid_t dvt_count;
+    vid_t dvt_max_count;
+
+    FILE* vtf;
+
+ public:
+    inline lite_skv_t() {
+        super_id = 0;
+        max_vcount = 0;
+        kv = 0;
+        
+        dvt_count = 0;
+        dvt_max_count = (1L << 20);
+        if (posix_memalign((void**) &dvt, 2097152, 
+                           dvt_max_count*sizeof(disk_kvlite_t*))) {
+            perror("posix memalign vertex log");    
+        }
+        vtf = 0;
+    }
+
+    void setup(tid_t tid);
+
+    inline lite_edge_t* get_kv() { return kv; }
+    inline tid_t get_tid() { return TO_TID(super_id);}
+    inline vid_t get_vcount() { return TO_VID(super_id); }
+    
+    inline void set_value_lite(vid_t vert1_id, sid_t dst, univ_t value) {
+        kv[vert1_id].first = dst;
+        kv[vert1_id].second = value;
+        dvt[dvt_count].vid = vert1_id;
+        dvt[dvt_count].dst = dst;
+        dvt[dvt_count].univ = value;
+        ++dvt_count;
+    }
+    void persist_kvlog(const string& kvfile);
+    void read_kv(const string& kvfile); 
+};
+*/
 
 template <class T>
 class disk_kvT_t {
@@ -314,51 +354,4 @@ class onekv_t {
 };
 
 typedef onekv_t<sid_t> skv_t; 
-typedef onekv_t<lite_edge_t> lite_skv_t; 
-
-/*
-class lite_skv_t {
- private:
-    sid_t  super_id;
-    vid_t  max_vcount;
-    lite_edge_t* kv;
-
-    disk_kvlite_t* dvt;
-    vid_t dvt_count;
-    vid_t dvt_max_count;
-
-    FILE* vtf;
-
- public:
-    inline lite_skv_t() {
-        super_id = 0;
-        max_vcount = 0;
-        kv = 0;
-        
-        dvt_count = 0;
-        dvt_max_count = (1L << 20);
-        if (posix_memalign((void**) &dvt, 2097152, 
-                           dvt_max_count*sizeof(disk_kvlite_t*))) {
-            perror("posix memalign vertex log");    
-        }
-        vtf = 0;
-    }
-
-    void setup(tid_t tid);
-
-    inline lite_edge_t* get_kv() { return kv; }
-    inline tid_t get_tid() { return TO_TID(super_id);}
-    inline vid_t get_vcount() { return TO_VID(super_id); }
-    
-    inline void set_value_lite(vid_t vert1_id, sid_t dst, univ_t value) {
-        kv[vert1_id].first = dst;
-        kv[vert1_id].second = value;
-        dvt[dvt_count].vid = vert1_id;
-        dvt[dvt_count].dst = dst;
-        dvt[dvt_count].univ = value;
-        ++dvt_count;
-    }
-    void persist_kvlog(const string& kvfile);
-    void read_kv(const string& kvfile); 
-};
-*/
+typedef onekv_t<lite_edge_t> lite_skv_t;

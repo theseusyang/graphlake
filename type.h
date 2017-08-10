@@ -97,16 +97,6 @@ class lite_edge_t {
 typedef edgeT_t<sid_t> edge_t;
 typedef edgeT_t<lite_edge_t> ledge_t;
 
-
-/*
-class ledge_t {
- public:
-     sid_t src_id;
-     sid_t dst_id;
-     univ_t prop;
-};
-*/
-
 class pedge_t {
  public:
     propid_t pid;
@@ -128,6 +118,30 @@ struct prop_pair_t {
     string value;
 };
 
+typedef uint16_t snapid_t ;
+typedef uint16_t rdegree_t; //relative degree
+typedef uint16_t degree_t;
+
+template <class T>
+class delentry_t {
+ public:
+    degree_t pos;
+    T dst_id;
+};
+
+//This will be used as disk write structure as well
+template <class T>
+class  snapT_t {
+ public:
+    sid_t     next_ptr;//next snapshot of this vid 
+    vid_t     vid;
+    rdegree_t del_count;
+    snapid_t  snap_id;
+    degree_t  degree;
+
+    //del_count of these
+    delentry_t<T> del_entry;
+};
 
 typedef struct __econf_t {
     string filename;
