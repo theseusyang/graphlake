@@ -2,41 +2,54 @@
 
 #include "graph.h"
 
+template <class T>
 class pgraph_t: public cfinfo_t {
+    public:
+        union {
+            onekv_t<T>** skv_out;
+            onegraph_t<T>** sgraph_out;
+            onegraph_t<T>** sgraph; 
+        };
+        union {
+            onekv_t<T>** skv_in;
+            onegraph_t<T>** sgraph_in;
+        };
+        int ref_count;
+        int snapshot_id;
   
  public:    
-    pgraph_t();
+    inline pgraph_t() {};
  
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     
  
  public:
-    template <class T>
+    //template <class T>
     onegraph_t<T>** prep_sgraph(sflag_t ori_flag, onegraph_t<T>** a_sgraph);
-    template <class T>
+    //template <class T>
     onekv_t<T>** prep_skv(sflag_t ori_flag, onekv_t<T>** a_skv);
 
     //void calc_edge_count(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgraph_in); 
-    template <class T>
+    //template <class T>
     void calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in); 
-    template <class T>
+    //template <class T>
     void calc_edge_count_out(onegraph_t<T>** p_sgraph_out);
-    template <class T>
+    //template <class T>
     void calc_edge_count_in(onegraph_t<T>** sgraph_in);
     
-    template <class T>
+    //template <class T>
     void prep_sgraph_internal(onegraph_t<T>** sgraph);
-    template <class T>
+    //template <class T>
     void update_count(onegraph_t<T>** sgraph);
     
-    template <class T>
+    //template <class T>
     void store_sgraph(onegraph_t<T>** sgraph, string dir, string postfix);
-    template <class T>
+    //template <class T>
     void store_skv(onekv_t<T>** skv, string dir, string postfix);
     
-    template <class T>
+    //template <class T>
     void read_sgraph(onegraph_t<T>** sgraph, string dir, string postfix);
-    template <class T>
+    //template <class T>
     void read_skv(onekv_t<T>** skv, string dir, string postfix);
     /*
     sgraph_t** prep_sgraph(sflag_t ori_flag, sgraph_t** a_sgraph);
@@ -55,47 +68,46 @@ class pgraph_t: public cfinfo_t {
     void read_skv(skv_t** skv, string dir, string postfix);
     */
     
-    void fill_adj_list(sgraph_t** sgraph_out, sgraph_t** sgraph_in);
-    void fill_adj_list_in(skv_t** skv_out, sgraph_t** sgraph_in); 
-    void fill_adj_list_out(sgraph_t** sgraph_out, skv_t** skv_in); 
-    void fill_skv(skv_t** skv_out, skv_t** skv_in);
+    void fill_adj_list(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in);
+    void fill_adj_list_in(onekv_t<T>** skv_out, onegraph_t<T>** sgraph_in); 
+    void fill_adj_list_out(onegraph_t<T>** sgraph_out, onekv_t<T>** skv_in); 
+    void fill_skv(onekv_t<T>** skv_out, onekv_t<T>** skv_in);
     
-    template <class T>
+    //template <class T>
     status_t query_adjlist_td(onegraph_t<T>** sgraph, srset_t* iset, srset_t* oset);
-    template <class T>
+    //template <class T>
     status_t query_kv_td(onekv_t<T>** skv, srset_t* iset, srset_t* oset);
-    template <class T>
+    //template <class T>
     status_t query_adjlist_bu(onegraph_t<T>** sgraph, srset_t* iset, srset_t* oset);
-    template <class T>
+    //template <class T>
     status_t query_kv_bu(onekv_t<T>** skv, srset_t* iset, srset_t* oset);
     
-    template <class T> 
+    //template <class T> 
     status_t extend_adjlist_td(onegraph_t<T>** skv, srset_t* iset, srset_t* oset);
-    template <class T> 
+    //template <class T> 
     status_t extend_kv_td(onekv_t<T>** skv, srset_t* iset, srset_t* oset);
 
 };
 
-class ugraph_t: public pgraph_t {
+class ugraph_t: public pgraph_t<sid_t> {
  public:
-    sgraph_t** sgraph;
+    //sgraph_t** sgraph;
 
  public:
     static cfinfo_t* create_instance();
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
-    //status_t calc_deletededge_count(pedge_t* edge);
     
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
-class dgraph_t: public pgraph_t {
+class dgraph_t: public pgraph_t<sid_t> {
  public:
     //count is hidden in type count
-    sgraph_t** sgraph_out;
-    sgraph_t** sgraph_in; 
+    //sgraph_t** sgraph_out;
+    //sgraph_t** sgraph_in; 
  public:
     static cfinfo_t* create_instance();
     void make_graph_baseline();
@@ -106,25 +118,10 @@ class dgraph_t: public pgraph_t {
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
-class many2one_t: public pgraph_t {
+class many2one_t: public pgraph_t<sid_t> {
  public:
-    skv_t**     skv_out;
-    sgraph_t**  sgraph_in;
-
- public:
-    static cfinfo_t* create_instance();
-    void make_graph_baseline();
-    void store_graph_baseline(string dir);
-    void read_graph_baseline(const string& dir);
-    
-    status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
-};
-
-class one2one_t: public pgraph_t {
- public:
-    skv_t**   skv_in;
-    skv_t**   skv_out;
+    //skv_t**     skv_out;
+    //sgraph_t**  sgraph_in;
 
  public:
     static cfinfo_t* create_instance();
@@ -136,10 +133,25 @@ class one2one_t: public pgraph_t {
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
-class one2many_t: public pgraph_t {
+class one2one_t: public pgraph_t<sid_t> {
  public:
-    sgraph_t**   sgraph_out;
-    skv_t**      skv_in;
+    //skv_t**   skv_in;
+    //skv_t**   skv_out;
+
+ public:
+    static cfinfo_t* create_instance();
+    void make_graph_baseline();
+    void store_graph_baseline(string dir);
+    void read_graph_baseline(const string& dir);
+    
+    status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
+};
+
+class one2many_t: public pgraph_t<sid_t> {
+ public:
+    //sgraph_t**   sgraph_out;
+    //skv_t**      skv_in;
 
  public:
     static cfinfo_t* create_instance();
@@ -359,7 +371,7 @@ void onekv_t<T>::read_kv(const string& vtfile)
 /*****************************/
 
 template <class T>
-onegraph_t<T>** pgraph_t::prep_sgraph(sflag_t ori_flag, onegraph_t<T>** sgraph)
+onegraph_t<T>** pgraph_t<T>::prep_sgraph(sflag_t ori_flag, onegraph_t<T>** sgraph)
 {
     tid_t   pos = 0;//it is tid
     
@@ -379,7 +391,7 @@ onegraph_t<T>** pgraph_t::prep_sgraph(sflag_t ori_flag, onegraph_t<T>** sgraph)
 
 //estimate edge count
 template <class T>
-void pgraph_t::calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in) 
+void pgraph_t<T>::calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in) 
 {
     sid_t     src, dst;
     vid_t     vert1_id, vert2_id;
@@ -412,7 +424,7 @@ void pgraph_t::calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgrap
 
 //estimate edge count
 template <class T>
-void pgraph_t::calc_edge_count_out(onegraph_t<T>** sgraph_out)
+void pgraph_t<T>::calc_edge_count_out(onegraph_t<T>** sgraph_out)
 {
     sid_t     src;
     vid_t     vert1_id;
@@ -437,7 +449,7 @@ void pgraph_t::calc_edge_count_out(onegraph_t<T>** sgraph_out)
 }
 //estimate edge count
 template <class T>
-void pgraph_t::calc_edge_count_in(onegraph_t<T>** sgraph_in)
+void pgraph_t<T>::calc_edge_count_in(onegraph_t<T>** sgraph_in)
 {
     sid_t     src, dst;
     vid_t     vert2_id;
@@ -453,7 +465,7 @@ void pgraph_t::calc_edge_count_in(onegraph_t<T>** sgraph_in)
             dst = get_sid(edges[i].dst_id);
             dst_index = TO_TID(dst);
             vert2_id = TO_VID(dst);
-            if (!IS_DEL(src)) {//XXX
+            if (!IS_DEL(src)) {
                 sgraph_in[dst_index]->increment_count(vert2_id);
             } else {
                 sgraph_in[dst_index]->decrement_count(vert2_id);
@@ -464,7 +476,7 @@ void pgraph_t::calc_edge_count_in(onegraph_t<T>** sgraph_in)
 
 //prefix sum, allocate adj list memory then reset the count
 template <class T>
-void pgraph_t::prep_sgraph_internal(onegraph_t<T>** sgraph)
+void pgraph_t<T>::prep_sgraph_internal(onegraph_t<T>** sgraph)
 {
     tid_t       t_count = g->get_total_types();
     
@@ -475,7 +487,7 @@ void pgraph_t::prep_sgraph_internal(onegraph_t<T>** sgraph)
 }
 
 template <class T>
-void pgraph_t::update_count(onegraph_t<T>** sgraph)
+void pgraph_t<T>::update_count(onegraph_t<T>** sgraph)
 {
     vid_t       v_count = 0;
     tid_t       t_count = g->get_total_types();
@@ -490,7 +502,7 @@ void pgraph_t::update_count(onegraph_t<T>** sgraph)
 }
 
 template <class T>
-void pgraph_t::store_sgraph(onegraph_t<T>** sgraph, string dir, string postfix)
+void pgraph_t<T>::store_sgraph(onegraph_t<T>** sgraph, string dir, string postfix)
 {
     if (sgraph == 0) return;
     
@@ -519,7 +531,7 @@ void pgraph_t::store_sgraph(onegraph_t<T>** sgraph, string dir, string postfix)
 }
 
 template <class T>
-void pgraph_t::read_sgraph(onegraph_t<T>** sgraph, string dir, string postfix)
+void pgraph_t<T>::read_sgraph(onegraph_t<T>** sgraph, string dir, string postfix)
 {
     if (sgraph == 0) return;
     
@@ -553,7 +565,7 @@ void pgraph_t::read_sgraph(onegraph_t<T>** sgraph, string dir, string postfix)
 }
 /******************** super kv *************************/
 template <class T>
-void pgraph_t::read_skv(onekv_t<T>** skv, string dir, string postfix)
+void pgraph_t<T>::read_skv(onekv_t<T>** skv, string dir, string postfix)
 {
     if (skv == 0) return;
 
@@ -584,7 +596,7 @@ void pgraph_t::read_skv(onekv_t<T>** skv, string dir, string postfix)
 }
 
 template <class T>
-void pgraph_t::store_skv(onekv_t<T>** skv, string dir, string postfix)
+void pgraph_t<T>::store_skv(onekv_t<T>** skv, string dir, string postfix)
 {
     if (skv == 0) return;
 
@@ -610,7 +622,7 @@ void pgraph_t::store_skv(onekv_t<T>** skv, string dir, string postfix)
 
 //super bins memory allocation
 template <class T>
-onekv_t<T>** pgraph_t::prep_skv(sflag_t ori_flag, onekv_t<T>** skv)
+onekv_t<T>** pgraph_t<T>::prep_skv(sflag_t ori_flag, onekv_t<T>** skv)
 {
     tid_t   pos  = 0;
     sflag_t flag       = ori_flag;
@@ -628,7 +640,7 @@ onekv_t<T>** pgraph_t::prep_skv(sflag_t ori_flag, onekv_t<T>** skv)
 }
 
 template <class T>
-status_t pgraph_t::query_adjlist_td(onegraph_t<T>** sgraph, srset_t* iset, srset_t* oset)
+status_t pgraph_t<T>::query_adjlist_td(onegraph_t<T>** sgraph, srset_t* iset, srset_t* oset)
 {
     tid_t    iset_count = iset->get_rset_count();
     rset_t*        rset = 0;
@@ -662,7 +674,7 @@ status_t pgraph_t::query_adjlist_td(onegraph_t<T>** sgraph, srset_t* iset, srset
 }
 
 template <class T>
-status_t pgraph_t::query_kv_td(onekv_t<T>** skv, srset_t* iset, srset_t* oset)
+status_t pgraph_t<T>::query_kv_td(onekv_t<T>** skv, srset_t* iset, srset_t* oset)
 {
     tid_t    iset_count = iset->get_rset_count();
     rset_t*        rset = 0;
@@ -689,7 +701,7 @@ status_t pgraph_t::query_kv_td(onekv_t<T>** skv, srset_t* iset, srset_t* oset)
 
 //sgraph_in and oset share the same flag.
 template <class T>
-status_t pgraph_t::query_adjlist_bu(onegraph_t<T>** sgraph, srset_t* iset, srset_t* oset)
+status_t pgraph_t<T>::query_adjlist_bu(onegraph_t<T>** sgraph, srset_t* iset, srset_t* oset)
 {
     rset_t* rset = 0;
     tid_t   tid  = 0;
@@ -723,7 +735,7 @@ status_t pgraph_t::query_adjlist_bu(onegraph_t<T>** sgraph, srset_t* iset, srset
 }
 
 template <class T>
-status_t pgraph_t::query_kv_bu(onekv_t<T>** skv, srset_t* iset, srset_t* oset) 
+status_t pgraph_t<T>::query_kv_bu(onekv_t<T>** skv, srset_t* iset, srset_t* oset) 
 {
     rset_t*  rset = 0;
     tid_t    tid  = 0;
@@ -749,7 +761,7 @@ status_t pgraph_t::query_kv_bu(onekv_t<T>** skv, srset_t* iset, srset_t* oset)
 }
 
 template <class T> 
-status_t pgraph_t::extend_adjlist_td(onegraph_t<T>** sgraph, srset_t* iset, srset_t* oset)
+status_t pgraph_t<T>::extend_adjlist_td(onegraph_t<T>** sgraph, srset_t* iset, srset_t* oset)
 {
     tid_t    iset_count = iset->get_rset_count();
     rset_t*        rset = 0;
@@ -778,7 +790,7 @@ status_t pgraph_t::extend_adjlist_td(onegraph_t<T>** sgraph, srset_t* iset, srse
 }
 
 template <class T>
-status_t pgraph_t::extend_kv_td(onekv_t<T>** skv, srset_t* iset, srset_t* oset)
+status_t pgraph_t<T>::extend_kv_td(onekv_t<T>** skv, srset_t* iset, srset_t* oset)
 {
     tid_t    iset_count = iset->get_rset_count();
     rset_t*        rset = 0;
@@ -803,5 +815,178 @@ status_t pgraph_t::extend_kv_td(onekv_t<T>** skv, srset_t* iset, srset_t* oset)
             rset2->add_kv(v, get_nebr(graph, varray[v]));
         }
     }
+    return eOK;
+}
+
+template <class T>
+void pgraph_t<T>::fill_adj_list(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in)
+{
+    sid_t     src, dst;
+    vid_t     vert1_id, vert2_id;
+    tid_t     src_index, dst_index;
+    
+    edge_t*   edges;
+    index_t   count;
+
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (edge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+        for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
+            dst = edges[i].dst_id;
+            src_index = TO_TID(src);
+            dst_index = TO_TID(dst);
+            vert1_id = TO_VID(src);
+            vert2_id = TO_VID(dst);
+           
+            if (!IS_DEL(src)) { 
+                sgraph_out[src_index]->add_nebr(vert1_id, dst);
+                sgraph_in[dst_index]->add_nebr(vert2_id, src);
+            } else {
+                sgraph_out[src_index]->del_nebr(vert1_id, dst);
+                sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
+            }
+        }
+    }
+}
+
+template <class T>
+void pgraph_t<T>::fill_adj_list_in(onekv_t<T>** skv_out, onegraph_t<T>** sgraph_in) 
+{
+    sid_t src, dst;
+    vid_t     vert1_id, vert2_id;
+    tid_t     src_index, dst_index;
+    edge_t*   edges;
+    index_t   count;
+    
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (edge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+        for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
+            dst = edges[i].dst_id;
+            src_index = TO_TID(src);
+            dst_index = TO_TID(dst);
+            
+            vert1_id = TO_VID(src);
+            vert2_id = TO_VID(dst);
+            
+            if (!IS_DEL(src)) { 
+                skv_out[src_index]->set_value(vert1_id, dst);
+                sgraph_in[dst_index]->add_nebr(vert2_id, src);
+            } else {
+            
+                skv_out[src_index]->del_value(vert1_id, dst);
+                sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
+            }
+        }
+    }
+}
+
+template <class T>
+void pgraph_t<T>::fill_adj_list_out(onegraph_t<T>** sgraph_out, onekv_t<T>** skv_in) 
+{
+    sid_t   src, dst;
+    vid_t   vert1_id, vert2_id;
+    tid_t   src_index, dst_index; 
+    edge_t*   edges;
+    index_t   count;
+    
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (edge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+        for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
+            dst = edges[i].dst_id;
+            src_index = TO_TID(src);
+            dst_index = TO_TID(dst);
+            
+            vert1_id = TO_VID(src);
+            vert2_id = TO_VID(dst);
+            if (!IS_DEL(src)) {
+                sgraph_out[src_index]->add_nebr(vert1_id, dst);
+                skv_in[dst_index]->set_value(vert2_id, src); 
+            } else {
+                sgraph_out[src_index]->del_nebr(vert1_id, dst);
+                skv_in[dst_index]->del_value(vert2_id, TO_SID(src));
+            }
+        }
+    }
+}
+
+template <class T>
+void pgraph_t<T>::fill_skv(onekv_t<T>** skv_out, onekv_t<T>** skv_in)
+{
+    sid_t src, dst;
+    vid_t     vert1_id, vert2_id;
+    tid_t     src_index, dst_index;
+    edge_t*   edges;
+    index_t   count;
+    
+    for (int j = 0; j <= batch_count; ++j) {
+        edges = (edge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+    
+        for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
+            dst = edges[i].dst_id;
+            src_index = TO_TID(src);
+            dst_index = TO_TID(dst);
+            
+            vert1_id = TO_VID(src);
+            vert2_id = TO_VID(dst);
+            
+            if (!IS_DEL(src)) {
+                skv_out[src_index]->set_value(vert1_id, dst); 
+                skv_in[dst_index]->set_value(vert2_id, src); 
+            } else {
+                skv_out[src_index]->del_value(vert1_id, dst); 
+                skv_in[dst_index]->del_value(vert2_id, TO_SID(src)); 
+            }
+        }
+    }
+}
+
+//Applicable to graphs only, labels should be aware of it.
+template <class T>
+status_t pgraph_t<T>::batch_update(const string& src, const string& dst, propid_t pid /* = 0 */)
+{
+    vid_t src_id, dst_id;
+    index_t index = 0;
+    edge_t* edges;
+
+    if (batch_info1[batch_count1].count == MAX_ECOUNT) {
+        void* mem = alloc_buf();
+        if (mem == 0) return eEndBatch;
+        ++batch_count1;
+        batch_info1[batch_count1].count = 0;
+        batch_info1[batch_count1].buf = mem; 
+    }
+    
+    map<string, vid_t>::iterator str2vid_iter = g->str2vid.find(src);
+    if (g->str2vid.end() == str2vid_iter) {
+        cout << src << " is not found. See above log if src was invalid. OR is it out of order?? " << endl;
+        assert(0);
+    } else {
+        src_id = str2vid_iter->second;
+    }
+    tid_t type_id = TO_TID(src_id);
+    flag1 |= TID_TO_SFLAG(type_id);
+    
+    str2vid_iter = g->str2vid.find(dst);
+    if (g->str2vid.end() == str2vid_iter) {
+       cout << dst << " is not found. See above log if dst was invalid. OR is it out of order?? " << endl; 
+        assert(0);
+    } else {
+        dst_id = str2vid_iter->second;
+    }
+    type_id = TO_TID(dst_id);
+    flag2 |= TID_TO_SFLAG(type_id);
+    
+    index = batch_info1[batch_count1].count++;
+    edges = (edge_t*) batch_info1[batch_count1].buf;
+
+    edges[index].src_id = src_id; 
+    edges[index].dst_id = dst_id;
     return eOK;
 }

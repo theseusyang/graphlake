@@ -1,12 +1,10 @@
 
 #include "sgraph.h"
 
-pgraph_t::pgraph_t()
-{
-}
 
+/*
 //Applicable to graphs only, labels should be aware of it.
-status_t pgraph_t::batch_update(const string& src, const string& dst, propid_t pid /* = 0 */)
+status_t pgraph_t::batch_update(const string& src, const string& dst, propid_t pid / * = 0 * /)
 {
     vid_t src_id, dst_id;
     index_t index = 0;
@@ -47,7 +45,9 @@ status_t pgraph_t::batch_update(const string& src, const string& dst, propid_t p
     edges[index].dst_id = dst_id;
     return eOK;
 }
-/*
+pgraph_t::pgraph_t()
+{
+}
 //super bins memory allocation
 sgraph_t** pgraph_t::prep_sgraph(sflag_t ori_flag, sgraph_t** sgraph )
 {
@@ -145,7 +145,6 @@ void pgraph_t::prep_sgraph_internal(sgraph_t** sgraph)
         sgraph[i]->setup_adjlist();
     }
 }
-*/
 void pgraph_t::fill_adj_list(sgraph_t** sgraph_out, sgraph_t** sgraph_in)
 {
     sid_t     src, dst;
@@ -270,6 +269,7 @@ void pgraph_t::fill_skv(skv_t** skv_out, skv_t** skv_in)
         }
     }
 }
+*/
 /*
 void pgraph_t::update_count(sgraph_t** sgraph)
 {

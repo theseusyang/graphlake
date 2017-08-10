@@ -313,6 +313,9 @@ class onekv_t {
     void read_kv(const string& kvfile); 
 };
 
+typedef onekv_t<sid_t> skv_t; 
+typedef onekv_t<lite_edge_t> lite_skv_t; 
+
 /*
 class lite_skv_t {
  private:
@@ -359,7 +362,3 @@ class lite_skv_t {
     void read_kv(const string& kvfile); 
 };
 */
-typedef onekv_t<sid_t> skv_t; 
-typedef onekv_t<lite_edge_t> lite_skv_t; 
-
-

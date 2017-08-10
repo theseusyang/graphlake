@@ -1,3 +1,4 @@
+#include "type.h"
 #include "p_sgraph.h"
 #include "sgraph.h"
 
@@ -382,7 +383,7 @@ void p_dgraph_t::make_graph_baseline()
     prep_sgraph(flag2, sgraph_in);
 
     //estimate edge count
-    calc_edge_count<lite_edge_t>(sgraph_out, sgraph_in);
+    calc_edge_count(sgraph_out, sgraph_in);
     
     
     //prefix sum then reset the count
@@ -444,7 +445,7 @@ void p_ugraph_t::make_graph_baseline()
     prep_sgraph(flag1, sgraph);    
 
     //estimate edge count
-    calc_edge_count<lite_edge_t>(sgraph, sgraph);
+    calc_edge_count(sgraph, sgraph);
     
     //prefix sum then reset the count
     //Take symmetry into consideration
