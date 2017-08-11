@@ -175,7 +175,7 @@ void onegraph_t<T>::setup(tid_t tid)
         vid_t v_count = TO_VID(super_id);
         max_vcount = (v_count << 1);
         beg_pos = (vert_table_t<T>*)calloc(sizeof(vert_table_t<T>), max_vcount);
-        nebr_count = (vid_t*)calloc(sizeof(vid_t), max_vcount);
+        nebr_count = (nebrcount_t*)calloc(sizeof(nebrcount_t), max_vcount);
     } else {
         super_id = g->get_type_scount(tid);
         vid_t v_count = TO_VID(super_id);
@@ -196,12 +196,14 @@ void onegraph_t<T>::setup_adjlist()
 
     for (vid_t vid = 0; vid < v_count; ++vid) {
         adj_list = beg_pos[vid].get_adjlist();
-        count = nebr_count[vid];
+        count = nebr_count[vid].add_count;
 
-        if (adj_list && beg_pos[vid].get_nebrcount() != count) {// new nebrs added
+        if ((adj_list && beg_pos[vid].get_nebrcount() != count) || 
+            (nebr_count[vid].del_count != 0)) {// new nebrs added/deleted
             adj_list = log_beg + log_head;
             adj_list1 = beg_pos[vid].get_adjlist();
-
+            
+            //get the deletion position and copy accordingly XXX
             memcpy(adj_list, adj_list1, 
                    beg_pos[vid].get_nebrcount()*sizeof(T));
             beg_pos[vid].set_adjlist(adj_list);
@@ -222,7 +224,8 @@ void onegraph_t<T>::setup_adjlist()
             log_head += count + 1; 
             ++v;
         }
-        nebr_count[vid] = beg_pos[vid].get_nebrcount();
+        reset_count(vid);
+        //nebr_count[vid] = beg_pos[vid].get_nebrcount();
     }
     dvt_count = v;
 }
@@ -299,7 +302,7 @@ void onegraph_t<T>::read_vtable(const string& vtfile)
     while (count !=0 ) {
         vid_t read_count = fread(dvt, sizeof(disk_vtable_t), dvt_max_count, vtf);
         for (vid_t v = 0; v < read_count; ++v) {
-            nebr_count[dvt[v].vid] = dvt[v].degree;
+            nebr_count[dvt[v].vid].add_count = dvt[v].degree;
             beg_pos[dvt[v].vid].set_adjlist(log_beg + dvt[v].file_offset);
         }
         count -= read_count;

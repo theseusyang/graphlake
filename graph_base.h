@@ -85,6 +85,15 @@ public:
     inline void add_nebr_lite(vid_t index, sid_t sid, univ_t value) {
         add_nebr2(adj_list, index, sid, value);
     }
+    
+    inline void del_nebr(vid_t index, T sid) { 
+        //add_nebr1(adj_list, index, sid);
+        adj_list[index] = sid; 
+    }
+
+    inline void del_nebr_lite(vid_t index, sid_t sid, univ_t value) {
+        add_nebr2(adj_list, index, sid, value);
+    }
 
     inline void set_nebrcount(vid_t count) {
         set_nebrcount1(adj_list, count);
@@ -105,6 +114,10 @@ public:
     }
 };
 
+struct nebrcount_t {
+    degree_t add_count;
+    degree_t del_count;
+};
 
 //one type's graph
 template <class T>
@@ -117,7 +130,7 @@ private:
     vert_table_t<T>* beg_pos;
 
     //count in adj list. Used for book-keeping purpose during setup and update.
-    vid_t*   nebr_count;
+    nebrcount_t*   nebr_count;
 
     vid_t    max_vcount;
 
@@ -140,6 +153,7 @@ public:
     inline onegraph_t() {
         super_id = 0;
         beg_pos = 0;
+        nebr_count = 0;
         nebr_count = 0;
         max_vcount = 0;
         
@@ -167,43 +181,51 @@ public:
     void setup(tid_t tid);
     void setup_adjlist();
 
-    inline void increment_count(vid_t vid) { ++nebr_count[vid]; }
-    inline void decrement_count(vid_t vid) { ++nebr_count[vid]; }
+    inline void increment_count(vid_t vid) { ++nebr_count[vid].add_count; }
+    inline void decrement_count(vid_t vid) { 
+        --nebr_count[vid].add_count; 
+        ++nebr_count[vid].del_count; 
+    }
     
     inline void add_nebr(vid_t vid, sid_t sid) { 
-        ++nebr_count[vid];
-        beg_pos[vid].add_nebr(nebr_count[vid], sid);
+        ++nebr_count[vid].add_count;
+        beg_pos[vid].add_nebr(nebr_count[vid].add_count, sid);
     }
     inline void del_nebr(vid_t vid, sid_t sid) { 
-        ++nebr_count[vid];
-        beg_pos[vid].add_nebr(nebr_count[vid], sid);
+        ++nebr_count[vid].del_count;
+        beg_pos[vid].del_nebr(nebr_count[vid].del_count, sid);
     }
     
     inline void add_nebr_lite(vid_t vid, sid_t sid, univ_t value) { 
-        ++nebr_count[vid];
-        beg_pos[vid].add_nebr_lite(nebr_count[vid], sid, value);
+        ++nebr_count[vid].add_count;
+        beg_pos[vid].add_nebr_lite(nebr_count[vid].add_count, sid, value);
     }
     
     inline void del_nebr_lite(vid_t vid, sid_t sid, univ_t value) { 
-        ++nebr_count[vid];
-        beg_pos[vid].add_nebr_lite(nebr_count[vid], sid, value);
+        ++nebr_count[vid].del_count;
+        beg_pos[vid].del_nebr_lite(nebr_count[vid].del_count, sid, value);
     }
     
     inline void update_count(vid_t vid) {
-        beg_pos[vid].set_nebrcount(nebr_count[vid]);
+        beg_pos[vid].set_nebrcount(nebr_count[vid].add_count);
     }
     inline void reset_count(vid_t vid) {
-        nebr_count[vid] = beg_pos[vid].get_nebrcount();
+        nebr_count[vid].add_count = beg_pos[vid].get_nebrcount() 
+                                    - nebr_count[vid].del_count;
+        nebr_count[vid].del_count = 0;
     }
+    
     inline vert_table_t<T>* get_begpos() { return beg_pos;}
     inline vid_t get_vcount() { return TO_VID(super_id);}
     inline tid_t get_tid() { return TO_TID(super_id);}
 
     void persist_elog(const string& etfile);
     void persist_vlog(const string& vtfile);
+    void persist_slog(const string& stfile);
 
     void read_etable(const string& etfile);
-    void read_vtable(const string& vtfile); 
+    void read_vtable(const string& vtfile);
+    void read_stable(const string& stfile);
 };
 
 typedef vert_table_t<sid_t> beg_pos_t;

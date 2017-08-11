@@ -134,7 +134,6 @@ template <class T>
 class  snapT_t {
  public:
     sid_t     next_ptr;//next snapshot of this vid 
-    vid_t     vid;
     rdegree_t del_count;
     snapid_t  snap_id;
     degree_t  degree;
