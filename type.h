@@ -18,6 +18,9 @@ typedef uint32_t tid_t;
 typedef uint64_t sflag_t;
 typedef uint16_t qid_t;
 typedef uint32_t pos_t; //adj list position, how long an adj list can be
+typedef uint16_t snapid_t ;
+typedef uint16_t rdegree_t; //relative degree
+typedef uint16_t degree_t;
 //typedef int32_t status_t;
 
 #define VBIT 40
@@ -118,9 +121,6 @@ struct prop_pair_t {
     string value;
 };
 
-typedef uint16_t snapid_t ;
-typedef uint16_t rdegree_t; //relative degree
-typedef uint16_t degree_t;
 
 template <class T>
 class delentry_t {
@@ -133,7 +133,8 @@ class delentry_t {
 template <class T>
 class  snapT_t {
  public:
-    sid_t     next_ptr;//next snapshot of this vid 
+    snapT_t<T>*     next;//next snapshot of this vid 
+    snapT_t<T>*     prev;//prev snapshot of this vid 
     rdegree_t del_count;
     snapid_t  snap_id;
     degree_t  degree;
@@ -141,6 +142,8 @@ class  snapT_t {
     //del_count of these
     delentry_t<T> del_entry;
 };
+
+snapid_t get_snapid();
 
 typedef struct __econf_t {
     string filename;

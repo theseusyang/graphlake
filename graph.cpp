@@ -14,11 +14,23 @@ uint64_t BUF_SIZE = 16000000;
 map<string, get_graph_instance>  graph_instance;
 map<string, get_encoder_instance>  encoder_instance;
 
+
+snapid_t graph::get_snapid() 
+{
+    return snap_id;
+}
+
+void graph::incr_snapid()
+{
+    ++snap_id;
+}
+
 graph::graph()
 {
     cf_info  = 0;
     cf_count = 0;
     p_info   = 0;
+    snap_id  = 0;
     p_count  = 0;
     vert_count = 0;
     v_graph =  new vgraph_t;

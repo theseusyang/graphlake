@@ -189,17 +189,49 @@ template <class T>
 void onegraph_t<T>::setup_adjlist()
 {
     vid_t v_count = TO_VID(super_id);
-    sid_t count;
+    sid_t count, del_count;
     T* adj_list = 0;
     T* adj_list1 = 0;
+    snapT_t<T>* snap_blob;
+    snapT_t<T>* snap_blob1;
+
     vid_t v = 0;
 
     for (vid_t vid = 0; vid < v_count; ++vid) {
         adj_list = beg_pos[vid].get_adjlist();
+        snap_blob1 = beg_pos[vid].get_snapblob();
         count = nebr_count[vid].add_count;
+        del_count = nebr_count[vid].del_count;
 
         if ((adj_list && beg_pos[vid].get_nebrcount() != count) || 
-            (nebr_count[vid].del_count != 0)) {// new nebrs added/deleted
+            (del_count != 0)) {// new nebrs added/deleted
+            
+            //allocate for deleted edges
+            //even if none are deleted, only added
+            snap_blob = (snapT_t<T>*)dlog_beg + dlog_head;
+            dlog_head += sizeof(snapT_t<T>) - sizeof(delentry_t<T>) 
+                         + del_count*sizeof(delentry_t<T>);
+           
+            if (0 == snap_blob1) {
+                snap_blob->prev = snap_blob;
+                snap_blob->next = snap_blob;
+            } else {
+                snap_blob->prev = snap_blob1;
+                snap_blob->next = snap_blob1->next;
+                
+                snap_blob1->next->prev = snap_blob;
+                snap_blob1->next = snap_blob;
+            }
+
+            snap_blob->del_count = del_count;
+            snap_blob->snap_id = g->get_snapid();
+            snap_blob->degree = beg_pos[vid].get_nebrcount();
+            
+            beg_pos[vid].set_snapblob(snap_blob);
+            
+
+            //for added edges
+            //even if none are added, only deleted
             adj_list = log_beg + log_head;
             adj_list1 = beg_pos[vid].get_adjlist();
             
@@ -208,6 +240,7 @@ void onegraph_t<T>::setup_adjlist()
                    beg_pos[vid].get_nebrcount()*sizeof(T));
             beg_pos[vid].set_adjlist(adj_list);
             
+            //this can not be clubbed with snap log
             dvt[v].vid = vid;
             dvt[v].degree = count;
             dvt[v].file_offset = log_head;
@@ -215,8 +248,9 @@ void onegraph_t<T>::setup_adjlist()
             log_head += count + 1;
             ++v;
         } else if (!adj_list) {//first time
-            beg_pos[vid].set_adjlist(log_beg + log_head); 
-            
+            beg_pos[vid].set_adjlist(log_beg + log_head);
+            beg_pos[vid].set_snapblob(0); 
+                       
             dvt[v].vid = vid;
             dvt[v].degree = count;
             dvt[v].file_offset = log_head;
@@ -225,7 +259,6 @@ void onegraph_t<T>::setup_adjlist()
             ++v;
         }
         reset_count(vid);
-        //nebr_count[vid] = beg_pos[vid].get_nebrcount();
     }
     dvt_count = v;
 }

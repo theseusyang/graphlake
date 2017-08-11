@@ -63,9 +63,9 @@ class graph {
     
     uint8_t     batch_count;
     uint8_t     batch_count1;
-
-    int   cf_count;
-    propid_t   p_count;
+    snapid_t    snap_id;
+    int         cf_count;
+    propid_t    p_count;
 
     map <string, propid_t> str2pid;
 
@@ -78,6 +78,8 @@ class graph {
 
  public:
     graph();
+    snapid_t get_snapid();
+    void incr_snapid();
     void register_instances();
     void create_schema(propid_t count, const string& conf_file);
 

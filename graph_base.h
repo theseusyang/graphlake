@@ -108,6 +108,8 @@ public:
     inline T* get_adjlist() { return adj_list; }
     inline void set_adjlist(T* adj_list1) { adj_list =  adj_list1;}
     
+    inline snapT_t<T>* get_snapblob() { return snap_blob; } 
+    inline void set_snapblob(snapT_t<T>* snap_blob1) { snap_blob = snap_blob1; } 
     
     inline void copy(vert_table_t<T>* beg_pos) {
         adj_list = beg_pos->adj_list;
@@ -140,6 +142,13 @@ private:
     sid_t    log_head; // current log write position
     sid_t    log_tail; //current log cleaning position
     sid_t    log_wpos; //Write this pointer for write persistency
+    
+    //edgetable file related log
+    char*    dlog_beg;  //memory log pointer
+    sid_t    dlog_count;//size of memory log
+    sid_t    dlog_head; // current log write position
+    sid_t    dlog_tail; //current log cleaning position
+    sid_t    dlog_wpos; //Write this pointer for write persistency
 
     //vertex table file related log
     disk_vtable_t* dvt;
