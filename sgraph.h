@@ -310,13 +310,13 @@ void onegraph_t<T>::persist_slog(const string& stfile)
     dlog = (disk_snapT_t<T>*)snap_log;
     
     for (sid_t i; i < dvt_count; ++i) {
-        snap_blob = beg_pos[dvt[i].vid].snap_blob;
-        dlog->vid = dvt[i];
+        snap_blob = beg_pos[dvt[i].vid].get_snapblob();
+        dlog->vid = dvt[i].vid;
         dlog->snap_id = snap_blob->snap_id;
         dlog->del_count = snap_blob->del_count;
         dlog->degree = snap_blob->degree;
         
-        del_entry = &dlog->del_etnry; 
+        del_entry = &dlog->del_entry; 
         del_entry1 = &snap_blob->del_entry;
         
         if (dlog->del_count) {
@@ -361,7 +361,7 @@ void onegraph_t<T>::read_stable(const string& stfile)
         snap_blob->snap_id = dlog->snap_id;
         snap_blob->degree = dlog->degree;
 
-        del_entry1 = &dlog->del_etnry; 
+        del_entry1 = &dlog->del_entry; 
         del_entry = &snap_blob->del_entry;
         if (dlog->del_count) {
             memcpy(del_entry, del_entry1, 
@@ -625,7 +625,7 @@ void pgraph_t<T>::store_sgraph(onegraph_t<T>** sgraph, string dir, string postfi
 {
     if (sgraph == 0) return;
     
-    string   vtfile, etfile;
+    string   vtfile, etfile, stfile;
     tid_t    t_count = g->get_total_types();
     
     //base name using relationship type
@@ -643,8 +643,10 @@ void pgraph_t<T>::store_sgraph(onegraph_t<T>** sgraph, string dir, string postfi
         sprintf(name, "%d.", i);
         vtfile = basefile + name + "vtable" + postfix;
         etfile = basefile + name + "etable" + postfix;
+        stfile = basefile + name + "stable" + postfix;
          
         sgraph[i]->persist_elog(etfile);
+        sgraph[i]->persist_slog(stfile);
         sgraph[i]->persist_vlog(vtfile);
     }
 }
@@ -654,7 +656,7 @@ void pgraph_t<T>::read_sgraph(onegraph_t<T>** sgraph, string dir, string postfix
 {
     if (sgraph == 0) return;
     
-    string   vtfile, etfile;
+    string   vtfile, etfile, stfile;
     tid_t    t_count = g->get_total_types();
     
     //base name using relationship type
@@ -671,6 +673,7 @@ void pgraph_t<T>::read_sgraph(onegraph_t<T>** sgraph, string dir, string postfix
         sprintf(name, "%d.", i);
         vtfile = basefile + name + "vtable" + postfix;
         etfile = basefile + name + "etable" + postfix;
+        stfile = basefile + name + "stable" + postfix;
         
         FILE* vtf = fopen(vtfile.c_str(), "r+b");
         if (vtf == 0)  continue;
@@ -679,6 +682,7 @@ void pgraph_t<T>::read_sgraph(onegraph_t<T>** sgraph, string dir, string postfix
         sgraph[i] = new onegraph_t<T>;
         sgraph[i]->setup(i);
         sgraph[i]->read_vtable(vtfile);
+        sgraph[i]->read_stable(stfile);
         sgraph[i]->read_etable(etfile);
     }
 }
