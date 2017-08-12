@@ -89,11 +89,11 @@ class vert_table_t {
     }
     
     inline void del_nebr(vid_t index, T sid) { 
-        adj_list[index] = sid; 
+       //XXX 
     }
 
     inline void del_nebr_lite(vid_t index, sid_t sid, univ_t value) {
-        add_nebr2(adj_list, index, sid, value);
+        //
     }
 
     inline void set_nebrcount(vid_t count) {
@@ -110,7 +110,19 @@ class vert_table_t {
     inline void set_adjlist(T* adj_list1) { adj_list =  adj_list1;}
     
     inline snapT_t<T>* get_snapblob() { return snap_blob; } 
-    inline void set_snapblob(snapT_t<T>* snap_blob1) { snap_blob = snap_blob1; } 
+    inline void set_snapblob(snapT_t<T>* snap_blob1) { 
+        if (0 == snap_blob) {
+            snap_blob1->prev = snap_blob1;
+            snap_blob1->next = snap_blob1;
+        } else {
+            snap_blob1->prev = snap_blob;
+            snap_blob1->next = snap_blob->next;
+            
+            snap_blob->next->prev = snap_blob1;
+            snap_blob->next = snap_blob1;
+        }
+        snap_blob = snap_blob1; 
+    } 
     
     inline void copy(vert_table_t<T>* beg_pos) {
         adj_list = beg_pos->adj_list;
@@ -156,7 +168,7 @@ private:
     vid_t    dvt_count; 
     vid_t    dvt_max_count;
     
-    disk_snapT_t<T>* snap_log;
+    char* snap_log;
     uint64_t snap_size;
 
 
@@ -169,7 +181,6 @@ public:
         super_id = 0;
         beg_pos = 0;
         nebr_count = 0;
-        nebr_count = 0;
         max_vcount = 0;
         
         //XXX everything is in memory
@@ -181,6 +192,22 @@ public:
         log_head = 0;
         log_tail = 0;
         log_wpos = 0;
+        
+        //XXX everything is in memory
+        dlog_count = (1L << 28);//256 MB
+        if (posix_memalign((void**)&dlog_beg, 2097152, dlog_count)) {
+            //log_beg = (sid_t*)calloc(sizeof(sid_t), log_count);
+            perror("posix memalign snap log");
+        }
+        dlog_head = 0;
+        dlog_tail = 0;
+        dlog_wpos = 0;
+        
+        snap_size = (1L<< 28);//256 MB
+        if (posix_memalign((void**)&snap_log, 2097152, snap_size)) {
+            perror("posix memalign snap disk log");
+        }
+
         
         dvt_count = 0;
         dvt_max_count = (1L << 28);
