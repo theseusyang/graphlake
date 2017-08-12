@@ -244,6 +244,8 @@ void onegraph_t<T>::setup_adjlist()
             ++v;
         } else if (!adj_list) {//first time
             beg_pos[vid].set_adjlist(log_beg + log_head);
+            beg_pos[vid].degree = count;
+            beg_pos[vid].snap_id = snap_id;         
                        
             dvt[v].vid = vid;
             dvt[v].degree = count;
@@ -419,6 +421,7 @@ void onegraph_t<T>::read_vtable(const string& vtfile)
         vid_t read_count = fread(dvt, sizeof(disk_vtable_t), dvt_max_count, vtf);
         for (vid_t v = 0; v < read_count; ++v) {
             nebr_count[dvt[v].vid].add_count = dvt[v].degree;
+            beg_pos[dvt[v].vid].degree = dvt[v].degree;
             beg_pos[dvt[v].vid].set_adjlist(log_beg + dvt[v].file_offset);
         }
         count -= read_count;

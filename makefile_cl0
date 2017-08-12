@@ -42,6 +42,7 @@ HEADER=graph.h\
 	graph_base.h\
 	rset.h\
     query_clause.h\
+	iterative_analytics.h\
 	nt_to_edge.h\
 	csv_to_edge.h\
 	darshan_to_edge.h\

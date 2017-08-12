@@ -171,8 +171,6 @@ private:
     char* snap_log;
     uint64_t snap_size;
 
-
-
     FILE*    vtf;   //vertex table file
     FILE*    etf;   //edge table file
     FILE*    stf;   //snapshot table file

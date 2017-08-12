@@ -50,7 +50,8 @@ bfs(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, sid_t root)
 					if (status[v] != level) continue;
 					
 					T* adj_list = graph[v].get_adjlist();
-					vid_t nebr_count = get_nebrcount1(adj_list);
+					//vid_t nebr_count = get_nebrcount1(adj_list);
+					vid_t nebr_count = graph[v].degree;
 					++adj_list;
 					todo += nebr_count;
 					
@@ -87,7 +88,8 @@ bfs(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, sid_t root)
 					if (status[v] != 0) continue;
 					
 					T* adj_list = graph[v].get_adjlist();
-					vid_t nebr_count = get_nebrcount1(adj_list);
+					//vid_t nebr_count = get_nebrcount1(adj_list);
+					vid_t nebr_count = graph[v].degree;
 					++adj_list;
 					todo += nebr_count;
 					
