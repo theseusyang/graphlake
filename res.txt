@@ -150,11 +150,4 @@ output dir = del/
 <http://www.Department0.University0.edu/Lecturer6>	"Lecturer6"	"Lecturer6@Department0.University0.edu"	"xxx-xxx-xxxx"	
 
 
-----------test3-------------
-<http://www.Department10.University3.edu/Course5>	
-
-<http://www.Department10.University3.edu/Course8>	
-
-<http://www.Department10.University3.edu/Course17>	
-
-
+./grdf -i /mnt/raid0_huge/rdfdata/lubm-4univ-seed0/nt-data/ -c 1 -o del/ -t /mnt/raid0_huge/rdfdata/lubm-4univ-seed0/type.txt > res2.txt
