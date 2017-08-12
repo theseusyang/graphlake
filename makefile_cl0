@@ -12,6 +12,7 @@ SRC=main.cpp \
 	nt_to_edge.cpp\
 	csv_to_edge.cpp\
 	darshan_to_edge.cpp\
+	plain_to_edge.cpp\
 	query_triple.cpp\
 	graph_query.cpp\
 	graph_base.cpp\
