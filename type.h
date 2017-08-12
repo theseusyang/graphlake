@@ -111,7 +111,8 @@ class pedge_t {
 class disk_vtable_t {
     public:
     vid_t    vid;
-    uint64_t degree;
+    degree_t degree;
+    //uint64_t old_offset;//for cleaning
     uint64_t file_offset;
 };
 
@@ -129,12 +130,25 @@ class delentry_t {
     T dst_id;
 };
 
-//This will be used as disk write structure as well
 template <class T>
 class  snapT_t {
  public:
     snapT_t<T>*     next;//next snapshot of this vid 
     snapT_t<T>*     prev;//prev snapshot of this vid 
+    T*              adj_list;//validity depends on cleaning state 
+    rdegree_t del_count;
+    snapid_t  snap_id;
+    degree_t  degree;
+
+    //del_count of these
+    delentry_t<T> del_entry;
+};
+
+//This will be used as disk write structure
+template <class T>
+class  disk_snapT_t {
+ public:
+    vid_t     vid;
     rdegree_t del_count;
     snapid_t  snap_id;
     degree_t  degree;

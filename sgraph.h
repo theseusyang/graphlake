@@ -194,14 +194,15 @@ void onegraph_t<T>::setup_adjlist()
     T* adj_list1 = 0;
     snapT_t<T>* snap_blob;
     snapT_t<T>* snap_blob1;
+    snapid_t snap_id = g->get_snapid();
 
     vid_t v = 0;
 
     for (vid_t vid = 0; vid < v_count; ++vid) {
         adj_list = beg_pos[vid].get_adjlist();
         snap_blob1 = beg_pos[vid].get_snapblob();
-        count = nebr_count[vid].add_count;
         del_count = nebr_count[vid].del_count;
+        count = nebr_count[vid].add_count - del_count;
 
         if ((adj_list && beg_pos[vid].get_nebrcount() != count) || 
             (del_count != 0)) {// new nebrs added/deleted
@@ -223,13 +224,12 @@ void onegraph_t<T>::setup_adjlist()
                 snap_blob1->next = snap_blob;
             }
 
+            snap_blob->adj_list = adj_list;
             snap_blob->del_count = del_count;
-            snap_blob->snap_id = g->get_snapid();
-            snap_blob->degree = beg_pos[vid].get_nebrcount();
+            snap_blob->snap_id = snap_id;
+            snap_blob->degree = beg_pos[vid].degree;
             
-            beg_pos[vid].set_snapblob(snap_blob);
             
-
             //for added edges
             //even if none are added, only deleted
             adj_list = log_beg + log_head;
@@ -238,11 +238,19 @@ void onegraph_t<T>::setup_adjlist()
             //get the deletion position and copy accordingly XXX
             memcpy(adj_list, adj_list1, 
                    beg_pos[vid].get_nebrcount()*sizeof(T));
+
+            
+            //Looks like, this needs to be done atomically XXX
+            beg_pos[vid].set_snapblob(snap_blob);
+            //put these two in same word, and use atomic CAS
+            beg_pos[vid].degree = count;
+            beg_pos[vid].snap_id = snap_id + 1;         
             beg_pos[vid].set_adjlist(adj_list);
             
-            //this can not be clubbed with snap log
+            //this cannot be clubbed with snap log
             dvt[v].vid = vid;
             dvt[v].degree = count;
+            //dvt[v].old_offset = adj_list1 - log_beg;
             dvt[v].file_offset = log_head;
             
             log_head += count + 1;
@@ -253,6 +261,7 @@ void onegraph_t<T>::setup_adjlist()
                        
             dvt[v].vid = vid;
             dvt[v].degree = count;
+            //dvt[v].old_offset = 0;
             dvt[v].file_offset = log_head;
             
             log_head += count + 1; 
@@ -295,6 +304,66 @@ void onegraph_t<T>::persist_vlog(const string& vtfile)
         assert(vtf != 0);
     }
     fwrite(dvt, sizeof(disk_vtable_t), count, vtf);
+}
+
+template <class T>
+void onegraph_t<T>::persist_slog(const string& stfile)
+{   
+    snapT_t<T>* snap_blob;
+    disk_snapT_t<T>* dlog = snap_log;
+    delentry_t<T>* del_entry;
+    delentry_t<T>* del_entry1;
+    uint64_t sum = 0;
+    
+    if(stf == 0) {
+        stf = fopen(stfile.c_str(), "a+b");
+        assert(stf != 0);
+    }
+    
+    //Lets write the snapshot log
+    for (sid_t i; i < dvt_count; ++i) {
+        snap_blob = beg_pos[dvt[i].vid].snap_blob;
+        dlog[i].vid = dvt[i];
+        dlog[i].snap_id = snap_blob->snap_id;
+        dlog[i].del_count = snap_blob->del_count;
+        dlog[i].degree = snap_blob->degree;
+        del_entry = &snap_log[i].del_etnry; 
+        del_entry1 = &snap_blob.del_entry;
+        
+        if (snap_log[i].del_count) {
+            memcpy(del_entry, del_entry1, snap_log[i].del_count*sizeof(delentry_t<T>));
+        }
+        
+        sum += sizeof(disk_snapT_t<T>) - sizeof(delentry_t<T>) + snap_log[i].del_count; 
+        dlog = snap_log + sum;
+    }
+
+    fwrite(snap_log, sizeof(char), sum, stf);
+}
+
+template <class T>
+void onegraph_t<T>::read_stable(const string& stfile)
+{
+    snapT_t<T>* snap_blob;
+    disk_snapT_t<T>* dlog ;
+    //Write the file
+    if(stf == 0) {
+        stf = fopen(stfile.c_str(), "r+b");
+        assert(stf != 0);
+    }
+
+    off_t size = fsize(stfile.c_str());
+    if (size == -1L) {
+        assert(0);
+    }
+
+    //read in batches
+    while (size !=0) {
+        uint64_t read_count = fread(snap_log, sizeof(char), snap_size, stf);
+        dlog = snap_log; 
+        while (read_count != 0) {
+        }
+    }
 }
 
 template <class T>

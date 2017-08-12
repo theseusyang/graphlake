@@ -67,12 +67,14 @@ inline void set_value1(lite_edge_t* kv, vid_t vid, sid_t value, univ_t univ) {
 //One vertex's neighbor information
 template <class T>
 class vert_table_t {
-public:
  private:
     //nebr list of one vertex. First member is a spl member
     //count, flag for snapshot, XXX: smart pointer count
-    T*   adj_list;
+    T*            adj_list;
     snapT_t<T>*   snap_blob;
+ public:
+    degree_t      degree;
+    snapid_t      snap_id;
  
  public:
     inline vert_table_t() { adj_list = 0; snap_blob = 0;}
@@ -87,7 +89,6 @@ public:
     }
     
     inline void del_nebr(vid_t index, T sid) { 
-        //add_nebr1(adj_list, index, sid);
         adj_list[index] = sid; 
     }
 
@@ -154,6 +155,11 @@ private:
     disk_vtable_t* dvt;
     vid_t    dvt_count; 
     vid_t    dvt_max_count;
+    
+    disk_snapT_t<T>* snap_log;
+    uint64_t snap_size;
+
+
 
     FILE*    vtf;   //vertex table file
     FILE*    etf;   //edge table file
