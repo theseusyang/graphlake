@@ -969,8 +969,8 @@ void pgraph_t<T>::fill_adj_list(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgra
                 sgraph_out[src_index]->add_nebr(vert1_id, dst);
                 sgraph_in[dst_index]->add_nebr(vert2_id, src);
             } else {
-                sgraph_out[src_index]->del_nebr(vert1_id, dst);
-                sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
+                //sgraph_out[src_index]->del_nebr(vert1_id, dst);
+                //sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
             }
         }
     }
@@ -1002,8 +1002,8 @@ void pgraph_t<T>::fill_adj_list_in(onekv_t<T>** skv_out, onegraph_t<T>** sgraph_
                 sgraph_in[dst_index]->add_nebr(vert2_id, src);
             } else {
             
-                skv_out[src_index]->del_value(vert1_id, dst);
-                sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
+                //skv_out[src_index]->del_value(vert1_id, dst);
+                //sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
             }
         }
     }
@@ -1033,8 +1033,8 @@ void pgraph_t<T>::fill_adj_list_out(onegraph_t<T>** sgraph_out, onekv_t<T>** skv
                 sgraph_out[src_index]->add_nebr(vert1_id, dst);
                 skv_in[dst_index]->set_value(vert2_id, src); 
             } else {
-                sgraph_out[src_index]->del_nebr(vert1_id, dst);
-                skv_in[dst_index]->del_value(vert2_id, TO_SID(src));
+                //sgraph_out[src_index]->del_nebr(vert1_id, dst);
+                //skv_in[dst_index]->del_value(vert2_id, TO_SID(src));
             }
         }
     }

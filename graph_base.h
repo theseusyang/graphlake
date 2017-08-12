@@ -88,8 +88,10 @@ class vert_table_t {
         add_nebr2(adj_list, index, sid, value);
     }
     
-    inline void del_nebr(vid_t index, T sid) { 
-       //XXX 
+    inline void del_nebr(vid_t index, delentry_t<T> del_entry) { 
+        //XXX 
+        delentry_t<T>* del_entry1 = &snap_blob->del_entry;
+        del_entry1[index] = del_entry;
     }
 
     inline void del_nebr_lite(vid_t index, sid_t sid, univ_t value) {
@@ -239,11 +241,6 @@ public:
     inline void add_nebr_lite(vid_t vid, sid_t sid, univ_t value) { 
         ++nebr_count[vid].add_count;
         beg_pos[vid].add_nebr_lite(nebr_count[vid].add_count, sid, value);
-    }
-    
-    inline void del_nebr_lite(vid_t vid, sid_t sid, univ_t value) { 
-        ++nebr_count[vid].del_count;
-        beg_pos[vid].del_nebr_lite(nebr_count[vid].del_count, sid, value);
     }
     
     inline void update_count(vid_t vid) {

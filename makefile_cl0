@@ -2,9 +2,8 @@ CC=g++
 CFLAGS=-g -Wall -std=gnu++11  -march=native -fopenmp
 #CFLAGS=-O3 -Wall -std=gnu++11  -march=native -fopenmp
 SRC=main.cpp \
+	cf_info.cpp\
 	graph.cpp\
-	ugraph.cpp\
-	dgraph.cpp\
 	sgraph.cpp\
 	mlabel.cpp\
 	stringkv.cpp\
@@ -29,6 +28,7 @@ SRC=main.cpp \
 	
 
 HEADER=graph.h\
+	cf_info.h\
 	sgraph.h\
 	p_sgraph.h\
 	prop_encoder.h\
