@@ -27,11 +27,6 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
 
-    //do some setup for plain graphs
-    ugraph->flag1 = 1;
-    ugraph->flag2 = 1;
-    typekv_t* typekv = g->get_typekv();
-    typekv->manual_setup(1<<24); 
     
     //Read graph file
     dir = opendir(idirname.c_str());
@@ -49,6 +44,5 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
 
     }
     closedir(dir);
-    bfs<sid_t>(ugraph->sgraph, ugraph->sgraph, 1); 
     
 }
