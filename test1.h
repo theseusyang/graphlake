@@ -9,4 +9,5 @@ void ldbc_test2(const string& odir);
 void darshan_test0(const string& conf_file, const string& idir, const string& odir);
 
 void plain_test0(const string& idir, const string& odir);
+void plain_test1(const string& idir, const string& odir);
 void plain_test2(const string& odir);

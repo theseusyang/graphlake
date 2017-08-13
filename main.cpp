@@ -88,6 +88,9 @@ int main(int argc, char* argv[])
         case 30:
             plain_test0(idir, odir);
             break;
+        case 31:
+            plain_test1(idir, odir);
+            break;
         case 32:
             plain_test2(odir);
             break;

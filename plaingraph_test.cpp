@@ -53,7 +53,7 @@ void plain_test0(const string& idir, const string& odir)
     ugraph->flag1 = 1;
     ugraph->flag2 = 1;
     typekv_t* typekv = g->get_typekv();
-    typekv->manual_setup(1<<16); 
+    typekv->manual_setup(1<<21); 
     plaingraph_manager::prep_graph(idir, odir);
     
     bfs<sid_t>(ugraph->sgraph, ugraph->sgraph, 1); 
@@ -62,6 +62,20 @@ void plain_test0(const string& idir, const string& odir)
 
 void plain_test1(const string& idir, const string& odir)
 {
+    schema_plaingraph();
+    //do some setup for plain graphs
+    propid_t cf_id = g->get_cfid("friend");
+    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
+    ugraph->flag1 = 1;
+    ugraph->flag2 = 1;
+    typekv_t* typekv = g->get_typekv();
+    typekv->manual_setup(1<<21); 
+    
+    plaingraph_manager::prep_graph(idir, odir);
+    string idir1 = "/mnt/disk_huge_1/pradeepk/pradeep_graph/kron_21_16_incr/"; 
+    plaingraph_manager::prep_graph(idir1, odir);
+    
+    bfs<sid_t>(ugraph->sgraph, ugraph->sgraph, 1); 
     return ;
 }
 
@@ -74,7 +88,7 @@ void plain_test2(const string& odir)
     ugraph->flag1 = 1;
     ugraph->flag2 = 1;
     typekv_t* typekv = g->get_typekv();
-    typekv->manual_setup(1<<16); 
+    typekv->manual_setup(1<<20); 
     
     
     ugraph->read_graph_baseline(odir);

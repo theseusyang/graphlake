@@ -2,6 +2,8 @@
 
 #include "type.h"
 #include "rset.h"
+
+extern void* alloc_buf();
 /////////////////////////////////
 //One relationship or label
 class pinfo_t {
@@ -40,10 +42,21 @@ class cfinfo_t {
     
     uint8_t     flag1_count;
     uint8_t     flag2_count;
+    index_t     MAXX_ECOUNT;
    
  public: 
     cfinfo_t();   
     void reset();
+    inline status_t alloc_batch() {
+        if (batch_info1[batch_count1].count == MAXX_ECOUNT) {
+            void* mem = alloc_buf();
+            if (mem == 0) return eEndBatch;
+            ++batch_count1;
+            batch_info1[batch_count1].count = 0;
+            batch_info1[batch_count1].buf = mem; 
+        }
+        return eOK;
+    } 
 
  public:
     void create_columns(propid_t prop_count = 1);

@@ -25,24 +25,44 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
     int file_count = 0;
     string filename;
     propid_t cf_id = g->get_cfid("friend");
+        
+    FILE* file = 0;
+    index_t size =  0;
+    index_t edge_count = 0;
+    index_t size1 = 0;
+    index_t size2 = 0;
+    
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
-
     
     //Read graph file
     dir = opendir(idirname.c_str());
     while (NULL != (ptr = readdir(dir))) {
         if (ptr->d_name[0] == '.') continue;
         filename = idirname + "/" + string(ptr->d_name);
-        FILE* file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
-        uint64_t size = fsize(filename);
-        uint64_t edge_count = size/sizeof(edge_t);
         file_count++;
-        uint64_t size1 = fread(ugraph->batch_info[0].buf, sizeof(edge_t), edge_count, file);
-        ugraph->batch_info[0].count = size1;
-        ugraph->make_graph_baseline();
-        ugraph->store_graph_baseline(odirname);
+        
+        file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
+        size = fsize(filename);
+        edge_count = size/sizeof(edge_t);
+        size1 = 0;
+        size2 = 0;
 
+        do {
+            if (eOK != ugraph->alloc_batch()) {
+                ugraph->swap_log_buffer();
+                ugraph->make_graph_baseline();
+                ugraph->store_graph_baseline(odirname);
+            }
+            size2 = min(ugraph->MAXX_ECOUNT, edge_count);
+            size1 = fread(ugraph->batch_info1[ugraph->batch_count1].buf, 
+                               sizeof(edge_t), size2, file);
+            ugraph->batch_info1[ugraph->batch_count1].count = size1;
+            edge_count -= size1;
+        } while (edge_count > 0);
     }
     closedir(dir);
-    
+    ugraph->swap_log_buffer();
+
+    ugraph->make_graph_baseline();
+    ugraph->store_graph_baseline(odirname);
 }

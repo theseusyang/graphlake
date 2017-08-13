@@ -4,7 +4,6 @@
 #include "sgraph.h"
 
 class p_pgraph_t : public pgraph_t<lite_edge_t> {
-    size_t MAXX_ECOUNT;
     //edge properties are part of adj-list
     string edge_propname;
     prop_encoder_t* encoder;

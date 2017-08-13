@@ -18,8 +18,7 @@ class pgraph_t: public cfinfo_t {
         int snapshot_id;
   
  public:    
-    inline pgraph_t() {};
- 
+    inline pgraph_t() { MAXX_ECOUNT = MAX_ECOUNT;};
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     
  
