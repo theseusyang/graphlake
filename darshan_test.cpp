@@ -93,7 +93,7 @@ static void test4()
 
 void darshan_test0(const string& conf_file, const string& idir, const string& odir)
 {
-    g->create_schema(256, conf_file);
+    g->create_schema(255, conf_file);
     
     darshan_manager::prep_graph(conf_file, idir, odir);
     cout << "----------Test 1-----------------" << endl;

@@ -58,6 +58,9 @@ class typekv_t : public cfinfo_t {
   public:
 
     typekv_t();
+
+    //used by plain graph
+    void manual_setup(sid_t vert_count);
     inline void init_enum(int enumcount) {
         max_count = enumcount;
         t_count = 0;

@@ -12,3 +12,8 @@ class csv_manager {
     static void prep_vtable(const string& filename, string predicate, const string& odir);
     static void prep_etable(const string& filename, const econf_t& e_conf, const string& odir);
 };
+
+class plaingraph_manager {
+    public:
+    static void prep_graph(const string& idirname, const string& odirname);
+};

@@ -311,6 +311,9 @@ void onegraph_t<T>::persist_slog(const string& stfile)
     //Lets write the snapshot log
     dlog = (disk_snapT_t<T>*)snap_log;
     
+    if (0 == g->get_snapid()) {
+        return;
+    }
     for (sid_t i; i < dvt_count; ++i) {
         snap_blob = beg_pos[dvt[i].vid].get_snapblob();
         dlog->vid = dvt[i].vid;

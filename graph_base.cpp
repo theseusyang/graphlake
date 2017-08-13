@@ -7,10 +7,15 @@
 #include "type.h"
 #include "graph.h"
 
+#ifdef B64
 propid_t INVALID_PID = 0xFFFF;
 tid_t    INVALID_TID  = 0xFFFFFFFF;
 sid_t    INVALID_SID  = 0xFFFFFFFFFFFFFFFF;
-
+#else 
+propid_t INVALID_PID = 0xFF;
+tid_t    INVALID_TID  = 0xFF;
+sid_t    INVALID_SID  = 0xFFFFFFFF;
+#endif
 
 
 

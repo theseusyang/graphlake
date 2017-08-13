@@ -8,25 +8,30 @@
 #include <map>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include "csv_to_edge.h"
 #include "type.h"
+#include "graph.h"
+#include "typekv.h"
 #include "sgraph.h"
 
+#include "iterative_analytics.h"
 using namespace std;
 
-class plaingraph_manager {
-    public:
-    static void prep_graph(const string& idirname, const string& odirname);
-};
 
 void plaingraph_manager::prep_graph(const string& idirname, const string& odirname)
 {
     struct dirent *ptr;
     DIR *dir;
-    sid_t subject, object;
     int file_count = 0;
     string filename;
-    dgraph_t* dgraph = new dgraph_t;
+    propid_t cf_id = g->get_cfid("friend");
+    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
+
+    //do some setup for plain graphs
+    ugraph->flag1 = 1;
+    ugraph->flag2 = 1;
+    typekv_t* typekv = g->get_typekv();
+    typekv->manual_setup(1<<24); 
     
     //Read graph file
     dir = opendir(idirname.c_str());
@@ -37,10 +42,13 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
         uint64_t size = fsize(filename);
         uint64_t edge_count = size/sizeof(edge_t);
         file_count++;
-        fread(dgraph->batch_info[0].buf, sizeof(edge_t), size, file);    
+        uint64_t size1 = fread(ugraph->batch_info[0].buf, sizeof(edge_t), edge_count, file);
+        ugraph->batch_info[0].count = size1;
+        ugraph->make_graph_baseline();
+        ugraph->store_graph_baseline(odirname);
+
     }
     closedir(dir);
+    bfs<sid_t>(ugraph->sgraph, ugraph->sgraph, 1); 
     
-    dgraph->make_graph_baseline();
-    dgraph->store_graph_baseline(odirname);
 }

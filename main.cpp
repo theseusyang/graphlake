@@ -85,6 +85,9 @@ int main(int argc, char* argv[])
         case 20:
             darshan_test0(typefile, idir, odir);
             break;
+        case 30:
+            plain_test0(idir, odir);
+            break;
         default:
             break;
     }

@@ -205,6 +205,12 @@ typekv_t::typekv_t()
     etf = 0;
 }
 
+void typekv_t::manual_setup(sid_t  vert_count)
+{
+    t_count = 1;
+    t_info[0].vert_id = vert_count;
+}
+
 cfinfo_t*
 typekv_t::create_instance()
 {

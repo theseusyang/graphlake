@@ -8,7 +8,7 @@
 
 using std::string;
 
-
+#ifdef B64
 typedef uint16_t propid_t;
 typedef uint64_t vid_t;
 typedef uint64_t sid_t;
@@ -17,18 +17,52 @@ typedef uint64_t index_t;
 typedef uint32_t tid_t;
 typedef uint64_t sflag_t;
 typedef uint16_t qid_t;
-typedef uint32_t pos_t; //adj list position, how long an adj list can be
 typedef uint16_t snapid_t ;
 typedef uint16_t rdegree_t; //relative degree
-typedef uint16_t degree_t;
-//typedef int32_t status_t;
+typedef uint32_t degree_t;
+#elif B32
+typedef uint8_t propid_t;
+typedef uint32_t vid_t;
+typedef uint32_t sid_t;
+typedef uint32_t eid_t;
+typedef uint64_t index_t;
+typedef uint8_t tid_t;
+typedef uint64_t sflag_t;
+typedef uint16_t qid_t;
+typedef uint16_t snapid_t ;
+typedef uint16_t rdegree_t; //relative degree
+typedef uint32_t degree_t;
+#endif
 
+#ifndef PLAIN_GRAPH 
+#ifdef B64
 #define VBIT 40
 #define VMASK 0xffffffffff
 #define THIGH_MASK 0x7FFFFF0000000000
 #define DEL_MASK   0x8000000000000000
 #define SID_MASK   0x7FFFFFFFFFFFFFFF
-
+#elif B32
+#define VBIT 28
+#define VMASK 0xfffffff
+#define THIGH_MASK 0x70000000
+#define DEL_MASK   0x80000000
+#define SID_MASK   0x7FFFFFFF
+#endif
+#else
+#ifdef B64
+#define VBIT 40
+#define VMASK 0xffffffffff
+#define THIGH_MASK 0x7FFFFF0000000000
+#define DEL_MASK   0x8000000000000000
+#define SID_MASK   0x7FFFFFFFFFFFFFFF
+#elif B32
+#define VBIT 28
+#define VMASK 0xfffffff
+#define THIGH_MASK 0x70000000
+#define DEL_MASK   0x80000000
+#define SID_MASK   0x7FFFFFFF
+#endif
+#endif
 
 #define TO_TID(sid)  ((sid & THIGH_MASK) >> VBIT)
 #define TO_VID(sid)  (sid & VMASK)

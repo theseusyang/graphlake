@@ -61,14 +61,11 @@ class cfinfo_t {
     virtual status_t batch_update(const string& src, const string& dst, propid_t pid, 
                           propid_t count, prop_pair_t* prop_pair, int del = 0);
     
-    //This interface is for edge properties.
-    virtual status_t batch_update(eid_t eid, const string& dst, propid_t pid) {return eOK;};
     
     virtual void make_graph_baseline();
     virtual void store_graph_baseline(string dir);
     virtual void read_graph_baseline(const string& dir);
 
-    virtual status_t calc_deletededge_count(pedge_t* edge) {return eOK;};
 
     //Graph specific
     virtual void add_edge_property(const char* longname, prop_encoder_t* prop_encoder);

@@ -153,17 +153,17 @@ private:
 
     //edgetable file related log
     T*       log_beg;  //memory log pointer
-    sid_t    log_count;//size of memory log
-    sid_t    log_head; // current log write position
-    sid_t    log_tail; //current log cleaning position
-    sid_t    log_wpos; //Write this pointer for write persistency
+    index_t    log_count;//size of memory log
+    index_t    log_head; // current log write position
+    index_t    log_tail; //current log cleaning position
+    index_t    log_wpos; //Write this pointer for write persistency
     
     //edgetable file related log
     char*    dlog_beg;  //memory log pointer
-    sid_t    dlog_count;//size of memory log
-    sid_t    dlog_head; // current log write position
-    sid_t    dlog_tail; //current log cleaning position
-    sid_t    dlog_wpos; //Write this pointer for write persistency
+    index_t    dlog_count;//size of memory log
+    index_t    dlog_head; // current log write position
+    index_t    dlog_tail; //current log cleaning position
+    index_t    dlog_wpos; //Write this pointer for write persistency
 
     //vertex table file related log
     disk_vtable_t* dvt;
@@ -186,7 +186,7 @@ public:
         //XXX everything is in memory
         log_count = (1L << 28);//256*8 MB
         if (posix_memalign((void**)&log_beg, 2097152, log_count*sizeof(T))) {
-            //log_beg = (sid_t*)calloc(sizeof(sid_t), log_count);
+            //log_beg = (index_t*)calloc(sizeof(index_t), log_count);
             perror("posix memalign edge log");
         }
         log_head = 0;
@@ -196,7 +196,7 @@ public:
         //XXX everything is in memory
         dlog_count = (1L << 28);//256 MB
         if (posix_memalign((void**)&dlog_beg, 2097152, dlog_count)) {
-            //log_beg = (sid_t*)calloc(sizeof(sid_t), log_count);
+            //log_beg = (index_t*)calloc(sizeof(index_t), log_count);
             perror("posix memalign snap log");
         }
         dlog_head = 0;
