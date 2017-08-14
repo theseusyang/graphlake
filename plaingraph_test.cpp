@@ -4,7 +4,7 @@
 #include "all.h"
 #include "csv_to_edge.h"
 #include "iterative_analytics.h"
-#include "s_iterative_analytics.h"
+#include "ext_iterative_analytics.h"
 
 
 #define no_argument 0
@@ -177,6 +177,6 @@ void plain_test6(const string& odir)
     vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
     index_t edge_count = (v_count << 5);
     uint8_t* level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
-    s_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, 1);
+    ext_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, 1);
     return ;
 }

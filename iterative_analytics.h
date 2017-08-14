@@ -29,8 +29,7 @@ bfs(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, sid_t root)
 		todo = 0;
 		double start = mywtime();
 		if (top_down) {
-			//#pragma omp parallel \
-		   	//reduction (+:todo) reduction(+:frontier)
+			#pragma omp parallel reduction (+:todo) reduction(+:frontier)
 			{
             sid_t sid;
 			for (tid_t i = 0; i < iset_count; ++i) {
@@ -45,7 +44,7 @@ bfs(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, sid_t root)
 				vert_table_t<T>* graph = sgraph_out[tid]->get_begpos();
 
                 //Get the frontiers
-				//#pragma omp for schedule (guided) nowait
+				#pragma omp for schedule (guided) nowait
 				for (vid_t v = 0; v < v_count; v++) {
 					if (status[v] != level) continue;
 					
@@ -80,7 +79,7 @@ bfs(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, sid_t root)
 
 				vid_t v_count = rset->get_wcount();
 				uint8_t* status = rset->get_levelarray();
-				vert_table_t<T>* graph = sgraph_out[tid]->get_begpos();
+				vert_table_t<T>* graph = sgraph_in[tid]->get_begpos();
 				
 				//Get the frontiers
 				#pragma omp for schedule (guided) nowait
@@ -170,7 +169,7 @@ pagerank(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, int iteration_co
 
 	//let's run the pagerank
 	for (int iter_count = 0; iter_count < iteration_count; ++iter_count) {
-		//#pragma omp parallel
+		#pragma omp parallel
 		{
             sid_t sid;
 			float rank;
@@ -188,7 +187,7 @@ pagerank(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, int iteration_co
                 vid_t v_count = rset->get_wcount();
 				vert_table_t<T>* graph = sgraph_in[tid]->get_begpos();
 
-				//#pragma omp for schedule (guided) nowait
+				#pragma omp for schedule (guided) nowait
 				for (vid_t v = 0; v < v_count; v++) {
 					T* adj_list = graph[v].get_adjlist();
 					vid_t nebr_count = get_nebrcount1(adj_list);

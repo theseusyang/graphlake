@@ -45,7 +45,7 @@ HEADER=graph.h\
 	rset.h\
     query_clause.h\
 	iterative_analytics.h\
-	s_iterative_analytics.h\
+	ext_iterative_analytics.h\
 	nt_to_edge.h\
 	csv_to_edge.h\
 	darshan_to_edge.h\

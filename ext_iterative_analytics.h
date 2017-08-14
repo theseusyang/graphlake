@@ -8,7 +8,7 @@
 
 template<class T>
 void
-s_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in, 
+ext_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in, 
       vid_t v_count, index_t edge_count, uint8_t* status, sid_t root)
 {
 	int				level      = 1;
@@ -23,8 +23,8 @@ s_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 		todo = 0;
 		double start = mywtime();
 		if (top_down) {
-			//#pragma omp parallel \
-		   	//reduction (+:todo) reduction(+:frontier)
+			#pragma omp parallel \
+		   	reduction (+:todo) reduction(+:frontier)
 			{
                 sid_t sid;
                 vert_table_t<T>* graph  = graph_out;

@@ -55,7 +55,7 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
     size_t len = 0;
     ssize_t read;
 
-    sid_t exe_id, uid, job_id, sub_job_id, file_id;
+    //sid_t exe_id, uid, job_id, sub_job_id, file_id;
     string exe, user, job;
     string subject, object, predicate;
 
@@ -71,7 +71,8 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
         if (line[read - 1] == '\n') line[read - 1] = 0;
         
         exe = line +7;
-        exe_id = g->type_update(exe, predicate);
+        //exe_id 
+        g->type_update(exe, predicate);
     }
 
     //uid
@@ -80,7 +81,8 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
         if (line[read - 1] == '\n') line[read - 1] = 0;
         
         user = line +7;
-        uid = g->type_update(user, predicate);
+        //uid = 
+        g->type_update(user, predicate);
     }
 
     //job id
@@ -89,7 +91,8 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
         if (line[read - 1] == '\n') line[read - 1] = 0;
         
         job = line +9;
-        job_id = g->type_update(job, predicate);
+        //job_id = 
+        g->type_update(job, predicate);
     }
    
     //job id and exe
@@ -208,7 +211,8 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
         } else if (0 != rank.compare(prev_rank)) {//not equal, create
             predicate = "sub_job_type";
             sub_job = job + rank; // make a unique sub process
-            sub_job_id = g->type_update(sub_job, predicate);
+            //sub_job_id = 
+            g->type_update(sub_job, predicate);
             predicate = "sub_job";
             pid = g->get_cfid(predicate.c_str());
             prop_pair.name = "rank";
@@ -263,7 +267,8 @@ darshan_manager::prep_vtable(const string& filename, const string& odir)
         if( 0 != prev_filename_hash.compare(filename_hash)) {//not equal
             prev_filename_hash = filename_hash;
             // Any other predicate type for file names ??
-            file_id = g->type_update(filename_hash, "file"); 
+            //file_id = 
+            g->type_update(filename_hash, "file"); 
         }
 
         //Add this line and edge property value to db 
