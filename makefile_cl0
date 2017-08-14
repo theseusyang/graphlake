@@ -52,8 +52,10 @@ HEADER=graph.h\
 
 #	lite_sgraph.h\
 
-INCLUDES= -Iantlr4/include -Iantlr4
-LIBDIRS= -Lantlr4/lib
+#INCLUDES= -Iantlr4/include -Iantlr4
+#LIBDIRS= -Lantlr4/lib
+INCLUDES=
+LIBDIRS=
 
 DEPS=$(SRC) $(HEADER)
 

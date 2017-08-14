@@ -257,8 +257,6 @@ void graph::make_graph_baseline()
     for (int i = 0; i < cf_count; i++) {
         cf_info[i]->make_graph_baseline();
     }
-
-    incr_snapid();
 }
 
 void graph::store_graph_baseline(const string& odir)

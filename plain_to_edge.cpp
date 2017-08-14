@@ -18,6 +18,18 @@
 using namespace std;
 
 
+void plaingraph_manager::setup_graph(vid_t v_count)
+{
+    //do some setup for plain graphs
+    propid_t cf_id = g->get_cfid("friend");
+    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
+    ugraph->flag1 = 1;
+    ugraph->flag2 = 1;
+    typekv_t* typekv = g->get_typekv();
+    typekv->manual_setup(v_count); 
+    
+}
+
 void plaingraph_manager::prep_graph(const string& idirname, const string& odirname)
 {
     struct dirent *ptr;
@@ -62,8 +74,8 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
         } while (edge_count > 0);
     }
     closedir(dir);
-    ugraph->swap_log_buffer();
+    //ugraph->swap_log_buffer();
 
-    ugraph->make_graph_baseline();
-    ugraph->store_graph_baseline(odirname);
+    g->make_graph_baseline();
+    g->store_graph_baseline(odirname);
 }
