@@ -184,7 +184,7 @@ public:
         max_vcount = 0;
         
         //XXX everything is in memory
-        log_count = (1L << 28);//256*8 MB
+        log_count = (1L << 30);//256*8 MB
         if (posix_memalign((void**)&log_beg, 2097152, log_count*sizeof(T))) {
             //log_beg = (index_t*)calloc(sizeof(index_t), log_count);
             perror("posix memalign edge log");

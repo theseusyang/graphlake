@@ -94,6 +94,15 @@ int main(int argc, char* argv[])
         case 32:
             plain_test2(odir);
             break;
+        case 33:
+            plain_test3(idir, odir);
+            break;
+        case 34:
+            plain_test4(idir, odir);
+            break;
+        case 35:
+            plain_test5(odir);
+            break;
         default:
             break;
     }

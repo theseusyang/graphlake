@@ -228,7 +228,7 @@ void onegraph_t<T>::setup_adjlist()
             
             //get the deletion position and copy accordingly XXX
             memcpy(adj_list, adj_list1, 
-                   beg_pos[vid].get_nebrcount()*sizeof(T));
+                   (beg_pos[vid].get_nebrcount() + 1)*sizeof(T));
 
             
             //Looks like, this needs to be done atomically XXX
@@ -547,6 +547,7 @@ void pgraph_t<T>::calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sg
                 sgraph_out[src_index]->decrement_count(vert1_id);
                 sgraph_in[dst_index]->decrement_count(vert2_id);
             }
+
         }
     }
 }

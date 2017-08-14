@@ -53,10 +53,11 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
                 ugraph->make_graph_baseline();
                 ugraph->store_graph_baseline(odirname);
             }
-            size2 = min(ugraph->MAXX_ECOUNT, edge_count);
-            size1 = fread(ugraph->batch_info1[ugraph->batch_count1].buf, 
-                               sizeof(edge_t), size2, file);
-            ugraph->batch_info1[ugraph->batch_count1].count = size1;
+            index_t count = ugraph->batch_info1[ugraph->batch_count1].count;
+            edge_t* edge = (edge_t*)(ugraph->batch_info1[ugraph->batch_count1].buf) + count;
+            size2 = min(ugraph->MAXX_ECOUNT - count, edge_count);
+            size1 = fread(edge, sizeof(edge_t), size2, file);
+            ugraph->batch_info1[ugraph->batch_count1].count += size1;
             edge_count -= size1;
         } while (edge_count > 0);
     }

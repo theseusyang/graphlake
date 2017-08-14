@@ -29,8 +29,8 @@ bfs(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, sid_t root)
 		todo = 0;
 		double start = mywtime();
 		if (top_down) {
-			#pragma omp parallel \
-		   	reduction (+:todo) reduction(+:frontier)
+			//#pragma omp parallel \
+		   	//reduction (+:todo) reduction(+:frontier)
 			{
             sid_t sid;
 			for (tid_t i = 0; i < iset_count; ++i) {
@@ -45,7 +45,7 @@ bfs(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, sid_t root)
 				vert_table_t<T>* graph = sgraph_out[tid]->get_begpos();
 
                 //Get the frontiers
-				#pragma omp for schedule (guided) nowait
+				//#pragma omp for schedule (guided) nowait
 				for (vid_t v = 0; v < v_count; v++) {
 					if (status[v] != level) continue;
 					
@@ -54,7 +54,7 @@ bfs(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, sid_t root)
 					vid_t nebr_count = graph[v].degree;
 					++adj_list;
 					todo += nebr_count;
-					
+				    
 					//traverse the adj list
 					for (vid_t k = 0; k < nebr_count; ++k) {
                         sid = get_nebr(adj_list, k);
@@ -88,8 +88,8 @@ bfs(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, sid_t root)
 					if (status[v] != 0) continue;
 					
 					T* adj_list = graph[v].get_adjlist();
-					//vid_t nebr_count = get_nebrcount1(adj_list);
-					vid_t nebr_count = graph[v].degree;
+					vid_t nebr_count = get_nebrcount1(adj_list);
+					//vid_t nebr_count = graph[v].degree;
 					++adj_list;
 					todo += nebr_count;
 					
@@ -214,5 +214,36 @@ pagerank(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, int iteration_co
     double end = mywtime();
 
 	cout << "Iteration time = " << end - start << endl;
+	cout << endl;
+}
+
+template<class T>
+void 
+verification(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, int iteration_count)
+{
+
+    sid_t sid;
+    for (tid_t i = 0; i < 1; ++i) {
+        
+        //get the graph where we will traverse
+        if (0 == sgraph_in[i]) continue;
+        
+        vert_table_t<T>* graph = sgraph_in[i]->get_begpos();
+        vid_t v_count = 10000;
+
+        for (vid_t v = 0; v < v_count; v++) {
+            T* adj_list = graph[v].get_adjlist();
+            vid_t nebr_count = get_nebrcount1(adj_list);
+            ++adj_list;
+            cout << "vertex: " << v << " : " << nebr_count << endl;	
+            //traverse the adj list
+            for (vid_t k = 0; k < nebr_count; ++k) {
+                sid = get_nebr(adj_list, k);
+                cout << sid << " ";
+            }
+            cout << endl;
+        }
+    }
+
 	cout << endl;
 }
