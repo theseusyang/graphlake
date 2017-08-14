@@ -249,7 +249,7 @@ void onegraph_t<T>::setup_adjlist()
         } else if (!adj_list) {//first time
             beg_pos[vid].set_adjlist(log_beg + log_head);
             beg_pos[vid].degree = count;
-            beg_pos[vid].snap_id = snap_id;         
+            beg_pos[vid].snap_id = snap_id + 1;         
                        
             dvt[v].vid = vid;
             dvt[v].degree = count;
@@ -362,7 +362,7 @@ void onegraph_t<T>::read_stable(const string& stfile)
     //read in batches. XXX
     assert(snap_size >= size);
     uint64_t read_count = fread(snap_log, sizeof(char), size, stf);
-    snap_blob = (snapT_t<T>*)dlog_head;
+    snap_blob = (snapT_t<T>*)dlog_beg;
     dlog = (disk_snapT_t<T>*)snap_log; 
     
     while (sum < read_count) {
@@ -384,7 +384,7 @@ void onegraph_t<T>::read_stable(const string& stfile)
         dlog_head += sizeof(snapT_t<T>) - sizeof(delentry_t<T>) 
                 + dlog->del_count;
         
-        snap_blob = (snapT_t<T>*) dlog_head;
+        snap_blob = (snapT_t<T>*) (dlog_beg + dlog_head);
         dlog = (disk_snapT_t<T>*) (snap_log + sum);
     }
 }
