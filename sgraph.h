@@ -18,7 +18,11 @@ class pgraph_t: public cfinfo_t {
         int snapshot_id;
   
  public:    
-    inline pgraph_t() { MAXX_ECOUNT = MAX_ECOUNT;};
+    inline pgraph_t() { 
+        MAXX_ECOUNT = MAX_ECOUNT;
+        sgraph = 0;
+        sgraph_in = 0;
+    }
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     
  
@@ -203,10 +207,11 @@ void onegraph_t<T>::setup_adjlist()
 
         if ((adj_list && beg_pos[vid].get_nebrcount() != count) || 
             (del_count != 0)) {// new nebrs added/deleted
-            
+           
+            assert(del_count == 0); 
             //allocate for deleted edges
             //even if none are deleted, only added
-            snap_blob = (snapT_t<T>*)dlog_beg + dlog_head;
+            snap_blob = (snapT_t<T>*)(dlog_beg + dlog_head);
             dlog_head += sizeof(snapT_t<T>) - sizeof(delentry_t<T>) 
                          + del_count*sizeof(delentry_t<T>);
            
@@ -971,6 +976,7 @@ void pgraph_t<T>::fill_adj_list(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgra
                 sgraph_out[src_index]->add_nebr(vert1_id, dst);
                 sgraph_in[dst_index]->add_nebr(vert2_id, src);
             } else {
+                assert(0);
                 //sgraph_out[src_index]->del_nebr(vert1_id, dst);
                 //sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
             }

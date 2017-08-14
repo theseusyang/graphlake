@@ -72,6 +72,8 @@ void plain_test1(const string& idir, const string& odir)
     typekv->manual_setup(1<<21); 
     
     plaingraph_manager::prep_graph(idir, odir);
+    //bfs<sid_t>(ugraph->sgraph, ugraph->sgraph, 1); 
+    
     string idir1 = "/mnt/disk_huge_1/pradeepk/pradeep_graph/kron_21_16_incr/"; 
     plaingraph_manager::prep_graph(idir1, odir);
     
@@ -88,7 +90,7 @@ void plain_test2(const string& odir)
     ugraph->flag1 = 1;
     ugraph->flag2 = 1;
     typekv_t* typekv = g->get_typekv();
-    typekv->manual_setup(1<<20); 
+    typekv->manual_setup(1<<21); 
     
     
     ugraph->read_graph_baseline(odir);

@@ -100,7 +100,7 @@ class vert_table_t {
 
     inline void set_nebrcount(vid_t count) {
         set_nebrcount1(adj_list, count);
-        //adj_list[0] = count;
+        assert(degree == get_nebrcount1(adj_list));
     }
 
     inline vid_t get_nebrcount() {
