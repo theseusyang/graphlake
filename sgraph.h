@@ -275,7 +275,7 @@ void onegraph_t<T>::persist_elog(const string& etfile)
         
     //Write the file.
     if (etf == 0) {
-        etf = fopen(etfile.c_str(), "a+b");//append/write + binary
+        etf = fopen(etfile.c_str(), "wb");//append/write + binary
         assert(etf != 0);
     }
     fwrite(log_beg+wpos, sizeof(T), log_head-wpos, etf);
@@ -292,7 +292,7 @@ void onegraph_t<T>::persist_vlog(const string& vtfile)
 
     //Write the file
     if(vtf == 0) {
-        vtf = fopen(vtfile.c_str(), "a+b");
+        vtf = fopen(vtfile.c_str(), "wb");
         assert(vtf != 0);
     }
     fwrite(dvt, sizeof(disk_vtable_t), count, vtf);
@@ -308,7 +308,7 @@ void onegraph_t<T>::persist_slog(const string& stfile)
     uint64_t sum = 0;
     
     if(stf == 0) {
-        stf = fopen(stfile.c_str(), "a+b");
+        stf = fopen(stfile.c_str(), "wb");
         assert(stf != 0);
     }
     
