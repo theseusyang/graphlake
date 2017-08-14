@@ -23,13 +23,12 @@ ext_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 		todo = 0;
 		double start = mywtime();
 		if (top_down) {
-			#pragma omp parallel \
-		   	reduction (+:todo) reduction(+:frontier)
+			#pragma omp parallel reduction (+:todo) reduction(+:frontier)
 			{
                 sid_t sid;
                 vert_table_t<T>* graph  = graph_out;
                 //Get the frontiers
-				//#pragma omp for schedule (guided) nowait
+				#pragma omp for schedule (guided) nowait
 				for (vid_t v = 0; v < v_count; v++) {
 					if (status[v] != level) continue;
 					
@@ -50,8 +49,7 @@ ext_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 				}
 			}
 		} else {//bottom up
-			#pragma omp parallel \
-		   	reduction (+:todo) reduction(+:frontier)
+			#pragma omp parallel reduction (+:todo) reduction(+:frontier)
 			{
                 sid_t  sid;
 				vert_table_t<T>* graph = graph_in;
