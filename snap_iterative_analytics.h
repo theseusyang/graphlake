@@ -9,7 +9,7 @@
 template<class T>
 void
 snap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in, 
-      vid_t v_count, index_t edge_count, uint8_t* status, sid_t root)
+      vid_t v_count, index_t edge_count, uint8_t* status, snapid_t snap_id, sid_t root)
 {
 	int				level      = 1;
 	int				top_down   = 1;

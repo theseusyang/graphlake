@@ -82,7 +82,7 @@ void plain_test1(const string& idir, const string& odir)
     index_t edge_count = (v_count << 5);
     uint8_t* level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
     
-    snap_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, 1);
+    snap_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, 1, 1);
     return ;
 }
 
@@ -165,6 +165,6 @@ void plain_test6(const string& odir)
     index_t edge_count = (v_count << 5);
     uint8_t* level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
     
-    snap_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, 1);
+    snap_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, 1, 1);
     return ;
 }
