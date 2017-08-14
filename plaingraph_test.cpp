@@ -5,6 +5,7 @@
 #include "csv_to_edge.h"
 #include "iterative_analytics.h"
 #include "ext_iterative_analytics.h"
+#include "snap_iterative_analytics.h"
 
 
 #define no_argument 0
@@ -56,6 +57,7 @@ void plain_test0(const string& idir, const string& odir)
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
     bfs<sid_t>(ugraph->sgraph, ugraph->sgraph, 1); 
+    
     return ;
 }
 
@@ -69,12 +71,18 @@ void plain_test1(const string& idir, const string& odir)
     
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
-    //bfs<sid_t>(ugraph->sgraph, ugraph->sgraph, 1); 
+    bfs<sid_t>(ugraph->sgraph, ugraph->sgraph, 1); 
     
     string idir1 = "/mnt/disk_huge_1/pradeepk/pradeep_graph/kron_21_16_incr/"; 
     plaingraph_manager::prep_graph(idir1, odir);
     
     bfs<sid_t>(ugraph->sgraph, ugraph->sgraph, 1); 
+    
+    vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
+    index_t edge_count = (v_count << 5);
+    uint8_t* level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
+    
+    snap_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, 1);
     return ;
 }
 
@@ -157,6 +165,6 @@ void plain_test6(const string& odir)
     index_t edge_count = (v_count << 5);
     uint8_t* level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
     
-    ext_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, 1);
+    snap_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, 1);
     return ;
 }
