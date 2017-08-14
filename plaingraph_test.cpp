@@ -4,6 +4,7 @@
 #include "all.h"
 #include "csv_to_edge.h"
 #include "iterative_analytics.h"
+#include "s_iterative_analytics.h"
 
 
 #define no_argument 0
@@ -155,5 +156,27 @@ void plain_test5(const string& odir)
     
     ugraph->read_graph_baseline(odir);
     verification<sid_t>(ugraph->sgraph, ugraph->sgraph, 1); 
+    return ;
+}
+
+void plain_test6(const string& odir)
+{
+    schema_plaingraph();
+    //do some setup for plain graphs
+    propid_t cf_id = g->get_cfid("friend");
+    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
+    ugraph->flag1 = 1;
+    ugraph->flag2 = 1;
+    typekv_t* typekv = g->get_typekv();
+    vid_t v_count = (1<<21);
+    typekv->manual_setup(v_count); 
+    
+    
+    ugraph->read_graph_baseline(odir);
+    //call s_bfs
+    vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
+    index_t edge_count = (v_count << 5);
+    uint8_t* level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
+    s_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, 1);
     return ;
 }
