@@ -33,8 +33,8 @@ ext_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 					if (status[v] != level) continue;
 					
 					T* adj_list = graph[v].get_adjlist();
-					//vid_t nebr_count = get_nebrcount1(adj_list);
-					vid_t nebr_count = graph[v].degree;
+					vid_t nebr_count = get_nebrcount1(adj_list);
+					//vid_t nebr_count = graph[v].degree;
 					++adj_list;
 					todo += nebr_count;
 				    

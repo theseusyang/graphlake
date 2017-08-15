@@ -70,15 +70,64 @@ class vert_table_t {
  private:
     //nebr list of one vertex. First member is a spl member
     //count, flag for snapshot, XXX: smart pointer count
-    T*            adj_list;
     snapT_t<T>*   snap_blob;
  public:
     degree_t      degree;
     snapid_t      snap_id;
  
  public:
-    inline vert_table_t() { adj_list = 0; snap_blob = 0;}
+    inline vert_table_t() { snap_blob = 0;}
 
+    inline vid_t get_nebrcount() {
+        return snap_blob->degree;
+    }
+    
+    inline T* get_adjlist() { return snap_blob->adj_list; }
+    inline snapT_t<T>* get_snapblob() { return snap_blob; } 
+    
+    //The incoming is composite or simple, depends on if/else
+    inline void set_snapblob(snapT_t<T>* snap_blob1) { 
+        if (0 == snap_blob) {
+            snap_blob = snap_blob1; 
+        } else {
+            snap_blob1->prev->prev = snap_blob->prev;
+            if (snap_blob->prev) {
+                snap_blob->prev->next = snap_blob1->prev;
+            }
+            snapT_t<T>* old_blob = snap_blob;
+            snap_blob = snap_blob1;
+            free(old_blob);
+        }
+    } 
+    
+    //The incoming is simple, called from read_stable
+    inline void set_snapblob1(snapT_t<T>* snap_blob1) { 
+        if (0 == snap_blob) {
+            snap_blob1->prev  = 0;
+            snap_blob1->next = 0;
+        } else {
+            snap_blob1->prev = snap_blob;
+            snap_blob1->next = 0;
+            
+            snap_blob->next = snap_blob1;
+        }
+        snap_blob = snap_blob1; 
+    } 
+    
+    inline void copy(vert_table_t<T>* beg_pos) {
+        snap_blob->adj_list = beg_pos->snap_blob->adj_list;
+    }
+};
+
+template <class T>
+class nebrcount_t {
+ public:
+    degree_t    add_count;
+    degree_t    del_count;
+    T*          adj_list;
+    snapT_t<T>*  tmp_blob;
+    
+ public:
     inline void add_nebr(vid_t index, T sid) { 
         //add_nebr1(adj_list, index, sid);
         adj_list[index] = sid; 
@@ -90,50 +139,19 @@ class vert_table_t {
     
     inline void del_nebr(vid_t index, delentry_t<T> del_entry) { 
         //XXX 
-        delentry_t<T>* del_entry1 = &snap_blob->del_entry;
-        del_entry1[index] = del_entry;
     }
 
     inline void del_nebr_lite(vid_t index, sid_t sid, univ_t value) {
         //
     }
 
-    inline void set_nebrcount(vid_t count) {
-        set_nebrcount1(adj_list, count);
-        assert(degree == get_nebrcount1(adj_list));
-    }
-
     inline vid_t get_nebrcount() {
         return get_nebrcount1(adj_list);
-        //return adj_list[0];
     }
-    
-    inline T* get_adjlist() { return adj_list; }
+    inline void set_nebrcount(vid_t count) {
+        set_nebrcount1(adj_list, count);
+    }
     inline void set_adjlist(T* adj_list1) { adj_list =  adj_list1;}
-    
-    inline snapT_t<T>* get_snapblob() { return snap_blob; } 
-    inline void set_snapblob(snapT_t<T>* snap_blob1) { 
-        if (0 == snap_blob) {
-            snap_blob1->prev = snap_blob1;
-            snap_blob1->next = snap_blob1;
-        } else {
-            snap_blob1->prev = snap_blob;
-            snap_blob1->next = snap_blob->next;
-            
-            snap_blob->next->prev = snap_blob1;
-            snap_blob->next = snap_blob1;
-        }
-        snap_blob = snap_blob1; 
-    } 
-    
-    inline void copy(vert_table_t<T>* beg_pos) {
-        adj_list = beg_pos->adj_list;
-    }
-};
-
-struct nebrcount_t {
-    degree_t add_count;
-    degree_t del_count;
 };
 
 //one type's graph
@@ -147,7 +165,7 @@ private:
     vert_table_t<T>* beg_pos;
 
     //count in adj list. Used for book-keeping purpose during setup and update.
-    nebrcount_t*   nebr_count;
+    nebrcount_t<T>*   nebr_count;
 
     vid_t    max_vcount;
 
@@ -231,23 +249,22 @@ public:
     
     inline void add_nebr(vid_t vid, sid_t sid) { 
         ++nebr_count[vid].add_count;
-        beg_pos[vid].add_nebr(nebr_count[vid].add_count, sid);
+        nebr_count[vid].add_nebr(nebr_count[vid].add_count, sid);
     }
     inline void del_nebr(vid_t vid, sid_t sid) { 
         ++nebr_count[vid].del_count;
-        beg_pos[vid].del_nebr(nebr_count[vid].del_count, sid);
+        nebr_count[vid].del_nebr(nebr_count[vid].del_count, sid);
     }
     
     inline void add_nebr_lite(vid_t vid, sid_t sid, univ_t value) { 
         ++nebr_count[vid].add_count;
-        beg_pos[vid].add_nebr_lite(nebr_count[vid].add_count, sid, value);
+        nebr_count[vid].add_nebr_lite(nebr_count[vid].add_count, sid, value);
     }
     
-    inline void update_count(vid_t vid) {
-        beg_pos[vid].set_nebrcount(nebr_count[vid].add_count);
-    }
+    void update_count(vid_t vid);
+
     inline void reset_count(vid_t vid) {
-        nebr_count[vid].add_count = beg_pos[vid].get_nebrcount() 
+        nebr_count[vid].add_count = nebr_count[vid].get_nebrcount() 
                                     - nebr_count[vid].del_count;
         nebr_count[vid].del_count = 0;
     }

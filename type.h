@@ -176,7 +176,7 @@ class  snapT_t {
  public:
     snapT_t<T>*     next;//next snapshot of this vid 
     snapT_t<T>*     prev;//prev snapshot of this vid 
-    T*              adj_list;//validity depends on cleaning state 
+    T*        adj_list;//validity depends on cleaning state 
     rdegree_t del_count;
     snapid_t  snap_id;
     degree_t  degree;

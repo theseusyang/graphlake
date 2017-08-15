@@ -27,67 +27,33 @@ class pgraph_t: public cfinfo_t {
     
  
  public:
-    //template <class T>
     onegraph_t<T>** prep_sgraph(sflag_t ori_flag, onegraph_t<T>** a_sgraph);
-    //template <class T>
     onekv_t<T>** prep_skv(sflag_t ori_flag, onekv_t<T>** a_skv);
 
-    //void calc_edge_count(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgraph_in); 
-    //template <class T>
     void calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in); 
-    //template <class T>
     void calc_edge_count_out(onegraph_t<T>** p_sgraph_out);
-    //template <class T>
     void calc_edge_count_in(onegraph_t<T>** sgraph_in);
     
-    //template <class T>
     void prep_sgraph_internal(onegraph_t<T>** sgraph);
-    //template <class T>
     void update_count(onegraph_t<T>** sgraph);
     
-    //template <class T>
     void store_sgraph(onegraph_t<T>** sgraph, string dir, string postfix);
-    //template <class T>
     void store_skv(onekv_t<T>** skv, string dir, string postfix);
     
-    //template <class T>
     void read_sgraph(onegraph_t<T>** sgraph, string dir, string postfix);
-    //template <class T>
     void read_skv(onekv_t<T>** skv, string dir, string postfix);
-    /*
-    sgraph_t** prep_sgraph(sflag_t ori_flag, sgraph_t** a_sgraph);
-    skv_t** prep_skv(sflag_t ori_flag, skv_t** a_skv);
-
-    void calc_edge_count(sgraph_t** sgraph_out, sgraph_t** sgraph_in); 
-    void calc_edge_count_out(sgraph_t** sgraph_out);
-    void calc_edge_count_in(sgraph_t** sgraph_in);
-    
-    void prep_sgraph_internal(sgraph_t** sgraph);
-    void update_count(sgraph_t** sgraph);
-    void store_sgraph(sgraph_t** sgraph, string dir, string postfix);
-    void store_skv(skv_t** skv, string dir, string postfix);
-    
-    void read_sgraph(sgraph_t** sgraph, string dir, string postfix);
-    void read_skv(skv_t** skv, string dir, string postfix);
-    */
     
     void fill_adj_list(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in);
     void fill_adj_list_in(onekv_t<T>** skv_out, onegraph_t<T>** sgraph_in); 
     void fill_adj_list_out(onegraph_t<T>** sgraph_out, onekv_t<T>** skv_in); 
     void fill_skv(onekv_t<T>** skv_out, onekv_t<T>** skv_in);
     
-    //template <class T>
     status_t query_adjlist_td(onegraph_t<T>** sgraph, srset_t* iset, srset_t* oset);
-    //template <class T>
     status_t query_kv_td(onekv_t<T>** skv, srset_t* iset, srset_t* oset);
-    //template <class T>
     status_t query_adjlist_bu(onegraph_t<T>** sgraph, srset_t* iset, srset_t* oset);
-    //template <class T>
     status_t query_kv_bu(onekv_t<T>** skv, srset_t* iset, srset_t* oset);
     
-    //template <class T> 
     status_t extend_adjlist_td(onegraph_t<T>** skv, srset_t* iset, srset_t* oset);
-    //template <class T> 
     status_t extend_kv_td(onekv_t<T>** skv, srset_t* iset, srset_t* oset);
 
 };
@@ -178,7 +144,7 @@ void onegraph_t<T>::setup(tid_t tid)
         vid_t v_count = TO_VID(super_id);
         max_vcount = (v_count << 1);
         beg_pos = (vert_table_t<T>*)calloc(sizeof(vert_table_t<T>), max_vcount);
-        nebr_count = (nebrcount_t*)calloc(sizeof(nebrcount_t), max_vcount);
+        nebr_count = (nebrcount_t<T>*)calloc(sizeof(nebrcount_t<T>), max_vcount);
     } else {
         super_id = g->get_type_scount(tid);
         vid_t v_count = TO_VID(super_id);
@@ -191,24 +157,30 @@ void onegraph_t<T>::setup(tid_t tid)
 template <class T>
 void onegraph_t<T>::setup_adjlist()
 {
-    vid_t v_count = TO_VID(super_id);
+    vid_t    v_count = TO_VID(super_id);
+    //snapid_t snap_id = g->get_snapid();
+    vid_t          v = 0;
+    
     sid_t count, del_count;
+    
     T* adj_list = 0;
     T* adj_list1 = 0;
     snapT_t<T>* snap_blob;
-    snapid_t snap_id = g->get_snapid();
-
-    vid_t v = 0;
+    snapT_t<T>* curr;
 
     for (vid_t vid = 0; vid < v_count; ++vid) {
-        adj_list = beg_pos[vid].get_adjlist();
+
+        curr = beg_pos[vid].get_snapblob();
+       
         del_count = nebr_count[vid].del_count;
         count = nebr_count[vid].add_count - del_count;
 
-        if ((adj_list && beg_pos[vid].get_nebrcount() != count) || 
+        if ((curr && curr->degree != count) || 
             (del_count != 0)) {// new nebrs added/deleted
+        
+            adj_list = curr->adj_list;
            
-            assert(del_count == 0); 
+            assert(del_count == 0);
             //allocate for deleted edges
             //even if none are deleted, only added
             snap_blob = (snapT_t<T>*)(dlog_beg + dlog_head);
@@ -217,26 +189,25 @@ void onegraph_t<T>::setup_adjlist()
            
             snap_blob->adj_list = adj_list;
             snap_blob->del_count = del_count;
-            snap_blob->snap_id = snap_id;
-            snap_blob->degree = beg_pos[vid].degree;
+            snap_blob->snap_id = curr->snap_id;
+            snap_blob->degree =  curr->degree;
             
             
             //for added edges
             //even if none are added, only deleted
-            adj_list = log_beg + log_head;
-            adj_list1 = beg_pos[vid].get_adjlist();
+            adj_list1 = log_beg + log_head;
             
             //get the deletion position and copy accordingly XXX
-            memcpy(adj_list, adj_list1, 
-                   (beg_pos[vid].get_nebrcount() + 1)*sizeof(T));
+            memcpy(adj_list1, adj_list, 
+                   (curr->degree + 1)*sizeof(T));
 
             
-            //Looks like, this needs to be done atomically XXX
-            beg_pos[vid].set_snapblob(snap_blob);
+            nebr_count[vid].tmp_blob = snap_blob;
+            nebr_count[vid].adj_list = adj_list1;
+            
             //put these two in same word, and use atomic CAS
-            beg_pos[vid].degree = count;
-            beg_pos[vid].snap_id = snap_id + 1;         
-            beg_pos[vid].set_adjlist(adj_list);
+            //beg_pos[vid].degree = count;
+            //beg_pos[vid].snap_id = snap_id + 1;         
             
             //this cannot be clubbed with snap log
             dvt[v].vid = vid;
@@ -247,9 +218,10 @@ void onegraph_t<T>::setup_adjlist()
             log_head += count + 1;
             ++v;
         } else if (!adj_list) {//first time
-            beg_pos[vid].set_adjlist(log_beg + log_head);
-            beg_pos[vid].degree = count;
-            beg_pos[vid].snap_id = snap_id + 1;         
+            nebr_count[vid].adj_list = log_beg + log_head;
+            nebr_count[vid].tmp_blob = 0;
+            //beg_pos[vid].degree = count;
+            //beg_pos[vid].snap_id = snap_id + 1;         
                        
             dvt[v].vid = vid;
             dvt[v].degree = count;
@@ -263,6 +235,28 @@ void onegraph_t<T>::setup_adjlist()
     }
     dvt_count = v;
 }
+
+template <class T>
+void onegraph_t<T>::update_count(vid_t vid) {
+        nebr_count[vid].set_nebrcount(nebr_count[vid].add_count);
+        nebr_count[vid].del_count = 0;
+        
+        snapT_t<T>*      curr = (snapT_t<T>*)malloc(sizeof(snapT_t<T>));
+        snapT_t<T>* snap_blob = nebr_count[vid].tmp_blob;
+        
+        curr->adj_list  = nebr_count[vid].adj_list;
+        curr->degree    = nebr_count[vid].add_count;
+        curr->del_count = 0;
+        curr->snap_id   = g->get_snapid() + 1;
+        curr->next      = 0;
+        curr->prev      = snap_blob;
+        
+        if (0 != snap_blob) {
+            snap_blob->next = curr;
+        }
+        
+        beg_pos[vid].set_snapblob(curr);
+    }
 
 template <class T>
 void onegraph_t<T>::persist_elog(const string& etfile)
@@ -320,6 +314,7 @@ void onegraph_t<T>::persist_slog(const string& stfile)
     }
     for (sid_t i; i < dvt_count; ++i) {
         snap_blob = beg_pos[dvt[i].vid].get_snapblob();
+        snap_blob = snap_blob->prev;
         dlog->vid = dvt[i].vid;
         dlog->snap_id = snap_blob->snap_id;
         dlog->del_count = snap_blob->del_count;
@@ -380,7 +375,7 @@ void onegraph_t<T>::read_stable(const string& stfile)
         sum += sizeof(disk_snapT_t<T>) - sizeof(delentry_t<T>) 
                 + dlog->del_count;
 
-        beg_pos[dlog->vid].set_snapblob(snap_blob);
+        beg_pos[dlog->vid].set_snapblob1(snap_blob);
         dlog_head += sizeof(snapT_t<T>) - sizeof(delentry_t<T>) 
                 + dlog->del_count;
         
@@ -422,14 +417,20 @@ void onegraph_t<T>::read_vtable(const string& vtfile)
         assert(0);
     }
     vid_t count = (size/sizeof(disk_vtable_t));
-
+    snapT_t<T>* curr = 0;
     //read in batches
-    while (count !=0 ) {
+    while (count != 0 ) {
         vid_t read_count = fread(dvt, sizeof(disk_vtable_t), dvt_max_count, vtf);
         for (vid_t v = 0; v < read_count; ++v) {
+            curr = (snapT_t<T>*) malloc(sizeof(snapT_t<T>));
             nebr_count[dvt[v].vid].add_count = dvt[v].degree;
-            beg_pos[dvt[v].vid].degree = dvt[v].degree;
-            beg_pos[dvt[v].vid].set_adjlist(log_beg + dvt[v].file_offset);
+            curr->degree = dvt[v].degree;
+            curr->adj_list = log_beg + dvt[v].file_offset;
+            curr->del_count = 0;
+            beg_pos[dvt[v].vid].set_snapblob1(curr);
+            //curr->snap_id = 0; 
+            //beg_pos[dvt[v].vid].degree = dvt[v].degree;
+            //beg_pos[dvt[v].vid].set_adjlist(log_beg + dvt[v].file_offset);
         }
         count -= read_count;
     }
@@ -547,7 +548,6 @@ void pgraph_t<T>::calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sg
                 sgraph_out[src_index]->decrement_count(vert1_id);
                 sgraph_in[dst_index]->decrement_count(vert2_id);
             }
-
         }
     }
 }
@@ -692,8 +692,8 @@ void pgraph_t<T>::read_sgraph(onegraph_t<T>** sgraph, string dir, string postfix
         
         sgraph[i] = new onegraph_t<T>;
         sgraph[i]->setup(i);
-        sgraph[i]->read_vtable(vtfile);
         sgraph[i]->read_stable(stfile);
+        sgraph[i]->read_vtable(vtfile);
         sgraph[i]->read_etable(etfile);
     }
 }
