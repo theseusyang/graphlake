@@ -23,25 +23,30 @@ snap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 		todo = 0;
 		double start = mywtime();
 		if (top_down) {
-			#pragma omp parallel reduction (+:todo) reduction(+:frontier)
+			//#pragma omp parallel reduction (+:todo) reduction(+:frontier)
 			{
                 sid_t sid;
                 vert_table_t<T>* graph  = graph_out;
                 //Get the frontiers
-				#pragma omp for schedule (guided) nowait
+				//#pragma omp for schedule (guided) nowait
 				for (vid_t v = 0; v < v_count; v++) {
 					if (status[v] != level) continue;
 					
 					T* adj_list = graph[v].get_adjlist();
                     snapT_t<T>*snap_blob = graph[v].get_snapblob();
-					//vid_t nebr_count = get_nebrcount1(adj_list);
-					vid_t nebr_count;
-                    if (snap_blob != 0) {
+					
+                    vid_t nebr_count;
+                    if (snap_id >= snap_blob->snap_id) {
                         nebr_count = snap_blob->degree; 
                     } else {
-                        nebr_count = get_nebrcount1(adj_list);
+                        snap_blob = snap_blob->prev;
+                        while (snap_blob->prev && snap_id < snap_blob->prev->snap_id) {
+                            snap_blob = snap_blob->prev;
+                        }
+                        nebr_count = snap_blob->degree; 
                     }
-					++adj_list;
+					
+                    ++adj_list;
 					todo += nebr_count;
 				    
 					//traverse the adj list
@@ -67,13 +72,18 @@ snap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 					
                     snapT_t<T>*snap_blob = graph[v].get_snapblob();
 					T* adj_list = graph[v].get_adjlist();
-                    //vid_t nebr_count = get_nebrcount1(adj_list);
-					vid_t nebr_count;
-                    if (snap_blob != 0) {
+					
+                    vid_t nebr_count;
+                    if (snap_id >= snap_blob->snap_id) {
                         nebr_count = snap_blob->degree; 
                     } else {
-                        nebr_count = get_nebrcount1(adj_list);
+                        snap_blob = snap_blob->prev;
+                        while (snap_blob->prev && snap_id < snap_blob->prev->snap_id) {
+                            snap_blob = snap_blob->prev;
+                        }
+                        nebr_count = snap_blob->degree; 
                     }
+
 					++adj_list;
 					todo += nebr_count;
 					

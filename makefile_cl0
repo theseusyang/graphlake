@@ -46,6 +46,7 @@ HEADER=graph.h\
     query_clause.h\
 	iterative_analytics.h\
 	ext_iterative_analytics.h\
+	snap_iterative_analytics.h\
 	nt_to_edge.h\
 	csv_to_edge.h\
 	darshan_to_edge.h\

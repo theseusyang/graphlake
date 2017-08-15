@@ -83,6 +83,10 @@ void plain_test1(const string& idir, const string& odir)
     uint8_t* level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
     
     snap_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, 1, 1);
+    
+    memset(level_array, 0, v_count*sizeof(uint8_t));
+    ext_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, 1);
+    
     return ;
 }
 
