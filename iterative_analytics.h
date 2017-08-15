@@ -29,7 +29,7 @@ bfs(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, sid_t root)
 		todo = 0;
 		double start = mywtime();
 		if (top_down) {
-			#pragma omp parallel reduction (+:todo) reduction(+:frontier)
+			//#pragma omp parallel reduction (+:todo) reduction(+:frontier)
 			{
             sid_t sid;
 			for (tid_t i = 0; i < iset_count; ++i) {
@@ -44,13 +44,13 @@ bfs(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, sid_t root)
 				vert_table_t<T>* graph = sgraph_out[tid]->get_begpos();
 
                 //Get the frontiers
-				#pragma omp for schedule (guided) nowait
+				//#pragma omp for schedule (guided) nowait
 				for (vid_t v = 0; v < v_count; v++) {
 					if (status[v] != level) continue;
 					
 					T* adj_list = graph[v].get_adjlist();
-					//vid_t nebr_count = get_nebrcount1(adj_list);
-					vid_t nebr_count = graph[v].degree;
+					vid_t nebr_count = get_nebrcount1(adj_list);
+					//vid_t nebr_count = graph[v].degree;
 					++adj_list;
 					todo += nebr_count;
 				    

@@ -237,7 +237,10 @@ void onegraph_t<T>::setup_adjlist()
 }
 
 template <class T>
-void onegraph_t<T>::update_count(vid_t vid) {
+void onegraph_t<T>::update_count() {
+    vid_t vid = 0;
+    for (sid_t i; i < dvt_count; ++i) {
+        vid = dvt[i].vid;
         nebr_count[vid].set_nebrcount(nebr_count[vid].add_count);
         nebr_count[vid].del_count = 0;
         
@@ -257,6 +260,7 @@ void onegraph_t<T>::update_count(vid_t vid) {
         
         beg_pos[vid].set_snapblob(curr);
     }
+}
 
 template <class T>
 void onegraph_t<T>::persist_elog(const string& etfile)
@@ -619,15 +623,18 @@ void pgraph_t<T>::prep_sgraph_internal(onegraph_t<T>** sgraph)
 template <class T>
 void pgraph_t<T>::update_count(onegraph_t<T>** sgraph)
 {
-    vid_t       v_count = 0;
+    //vid_t       v_count = 0;
     tid_t       t_count = g->get_total_types();
     
     for(tid_t i = 0; i < t_count; i++) {
         if (0 == sgraph[i]) continue;
+        sgraph[i]->update_count();
+        
+        /*
         v_count = sgraph[i]->get_vcount();
         for (vid_t j = 0; j < v_count; ++j) {
             sgraph[i]->update_count(j);
-        }
+        }*/
     }
 }
 

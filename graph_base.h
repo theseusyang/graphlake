@@ -261,7 +261,7 @@ public:
         nebr_count[vid].add_nebr_lite(nebr_count[vid].add_count, sid, value);
     }
     
-    void update_count(vid_t vid);
+    void update_count();
 
     inline void reset_count(vid_t vid) {
         nebr_count[vid].add_count = nebr_count[vid].get_nebrcount() 
