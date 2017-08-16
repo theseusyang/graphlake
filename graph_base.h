@@ -72,8 +72,8 @@ class vert_table_t {
     //count, flag for snapshot, XXX: smart pointer count
     snapT_t<T>*   snap_blob;
  public:
-    degree_t      degree;
-    snapid_t      snap_id;
+    //degree_t      degree;
+    //snapid_t      snap_id;
  
  public:
     inline vert_table_t() { snap_blob = 0;}

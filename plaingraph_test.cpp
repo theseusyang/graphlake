@@ -86,7 +86,8 @@ void plain_test1(const string& idir, const string& odir)
     
     memset(level_array, 0, v_count*sizeof(uint8_t));
     ext_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, 1);
-    
+    cout << "multi-snap BFS" << endl; 
+    multisnap_bfs<sid_t>(graph, graph, v_count, edge_count, 1, 2, 1);
     return ;
 }
 
