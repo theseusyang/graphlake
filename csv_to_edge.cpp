@@ -112,6 +112,8 @@ void csv_manager::prep_graph(const string& conf_file,
         prep_etable(idirname + e_iter->filename, e_conf, odirname);
     }
     
+    g->prep_graph_baseline();
+    g->calc_degree();
     g->make_graph_baseline();
     g->store_graph_baseline(odirname);
 }

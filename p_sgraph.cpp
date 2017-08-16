@@ -4,7 +4,7 @@
 
 p_pgraph_t::p_pgraph_t()
 {
-    MAXX_ECOUNT = 666666;
+    MAXX_ECOUNT = MAX_PECOUNT;
     encoder = 0;
     
 }

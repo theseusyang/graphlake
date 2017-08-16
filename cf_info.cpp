@@ -117,6 +117,45 @@ void cfinfo_t::reset()
     }
 }
 
+status_t cfinfo_t::batch_update(const string& src, const string& dst, propid_t pid /* = 0*/)
+{
+    assert(0);
+    return  eOK;
+}
+    
+status_t cfinfo_t::batch_update(const string& src, const string& dst, propid_t pid, 
+                          propid_t count, prop_pair_t* prop_pair, int del /* = 0 */)
+{
+    //cout << "ignoring edge properties" << endl;
+    batch_update(src, dst, pid);
+    return eOK;
+}
+
+void cfinfo_t::calc_degree()
+{   
+    return;
+}
+
+void cfinfo_t::prep_graph_baseline()
+{   
+    return;
+}
+    
+void cfinfo_t::make_graph_baseline()
+{
+    assert(0);
+}
+
+void cfinfo_t::store_graph_baseline(string dir)
+{
+    assert(0);
+}
+
+void cfinfo_t::read_graph_baseline(const string& dir)
+{
+    assert(0);
+}
+
 /*******label specific **********/
 status_t cfinfo_t::filter(sid_t sid, univ_t value, filter_fn_t fn)
 {

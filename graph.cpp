@@ -230,29 +230,24 @@ status_t graph::batch_update(const string& src, const string& dst, propid_t pid,
     return eOK;
 }
 
-void graph::make_graph_baseline()
+void graph::prep_graph_baseline()
 {
-    /*
-    propid_t  cf_id;
-    pedge_t*  edges;
-    index_t   count;
-
-    for (int j = 0; j <= batch_count; ++j) { 
-        edges = (pedge_t*)batch_info[j].buf;
-        count = batch_info[j].count;
-        for (index_t i = 0; i < count; ++i) {
-            cf_id = 0;//XXX
-            if (eOK != cf_info[cf_id]->calc_deletededge_count(edges+i)) {
-                //delete this one,
-            }
-        }
-    }
-    */
     //swap 
     for (int i = 0; i < cf_count; i++) {
         cf_info[i]->swap_log_buffer();
+        cf_info[i]->prep_graph_baseline();
     }
-    
+}
+
+void graph::calc_degree()
+{
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->calc_degree();
+    }
+}
+
+void graph::make_graph_baseline()
+{
     //make graph
     for (int i = 0; i < cf_count; i++) {
         cf_info[i]->make_graph_baseline();
@@ -286,34 +281,6 @@ void pinfo_t::populate_property(const char* longname, const char* property_name)
     cf_id = 0;//will be corrected later
 }
 
-status_t cfinfo_t::batch_update(const string& src, const string& dst, propid_t pid /* = 0*/)
-{
-    assert(0);
-    return  eOK;
-}
-    
-status_t cfinfo_t::batch_update(const string& src, const string& dst, propid_t pid, 
-                          propid_t count, prop_pair_t* prop_pair, int del /* = 0 */)
-{
-    //cout << "ignoring edge properties" << endl;
-    batch_update(src, dst, pid);
-    return eOK;
-}
-    
-void cfinfo_t::make_graph_baseline()
-{
-    assert(0);
-}
-
-void cfinfo_t::store_graph_baseline(string dir)
-{
-    assert(0);
-}
-
-void cfinfo_t::read_graph_baseline(const string& dir)
-{
-    assert(0);
-}
 
 /*
 static int 

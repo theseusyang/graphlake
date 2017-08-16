@@ -61,10 +61,12 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
 
         do {
             if (eOK != ugraph->alloc_batch()) {
-                ugraph->swap_log_buffer();
-                ugraph->make_graph_baseline();
-                ugraph->store_graph_baseline(odirname);
+                g->prep_graph_baseline();
+                g->calc_degree();
+                g->make_graph_baseline();
+                g->store_graph_baseline(odirname);
             }
+
             index_t count = ugraph->batch_info1[ugraph->batch_count1].count;
             edge_t* edge = (edge_t*)(ugraph->batch_info1[ugraph->batch_count1].buf) + count;
             size2 = min(ugraph->MAXX_ECOUNT - count, edge_count);
@@ -76,6 +78,8 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
     closedir(dir);
     //ugraph->swap_log_buffer();
 
+    g->prep_graph_baseline();
+    g->calc_degree();
     g->make_graph_baseline();
     g->store_graph_baseline(odirname);
 }

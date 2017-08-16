@@ -43,6 +43,8 @@ darshan_manager::prep_graph(const string& conf_file,
     g->type_done();
     g->type_store(odirname);
     
+    g->prep_graph_baseline();
+    g->calc_degree();
     g->make_graph_baseline();
     g->store_graph_baseline(odirname);
 }

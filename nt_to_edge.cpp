@@ -65,6 +65,8 @@ void ntriple_manager::prep_graph(const string& idirname, const string& odirname)
     }
     closedir(dir);
     
+    g->prep_graph_baseline();
+    g->calc_degree();
     g->make_graph_baseline();
     g->store_graph_baseline(odirname);
 }
