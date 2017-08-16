@@ -361,9 +361,7 @@ lite_skv_t** p_pgraph_t::prep_skv(sflag_t ori_flag, lite_skv_t** skv)
 */
 
 /************* Semantic graphs  *****************/
-
-//We assume that no new vertex type is defined
-void p_dgraph_t::make_graph_baseline()
+void p_dgraph_t::prep_graph_baseline()
 {
     if (batch_info[0].count == 0) return;
     flag1_count = __builtin_popcountll(flag1);
@@ -381,11 +379,19 @@ void p_dgraph_t::make_graph_baseline()
         sgraph_in  = (lite_sgraph_t**) calloc (sizeof(lite_sgraph_t*), t_count);
     }
     prep_sgraph(flag2, sgraph_in);
+}
 
+void p_dgraph_t::calc_degree()
+{
     //estimate edge count
     calc_edge_count(sgraph_out, sgraph_in);
-    
-    
+}
+
+//We assume that no new vertex type is defined
+void p_dgraph_t::make_graph_baseline()
+{
+    if (batch_info[0].count == 0) return;
+
     //prefix sum then reset the count
     prep_sgraph_internal(sgraph_out);
     prep_sgraph_internal(sgraph_in);
@@ -398,7 +404,6 @@ void p_dgraph_t::make_graph_baseline()
     //clean up
     cleanup();
 }
-
 
 void p_dgraph_t::store_graph_baseline(string dir)
 {
@@ -425,9 +430,8 @@ void p_dgraph_t::read_graph_baseline(const string& dir)
     read_sgraph(sgraph_in,  dir, postfix);
 }
 
-
 /*******************************************/
-void p_ugraph_t::make_graph_baseline()
+void p_ugraph_t::prep_graph_baseline()
 {
     if (batch_info[0].count == 0) return;
     flag1 = flag1 | flag2;
@@ -442,13 +446,20 @@ void p_ugraph_t::make_graph_baseline()
     if (0 == sgraph) {
         sgraph  = (lite_sgraph_t**) calloc (sizeof(lite_sgraph_t*), t_count);
     }
-    prep_sgraph(flag1, sgraph);    
+    prep_sgraph(flag1, sgraph); 
+}
 
+void p_ugraph_t::calc_degree()
+{
     //estimate edge count
     calc_edge_count(sgraph, sgraph);
+}
+
+void p_ugraph_t::make_graph_baseline()
+{
+    if (batch_info[0].count == 0) return;
     
     //prefix sum then reset the count
-    //Take symmetry into consideration
     prep_sgraph_internal(sgraph);
 
     //populate and get the original count back
@@ -476,9 +487,8 @@ void p_ugraph_t::read_graph_baseline(const string& dir)
     read_sgraph(sgraph, dir, postfix);
 }
 
-
 /***************************************/
-void p_many2one_t::make_graph_baseline()
+void p_many2one_t::prep_graph_baseline()
 {
     if (batch_info[0].count == 0) return;
     flag1_count = __builtin_popcountll(flag1);
@@ -497,10 +507,17 @@ void p_many2one_t::make_graph_baseline()
     }
 
     skv_out  = prep_skv(flag1, skv_out);
+}
 
+void p_many2one_t::calc_degree()
+{
     //estimate edge count
     calc_edge_count_in(sgraph_in);
-    
+}
+
+void p_many2one_t::make_graph_baseline()
+{
+    if (batch_info[0].count == 0) return;
     
     //prefix sum then reset the count
     prep_sgraph_internal(sgraph_in);
@@ -520,7 +537,6 @@ void p_many2one_t::store_graph_baseline(string dir)
     store_skv(skv_out, dir, postfix);
     postfix = "in";
     store_sgraph(sgraph_in, dir, postfix);
-
 }
 
 void p_many2one_t::read_graph_baseline(const string& dir)
@@ -541,7 +557,7 @@ void p_many2one_t::read_graph_baseline(const string& dir)
 }
 
 /*******************************************/
-void p_one2many_t::make_graph_baseline()
+void p_one2many_t::prep_graph_baseline()
 {
     if (batch_info[0].count == 0) return;
     flag1_count = __builtin_popcountll(flag1);
@@ -560,10 +576,17 @@ void p_one2many_t::make_graph_baseline()
     }
     
     skv_in   = prep_skv(flag2, skv_in);
-
+}
+    
+void p_one2many_t::calc_degree()
+{
     //estimate edge count
     calc_edge_count_out(sgraph_out);
+}
     
+void p_one2many_t::make_graph_baseline()
+{
+    if (batch_info[0].count == 0) return;
     
     //prefix sum then reset the count
     prep_sgraph_internal(sgraph_out);
@@ -603,7 +626,7 @@ void p_one2many_t::read_graph_baseline(const string& dir)
 }
 
 /************************************************/
-void p_one2one_t::make_graph_baseline()
+void p_one2one_t::prep_graph_baseline()
 {
     if (batch_info[0].count == 0) return;
     flag1_count = __builtin_popcountll(flag1);
@@ -621,6 +644,15 @@ void p_one2one_t::make_graph_baseline()
         skv_out  = (lite_skv_t**) calloc (sizeof(lite_skv_t*), t_count);
     }
     skv_out = prep_skv(flag1, skv_out);
+}
+
+void p_one2one_t::calc_degree()
+{
+}
+
+void p_one2one_t::make_graph_baseline()
+{
+    if (batch_info[0].count == 0) return;
 
     //handle kv_out as well as kv_in.
     fill_skv(skv_out, skv_in);
@@ -952,12 +984,77 @@ cfinfo_t* p_one2one_t::create_instance()
     return new p_one2one_t;
 }
 
+cfinfo_t* p_one2many_t::create_instance()
+{
+    return new p_one2many_t;
+}
+
 cfinfo_t* p_many2one_t::create_instance()
 {
     return new p_many2one_t;
 }
-
-cfinfo_t* p_one2many_t::create_instance()
+//////
+void p_ugraph_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
 {
-    return new p_one2many_t;
+    vid_t vert1_id = TO_VID(src);
+    vid_t vert2_id = TO_VID(dst);
+    
+    tid_t src_index = TO_TID(src);
+    tid_t dst_index = TO_TID(dst);
+    
+    
+    if (del) { 
+        sgraph[src_index]->increment_count(vert1_id);
+        sgraph[dst_index]->increment_count(vert2_id);
+    } else { 
+        sgraph[src_index]->decrement_count(vert1_id);
+        sgraph[dst_index]->decrement_count(vert2_id);
+    }
+}
+
+void p_dgraph_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
+{
+    tid_t src_index = TO_TID(src);
+    tid_t dst_index = TO_TID(dst);
+    
+    vid_t vert1_id = TO_VID(src);
+    vid_t vert2_id = TO_VID(dst);
+    
+    if (del) { 
+        sgraph_out[src_index]->increment_count(vert1_id);
+        sgraph_in[dst_index]->increment_count(vert2_id);
+    } else { 
+        sgraph_out[src_index]->decrement_count(vert1_id);
+        sgraph_in[dst_index]->decrement_count(vert2_id);
+    }
+}
+
+void p_one2one_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
+{
+}
+
+void p_one2many_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
+{
+    tid_t dst_index = TO_TID(dst);
+    
+    vid_t vert2_id = TO_VID(dst);
+    
+    if (del) { 
+        sgraph_in[dst_index]->increment_count(vert2_id);
+    } else { 
+        sgraph_in[dst_index]->decrement_count(vert2_id);
+    }
+}
+
+void p_many2one_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
+{
+    tid_t src_index = TO_TID(src);
+    
+    vid_t vert1_id = TO_VID(src);
+    
+    if (del) { 
+        sgraph_out[src_index]->increment_count(vert1_id);
+    } else { 
+        sgraph_out[src_index]->decrement_count(vert1_id);
+    }
 }

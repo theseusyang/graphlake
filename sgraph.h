@@ -64,12 +64,13 @@ class ugraph_t: public pgraph_t<sid_t> {
 
  public:
     static cfinfo_t* create_instance();
+    
+    void incr_count(sid_t src, sid_t dst, int del = 0);
     void prep_graph_baseline();
     void calc_degree();
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
-    void incr_count(sid_t src, sid_t dst, int del = 0);
     
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
@@ -82,12 +83,13 @@ class dgraph_t: public pgraph_t<sid_t> {
     //sgraph_t** sgraph_in; 
  public:
     static cfinfo_t* create_instance();
+    
+    void incr_count(sid_t src, sid_t dst, int del = 0);
     void prep_graph_baseline();
     void calc_degree();
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
-    void incr_count(sid_t src, sid_t dst, int del = 0);
     
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
@@ -100,12 +102,13 @@ class many2one_t: public pgraph_t<sid_t> {
 
  public:
     static cfinfo_t* create_instance();
+    
+    void incr_count(sid_t src, sid_t dst, int del = 0);
     void prep_graph_baseline();
     void calc_degree();
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
-    void incr_count(sid_t src, sid_t dst, int del = 0);
     
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
@@ -118,12 +121,13 @@ class one2one_t: public pgraph_t<sid_t> {
 
  public:
     static cfinfo_t* create_instance();
+    
+    void incr_count(sid_t src, sid_t dst, int del = 0);
     void prep_graph_baseline();
     void calc_degree();
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
-    void incr_count(sid_t src, sid_t dst, int del = 0);
     
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
@@ -136,12 +140,13 @@ class one2many_t: public pgraph_t<sid_t> {
 
  public:
     static cfinfo_t* create_instance();
+    
+    void incr_count(sid_t src, sid_t dst, int del = 0);
     void prep_graph_baseline();
     void calc_degree();
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
-    void incr_count(sid_t src, sid_t dst, int del = 0);
     
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);

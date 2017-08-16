@@ -507,7 +507,7 @@ void ugraph_t::prep_graph_baseline()
     if (0 == sgraph) {
         sgraph  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
     }
-    prep_sgraph(flag1, sgraph);    
+    prep_sgraph(flag1, sgraph); 
 }
 
 void ugraph_t::calc_degree()
@@ -637,13 +637,13 @@ void one2many_t::prep_graph_baseline()
     }
     
     skv_in   = prep_skv(flag2, skv_in);
-}  
+}
     
 void one2many_t::calc_degree()
 {
     //estimate edge count
     calc_edge_count_out(sgraph_out);
-}  
+}
     
 void one2many_t::make_graph_baseline()
 {

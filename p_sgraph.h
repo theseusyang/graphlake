@@ -42,6 +42,10 @@ class p_ugraph_t: public p_pgraph_t {
 
  public:
     static cfinfo_t* create_instance();
+    
+    void incr_count(sid_t src, sid_t dst, int del = 0);
+    void prep_graph_baseline();
+    void calc_degree();
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
@@ -57,6 +61,10 @@ class p_dgraph_t: public p_pgraph_t {
     //lite_sgraph_t** sgraph_in; 
  public:
     static cfinfo_t* create_instance();
+    
+    void incr_count(sid_t src, sid_t dst, int del = 0);
+    void prep_graph_baseline();
+    void calc_degree();
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
@@ -72,6 +80,10 @@ class p_many2one_t: public p_pgraph_t {
 
  public:
     static cfinfo_t* create_instance();
+    
+    void incr_count(sid_t src, sid_t dst, int del = 0);
+    void prep_graph_baseline();
+    void calc_degree();
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
@@ -87,6 +99,10 @@ class p_one2one_t: public p_pgraph_t {
 
  public:
     static cfinfo_t* create_instance();
+    
+    void incr_count(sid_t src, sid_t dst, int del = 0);
+    void prep_graph_baseline();
+    void calc_degree();
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
@@ -102,6 +118,10 @@ class p_one2many_t: public p_pgraph_t {
 
  public:
     static cfinfo_t* create_instance();
+    
+    void incr_count(sid_t src, sid_t dst, int del = 0);
+    void prep_graph_baseline();
+    void calc_degree();
     void make_graph_baseline();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
