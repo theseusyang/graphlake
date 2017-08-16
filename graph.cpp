@@ -234,8 +234,14 @@ void graph::prep_graph_baseline()
 {
     //swap 
     for (int i = 0; i < cf_count; i++) {
-        cf_info[i]->swap_log_buffer();
         cf_info[i]->prep_graph_baseline();
+    }
+}
+
+void graph::swap_log_buffer()
+{
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->swap_log_buffer();
     }
 }
 

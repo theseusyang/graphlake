@@ -19,26 +19,16 @@ void p_pgraph_t::add_edge_property(const char* longname, prop_encoder_t* prop_en
 status_t p_pgraph_t::batch_update(const string& src, const string& dst, propid_t pid,
                                 propid_t count, prop_pair_t* prop_pair, int del /* = 0*/)
 {
-    vid_t src_id, dst_id;
-    index_t index = 0;
-    ledge_t* edges;
-
-    if (batch_info1[batch_count1].count == MAXX_ECOUNT) {
-        void* mem = alloc_buf();
-        if (mem == 0) return eEndBatch;
-        ++batch_count1;
-        batch_info1[batch_count1].count = 0;
-        batch_info1[batch_count1].buf = mem; 
-    }
+    ledge_t edge;
     
     map<string, vid_t>::iterator str2vid_iter = g->str2vid.find(src);
     if (g->str2vid.end() == str2vid_iter) {
         cout << src << " is not found. See above log if src was invalid. OR is it out of order?? " << endl;
         assert(0);
     } else {
-        src_id = str2vid_iter->second;
+        edge.src_id = str2vid_iter->second;
     }
-    tid_t type_id = TO_TID(src_id);
+    tid_t type_id = TO_TID(edge.src_id);
     flag1 |= TID_TO_SFLAG(type_id);
     
     str2vid_iter = g->str2vid.find(dst);
@@ -46,27 +36,22 @@ status_t p_pgraph_t::batch_update(const string& src, const string& dst, propid_t
        cout << dst << " is not found. See above log if dst was invalid. OR is it out of order?? " << endl; 
         assert(0);
     } else {
-        dst_id = str2vid_iter->second;
+        edge.dst_id.first = str2vid_iter->second;
     }
-    type_id = TO_TID(dst_id);
+    type_id = TO_TID(edge.dst_id.first);
     flag2 |= TID_TO_SFLAG(type_id);
     
-    index = batch_info1[batch_count1].count++;
-    edges = (ledge_t*) batch_info1[batch_count1].buf;
+
 
     if (0 == del) {
         univ_t univ;
         encoder->encode(prop_pair->value.c_str(), univ);
-        edges[index].src_id = src_id; 
-        edges[index].dst_id.first = dst_id;
-        edges[index].dst_id.second = univ;
+        edge.dst_id.second = univ;
     } else {
-        edges[index].src_id = DEL_SID(src_id);
-        edges[index].dst_id.first = dst_id; 
+        edge.src_id = DEL_SID(edge.src_id);
     }
 
-
-    return eOK;
+    return batch_edge(edge);
 }
 
 void p_pgraph_t::fill_adj_list(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgraph_in)

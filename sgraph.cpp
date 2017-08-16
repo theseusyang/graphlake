@@ -1,6 +1,34 @@
 
 #include "sgraph.h"
 
+//Applicable to graphs only, labels should be aware of it.
+template <>
+status_t pgraph_t<sid_t>::batch_update(const string& src, const string& dst, propid_t pid /* = 0 */)
+{
+    edge_t  edge;
+
+    map<string, vid_t>::iterator str2vid_iter = g->str2vid.find(src);
+    if (g->str2vid.end() == str2vid_iter) {
+        cout << src << " is not found. See above log if src was invalid. OR is it out of order?? " << endl;
+        assert(0);
+    } else {
+        edge.src_id = str2vid_iter->second;
+    }
+    tid_t type_id = TO_TID(edge.src_id);
+    flag1 |= TID_TO_SFLAG(type_id);
+    
+    str2vid_iter = g->str2vid.find(dst);
+    if (g->str2vid.end() == str2vid_iter) {
+       cout << dst << " is not found. See above log if dst was invalid. OR is it out of order?? " << endl; 
+        assert(0);
+    } else {
+        edge.dst_id = str2vid_iter->second;
+    }
+    type_id = TO_TID(edge.dst_id);
+    flag2 |= TID_TO_SFLAG(type_id);
+
+    return batch_edge(edge);
+}
 
 /*
 //Applicable to graphs only, labels should be aware of it.
@@ -424,7 +452,6 @@ skv_t** pgraph_t::prep_skv(sflag_t ori_flag, skv_t** skv)
 /************* Semantic graphs  *****************/
 void dgraph_t::prep_graph_baseline()
 {
-    if (batch_info[0].count == 0) return;
     flag1_count = __builtin_popcountll(flag1);
     flag2_count = __builtin_popcountll(flag2);
 
@@ -494,7 +521,6 @@ void dgraph_t::read_graph_baseline(const string& dir)
 /*******************************************/
 void ugraph_t::prep_graph_baseline()
 {
-    if (batch_info[0].count == 0) return;
     flag1 = flag1 | flag2;
     flag2 = flag1;
 
@@ -551,7 +577,6 @@ void ugraph_t::read_graph_baseline(const string& dir)
 /***************************************/
 void many2one_t::prep_graph_baseline()
 {
-    if (batch_info[0].count == 0) return;
     flag1_count = __builtin_popcountll(flag1);
     flag2_count = __builtin_popcountll(flag2);
 
@@ -620,7 +645,6 @@ void many2one_t::read_graph_baseline(const string& dir)
 /*******************************************/
 void one2many_t::prep_graph_baseline()
 {
-    if (batch_info[0].count == 0) return;
     flag1_count = __builtin_popcountll(flag1);
     flag2_count = __builtin_popcountll(flag2);
 
@@ -689,7 +713,6 @@ void one2many_t::read_graph_baseline(const string& dir)
 /************************************************/
 void one2one_t::prep_graph_baseline()
 {
-    if (batch_info[0].count == 0) return;
     flag1_count = __builtin_popcountll(flag1);
     flag2_count = __builtin_popcountll(flag2);
     tid_t   t_count    = g->get_total_types();

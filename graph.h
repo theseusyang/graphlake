@@ -113,6 +113,7 @@ class graph {
                           propid_t count, prop_pair_t* prop_pair);
     
     void prep_graph_baseline();
+    void swap_log_buffer();
     void calc_degree();
     void make_graph_baseline();
     void store_graph_baseline(const string& odir);

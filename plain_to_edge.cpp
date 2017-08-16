@@ -27,6 +27,7 @@ void plaingraph_manager::setup_graph(vid_t v_count)
     ugraph->flag2 = 1;
     typekv_t* typekv = g->get_typekv();
     typekv->manual_setup(v_count); 
+    g->prep_graph_baseline();
     
 }
 
@@ -37,6 +38,7 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
     int file_count = 0;
     string filename;
     propid_t cf_id = g->get_cfid("friend");
+    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
         
     FILE* file = 0;
     index_t size =  0;
@@ -44,9 +46,7 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
     index_t size1 = 0;
     index_t size2 = 0;
     
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
-    
-    //Read graph file
+    //Read graph files
     dir = opendir(idirname.c_str());
     while (NULL != (ptr = readdir(dir))) {
         if (ptr->d_name[0] == '.') continue;
@@ -61,7 +61,7 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
 
         do {
             if (eOK != ugraph->alloc_batch()) {
-                g->prep_graph_baseline();
+                g->swap_log_buffer();
                 g->calc_degree();
                 g->make_graph_baseline();
                 g->store_graph_baseline(odirname);
@@ -76,9 +76,8 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
         } while (edge_count > 0);
     }
     closedir(dir);
-    //ugraph->swap_log_buffer();
 
-    g->prep_graph_baseline();
+    g->swap_log_buffer();
     g->calc_degree();
     g->make_graph_baseline();
     g->store_graph_baseline(odirname);
