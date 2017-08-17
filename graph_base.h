@@ -144,7 +144,7 @@ class nebrcount_t {
     inline void del_nebr_lite(vid_t index, sid_t sid, univ_t value) {
         //
     }
-
+    /*
     inline vid_t get_nebrcount() {
         return get_nebrcount1(adj_list);
     }
@@ -152,6 +152,7 @@ class nebrcount_t {
         set_nebrcount1(adj_list, count);
     }
     inline void set_adjlist(T* adj_list1) { adj_list =  adj_list1;}
+    */
 };
 
 //one type's graph
@@ -248,24 +249,23 @@ public:
     }
     
     inline void add_nebr(vid_t vid, sid_t sid) { 
-        ++nebr_count[vid].add_count;
         nebr_count[vid].add_nebr(nebr_count[vid].add_count, sid);
+        ++nebr_count[vid].add_count;
     }
     inline void del_nebr(vid_t vid, sid_t sid) { 
-        ++nebr_count[vid].del_count;
         nebr_count[vid].del_nebr(nebr_count[vid].del_count, sid);
+        ++nebr_count[vid].del_count;
     }
     
     inline void add_nebr_lite(vid_t vid, sid_t sid, univ_t value) { 
-        ++nebr_count[vid].add_count;
         nebr_count[vid].add_nebr_lite(nebr_count[vid].add_count, sid, value);
+        ++nebr_count[vid].add_count;
     }
     
     void update_count();
 
     inline void reset_count(vid_t vid) {
-        nebr_count[vid].add_count = nebr_count[vid].get_nebrcount() 
-                                    - nebr_count[vid].del_count;
+        nebr_count[vid].add_count = 0;
         nebr_count[vid].del_count = 0;
     }
     

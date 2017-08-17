@@ -197,7 +197,7 @@ void onegraph_t<T>::setup_adjlist()
     //snapid_t snap_id = g->get_snapid();
     vid_t          v = 0;
     
-    sid_t count, del_count;
+    degree_t count, del_count;
     
     T* adj_list = 0;
     T* adj_list1 = 0;
@@ -209,10 +209,9 @@ void onegraph_t<T>::setup_adjlist()
         curr = beg_pos[vid].get_snapblob();
        
         del_count = nebr_count[vid].del_count;
-        count = nebr_count[vid].add_count - del_count;
+        count = nebr_count[vid].add_count;
 
-        if ((curr && curr->degree != count) || 
-            (del_count != 0)) {// new nebrs added/deleted
+        if ((0 != curr) && (0 != count || del_count != 0)) {// new nebrs added/deleted
         
             adj_list = curr->adj_list;
            
@@ -231,40 +230,25 @@ void onegraph_t<T>::setup_adjlist()
             
             //for added edges
             //even if none are added, only deleted
-            adj_list1 = log_beg + log_head;
+            adj_list1 = (T*)calloc(count, sizeof(T));
+            
+            dvt[v].vid = vid;
+            dvt[v].degree = count + curr->degree;
             
             //get the deletion position and copy accordingly XXX
-            memcpy(adj_list1, adj_list, 
-                   (curr->degree + 1)*sizeof(T));
+            //memcpy(adj_list1, adj_list, 
+            //       (curr->degree + 1)*sizeof(T));
 
-            
             nebr_count[vid].tmp_blob = snap_blob;
             nebr_count[vid].adj_list = adj_list1;
             
-            //put these two in same word, and use atomic CAS
-            //beg_pos[vid].degree = count;
-            //beg_pos[vid].snap_id = snap_id + 1;         
-            
-            //this cannot be clubbed with snap log
-            dvt[v].vid = vid;
-            dvt[v].degree = count;
-            //dvt[v].old_offset = adj_list1 - log_beg;
-            dvt[v].file_offset = log_head;
-            
-            log_head += count + 1;
             ++v;
-        } else if (!adj_list) {//first time
-            nebr_count[vid].adj_list = log_beg + log_head;
+        } else if (!curr) {//first time
+            nebr_count[vid].adj_list = (T*)calloc(count, sizeof(T));
             nebr_count[vid].tmp_blob = 0;
-            //beg_pos[vid].degree = count;
-            //beg_pos[vid].snap_id = snap_id + 1;         
                        
             dvt[v].vid = vid;
             dvt[v].degree = count;
-            //dvt[v].old_offset = 0;
-            dvt[v].file_offset = log_head;
-            
-            log_head += count + 1; 
             ++v;
         }
         reset_count(vid);
@@ -273,26 +257,51 @@ void onegraph_t<T>::setup_adjlist()
 }
 
 template <class T>
-void onegraph_t<T>::update_count() {
+void onegraph_t<T>::update_count() 
+{
     vid_t vid = 0;
+    T* adj_list1 = 0;
+
     for (sid_t i = 0; i < dvt_count; ++i) {
         vid = dvt[i].vid;
-        nebr_count[vid].set_nebrcount(nebr_count[vid].add_count);
-        nebr_count[vid].del_count = 0;
         
         snapT_t<T>*      curr = (snapT_t<T>*)malloc(sizeof(snapT_t<T>));
         snapT_t<T>* snap_blob = nebr_count[vid].tmp_blob;
         
-        curr->adj_list  = nebr_count[vid].adj_list;
+        adj_list1       = log_beg + log_head;
+        dvt[vid].file_offset = log_head;
+        //dvt[vid].old_offset = 0;
+    
+        curr->adj_list  = adj_list1; 
         curr->degree    = nebr_count[vid].add_count;
-        curr->del_count = 0;
+        curr->del_count = nebr_count[vid].del_count;
         curr->snap_id   = g->get_snapid() + 1;
         curr->next      = 0;
         curr->prev      = snap_blob;
+                
         
         if (0 != snap_blob) {
             snap_blob->next = curr;
+            curr->degree += snap_blob->degree; 
+            //dvt[vid].old_offset = snap_blob->adj_list - log_beg;
+            
+            //Old copy
+            memcpy(adj_list1, snap_blob->adj_list,
+                   (snap_blob->degree + 1)*sizeof(T));
+            adj_list1 += snap_blob->degree + 1;
+        } else {
+            adj_list1 += 1;
         }
+
+        //New copy
+        memcpy(adj_list1, nebr_count[vid].adj_list, nebr_count[vid].add_count*sizeof(T));
+        set_nebrcount1(curr->adj_list, curr->degree);
+        
+        log_head += curr->degree + 1;
+        
+        nebr_count[vid].add_count = 0;
+        nebr_count[vid].del_count = 0;
+        free(nebr_count[vid].adj_list);
         
         beg_pos[vid].set_snapblob(curr);
     }
@@ -463,7 +472,7 @@ void onegraph_t<T>::read_vtable(const string& vtfile)
         vid_t read_count = fread(dvt, sizeof(disk_vtable_t), dvt_max_count, vtf);
         for (vid_t v = 0; v < read_count; ++v) {
             curr = (snapT_t<T>*) malloc(sizeof(snapT_t<T>));
-            nebr_count[dvt[v].vid].add_count = dvt[v].degree;
+            nebr_count[dvt[v].vid].add_count = 0;
             curr->degree = dvt[v].degree;
             curr->adj_list = log_beg + dvt[v].file_offset;
             curr->del_count = 0;
