@@ -6,7 +6,6 @@
 #include "sgraph.h"
 #include "p_sgraph.h"
 
-void pagerank(sgraph_t** sgraph_out, sgraph_t** sgraph_in, int iteration_count);
 
 template<class T>
 void

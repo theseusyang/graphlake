@@ -176,10 +176,10 @@ class  snapT_t {
  public:
     snapT_t<T>*     next;//next snapshot of this vid 
     snapT_t<T>*     prev;//prev snapshot of this vid 
-    T*        adj_list;//validity depends on cleaning state 
-    rdegree_t del_count;
+    //T*        adj_list;//validity depends on cleaning state 
     snapid_t  snap_id;
     degree_t  degree;
+    degree_t  del_count;
 
     //del_count of these
     delentry_t<T> del_entry;
@@ -190,9 +190,9 @@ template <class T>
 class  disk_snapT_t {
  public:
     vid_t     vid;
-    rdegree_t del_count;
     snapid_t  snap_id;
     degree_t  degree;
+    degree_t del_count;
 
     //del_count of these
     delentry_t<T> del_entry;

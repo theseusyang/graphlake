@@ -36,7 +36,7 @@ snap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 					if (status[v] != level) continue;
 					
                     snapT_t<T>*snap_blob = graph[v].get_snapblob();
-					T* adj_list = snap_blob->adj_list;
+					T* adj_list = graph[v].get_adjlist();
 					
                     vid_t nebr_count;
                     if (snap_id >= snap_blob->snap_id) {
@@ -74,7 +74,7 @@ snap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 					if (status[v] != 0) continue;
 					
                     snapT_t<T>*snap_blob = graph[v].get_snapblob();
-					T* adj_list = snap_blob->adj_list;
+					T* adj_list = graph[v].get_adjlist();
 					
                     vid_t nebr_count;
                     if (snap_id >= snap_blob->snap_id) {
@@ -167,7 +167,7 @@ multisnap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 					if (bitmap[v] == 0) continue;
 					
                     snapT_t<T>*snap_blob = graph[v].get_snapblob();
-					T* adj_list = snap_blob->adj_list;
+					T* adj_list = graph[v].get_adjlist();
 					
                     degree_t nebr_count = 0;
                     for (snap_id = snap_id2; snap_id >= snap_id1; --snap_id) {
@@ -220,7 +220,7 @@ multisnap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 					if (bitmap[v] == 0) continue;
 					
                     snapT_t<T>*snap_blob = graph[v].get_snapblob();
-					T* adj_list = snap_blob->adj_list;
+					T* adj_list = graph[v].get_adjlist();
 					
                     degree_t nebr_count = 0;
                     for (snap_id = snap_id2; snap_id >= snap_id1; --snap_id) {

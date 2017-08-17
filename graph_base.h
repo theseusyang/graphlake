@@ -71,18 +71,17 @@ class vert_table_t {
     //nebr list of one vertex. First member is a spl member
     //count, flag for snapshot, XXX: smart pointer count
     snapT_t<T>*   snap_blob;
- public:
-    //degree_t      degree;
-    //snapid_t      snap_id;
+    T*            adj_list;
  
  public:
-    inline vert_table_t() { snap_blob = 0;}
+    inline vert_table_t() { snap_blob = 0; adj_list = 0;}
 
     inline vid_t get_nebrcount() {
         return snap_blob->degree;
     }
     
-    inline T* get_adjlist() { return snap_blob->adj_list; }
+    inline T* get_adjlist() { return adj_list; }
+    inline void set_adjlist(T* adj_list1) { adj_list = adj_list1; }
     inline snapT_t<T>* get_snapblob() { return snap_blob; } 
     
     //The incoming is composite or simple, depends on if/else
@@ -115,7 +114,7 @@ class vert_table_t {
     } 
     
     inline void copy(vert_table_t<T>* beg_pos) {
-        snap_blob = beg_pos->snap_blob;
+        adj_list = beg_pos->adj_list;
     }
 };
 

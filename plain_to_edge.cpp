@@ -77,8 +77,15 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
     }
     closedir(dir);
 
-    g->swap_log_buffer();
-    g->calc_degree();
-    g->make_graph_baseline();
-    g->store_graph_baseline(odirname);
+    ugraph->swap_log_buffer();
+    /*
+    ugraph->fill_adj_list(ugraph->sgraph, ugraph->sgraph);
+    ugraph->create_snapshot();
+    ugraph->store_graph_baseline(odirname);
+    */
+    
+    ugraph->calc_degree();
+    ugraph->make_graph_baseline();
+    ugraph->store_graph_baseline(odirname);
+    
 }

@@ -209,7 +209,6 @@ void onegraph_t<T>::setup_adjlist()
     
     degree_t count, del_count;
     
-    T* adj_list = 0;
     T* adj_list1 = 0;
     snapT_t<T>* snap_blob;
     snapT_t<T>* curr;
@@ -223,8 +222,6 @@ void onegraph_t<T>::setup_adjlist()
 
         if ((0 != curr) && (0 != count || del_count != 0)) {// new nebrs added/deleted
         
-            adj_list = curr->adj_list;
-           
             assert(del_count == 0);
             //allocate for deleted edges
             //even if none are deleted, only added
@@ -232,7 +229,7 @@ void onegraph_t<T>::setup_adjlist()
             dlog_head += sizeof(snapT_t<T>) - sizeof(delentry_t<T>) 
                          + del_count*sizeof(delentry_t<T>);
            
-            snap_blob->adj_list = adj_list;
+            //snap_blob->adj_list = curr->adj_list;
             snap_blob->del_count = del_count;
             snap_blob->snap_id = curr->snap_id;
             snap_blob->degree =  curr->degree;
@@ -245,10 +242,6 @@ void onegraph_t<T>::setup_adjlist()
             dvt[v].vid = vid;
             dvt[v].degree = count + curr->degree;
             
-            //get the deletion position and copy accordingly XXX
-            //memcpy(adj_list1, adj_list, 
-            //       (curr->degree + 1)*sizeof(T));
-
             nebr_count[vid].tmp_blob = snap_blob;
             nebr_count[vid].adj_list = adj_list1;
             
@@ -271,6 +264,7 @@ void onegraph_t<T>::update_count()
 {
     vid_t vid = 0;
     T* adj_list1 = 0;
+    T* adj_list2 = 0;
 
     for (sid_t i = 0; i < dvt_count; ++i) {
         vid = dvt[i].vid;
@@ -278,36 +272,39 @@ void onegraph_t<T>::update_count()
         snapT_t<T>*      curr = (snapT_t<T>*)malloc(sizeof(snapT_t<T>));
         snapT_t<T>* snap_blob = nebr_count[vid].tmp_blob;
         
-        adj_list1       = log_beg + log_head;
-        dvt[vid].file_offset = log_head;
-        //dvt[vid].old_offset = 0;
     
-        curr->adj_list  = adj_list1; 
         curr->degree    = nebr_count[vid].add_count;
         curr->del_count = nebr_count[vid].del_count;
         curr->snap_id   = g->get_snapid() + 1;
         curr->next      = 0;
         curr->prev      = snap_blob;
                 
+        //must be atomic
+        adj_list1       = log_beg + log_head;
+        adj_list2       = adj_list1;
         
         if (0 != snap_blob) {
             snap_blob->next = curr;
             curr->degree += snap_blob->degree; 
-            //dvt[vid].old_offset = snap_blob->adj_list - log_beg;
+            //dvt[vid].old_offset = adj_list - log_beg;
             
             //Old copy
-            memcpy(adj_list1, snap_blob->adj_list,
+            memcpy(adj_list1, beg_pos[vid].get_adjlist(),
                    (snap_blob->degree + 1)*sizeof(T));
             adj_list1 += snap_blob->degree + 1;
         } else {
+            //dvt[vid].old_offset = 0;
             adj_list1 += 1;
         }
+        log_head        += curr->degree + 1;
 
         //New copy
         memcpy(adj_list1, nebr_count[vid].adj_list, nebr_count[vid].add_count*sizeof(T));
-        set_nebrcount1(curr->adj_list, curr->degree);
+        set_nebrcount1(adj_list2, curr->degree);
         
-        log_head += curr->degree + 1;
+        //must be atomic
+        beg_pos[vid].set_adjlist(adj_list2);
+        dvt[vid].file_offset = adj_list1 - log_beg;
         
         nebr_count[vid].add_count = 0;
         nebr_count[vid].del_count = 0;
@@ -484,12 +481,12 @@ void onegraph_t<T>::read_vtable(const string& vtfile)
             curr = (snapT_t<T>*) malloc(sizeof(snapT_t<T>));
             nebr_count[dvt[v].vid].add_count = 0;
             curr->degree = dvt[v].degree;
-            curr->adj_list = log_beg + dvt[v].file_offset;
+            //curr->adj_list = log_beg + dvt[v].file_offset;
             curr->del_count = 0;
             beg_pos[dvt[v].vid].set_snapblob1(curr);
             //curr->snap_id = 0; 
             //beg_pos[dvt[v].vid].degree = dvt[v].degree;
-            //beg_pos[dvt[v].vid].set_adjlist(log_beg + dvt[v].file_offset);
+            beg_pos[dvt[v].vid].set_adjlist(log_beg + dvt[v].file_offset);
         }
         count -= read_count;
     }
