@@ -78,6 +78,7 @@ class cfinfo_t {
     virtual void prep_graph_baseline();
     virtual void calc_degree();
     virtual void make_graph_baseline();
+    virtual void create_snapshot();
     virtual void store_graph_baseline(string dir);
     virtual void read_graph_baseline(const string& dir);
 

@@ -145,6 +145,11 @@ void cfinfo_t::make_graph_baseline()
 {
     assert(0);
 }
+    
+void cfinfo_t::create_snapshot()
+{
+   return;
+}
 
 void cfinfo_t::store_graph_baseline(string dir)
 {

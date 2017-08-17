@@ -260,6 +260,15 @@ void graph::make_graph_baseline()
     }
 }
 
+void graph::create_snapshot()
+{
+    //make graph
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->create_snapshot();
+    }
+
+}
+
 void graph::store_graph_baseline(const string& odir)
 {
     //Store graph

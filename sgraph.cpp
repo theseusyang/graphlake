@@ -980,8 +980,7 @@ void ugraph_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
     tid_t src_index = TO_TID(src);
     tid_t dst_index = TO_TID(dst);
     
-    
-    if (del) { 
+    if (!del) { 
         sgraph[src_index]->increment_count(vert1_id);
         sgraph[dst_index]->increment_count(vert2_id);
     } else { 
@@ -998,7 +997,7 @@ void dgraph_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
     vid_t vert1_id = TO_VID(src);
     vid_t vert2_id = TO_VID(dst);
     
-    if (del) { 
+    if (!del) { 
         sgraph_out[src_index]->increment_count(vert1_id);
         sgraph_in[dst_index]->increment_count(vert2_id);
     } else { 
@@ -1017,7 +1016,7 @@ void one2many_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
     
     vid_t vert2_id = TO_VID(dst);
     
-    if (del) { 
+    if (!del) { 
         sgraph_in[dst_index]->increment_count(vert2_id);
     } else { 
         sgraph_in[dst_index]->decrement_count(vert2_id);
@@ -1030,9 +1029,120 @@ void many2one_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
     
     vid_t vert1_id = TO_VID(src);
     
-    if (del) { 
+    if (!del) { 
         sgraph_out[src_index]->increment_count(vert1_id);
     } else { 
         sgraph_out[src_index]->decrement_count(vert1_id);
     }
+}
+
+void ugraph_t::add_nebr(sid_t src, sid_t dst, int del /*= 0*/)
+{
+    vid_t vert1_id = TO_VID(src);
+    vid_t vert2_id = TO_VID(dst);
+    
+    tid_t src_index = TO_TID(src);
+    tid_t dst_index = TO_TID(dst);
+    
+    if (!del) { 
+        sgraph[src_index]->add_nebr(vert1_id, dst);
+        sgraph[dst_index]->add_nebr(vert2_id, src);
+    } else { 
+        sgraph[src_index]->del_nebr(vert1_id, dst);
+        sgraph[dst_index]->del_nebr(vert2_id, src);
+    }
+}
+
+void dgraph_t::add_nebr(sid_t src, sid_t dst, int del /*= 0*/)
+{
+    tid_t src_index = TO_TID(src);
+    tid_t dst_index = TO_TID(dst);
+    
+    vid_t vert1_id = TO_VID(src);
+    vid_t vert2_id = TO_VID(dst);
+    
+    if (!del) { 
+        sgraph_out[src_index]->add_nebr(vert1_id, dst);
+        sgraph_in[dst_index]->add_nebr(vert2_id, src);
+    } else { 
+        sgraph_out[src_index]->del_nebr(vert1_id, dst);
+        sgraph_in[dst_index]->del_nebr(vert2_id, src);
+    }
+}
+
+void one2one_t::add_nebr(sid_t src, sid_t dst, int del /*= 0*/)
+{
+    tid_t src_index = TO_TID(src);
+    tid_t dst_index = TO_TID(dst);
+    
+    vid_t vert1_id = TO_VID(src);
+    vid_t vert2_id = TO_VID(dst);
+    
+    if (!del) { 
+        skv_out[src_index]->set_value(vert1_id, dst);
+        skv_in[dst_index]->set_value(vert2_id, src);
+    } else { 
+        skv_out[src_index]->set_value(vert1_id, dst);
+        skv_in[dst_index]->set_value(vert2_id, src);
+    }
+}
+
+void one2many_t::add_nebr(sid_t src, sid_t dst, int del /*= 0*/)
+{
+    tid_t src_index = TO_TID(src);
+    tid_t dst_index = TO_TID(dst);
+    
+    vid_t vert1_id = TO_VID(src);
+    vid_t vert2_id = TO_VID(dst);
+    
+    if (!del) { 
+        sgraph_in[dst_index]->add_nebr(vert2_id, src);
+        skv_out[src_index]->set_value(vert1_id, dst);
+    } else { 
+        sgraph_in[dst_index]->del_nebr(vert2_id, src);
+        skv_out[src_index]->set_value(vert1_id, dst);
+    }
+}
+
+void many2one_t::add_nebr(sid_t src, sid_t dst, int del /*= 0*/)
+{
+    tid_t src_index = TO_TID(src);
+    tid_t dst_index = TO_TID(dst);
+    
+    vid_t vert1_id = TO_VID(src);
+    vid_t vert2_id = TO_VID(dst);
+    
+    if (!del) { 
+        sgraph_out[src_index]->add_nebr(vert1_id, dst);
+        skv_in[dst_index]->set_value(vert2_id, src);
+    } else { 
+        sgraph_out[src_index]->del_nebr(vert1_id, dst);
+        skv_in[dst_index]->set_value(vert2_id, src);
+    }
+}
+/////
+void ugraph_t::create_snapshot()
+{
+    update_count(sgraph);
+}
+
+void dgraph_t::create_snapshot()
+{
+    update_count(sgraph_out);
+    update_count(sgraph_in);
+}
+
+void one2one_t::create_snapshot()
+{
+    return;
+}
+
+void one2many_t::create_snapshot()
+{
+    update_count(sgraph_out);
+}
+
+void many2one_t::create_snapshot()
+{
+    update_count(sgraph_in);
 }

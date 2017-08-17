@@ -89,15 +89,9 @@ class graph {
     propid_t get_cfid(const char* property);
     propid_t get_pid(const char* property);
     
-    //void prep_graph(string idirname, string odirname);
-    //void prep_graph_csv(string idirname, string odirname);
     status_t add_property(const char* longname);
     sid_t get_sid(const char* src);
      
-    //void prep_type(string typefile, string odirname);
-    //void prep_graph(string idirname, string odirname);
-    //status_t remove_edge(const string& idir, const string& odir);
-
     //queries
     void run_query(query_clause* q);
     
@@ -116,6 +110,7 @@ class graph {
     void swap_log_buffer();
     void calc_degree();
     void make_graph_baseline();
+    void create_snapshot();
     void store_graph_baseline(const string& odir);
     void read_graph_baseline(const string& odir);
 };

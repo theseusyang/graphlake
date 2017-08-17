@@ -253,8 +253,8 @@ public:
         ++nebr_count[vid].add_count;
     }
     inline void del_nebr(vid_t vid, sid_t sid) { 
-        nebr_count[vid].del_nebr(nebr_count[vid].del_count, sid);
-        ++nebr_count[vid].del_count;
+        //nebr_count[vid].del_nebr(nebr_count[vid].del_count, sid);
+        //++nebr_count[vid].del_count;
     }
     
     inline void add_nebr_lite(vid_t vid, sid_t sid, univ_t value) { 

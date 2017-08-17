@@ -82,9 +82,11 @@ class ugraph_t: public pgraph_t<sid_t> {
     static cfinfo_t* create_instance();
     
     void incr_count(sid_t src, sid_t dst, int del = 0);
+    void add_nebr(sid_t src, sid_t dst, int del = 0);
     void prep_graph_baseline();
     void calc_degree();
     void make_graph_baseline();
+    void create_snapshot();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
     
@@ -101,9 +103,11 @@ class dgraph_t: public pgraph_t<sid_t> {
     static cfinfo_t* create_instance();
     
     void incr_count(sid_t src, sid_t dst, int del = 0);
+    void add_nebr(sid_t src, sid_t dst, int del = 0);
     void prep_graph_baseline();
     void calc_degree();
     void make_graph_baseline();
+    void create_snapshot();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
     
@@ -120,9 +124,11 @@ class many2one_t: public pgraph_t<sid_t> {
     static cfinfo_t* create_instance();
     
     void incr_count(sid_t src, sid_t dst, int del = 0);
+    void add_nebr(sid_t src, sid_t dst, int del = 0);
     void prep_graph_baseline();
     void calc_degree();
     void make_graph_baseline();
+    void create_snapshot();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
     
@@ -139,9 +145,11 @@ class one2one_t: public pgraph_t<sid_t> {
     static cfinfo_t* create_instance();
     
     void incr_count(sid_t src, sid_t dst, int del = 0);
+    void add_nebr(sid_t src, sid_t dst, int del = 0);
     void prep_graph_baseline();
     void calc_degree();
     void make_graph_baseline();
+    void create_snapshot();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
     
@@ -158,9 +166,11 @@ class one2many_t: public pgraph_t<sid_t> {
     static cfinfo_t* create_instance();
     
     void incr_count(sid_t src, sid_t dst, int del = 0);
+    void add_nebr(sid_t src, sid_t dst, int del = 0);
     void prep_graph_baseline();
     void calc_degree();
     void make_graph_baseline();
+    void create_snapshot();
     void store_graph_baseline(string dir);
     void read_graph_baseline(const string& dir);
     
@@ -668,18 +678,11 @@ void pgraph_t<T>::prep_sgraph_internal(onegraph_t<T>** sgraph)
 template <class T>
 void pgraph_t<T>::update_count(onegraph_t<T>** sgraph)
 {
-    //vid_t       v_count = 0;
     tid_t       t_count = g->get_total_types();
     
     for(tid_t i = 0; i < t_count; i++) {
         if (0 == sgraph[i]) continue;
         sgraph[i]->update_count();
-        
-        /*
-        v_count = sgraph[i]->get_vcount();
-        for (vid_t j = 0; j < v_count; ++j) {
-            sgraph[i]->update_count(j);
-        }*/
     }
 }
 
