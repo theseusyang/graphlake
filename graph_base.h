@@ -115,7 +115,7 @@ class vert_table_t {
     } 
     
     inline void copy(vert_table_t<T>* beg_pos) {
-        snap_blob->adj_list = beg_pos->snap_blob->adj_list;
+        snap_blob = beg_pos->snap_blob;
     }
 };
 

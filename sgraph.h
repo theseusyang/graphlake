@@ -275,7 +275,7 @@ void onegraph_t<T>::setup_adjlist()
 template <class T>
 void onegraph_t<T>::update_count() {
     vid_t vid = 0;
-    for (sid_t i; i < dvt_count; ++i) {
+    for (sid_t i = 0; i < dvt_count; ++i) {
         vid = dvt[i].vid;
         nebr_count[vid].set_nebrcount(nebr_count[vid].add_count);
         nebr_count[vid].del_count = 0;
