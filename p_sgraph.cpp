@@ -33,15 +33,13 @@ status_t p_pgraph_t::batch_update(const string& src, const string& dst, propid_t
     
     str2vid_iter = g->str2vid.find(dst);
     if (g->str2vid.end() == str2vid_iter) {
-       cout << dst << " is not found. See above log if dst was invalid. OR is it out of order?? " << endl; 
+        cout << dst << " is not found. See above log if dst was invalid. OR is it out of order?? " << endl; 
         assert(0);
     } else {
         edge.dst_id.first = str2vid_iter->second;
     }
     type_id = TO_TID(edge.dst_id.first);
     flag2 |= TID_TO_SFLAG(type_id);
-    
-
 
     if (0 == del) {
         univ_t univ;
