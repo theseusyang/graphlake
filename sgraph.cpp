@@ -478,7 +478,7 @@ void dgraph_t::calc_degree()
 //We assume that no new vertex type is defined
 void dgraph_t::make_graph_baseline()
 {
-    if (batch_info[0].count == 0) return;
+    if (blog_tail >= blog_marker) return;
 
     //prefix sum then reset the count
     prep_sgraph_internal(sgraph_out);
@@ -544,7 +544,7 @@ void ugraph_t::calc_degree()
 
 void ugraph_t::make_graph_baseline()
 {
-    if (batch_info[0].count == 0) return;
+    if (blog_tail >= blog_marker) return;
     
     //prefix sum then reset the count
     prep_sgraph_internal(sgraph);
@@ -603,7 +603,7 @@ void many2one_t::calc_degree()
 
 void many2one_t::make_graph_baseline()
 {
-    if (batch_info[0].count == 0) return;
+    if (blog_tail >= blog_marker) return;
     
     //prefix sum then reset the count
     prep_sgraph_internal(sgraph_in);
@@ -671,7 +671,7 @@ void one2many_t::calc_degree()
     
 void one2many_t::make_graph_baseline()
 {
-    if (batch_info[0].count == 0) return;
+    if (blog_tail >= blog_marker) return;
     
     //prefix sum then reset the count
     prep_sgraph_internal(sgraph_out);
@@ -736,7 +736,7 @@ void one2one_t::calc_degree()
 
 void one2one_t::make_graph_baseline()
 {
-    if (batch_info[0].count == 0) return;
+    if (blog_tail >= blog_marker) return;
 
     //handle kv_out as well as kv_in.
     fill_skv(skv_out, skv_in);

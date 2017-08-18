@@ -80,7 +80,7 @@ void cfinfo_t::swap_log_buffer()
 void cfinfo_t::cleanup()
 {
     batch_info[0].count = 0;
-    for (uint32_t i = 1; i <= batch_count; ++i) {
+    for (int i = 1; i <= batch_count; ++i) {
         free_buf(batch_info[i].buf);
         batch_info[i].buf = 0;
         batch_info[i].count = 0;

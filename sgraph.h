@@ -1,5 +1,5 @@
 #pragma once
-
+#include "type.h"
 #include "graph.h"
 
 template <class T>
@@ -16,29 +16,46 @@ class pgraph_t: public cfinfo_t {
         };
         int ref_count;
         int snapshot_id;
-  
+
+        edgeT_t<T>* blog_beg;
+        index_t     blog_count;
+        index_t     blog_head;
+        index_t     blog_tail;
+        index_t     blog_marker;  
+ 
  public:    
     inline pgraph_t() { 
         MAXX_ECOUNT = MAX_ECOUNT;
         sgraph = 0;
         sgraph_in = 0;
+        blog_count = (MAX_ECOUNT << 4);
+        if (posix_memalign((void**)&blog_beg, 2097152, blog_count*sizeof(T))) {
+            perror("posix memalign batch edge log");
+        }
+        blog_head = 0;
+        blog_tail = 0;
+        blog_marker = 0;
     }
+
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0) {
         return eOK;
     }
     status_t batch_edge(edgeT_t<T> edge) {
-        if (batch_info1[batch_count1].count == MAXX_ECOUNT) {
-            void* mem = alloc_buf();
-            if (mem == 0) return eEndBatch;
-            ++batch_count1;
-            batch_info1[batch_count1].count = 0;
-            batch_info1[batch_count1].buf = mem; 
+        index_t incr = 1;
+        index_t index = __sync_fetch_and_add(&blog_head, incr);
+        index_t index1 = (index % blog_count);
+        if ((MAX_ECOUNT<< 2) == (index - blog_tail)) {
+            blog_beg[index1] = edge;
+            blog_marker = index;
+            cout << "Will create a snapshot now " << endl;
+            return eEndBatch;
+        } else if ((index - blog_tail) >= blog_count) {
+            //block
+            return eOOM;
         }
-    
-        index_t index  = batch_info1[batch_count1].count++;
-        edgeT_t<T>* edges = (edgeT_t<T>*) batch_info1[batch_count1].buf;
-        edges[index] = edge;
-        return eOK;
+
+        blog_beg[index1] = edge;
+        return eOK; 
     }
     
  
@@ -334,9 +351,7 @@ void onegraph_t<T>::persist_slog(const string& stfile)
         assert(stf != 0);
     }
     
-    if (0 == g->get_snapid()) {
-        return;
-    }
+    //if (0 == g->get_snapid()) { return; }
     
     //Lets write the snapshot log
     for (sid_t i; i < dvt_count; ++i) {
@@ -525,28 +540,25 @@ void pgraph_t<T>::calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sg
     sid_t     src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    edgeT_t<T>*   edges;
-    index_t   count;
+    edgeT_t<T>* edges = blog_beg;
     
-    for (int j = 0; j <= batch_count; ++j) { 
-        edges = (edgeT_t<T>*)batch_info[j].buf;
-        count = batch_info[j].count;
-        for (index_t i = 0; i < count; ++i) {
-            src = edges[i].src_id;
-            dst = get_sid(edges[i].dst_id);
-            
-            src_index = TO_TID(src);
-            dst_index = TO_TID(dst);
-            vert1_id = TO_VID(src);
-            vert2_id = TO_VID(dst);
-            
-            if (!IS_DEL(src)) { 
-                sgraph_out[src_index]->increment_count(vert1_id);
-                sgraph_in[dst_index]->increment_count(vert2_id);
-            } else { 
-                sgraph_out[src_index]->decrement_count(vert1_id);
-                sgraph_in[dst_index]->decrement_count(vert2_id);
-            }
+    index_t index = 0;
+    for (index_t i = blog_tail; i < blog_marker; ++i) {
+        index = (i % blog_count);
+        src = edges[index].src_id;
+        dst = get_sid(edges[index].dst_id);
+        
+        src_index = TO_TID(src);
+        dst_index = TO_TID(dst);
+        vert1_id = TO_VID(src);
+        vert2_id = TO_VID(dst);
+        
+        if (!IS_DEL(src)) { 
+            sgraph_out[src_index]->increment_count(vert1_id);
+            sgraph_in[dst_index]->increment_count(vert2_id);
+        } else { 
+            sgraph_out[src_index]->decrement_count(vert1_id);
+            sgraph_in[dst_index]->decrement_count(vert2_id);
         }
     }
 }
@@ -558,21 +570,18 @@ void pgraph_t<T>::calc_edge_count_out(onegraph_t<T>** sgraph_out)
     sid_t     src;
     vid_t     vert1_id;
     tid_t     src_index;
-    edgeT_t<T>*   edges;
-    index_t   count;
-
-    for (int j = 0; j <= batch_count; ++j) { 
-        edges = (edgeT_t<T>*)batch_info[j].buf;
-        count = batch_info[j].count;
-        for (index_t i = 0; i < count; ++i) {
-            src = edges[i].src_id;
-            src_index = TO_TID(src);
-            vert1_id = TO_VID(src);
-            if (!IS_DEL(src)) {
-                sgraph_out[src_index]->increment_count(vert1_id);
-            } else {
-                sgraph_out[src_index]->decrement_count(vert1_id);
-            }
+    edgeT_t<T>* edges = blog_beg;
+    
+    index_t index = 0;
+    for (index_t i = blog_tail; i < blog_marker; ++i) {
+        index = (i % blog_count);
+        src = edges[index].src_id;
+        src_index = TO_TID(src);
+        vert1_id = TO_VID(src);
+        if (!IS_DEL(src)) {
+            sgraph_out[src_index]->increment_count(vert1_id);
+        } else {
+            sgraph_out[src_index]->decrement_count(vert1_id);
         }
     }
 }
@@ -583,22 +592,143 @@ void pgraph_t<T>::calc_edge_count_in(onegraph_t<T>** sgraph_in)
     sid_t     src, dst;
     vid_t     vert2_id;
     tid_t     dst_index;
+    edgeT_t<T>* edges = blog_beg;
+    
+    /*
     edgeT_t<T>*  edges;
     index_t   count;
-    
     for (int j = 0; j <= batch_count; ++j) { 
         edges = (edgeT_t<T>*)batch_info[j].buf;
         count = batch_info[j].count;
-        for (index_t i = 0; i < count; ++i) {
-            src = edges[i].src_id;
-            dst = get_sid(edges[i].dst_id);
-            dst_index = TO_TID(dst);
-            vert2_id = TO_VID(dst);
-            if (!IS_DEL(src)) {
-                sgraph_in[dst_index]->increment_count(vert2_id);
-            } else {
-                sgraph_in[dst_index]->decrement_count(vert2_id);
-            }
+    }*/
+    
+    index_t index = 0;
+    for (index_t i = blog_tail; i < blog_marker; ++i) {
+        index = (i % blog_count);
+        src = edges[index].src_id;
+        dst = get_sid(edges[index].dst_id);
+        dst_index = TO_TID(dst);
+        vert2_id = TO_VID(dst);
+        if (!IS_DEL(src)) {
+            sgraph_in[dst_index]->increment_count(vert2_id);
+        } else {
+            sgraph_in[dst_index]->decrement_count(vert2_id);
+        }
+    }
+}
+
+template <class T>
+void pgraph_t<T>::fill_adj_list(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in)
+{
+    sid_t     src, dst;
+    vid_t     vert1_id, vert2_id;
+    tid_t     src_index, dst_index;
+    
+    edge_t*   edges = blog_beg;
+
+    index_t index = 0;
+    for (index_t i = blog_tail; i < blog_marker; ++i) {
+        index = (i % blog_count);
+        src = edges[index].src_id;
+        dst = edges[index].dst_id;
+        src_index = TO_TID(src);
+        dst_index = TO_TID(dst);
+        vert1_id = TO_VID(src);
+        vert2_id = TO_VID(dst);
+       
+        if (!IS_DEL(src)) { 
+            sgraph_out[src_index]->add_nebr(vert1_id, dst);
+            sgraph_in[dst_index]->add_nebr(vert2_id, src);
+        } else {
+            assert(0);
+            //sgraph_out[src_index]->del_nebr(vert1_id, dst);
+            //sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
+        }
+    }
+}
+
+template <class T>
+void pgraph_t<T>::fill_adj_list_in(onekv_t<T>** skv_out, onegraph_t<T>** sgraph_in) 
+{
+    sid_t src, dst;
+    vid_t     vert1_id, vert2_id;
+    tid_t     src_index, dst_index;
+    edge_t*   edges = blog_beg;
+    
+    index_t index = 0;
+    for (index_t i = blog_tail; i < blog_marker; ++i) {
+        index = (i % blog_count);
+        src = edges[index].src_id;
+        dst = edges[index].dst_id;
+        src_index = TO_TID(src);
+        dst_index = TO_TID(dst);
+        
+        vert1_id = TO_VID(src);
+        vert2_id = TO_VID(dst);
+        
+        if (!IS_DEL(src)) { 
+            skv_out[src_index]->set_value(vert1_id, dst);
+            sgraph_in[dst_index]->add_nebr(vert2_id, src);
+        } else {
+            //skv_out[src_index]->del_value(vert1_id, dst);
+            //sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
+        }
+    }
+}
+
+template <class T>
+void pgraph_t<T>::fill_adj_list_out(onegraph_t<T>** sgraph_out, onekv_t<T>** skv_in) 
+{
+    sid_t   src, dst;
+    vid_t   vert1_id, vert2_id;
+    tid_t   src_index, dst_index; 
+    edge_t*   edges = blog_beg;
+    
+    index_t index = 0;
+    for (index_t i = blog_tail; i < blog_marker; ++i) {
+        index = (i % blog_count);
+        src = edges[index].src_id;
+        dst = edges[index].dst_id;
+        src_index = TO_TID(src);
+        dst_index = TO_TID(dst);
+        
+        vert1_id = TO_VID(src);
+        vert2_id = TO_VID(dst);
+        if (!IS_DEL(src)) {
+            sgraph_out[src_index]->add_nebr(vert1_id, dst);
+            skv_in[dst_index]->set_value(vert2_id, src); 
+        } else {
+            //sgraph_out[src_index]->del_nebr(vert1_id, dst);
+            //skv_in[dst_index]->del_value(vert2_id, TO_SID(src));
+        }
+    }
+}
+
+template <class T>
+void pgraph_t<T>::fill_skv(onekv_t<T>** skv_out, onekv_t<T>** skv_in)
+{
+    sid_t src, dst;
+    vid_t     vert1_id, vert2_id;
+    tid_t     src_index, dst_index;
+    edge_t*   edges = blog_beg;
+    
+    index_t index = 0;
+    for (index_t i = blog_tail; i < blog_marker; ++i) {
+        index = (i % blog_count);
+        src = edges[index].src_id;
+        dst = edges[index].dst_id;
+        src_index = TO_TID(src);
+        dst_index = TO_TID(dst);
+        
+        vert1_id = TO_VID(src);
+        vert2_id = TO_VID(dst);
+        
+        if (!IS_DEL(src)) {
+            skv_out[src_index]->set_value(vert1_id, dst); 
+            skv_in[dst_index]->set_value(vert2_id, src); 
+        } else {
+            skv_out[src_index]->del_value(vert1_id, dst); 
+            skv_in[dst_index]->del_value(vert2_id, TO_SID(src)); 
         }
     }
 }
@@ -624,6 +754,8 @@ void pgraph_t<T>::update_count(onegraph_t<T>** sgraph)
         if (0 == sgraph[i]) continue;
         sgraph[i]->update_count();
     }
+
+    blog_tail = blog_marker;  
 }
 
 template <class T>
@@ -947,133 +1079,4 @@ status_t pgraph_t<T>::extend_kv_td(onekv_t<T>** skv, srset_t* iset, srset_t* ose
     return eOK;
 }
 
-template <class T>
-void pgraph_t<T>::fill_adj_list(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in)
-{
-    sid_t     src, dst;
-    vid_t     vert1_id, vert2_id;
-    tid_t     src_index, dst_index;
-    
-    edge_t*   edges;
-    index_t   count;
-
-    for (int j = 0; j <= batch_count; ++j) { 
-        edges = (edge_t*)batch_info[j].buf;
-        count = batch_info[j].count;
-        for (index_t i = 0; i < count; ++i) {
-            src = edges[i].src_id;
-            dst = edges[i].dst_id;
-            src_index = TO_TID(src);
-            dst_index = TO_TID(dst);
-            vert1_id = TO_VID(src);
-            vert2_id = TO_VID(dst);
-           
-            if (!IS_DEL(src)) { 
-                sgraph_out[src_index]->add_nebr(vert1_id, dst);
-                sgraph_in[dst_index]->add_nebr(vert2_id, src);
-            } else {
-                assert(0);
-                //sgraph_out[src_index]->del_nebr(vert1_id, dst);
-                //sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
-            }
-        }
-    }
-}
-
-template <class T>
-void pgraph_t<T>::fill_adj_list_in(onekv_t<T>** skv_out, onegraph_t<T>** sgraph_in) 
-{
-    sid_t src, dst;
-    vid_t     vert1_id, vert2_id;
-    tid_t     src_index, dst_index;
-    edge_t*   edges;
-    index_t   count;
-    
-    for (int j = 0; j <= batch_count; ++j) { 
-        edges = (edge_t*)batch_info[j].buf;
-        count = batch_info[j].count;
-        for (index_t i = 0; i < count; ++i) {
-            src = edges[i].src_id;
-            dst = edges[i].dst_id;
-            src_index = TO_TID(src);
-            dst_index = TO_TID(dst);
-            
-            vert1_id = TO_VID(src);
-            vert2_id = TO_VID(dst);
-            
-            if (!IS_DEL(src)) { 
-                skv_out[src_index]->set_value(vert1_id, dst);
-                sgraph_in[dst_index]->add_nebr(vert2_id, src);
-            } else {
-            
-                //skv_out[src_index]->del_value(vert1_id, dst);
-                //sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
-            }
-        }
-    }
-}
-
-template <class T>
-void pgraph_t<T>::fill_adj_list_out(onegraph_t<T>** sgraph_out, onekv_t<T>** skv_in) 
-{
-    sid_t   src, dst;
-    vid_t   vert1_id, vert2_id;
-    tid_t   src_index, dst_index; 
-    edge_t*   edges;
-    index_t   count;
-    
-    for (int j = 0; j <= batch_count; ++j) { 
-        edges = (edge_t*)batch_info[j].buf;
-        count = batch_info[j].count;
-        for (index_t i = 0; i < count; ++i) {
-            src = edges[i].src_id;
-            dst = edges[i].dst_id;
-            src_index = TO_TID(src);
-            dst_index = TO_TID(dst);
-            
-            vert1_id = TO_VID(src);
-            vert2_id = TO_VID(dst);
-            if (!IS_DEL(src)) {
-                sgraph_out[src_index]->add_nebr(vert1_id, dst);
-                skv_in[dst_index]->set_value(vert2_id, src); 
-            } else {
-                //sgraph_out[src_index]->del_nebr(vert1_id, dst);
-                //skv_in[dst_index]->del_value(vert2_id, TO_SID(src));
-            }
-        }
-    }
-}
-
-template <class T>
-void pgraph_t<T>::fill_skv(onekv_t<T>** skv_out, onekv_t<T>** skv_in)
-{
-    sid_t src, dst;
-    vid_t     vert1_id, vert2_id;
-    tid_t     src_index, dst_index;
-    edge_t*   edges;
-    index_t   count;
-    
-    for (int j = 0; j <= batch_count; ++j) {
-        edges = (edge_t*)batch_info[j].buf;
-        count = batch_info[j].count;
-    
-        for (index_t i = 0; i < count; ++i) {
-            src = edges[i].src_id;
-            dst = edges[i].dst_id;
-            src_index = TO_TID(src);
-            dst_index = TO_TID(dst);
-            
-            vert1_id = TO_VID(src);
-            vert2_id = TO_VID(dst);
-            
-            if (!IS_DEL(src)) {
-                skv_out[src_index]->set_value(vert1_id, dst); 
-                skv_in[dst_index]->set_value(vert2_id, src); 
-            } else {
-                skv_out[src_index]->del_value(vert1_id, dst); 
-                skv_in[dst_index]->del_value(vert2_id, TO_SID(src)); 
-            }
-        }
-    }
-}
 

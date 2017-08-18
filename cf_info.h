@@ -37,16 +37,17 @@ class cfinfo_t {
     sflag_t     flag2;
     
     propid_t    cf_id;
-    uint8_t     batch_count;
-    uint8_t     batch_count1;
+    int         batch_count;
+    int         batch_count1;
     
     uint8_t     flag1_count;
     uint8_t     flag2_count;
     index_t     MAXX_ECOUNT;
-   
+
  public: 
     cfinfo_t();   
     void reset();
+    
     inline status_t alloc_batch() {
         if (batch_info1[batch_count1].count == MAXX_ECOUNT) {
             void* mem = alloc_buf();

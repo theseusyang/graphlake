@@ -105,6 +105,7 @@ enum status_t {
     eInvalidVID,
     eQueryFail,
     eEndBatch,
+    eOOM,
     eDelete,
     eUnknown        
 };
