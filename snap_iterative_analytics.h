@@ -118,6 +118,17 @@ snap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
         }
 		++level;
 	} while (frontier);
+    
+    //print the BFS 
+    /*
+    vid_t vid_count = 0;
+    for (int l = 1; l < level; ++l) {
+        vid_count = 0;
+        for (vid_t v = 0; v < v_count; ++v) {
+            if (status[v] == l) ++vid_count;
+        }
+        cout << " Level = " << l << " count = " << vid_count << endl;
+    }*/
 }
 
 struct mbfs_status_t {
@@ -159,18 +170,21 @@ multisnap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
                 vert_table_t<T>* graph  = graph_out;
                 uint8_t local_bitmap = 0;
                 degree_t degree[2];
+                degree[0] = 0;
+                degree[1] = 0;
                 snapid_t snap_id = snap_id2;
                 snapid_t snap = 0;
                 //Get the frontiers
 				#pragma omp for schedule (guided) nowait
 				for (vid_t v = 0; v < v_count; v++) {
-					if (bitmap[v] == 0) continue;
+                    if (bitmap[v] == 0) continue;
 					
                     snapT_t<T>*snap_blob = graph[v].get_snapblob();
 					T* adj_list = graph[v].get_adjlist();
 					
                     degree_t nebr_count = 0;
                     for (snap_id = snap_id2; snap_id >= snap_id1; --snap_id) {
+                        snap_blob = graph[v].get_snapblob();
                         snap = snap_id - snap_id1;
                         if (snap_id >= snap_blob->snap_id) {
                             degree[snap] = snap_blob->degree;
@@ -180,6 +194,7 @@ multisnap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
                             while ((snap_blob->prev) && (snap_id < snap_blob->prev->snap_id)) {
                                 snap_blob = snap_blob->prev;
                             }
+                            assert(snap_id >= snap_blob->snap_id);
                             degree[snap] = snap_blob->degree;
                             nebr_count = max(nebr_count, snap_blob->degree);
                         }
@@ -187,13 +202,15 @@ multisnap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 					
                     ++adj_list;
 					todo += nebr_count;
+                    local_bitmap = 0;
 				    
 					//traverse the adj list
 					for (vid_t k = 0; k < nebr_count; ++k) {
                         sid = get_nebr(adj_list, k);
 						for (snap_id = snap_id2; snap_id >= snap_id1; --snap_id) {
                             snap = snap_id - snap_id1;
-                            if ((0 == mbfs[sid].status[snap]) && k < degree[snap]) {
+                            if ((level == mbfs[v].status[snap]) && (0 == mbfs[sid].status[snap]) 
+                                && k < degree[snap]) {
                                 mbfs[sid].status[snap] = level + 1;
                                 local_bitmap |= (1 << snap);
                                 ++frontier;
@@ -282,16 +299,25 @@ multisnap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
             top_down = true;
             if(frontier) {
                 for (vid_t v = 0; v < v_count; v++) {
-                    bitmap[v] = bitmap1[v] ^ bitmap2[v]; 
+                    bitmap[v] = (bitmap1[v] ^ bitmap2[v]); 
                     bitmap1[v] = bitmap2[v]; 
                 }
             }
         }
 		++level;
 	} while (frontier);
+    
+    //print the BFS for snap1
+    vid_t vid_count = 0;
+    for (int l = 1; l < level; ++l) {
+        vid_count = 0;
+        for (vid_t v = 0; v < v_count; ++v) {
+            if (mbfs[v].status[snap_id1 -  snap_id1] == l) ++vid_count;
+        }
+        cout << " Level = " << l << " count = " << vid_count << endl;
+    }
 
     //print the BFS for snap2
-    vid_t vid_count = 0;
     for (int l = 1; l < level; ++l) {
         vid_count = 0;
         for (vid_t v = 0; v < v_count; ++v) {
