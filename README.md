@@ -1,2 +1,2 @@
 # grdf
-A framework for dynamic rdf and other graphs
+A framework for dynamic graphs. Concentrating on plain graph first as infrastructure
