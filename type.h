@@ -180,9 +180,6 @@ class  snapT_t {
     snapid_t  snap_id;
     degree_t  degree;
     degree_t  del_count;
-
-    //del_count of these
-    delentry_t<T> del_entry;
 };
 
 //This will be used as disk write structure
@@ -193,9 +190,6 @@ class  disk_snapT_t {
     snapid_t  snap_id;
     degree_t  degree;
     degree_t del_count;
-
-    //del_count of these
-    delentry_t<T> del_entry;
 };
 
 snapid_t get_snapid();

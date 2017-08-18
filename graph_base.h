@@ -84,6 +84,7 @@ class vert_table_t {
     inline void set_adjlist(T* adj_list1) { adj_list = adj_list1; }
     inline snapT_t<T>* get_snapblob() { return snap_blob; } 
     
+    /*
     //The incoming is composite or simple, depends on if/else
     inline void set_snapblob(snapT_t<T>* snap_blob1) { 
         if (0 == snap_blob) {
@@ -97,7 +98,7 @@ class vert_table_t {
             snap_blob = snap_blob1;
             free(old_blob);
         }
-    } 
+    }*/ 
     
     //The incoming is simple, called from read_stable
     inline void set_snapblob1(snapT_t<T>* snap_blob1) { 
@@ -124,7 +125,6 @@ class nebrcount_t {
     degree_t    add_count;
     degree_t    del_count;
     T*          adj_list;
-    snapT_t<T>*  tmp_blob;
     
  public:
     inline void add_nebr(vid_t index, T sid) { 
@@ -144,12 +144,6 @@ class nebrcount_t {
         //
     }
     /*
-    inline vid_t get_nebrcount() {
-        return get_nebrcount1(adj_list);
-    }
-    inline void set_nebrcount(vid_t count) {
-        set_nebrcount1(adj_list, count);
-    }
     inline void set_adjlist(T* adj_list1) { adj_list =  adj_list1;}
     */
 };
@@ -177,7 +171,7 @@ private:
     index_t    log_wpos; //Write this pointer for write persistency
     
     //edgetable file related log
-    char*    dlog_beg;  //memory log pointer
+    snapT_t<T>*    dlog_beg;  //memory log pointer
     index_t    dlog_count;//size of memory log
     index_t    dlog_head; // current log write position
     index_t    dlog_tail; //current log cleaning position
@@ -188,7 +182,7 @@ private:
     vid_t    dvt_count; 
     vid_t    dvt_max_count;
     
-    char* snap_log;
+    disk_snapT_t<T>* snap_log;
     uint64_t snap_size;
 
     FILE*    vtf;   //vertex table file

@@ -206,49 +206,27 @@ void onegraph_t<T>::setup_adjlist()
     vid_t    v_count = TO_VID(super_id);
     //snapid_t snap_id = g->get_snapid();
     vid_t          v = 0;
-    
     degree_t count, del_count;
     
-    T* adj_list1 = 0;
-    snapT_t<T>* snap_blob;
+    //snapT_t<T>* snap_blob;
     snapT_t<T>* curr;
 
     for (vid_t vid = 0; vid < v_count; ++vid) {
-
-        curr = beg_pos[vid].get_snapblob();
-       
         del_count = nebr_count[vid].del_count;
         count = nebr_count[vid].add_count;
+        
+        curr = beg_pos[vid].get_snapblob();
 
         if ((0 != curr) && (0 != count || del_count != 0)) {// new nebrs added/deleted
-        
-            assert(del_count == 0);
-            //allocate for deleted edges
-            //even if none are deleted, only added
-            snap_blob = (snapT_t<T>*)(dlog_beg + dlog_head);
-            dlog_head += sizeof(snapT_t<T>) - sizeof(delentry_t<T>) 
-                         + del_count*sizeof(delentry_t<T>);
-           
-            //snap_blob->adj_list = curr->adj_list;
-            snap_blob->del_count = del_count;
-            snap_blob->snap_id = curr->snap_id;
-            snap_blob->degree =  curr->degree;
-            
-            
             //for added edges
             //even if none are added, only deleted
-            adj_list1 = (T*)calloc(count, sizeof(T));
-            
+            nebr_count[vid].adj_list = (T*)calloc(count, sizeof(T));
             dvt[v].vid = vid;
             dvt[v].degree = count + curr->degree;
-            
-            nebr_count[vid].tmp_blob = snap_blob;
-            nebr_count[vid].adj_list = adj_list1;
             
             ++v;
         } else if (!curr) {//first time
             nebr_count[vid].adj_list = (T*)calloc(count, sizeof(T));
-            nebr_count[vid].tmp_blob = 0;
                        
             dvt[v].vid = vid;
             dvt[v].degree = count;
@@ -269,29 +247,27 @@ void onegraph_t<T>::update_count()
     for (sid_t i = 0; i < dvt_count; ++i) {
         vid = dvt[i].vid;
         
-        snapT_t<T>*      curr = (snapT_t<T>*)malloc(sizeof(snapT_t<T>));
-        snapT_t<T>* snap_blob = nebr_count[vid].tmp_blob;
-        
-    
+        snapT_t<T>* snap_blob = beg_pos[vid].get_snapblob();
+        snapT_t<T>* curr = (snapT_t<T>*)(dlog_beg + dlog_head);
+        dlog_head += 1;
+           
         curr->degree    = nebr_count[vid].add_count;
         curr->del_count = nebr_count[vid].del_count;
         curr->snap_id   = g->get_snapid() + 1;
         curr->next      = 0;
-        curr->prev      = snap_blob;
                 
         //must be atomic
         adj_list1       = log_beg + log_head;
         adj_list2       = adj_list1;
         
         if (0 != snap_blob) {
-            snap_blob->next = curr;
             curr->degree += snap_blob->degree; 
-            //dvt[vid].old_offset = adj_list - log_beg;
             
             //Old copy
             memcpy(adj_list1, beg_pos[vid].get_adjlist(),
                    (snap_blob->degree + 1)*sizeof(T));
             adj_list1 += snap_blob->degree + 1;
+            //dvt[vid].old_offset = adj_list - log_beg;
         } else {
             //dvt[vid].old_offset = 0;
             adj_list1 += 1;
@@ -304,13 +280,12 @@ void onegraph_t<T>::update_count()
         
         //must be atomic
         beg_pos[vid].set_adjlist(adj_list2);
+        beg_pos[vid].set_snapblob1(curr);
         dvt[vid].file_offset = adj_list1 - log_beg;
         
         nebr_count[vid].add_count = 0;
         nebr_count[vid].del_count = 0;
         free(nebr_count[vid].adj_list);
-        
-        beg_pos[vid].set_snapblob(curr);
     }
 }
 
@@ -353,41 +328,26 @@ void onegraph_t<T>::persist_slog(const string& stfile)
 {   
     snapT_t<T>* snap_blob;
     disk_snapT_t<T>* dlog = (disk_snapT_t<T>*)snap_log;
-    delentry_t<T>* del_entry;
-    delentry_t<T>* del_entry1;
-    uint64_t sum = 0;
     
     if(stf == 0) {
         stf = fopen(stfile.c_str(), "wb");
         assert(stf != 0);
     }
     
-    //Lets write the snapshot log
-    dlog = (disk_snapT_t<T>*)snap_log;
-    
     if (0 == g->get_snapid()) {
         return;
     }
+    
+    //Lets write the snapshot log
     for (sid_t i; i < dvt_count; ++i) {
         snap_blob = beg_pos[dvt[i].vid].get_snapblob();
-        snap_blob = snap_blob->prev;
-        dlog->vid = dvt[i].vid;
-        dlog->snap_id = snap_blob->snap_id;
-        dlog->del_count = snap_blob->del_count;
-        dlog->degree = snap_blob->degree;
-        
-        del_entry = &dlog->del_entry; 
-        del_entry1 = &snap_blob->del_entry;
-        
-        if (dlog->del_count) {
-            memcpy(del_entry, del_entry1, dlog->del_count*sizeof(delentry_t<T>));
-        }
-        
-        sum += sizeof(disk_snapT_t<T>) - sizeof(delentry_t<T>) + dlog->del_count; 
-        dlog = (disk_snapT_t<T>*) (snap_log + sum);
+        dlog[i].vid       = dvt[i].vid;
+        dlog[i].snap_id   = snap_blob->snap_id;
+        dlog[i].del_count = snap_blob->del_count;
+        dlog->degree      = snap_blob->degree;
     }
 
-    fwrite(snap_log, sizeof(char), sum, stf);
+    fwrite(snap_log, sizeof(disk_snapT_t<T>), dvt_count, stf);
 }
 
 template <class T>
@@ -395,9 +355,6 @@ void onegraph_t<T>::read_stable(const string& stfile)
 {
     snapT_t<T>*      snap_blob;
     disk_snapT_t<T>* dlog;
-    delentry_t<T>*   del_entry;
-    delentry_t<T>*   del_entry1;
-    uint64_t         sum = 0;
     
     //read the file
     if(stf == 0) {
@@ -412,32 +369,18 @@ void onegraph_t<T>::read_stable(const string& stfile)
 
     //read in batches. XXX
     assert(snap_size >= size);
-    uint64_t read_count = fread(snap_log, sizeof(char), size, stf);
+    uint64_t read_count = fread(snap_log, sizeof(disk_snapT_t<T>), size, stf);
     snap_blob = (snapT_t<T>*)dlog_beg;
     dlog = (disk_snapT_t<T>*)snap_log; 
     
-    while (sum < read_count) {
-        snap_blob->del_count = dlog->del_count;
-        snap_blob->snap_id = dlog->snap_id;
-        snap_blob->degree = dlog->degree;
+    for (int i  = 0; i < read_count; ++i)  {
+        snap_blob[i].del_count = dlog[i].del_count;
+        snap_blob[i].snap_id = dlog[i].snap_id;
+        snap_blob[i].degree = dlog[i].degree;
 
-        del_entry1 = &dlog->del_entry; 
-        del_entry = &snap_blob->del_entry;
-        if (dlog->del_count) {
-            memcpy(del_entry, del_entry1, 
-                   dlog->del_count*sizeof(delentry_t<T>));
-        
-        }
-        sum += sizeof(disk_snapT_t<T>) - sizeof(delentry_t<T>) 
-                + dlog->del_count;
-
-        beg_pos[dlog->vid].set_snapblob1(snap_blob);
-        dlog_head += sizeof(snapT_t<T>) - sizeof(delentry_t<T>) 
-                + dlog->del_count;
-        
-        snap_blob = (snapT_t<T>*) (dlog_beg + dlog_head);
-        dlog = (disk_snapT_t<T>*) (snap_log + sum);
+        beg_pos[dlog[i].vid].set_snapblob1(snap_blob + i);
     }
+    dlog_head = read_count;
 }
 
 template <class T>
