@@ -5,16 +5,9 @@
 map<string, get_graph_instance>  graph_instance;
 map<string, get_encoder_instance>  encoder_instance;
 
+snapid_t graph::get_snapid() { return snap_id; }
 
-snapid_t graph::get_snapid() 
-{
-    return snap_id;
-}
-
-void graph::incr_snapid()
-{
-    ++snap_id;
-}
+void graph::incr_snapid() { ++snap_id; }
 
 graph::graph()
 {
@@ -28,6 +21,9 @@ graph::graph()
     //v_graph->create_columnfamily();
     //pinfo_t *info = new pinfo_t;
     //v_graph->add_column(info);
+
+    pthread_mutex_init(&snap_mutex, 0);
+    pthread_cond_init(&snap_condition, 0);
     register_instances();
 }
     
@@ -264,10 +260,23 @@ void graph::make_graph_baseline()
 
 void graph::create_snapshot()
 {
-    //make graph
-    for (int i = 0; i < cf_count; i++) {
-        cf_info[i]->create_snapshot();
-    }
+    int work_done = 0;
+    do {
+        work_done = 0;
+        for (int i = 0; i < cf_count; i++) {
+            if (eOK == cf_info[i]->move_marker()) {
+                cf_info[i]->make_graph_baseline();
+                cf_info[i]->store_graph_baseline(odirname);
+                ++work_done;
+            }
+        }
+        if (work_done > 0) { 
+            incr_snapid();
+            continue;
+        } else { 
+            break;
+        }
+    } while(true);
 
 }
 
@@ -313,13 +322,16 @@ void graph::add_columnfamily(cfinfo_t* cf)
     cf_count++;
 }
 
-void* graph::snap_func(void* arg) {
+
+void* graph::snap_func(void* arg)
+{
     graph* g_ptr = (graph*)(arg);
     
     do {
-        g_ptr->calc_degree();
-        g_ptr->make_graph_baseline();
-        g_ptr->store_graph_baseline();
+        pthread_mutex_lock(&g_ptr->snap_mutex);
+        pthread_cond_wait(&g_ptr->snap_condition, &g_ptr->snap_mutex);
+        pthread_mutex_unlock(&g_ptr->snap_mutex);
+        g_ptr->create_snapshot();
     } while(1);
 
     return 0;
@@ -327,7 +339,7 @@ void* graph::snap_func(void* arg) {
 
 void graph::create_snapthread()
 {
-    if (0 != pthread_create(&snap_thread, 0, graph::snap_func , 0)) {
+    if (0 != pthread_create(&snap_thread, 0, graph::snap_func , g)) {
         assert(0);
     }
 }

@@ -43,6 +43,8 @@ void schema_plaingraph()
     info->create_columns();
     info->add_column(p_info);
     ++p_info;
+
+    g->create_snapthread();
 }
 
 

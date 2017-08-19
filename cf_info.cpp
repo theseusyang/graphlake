@@ -146,9 +146,9 @@ void cfinfo_t::make_graph_baseline()
     assert(0);
 }
     
-void cfinfo_t::create_snapshot()
+status_t cfinfo_t::move_marker()
 {
-   return;
+   return eNoWork;
 }
 
 void cfinfo_t::store_graph_baseline(string dir)

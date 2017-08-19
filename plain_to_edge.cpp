@@ -8,6 +8,7 @@
 #include <map>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "csv_to_edge.h"
 #include "type.h"
 #include "graph.h"
@@ -98,19 +99,17 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
         for (index_t i = 0; i < count; ++i) {
             status_t status = ugraph->batch_edge(edges[i]);
             if (eEndBatch == status) {
-                g->calc_degree();
-                g->make_graph_baseline();
-                g->store_graph_baseline(odirname);
+                sleep(1);
             } else if (eOOM == status) {
                 assert(0);
             }
         }
     }
-    //ugraph->blog_marker = ugraph->blog_head;
     ugraph->create_marker(ugraph->blog_head);
-    g->calc_degree();
-    g->make_graph_baseline();
-    g->store_graph_baseline(odirname);
+    sleep(1);
+    
+    //g->create_snapshot();
+    
 }
 
 /*

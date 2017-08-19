@@ -78,8 +78,24 @@ class pgraph_t: public cfinfo_t {
     void create_marker(index_t marker) {
         index_t m_index = __sync_fetch_and_add(&q_head, 1L);
         q_beg[m_index % q_count] = marker;
+        pthread_mutex_lock(&g->snap_mutex);
+        pthread_cond_signal(&g->snap_condition);
+        pthread_mutex_unlock(&g->snap_mutex);
     } 
- 
+    
+    //called from snap thread 
+    status_t move_marker() {
+        //Need to read marker and set the blog_marker;
+        if (q_tail == q_head) {
+            return eNoWork;
+        }
+        
+        index_t m_index = __sync_fetch_and_add(&q_tail, 1L);
+        index_t marker = q_beg[m_index % q_count];
+        blog_marker = marker;
+        return eOK;
+    }
+
  public:
     onegraph_t<T>** prep_sgraph(sflag_t ori_flag, onegraph_t<T>** a_sgraph);
     onekv_t<T>** prep_skv(sflag_t ori_flag, onekv_t<T>** a_skv);
@@ -566,15 +582,6 @@ onegraph_t<T>** pgraph_t<T>::prep_sgraph(sflag_t ori_flag, onegraph_t<T>** sgrap
 template <class T>
 void pgraph_t<T>::calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in) 
 {
-    //Need to read marker and set the blog_marker;
-    if (q_tail == q_head) {
-        return;
-    }
-
-    index_t m_index = __sync_fetch_and_add(&q_tail, 1L);
-    index_t marker = q_beg[m_index % q_count];
-    blog_marker = marker;
-    
     sid_t     src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
@@ -605,15 +612,6 @@ void pgraph_t<T>::calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sg
 template <class T>
 void pgraph_t<T>::calc_edge_count_out(onegraph_t<T>** sgraph_out)
 {
-    //Need to read marker and set the blog_marker;
-    if (q_tail == q_head) {
-        return;
-    }
-
-    index_t m_index = __sync_fetch_and_add(&q_tail, 1L);
-    index_t marker = q_beg[m_index % q_count];
-    blog_marker = marker;
-    
     sid_t     src;
     vid_t     vert1_id;
     tid_t     src_index;
@@ -636,15 +634,6 @@ void pgraph_t<T>::calc_edge_count_out(onegraph_t<T>** sgraph_out)
 template <class T>
 void pgraph_t<T>::calc_edge_count_in(onegraph_t<T>** sgraph_in)
 {
-    //Need to read marker and set the blog_marker;
-    if (q_tail == q_head) {
-        return;
-    }
-
-    index_t m_index = __sync_fetch_and_add(&q_tail, 1L);
-    index_t marker = q_beg[m_index % q_count];
-    blog_marker = marker;
-    
     sid_t     src, dst;
     vid_t     vert2_id;
     tid_t     dst_index;

@@ -71,9 +71,12 @@ class graph {
     map <string, sid_t> str2vid;
     vid_t     vert_count;
 
+    string odirname;
+    
     //threads
     pthread_t snap_thread;
-    string odirname;
+    pthread_mutex_t snap_mutex;
+    pthread_cond_t  snap_condition;
 
  public:
     graph();

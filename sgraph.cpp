@@ -478,6 +478,8 @@ void dgraph_t::calc_degree()
 //We assume that no new vertex type is defined
 void dgraph_t::make_graph_baseline()
 {
+    calc_edge_count(sgraph_out, sgraph_in);
+
     if (blog_tail >= blog_marker) return;
 
     //prefix sum then reset the count
@@ -544,6 +546,8 @@ void ugraph_t::calc_degree()
 
 void ugraph_t::make_graph_baseline()
 {
+    calc_edge_count(sgraph, sgraph);
+    
     if (blog_tail >= blog_marker) return;
     
     //prefix sum then reset the count
@@ -603,6 +607,8 @@ void many2one_t::calc_degree()
 
 void many2one_t::make_graph_baseline()
 {
+    calc_edge_count_in(sgraph_in);
+    
     if (blog_tail >= blog_marker) return;
     
     //prefix sum then reset the count
@@ -671,6 +677,7 @@ void one2many_t::calc_degree()
     
 void one2many_t::make_graph_baseline()
 {
+    calc_edge_count_out(sgraph_out);
     if (blog_tail >= blog_marker) return;
     
     //prefix sum then reset the count

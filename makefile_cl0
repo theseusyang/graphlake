@@ -1,6 +1,6 @@
 CC=g++
 #CFLAGS=-g -Wall -std=gnu++11  -march=native -DB64 -fopenmp
-CFLAGS=-g -Wall -std=gnu++11  -march=native -DB32 -DPLAIN_GRAPH -fopenmp
+CFLAGS=-g -Wall -std=gnu++11  -march=native -DB32 -DPLAIN_GRAPH -fopenmp -lpthread
 #CFLAGS=-O3 -Wall -std=gnu++11  -march=native -fopenmp
 SRC=main.cpp \
 	cf_info.cpp\

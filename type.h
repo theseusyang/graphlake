@@ -107,6 +107,7 @@ enum status_t {
     eEndBatch,
     eOOM,
     eDelete,
+    eNoWork,
     eUnknown        
 };
 
