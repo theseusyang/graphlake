@@ -178,8 +178,6 @@ multisnap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
                 vert_table_t<T>* graph  = graph_out;
                 uint8_t local_bitmap = 0;
                 degree_t degree[2];
-                degree[0] = 0;
-                degree[1] = 0;
                 snapid_t snap_id = snap_id2;
                 snapid_t snap = 0;
                 //Get the frontiers
@@ -192,10 +190,13 @@ multisnap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 
 					T* adj_list = graph[v].get_adjlist();
                     degree_t nebr_count = 0;
+                    degree[0] = 0;
+                    degree[1] = 0;
                     
                     for (snap_id = snap_id2; snap_id >= snap_id1; --snap_id) {
                         snap_blob = graph[v].get_snapblob();
                         snap = snap_id - snap_id1;
+                        
                         if (snap_id >= snap_blob->snap_id) {
                             degree[snap] = snap_blob->degree;
                             nebr_count = max(nebr_count, snap_blob->degree);
@@ -207,8 +208,8 @@ multisnap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
                             if (snap_blob) {
                                 assert(snap_id >= snap_blob->snap_id);
                                 degree[snap] = snap_blob->degree;
+                                nebr_count = max(nebr_count, degree[snap]);
                             }
-                            nebr_count = max(nebr_count, degree[snap]);
                         }
                     }
 					
@@ -253,10 +254,13 @@ multisnap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 
 					T* adj_list = graph[v].get_adjlist();
                     degree_t nebr_count = 0;
+                    degree[0] = 0;
+                    degree[1] = 0;
                     
                     for (snap_id = snap_id2; snap_id >= snap_id1; --snap_id) {
                         snap_blob = graph[v].get_snapblob();
                         snap = snap_id - snap_id1;
+                        
                         if (snap_id >= snap_blob->snap_id) {
                             degree[snap] = snap_blob->degree;
                             nebr_count = max(nebr_count, snap_blob->degree);
