@@ -207,7 +207,7 @@ public:
         
         //XXX everything is in memory
         dlog_count = (1L << 28);//256 MB
-        if (posix_memalign((void**)&dlog_beg, 2097152, dlog_count)) {
+        if (posix_memalign((void**)&dlog_beg, 2097152, dlog_count*sizeof(snapT_t<T>))) {
             //log_beg = (index_t*)calloc(sizeof(index_t), log_count);
             perror("posix memalign snap log");
         }
@@ -263,6 +263,7 @@ public:
     }
     
     inline vert_table_t<T>* get_begpos() { return beg_pos;}
+    inline degree_t get_degree() { return beg_pos;}
     inline vid_t get_vcount() { return TO_VID(super_id);}
     inline tid_t get_tid() { return TO_TID(super_id);}
 

@@ -72,7 +72,7 @@ void plain_test1(const string& idir, const string& odir)
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
     cout << "BFS on first part of the graph" << endl; 
-    //bfs<sid_t>(ugraph->sgraph, ugraph->sgraph, 1); 
+    bfs<sid_t>(ugraph->sgraph, ugraph->sgraph, 1); 
     
     uint8_t* level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
     vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
@@ -80,11 +80,11 @@ void plain_test1(const string& idir, const string& odir)
     
     string idir1 = "/mnt/disk_huge_1/pradeepk/pradeep_graph/kron_21_16_incr/"; 
     plaingraph_manager::prep_graph(idir1, odir);
-    /*
+    
     cout << "BFS on whole graph" << endl; 
     bfs<sid_t>(ugraph->sgraph, ugraph->sgraph, 1); 
     
-    
+    /*
     cout << "BFS on first snapshot" << endl; 
     snap_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, 8, 1);
     */

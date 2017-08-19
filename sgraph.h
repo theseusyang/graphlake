@@ -28,7 +28,7 @@ class pgraph_t: public cfinfo_t {
         MAXX_ECOUNT = MAX_ECOUNT;
         sgraph = 0;
         sgraph_in = 0;
-        blog_count = (MAX_ECOUNT << 4);
+        blog_count = (MAX_ECOUNT << 2);
         if (posix_memalign((void**)&blog_beg, 2097152, blog_count*sizeof(T))) {
             perror("posix memalign batch edge log");
         }
@@ -44,7 +44,7 @@ class pgraph_t: public cfinfo_t {
         index_t incr = 1;
         index_t index = __sync_fetch_and_add(&blog_head, incr);
         index_t index1 = (index % blog_count);
-        if ((MAX_ECOUNT<< 2) == (index - blog_tail)) {
+        if (((MAX_ECOUNT<< 1) - 1) == (index - blog_tail)) {
             blog_beg[index1] = edge;
             blog_marker = index;
             cout << "Will create a snapshot now " << endl;
@@ -267,6 +267,7 @@ void onegraph_t<T>::update_count()
         snapT_t<T>* snap_blob = beg_pos[vid].get_snapblob();
         snapT_t<T>* curr = (snapT_t<T>*)(dlog_beg + dlog_head);
         dlog_head += 1;
+        assert(dlog_head < dlog_count); 
            
         curr->degree    = nebr_count[vid].add_count;
         curr->del_count = nebr_count[vid].del_count;
@@ -290,6 +291,7 @@ void onegraph_t<T>::update_count()
             adj_list1 += 1;
         }
         log_head        += curr->degree + 1;
+        assert(log_head < log_count); 
 
         //New copy
         memcpy(adj_list1, nebr_count[vid].adj_list, nebr_count[vid].add_count*sizeof(T));

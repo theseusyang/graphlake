@@ -17,8 +17,8 @@ typedef uint64_t index_t;
 typedef uint32_t tid_t;
 typedef uint64_t sflag_t;
 typedef uint16_t qid_t;
-typedef uint16_t snapid_t ;
-typedef uint16_t rdegree_t; //relative degree
+typedef uint32_t snapid_t ;
+//typedef uint16_t rdegree_t; //relative degree
 typedef uint32_t degree_t;
 #elif B32
 typedef uint8_t propid_t;
@@ -29,8 +29,8 @@ typedef uint64_t index_t;
 typedef uint8_t tid_t;
 typedef uint64_t sflag_t;
 typedef uint16_t qid_t;
-typedef uint16_t snapid_t ;
-typedef uint16_t rdegree_t; //relative degree
+typedef uint32_t snapid_t ;
+//typedef uint16_t rdegree_t; //relative degree
 typedef uint32_t degree_t;
 #endif
 

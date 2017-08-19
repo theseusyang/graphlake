@@ -48,7 +48,8 @@ bfs(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, sid_t root)
 					if (status[v] != level) continue;
 					
 					T* adj_list = graph[v].get_adjlist();
-					vid_t nebr_count = get_nebrcount1(adj_list);
+					vid_t nebr_count = graph[v].get_nebrcount();
+					//vid_t nebr_count = get_nebrcount1(adj_list);
 					//vid_t nebr_count = graph[v].degree;
 					++adj_list;
 					todo += nebr_count;
@@ -65,8 +66,7 @@ bfs(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, sid_t root)
 			}
 			}
 		} else {//bottom up
-			#pragma omp parallel \
-		   	reduction (+:todo) reduction(+:frontier)
+			//#pragma omp parallel reduction (+:todo) reduction(+:frontier)
 			{
             sid_t sid;    
 			for (tid_t i = 0; i < iset_count; ++i) {
@@ -81,12 +81,12 @@ bfs(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, sid_t root)
 				vert_table_t<T>* graph = sgraph_in[tid]->get_begpos();
 				
 				//Get the frontiers
-				#pragma omp for schedule (guided) nowait
+				//#pragma omp for schedule (guided) nowait
 				for (vid_t v = 0; v < v_count; v++) {
 					if (status[v] != 0) continue;
 					
 					T* adj_list = graph[v].get_adjlist();
-					vid_t nebr_count = get_nebrcount1(adj_list);
+					vid_t nebr_count = graph[v].get_nebrcount();
 					//vid_t nebr_count = graph[v].degree;
 					++adj_list;
 					todo += nebr_count;

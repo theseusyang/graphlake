@@ -43,7 +43,7 @@ snap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
                         nebr_count = snap_blob->degree; 
                     } else {
                         snap_blob = snap_blob->prev;
-                        while (snap_blob->prev && snap_id < snap_blob->prev->snap_id) {
+                        while (snap_blob->prev && snap_id < snap_blob->snap_id) {
                             snap_blob = snap_blob->prev;
                         }
                         nebr_count = snap_blob->degree; 
@@ -81,7 +81,7 @@ snap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
                         nebr_count = snap_blob->degree; 
                     } else {
                         snap_blob = snap_blob->prev;
-                        while (snap_blob->prev && snap_id < snap_blob->prev->snap_id) {
+                        while (snap_blob->prev && snap_id < snap_blob->snap_id) {
                             snap_blob = snap_blob->prev;
                         }
                         nebr_count = snap_blob->degree; 
@@ -191,7 +191,10 @@ multisnap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
                             nebr_count = max(nebr_count, snap_blob->degree);
                         } else {
                             snap_blob = snap_blob->prev;
-                            while ((snap_blob->prev) && (snap_id < snap_blob->prev->snap_id)) {
+                            while ((snap_blob->prev) 
+                                   && (snap_id < snap_blob->snap_id)
+                                       //&& snap_id >= snap_blob->prev->snap_id)
+                                      ) {
                                 snap_blob = snap_blob->prev;
                             }
                             assert(snap_id >= snap_blob->snap_id);
@@ -247,7 +250,7 @@ multisnap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
                             nebr_count = max(nebr_count, snap_blob->degree);
                         } else {
                             snap_blob = snap_blob->prev;
-                            while ((snap_blob->prev) && (snap_id < snap_blob->prev->snap_id)) {
+                            while ((snap_blob->prev) && (snap_id < snap_blob->snap_id)) {
                                 snap_blob = snap_blob->prev;
                             }
                             degree[snap] = snap_blob->degree;
