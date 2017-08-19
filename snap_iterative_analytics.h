@@ -36,17 +36,21 @@ snap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 					if (status[v] != level) continue;
 					
                     snapT_t<T>*snap_blob = graph[v].get_snapblob();
-					T* adj_list = graph[v].get_adjlist();
+                    if (0 == snap_blob) { continue; }
 					
-                    vid_t nebr_count;
+                    T* adj_list = graph[v].get_adjlist();
+					
+                    vid_t nebr_count = 0;
                     if (snap_id >= snap_blob->snap_id) {
                         nebr_count = snap_blob->degree; 
                     } else {
                         snap_blob = snap_blob->prev;
-                        while (snap_blob->prev && snap_id < snap_blob->snap_id) {
+                        while (snap_blob && snap_id < snap_blob->snap_id) {
                             snap_blob = snap_blob->prev;
                         }
-                        nebr_count = snap_blob->degree; 
+                        if (snap_blob) {
+                            nebr_count = snap_blob->degree; 
+                        }
                     }
 					
                     ++adj_list;
@@ -74,17 +78,21 @@ snap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 					if (status[v] != 0) continue;
 					
                     snapT_t<T>*snap_blob = graph[v].get_snapblob();
+                    if (0 == snap_blob) continue;
+
 					T* adj_list = graph[v].get_adjlist();
 					
-                    vid_t nebr_count;
+                    vid_t nebr_count = 0;
                     if (snap_id >= snap_blob->snap_id) {
                         nebr_count = snap_blob->degree; 
                     } else {
                         snap_blob = snap_blob->prev;
-                        while (snap_blob->prev && snap_id < snap_blob->snap_id) {
+                        while (snap_blob && snap_id < snap_blob->snap_id) {
                             snap_blob = snap_blob->prev;
                         }
-                        nebr_count = snap_blob->degree; 
+                        if (snap_blob) {
+                            nebr_count = snap_blob->degree; 
+                        }
                     }
 
 					++adj_list;
@@ -180,9 +188,11 @@ multisnap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
                     if (bitmap[v] == 0) continue;
 					
                     snapT_t<T>*snap_blob = graph[v].get_snapblob();
+                    if (0 == snap_blob) { continue;}
+
 					T* adj_list = graph[v].get_adjlist();
-					
                     degree_t nebr_count = 0;
+                    
                     for (snap_id = snap_id2; snap_id >= snap_id1; --snap_id) {
                         snap_blob = graph[v].get_snapblob();
                         snap = snap_id - snap_id1;
@@ -191,15 +201,14 @@ multisnap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
                             nebr_count = max(nebr_count, snap_blob->degree);
                         } else {
                             snap_blob = snap_blob->prev;
-                            while ((snap_blob->prev) 
-                                   && (snap_id < snap_blob->snap_id)
-                                       //&& snap_id >= snap_blob->prev->snap_id)
-                                      ) {
+                            while ((snap_blob) && (snap_id < snap_blob->snap_id)) {
                                 snap_blob = snap_blob->prev;
                             }
-                            assert(snap_id >= snap_blob->snap_id);
-                            degree[snap] = snap_blob->degree;
-                            nebr_count = max(nebr_count, snap_blob->degree);
+                            if (snap_blob) {
+                                assert(snap_id >= snap_blob->snap_id);
+                                degree[snap] = snap_blob->degree;
+                            }
+                            nebr_count = max(nebr_count, degree[snap]);
                         }
                     }
 					
@@ -240,21 +249,26 @@ multisnap_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 					if (bitmap[v] == 0) continue;
 					
                     snapT_t<T>*snap_blob = graph[v].get_snapblob();
+                    if (0 == snap_blob) { continue;}
+
 					T* adj_list = graph[v].get_adjlist();
-					
                     degree_t nebr_count = 0;
+                    
                     for (snap_id = snap_id2; snap_id >= snap_id1; --snap_id) {
+                        snap_blob = graph[v].get_snapblob();
                         snap = snap_id - snap_id1;
                         if (snap_id >= snap_blob->snap_id) {
                             degree[snap] = snap_blob->degree;
                             nebr_count = max(nebr_count, snap_blob->degree);
                         } else {
                             snap_blob = snap_blob->prev;
-                            while ((snap_blob->prev) && (snap_id < snap_blob->snap_id)) {
+                            while ((snap_blob) && (snap_id < snap_blob->snap_id)) {
                                 snap_blob = snap_blob->prev;
                             }
-                            degree[snap] = snap_blob->degree;
-                            nebr_count = max(nebr_count, snap_blob->degree);
+                            if (snap_blob) {
+                                degree[snap] = snap_blob->degree;
+                                nebr_count = max(nebr_count, snap_blob->degree);
+                            }
                         }
                     }
 					++adj_list;

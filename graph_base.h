@@ -77,7 +77,8 @@ class vert_table_t {
     inline vert_table_t() { snap_blob = 0; adj_list = 0;}
 
     inline vid_t get_nebrcount() {
-        return snap_blob->degree;
+        if (snap_blob) return snap_blob->degree;
+        else  return 0; 
     }
     
     inline T* get_adjlist() { return adj_list; }
@@ -235,10 +236,11 @@ public:
     void setup(tid_t tid);
     void setup_adjlist();
 
-    inline void increment_count(vid_t vid) { ++nebr_count[vid].add_count; }
+    inline void increment_count(vid_t vid) { 
+        __sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
+    }
     inline void decrement_count(vid_t vid) { 
-        --nebr_count[vid].add_count; 
-        ++nebr_count[vid].del_count; 
+        __sync_fetch_and_add(&nebr_count[vid].del_count, 1L);
     }
     
     inline void add_nebr(vid_t vid, sid_t sid) { 
@@ -263,7 +265,6 @@ public:
     }
     
     inline vert_table_t<T>* get_begpos() { return beg_pos;}
-    inline degree_t get_degree() { return beg_pos;}
     inline vid_t get_vcount() { return TO_VID(super_id);}
     inline tid_t get_tid() { return TO_TID(super_id);}
 

@@ -270,23 +270,25 @@ void onegraph_t<T>::setup_adjlist()
         count = nebr_count[vid].add_count;
         
         curr = beg_pos[vid].get_snapblob();
-
-        if ((0 != curr) && (0 != count || del_count != 0)) {// new nebrs added/deleted
-            //for added edges
-            //even if none are added, only deleted
-            nebr_count[vid].adj_list = (T*)calloc(count, sizeof(T));
-            dvt[v].vid = vid;
-            dvt[v].degree = count + curr->degree;
             
-            ++v;
-        } else if (!curr) {//first time
-            nebr_count[vid].adj_list = (T*)calloc(count, sizeof(T));
-                       
-            dvt[v].vid = vid;
-            dvt[v].degree = count;
-            ++v;
+        if (0 != count || del_count != 0) {// new nebrs added/deleted
+            if (0 != curr) { 
+                //for added edges
+                //even if none are added, only deleted
+                nebr_count[vid].adj_list = (T*)calloc(count, sizeof(T));
+                dvt[v].vid = vid;
+                dvt[v].degree = count + curr->degree;
+                
+                ++v;
+            } else {//first time
+                nebr_count[vid].adj_list = (T*)calloc(count, sizeof(T));
+                           
+                dvt[v].vid = vid;
+                dvt[v].degree = count;
+                ++v;
+            }
+            reset_count(vid);
         }
-        reset_count(vid);
     }
     dvt_count = v;
 }
