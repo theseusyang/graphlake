@@ -106,7 +106,8 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
             }
         }
     }
-    ugraph->blog_marker = ugraph->blog_head;
+    //ugraph->blog_marker = ugraph->blog_head;
+    ugraph->create_marker(ugraph->blog_head);
     g->calc_degree();
     g->make_graph_baseline();
     g->store_graph_baseline(odirname);

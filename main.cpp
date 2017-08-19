@@ -66,6 +66,7 @@ int main(int argc, char* argv[])
                 break;
 		}
 	}
+    g->set_odir(odir);
     switch (convert) {
         case 0:
         lubm_test0(typefile, idir, odir);

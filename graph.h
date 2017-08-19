@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdint.h>
+#include <pthread.h>
 
 #include "type.h"
 #include "cf_info.h"
@@ -70,8 +71,13 @@ class graph {
     map <string, sid_t> str2vid;
     vid_t     vert_count;
 
+    //threads
+    pthread_t snap_thread;
+    string odirname;
+
  public:
     graph();
+    inline void set_odir(const string& odir) {odirname = odir;};
     snapid_t get_snapid();
     void incr_snapid();
     void register_instances();
@@ -111,8 +117,11 @@ class graph {
     void calc_degree();
     void make_graph_baseline();
     void create_snapshot();
-    void store_graph_baseline(const string& odir);
+    void store_graph_baseline(const string& odir = "");
     void read_graph_baseline(const string& odir);
+    
+    void create_snapthread();
+    static void* snap_func(void* arg);
 };
 
 

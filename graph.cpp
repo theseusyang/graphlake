@@ -1,3 +1,5 @@
+#include <pthread.h>
+
 #include "all.h"
 
 map<string, get_graph_instance>  graph_instance;
@@ -150,7 +152,7 @@ void graph::type_done()
 
 void graph::type_store(const string& odir)
 {
-    v_graph->store_graph_baseline(odir);
+    v_graph->store_graph_baseline(odirname);
 }
 
 propid_t graph::get_cfid(propid_t pid)
@@ -273,7 +275,7 @@ void graph::store_graph_baseline(const string& odir)
 {
     //Store graph
     for (int i = 0; i < cf_count; i++) {
-        cf_info[i]->store_graph_baseline(odir);
+        cf_info[i]->store_graph_baseline(odirname);
     }
     incr_snapid();
 }
@@ -309,4 +311,23 @@ void graph::add_columnfamily(cfinfo_t* cf)
     cf_info[cf_count] = cf;
     cf->cf_id = cf_count;
     cf_count++;
+}
+
+void* graph::snap_func(void* arg) {
+    graph* g_ptr = (graph*)(arg);
+    
+    do {
+        g_ptr->calc_degree();
+        g_ptr->make_graph_baseline();
+        g_ptr->store_graph_baseline();
+    } while(1);
+
+    return 0;
+}
+
+void graph::create_snapthread()
+{
+    if (0 != pthread_create(&snap_thread, 0, graph::snap_func , 0)) {
+        assert(0);
+    }
 }

@@ -17,11 +17,18 @@ class pgraph_t: public cfinfo_t {
         int ref_count;
         int snapshot_id;
 
+        //edge batching buffer
         edgeT_t<T>* blog_beg;
         index_t     blog_count;
         index_t     blog_head;
         index_t     blog_tail;
-        index_t     blog_marker;  
+        index_t     blog_marker;
+
+        //queue
+        index_t*   q_beg;
+        index_t    q_count;
+        index_t    q_head;
+        index_t    q_tail;
  
  public:    
     inline pgraph_t() { 
@@ -35,6 +42,14 @@ class pgraph_t: public cfinfo_t {
         blog_head = 0;
         blog_tail = 0;
         blog_marker = 0;
+        
+        q_count = 32;
+        q_beg = (index_t*)calloc(q_count, sizeof(index_t));
+        if (0 == q_beg) {
+            perror("posix memalign batch edge log");
+        }
+        q_head = 0;
+        q_tail = 0;
     }
 
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0) {
@@ -46,7 +61,9 @@ class pgraph_t: public cfinfo_t {
         index_t index1 = (index % blog_count);
         if (((MAX_ECOUNT<< 1) - 1) == (index - blog_tail)) {
             blog_beg[index1] = edge;
-            blog_marker = index;
+            create_marker(index);
+            //blog_marker = index;
+
             cout << "Will create a snapshot now " << endl;
             return eEndBatch;
         } else if ((index - blog_tail) >= blog_count) {
@@ -58,6 +75,10 @@ class pgraph_t: public cfinfo_t {
         return eOK; 
     }
     
+    void create_marker(index_t marker) {
+        index_t m_index = __sync_fetch_and_add(&q_head, 1L);
+        q_beg[m_index % q_count] = marker;
+    } 
  
  public:
     onegraph_t<T>** prep_sgraph(sflag_t ori_flag, onegraph_t<T>** a_sgraph);
@@ -311,6 +332,8 @@ void onegraph_t<T>::update_count()
 template <class T>
 void onegraph_t<T>::persist_elog(const string& etfile)
 {
+    if (log_wpos == log_head) return;
+    
     //Make a copy
     sid_t wpos = log_wpos;
     
@@ -328,6 +351,8 @@ void onegraph_t<T>::persist_elog(const string& etfile)
 template <class T>
 void onegraph_t<T>::persist_vlog(const string& vtfile)
 {
+    if (dvt_count == 0) return;
+    
     //Make a copy
     sid_t count =  dvt_count;
 
@@ -345,6 +370,8 @@ void onegraph_t<T>::persist_vlog(const string& vtfile)
 template <class T>
 void onegraph_t<T>::persist_slog(const string& stfile)
 {   
+    if (dvt_count == 0) return;
+
     snapT_t<T>* snap_blob;
     disk_snapT_t<T>* dlog = (disk_snapT_t<T>*)snap_log;
     
@@ -539,12 +566,21 @@ onegraph_t<T>** pgraph_t<T>::prep_sgraph(sflag_t ori_flag, onegraph_t<T>** sgrap
 template <class T>
 void pgraph_t<T>::calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in) 
 {
+    //Need to read marker and set the blog_marker;
+    if (q_tail == q_head) {
+        return;
+    }
+
+    index_t m_index = __sync_fetch_and_add(&q_tail, 1L);
+    index_t marker = q_beg[m_index % q_count];
+    blog_marker = marker;
+    
     sid_t     src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
     edgeT_t<T>* edges = blog_beg;
-    
     index_t index = 0;
+    
     for (index_t i = blog_tail; i < blog_marker; ++i) {
         index = (i % blog_count);
         src = edges[index].src_id;
@@ -569,6 +605,15 @@ void pgraph_t<T>::calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sg
 template <class T>
 void pgraph_t<T>::calc_edge_count_out(onegraph_t<T>** sgraph_out)
 {
+    //Need to read marker and set the blog_marker;
+    if (q_tail == q_head) {
+        return;
+    }
+
+    index_t m_index = __sync_fetch_and_add(&q_tail, 1L);
+    index_t marker = q_beg[m_index % q_count];
+    blog_marker = marker;
+    
     sid_t     src;
     vid_t     vert1_id;
     tid_t     src_index;
@@ -591,6 +636,15 @@ void pgraph_t<T>::calc_edge_count_out(onegraph_t<T>** sgraph_out)
 template <class T>
 void pgraph_t<T>::calc_edge_count_in(onegraph_t<T>** sgraph_in)
 {
+    //Need to read marker and set the blog_marker;
+    if (q_tail == q_head) {
+        return;
+    }
+
+    index_t m_index = __sync_fetch_and_add(&q_tail, 1L);
+    index_t marker = q_beg[m_index % q_count];
+    blog_marker = marker;
+    
     sid_t     src, dst;
     vid_t     vert2_id;
     tid_t     dst_index;
