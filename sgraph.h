@@ -379,7 +379,8 @@ template <class T>
 void onegraph_t<T>::persist_slog(const string& stfile)
 {   
     if (dvt_count == 0) return;
-
+    vid_t v_count = get_vcount();
+    snapid_t snap_id = g->get_snapid();
     snapT_t<T>* snap_blob;
     disk_snapT_t<T>* dlog = (disk_snapT_t<T>*)snap_log;
     
@@ -389,15 +390,19 @@ void onegraph_t<T>::persist_slog(const string& stfile)
     }
     
     //Lets write the snapshot log
-    for (sid_t i = 0; i < dvt_count; ++i) {
-        snap_blob = beg_pos[dvt[i].vid].get_snapblob();
-        dlog[i].vid       = dvt[i].vid;
-        dlog[i].snap_id   = snap_blob->snap_id;
-        dlog[i].del_count = snap_blob->del_count;
-        dlog[i].degree   = snap_blob->degree;
+    vid_t j = 0;
+    for (sid_t i = 0; i < v_count; ++i) {
+        snap_blob = beg_pos[i].get_snapblob();
+        if (0 == snap_blob || snap_blob->snap_id <= snap_id) continue;
+        
+        dlog[j].vid       = i;
+        dlog[j].snap_id   = snap_blob->snap_id;
+        dlog[j].del_count = snap_blob->del_count;
+        dlog[j].degree    = snap_blob->degree;
+        j++;
     }
 
-    fwrite(snap_log, sizeof(disk_snapT_t<T>), dvt_count, stf);
+    fwrite(snap_log, sizeof(disk_snapT_t<T>), j, stf);
 }
 
 template <class T>
