@@ -99,14 +99,13 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
         for (index_t i = 0; i < count; ++i) {
             status_t status = ugraph->batch_edge(edges[i]);
             if (eEndBatch == status) {
-                sleep(1);
             } else if (eOOM == status) {
-                assert(0);
+                sleep(10);
             }
         }
     }
     ugraph->create_marker(ugraph->blog_head);
-    sleep(1);
+    sleep(10);
     
     //g->create_snapshot();
     

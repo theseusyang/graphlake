@@ -1,5 +1,6 @@
 
 #include "sgraph.h"
+#include "wtime.h"
 
 //Applicable to graphs only, labels should be aware of it.
 template <>
@@ -480,6 +481,7 @@ void dgraph_t::make_graph_baseline()
 {
     if (blog_tail >= blog_marker) return;
 
+    
     calc_edge_count(sgraph_out, sgraph_in);
 
     //prefix sum then reset the count
@@ -543,22 +545,53 @@ void ugraph_t::calc_degree()
 
 void ugraph_t::make_graph_baseline()
 {
-    calc_edge_count(sgraph, sgraph);
-    
     if (blog_tail >= blog_marker) return;
     
+    double start = mywtime(); 
+    
+    #pragma omp parallel num_threads(32)    
+    {
+    calc_edge_count(sgraph, sgraph);
+    }
+    double end = mywtime();
+    cout << "calc edge time = " << end - start << endl;
+    
+    start = mywtime(); 
     //prefix sum then reset the count
+    #pragma omp parallel num_threads(32)    
+    {
     prep_sgraph_internal(sgraph);
+    }
+    end = mywtime();
+    cout << "prep_internal time = " << end - start << endl;
 
     //populate and get the original count back
+    start = mywtime(); 
+    #pragma omp parallel num_threads(32)    
+    {
     fill_adj_list(sgraph, sgraph);
+    }
+    end = mywtime();
+    cout << "fill adj list time = " << end - start << endl;
+    
+    start = mywtime(); 
+    #pragma omp parallel num_threads(32)    
+    {
     update_count(sgraph);
+    }
+    end = mywtime();
+    cout << "update count time = " << end - start << endl;
+    //double end = mywtime();
+    //cout << "make graph time = " << end - start << endl;
 }
 
 void ugraph_t::store_graph_baseline(string dir)
 {
+    double start = mywtime(); 
     string postfix = "";
     store_sgraph(sgraph, dir, postfix);
+    double end = mywtime();
+    cout << "store graph time = " << end - start << endl;
 }
 
 void ugraph_t::read_graph_baseline(const string& dir)

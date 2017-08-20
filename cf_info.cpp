@@ -4,12 +4,12 @@
 
 
 double bu_factor = 0.07;
-uint32_t MAX_BCOUNT = 256;
+int32_t MAX_BCOUNT = 256;
 uint64_t MAX_ECOUNT = 1000000;
 uint64_t MAX_PECOUNT = 666666;
 uint64_t BUF_SCOUNT = 2000000;
 uint64_t BUF_SIZE = 16000000;
-
+index_t  BATCH_SIZE = 2000000;
 using std::swap;
 
 void* alloc_buf()
@@ -54,7 +54,7 @@ cfinfo_t::cfinfo_t()
     batch_count1 = 0;
     //Only first buffer is allocated.
     //Others are allocated at runtime
-    for (uint32_t i = 0; i < MAX_BCOUNT; ++i) {
+    for (int32_t i = 0; i < MAX_BCOUNT; ++i) {
         batch_info[i].buf = calloc(sizeof(edge_t), MAX_ECOUNT);
         batch_info[i].count = 0; 
         batch_info1[i].buf = calloc(sizeof(edge_t), MAX_ECOUNT);
@@ -91,7 +91,7 @@ void cfinfo_t::cleanup()
 void cfinfo_t::reset_buffer0()
 {
     batch_count = 0;
-    for (uint32_t i = 0; i < MAX_BCOUNT; ++i) {
+    for (int32_t i = 0; i < MAX_BCOUNT; ++i) {
         batch_info[i].count = 0;
     }
 }
@@ -99,7 +99,7 @@ void cfinfo_t::reset_buffer0()
 void cfinfo_t::reset_buffer1()
 {
     batch_count1 = 0;
-    for (uint32_t i = 0; i < MAX_BCOUNT; ++i) {
+    for (int32_t i = 0; i < MAX_BCOUNT; ++i) {
         batch_info1[i].count = 0; 
     }
 }
@@ -112,7 +112,7 @@ void cfinfo_t::reset()
     flag2_count = 0;
     
     batch_count1 = 0;
-    for (uint32_t i = 0; i < MAX_BCOUNT; ++i) {
+    for (int32_t i = 0; i < MAX_BCOUNT; ++i) {
         batch_info1[i].count = 0; 
     }
 }

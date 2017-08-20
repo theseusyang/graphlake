@@ -86,11 +86,12 @@ extern sid_t    INVALID_SID;
 #define NO_QID 0xFFFF
 
 extern double  bu_factor;
-extern uint32_t MAX_BCOUNT; //256
+extern int32_t MAX_BCOUNT; //256
 extern uint64_t MAX_ECOUNT; //1000000
 extern uint64_t MAX_PECOUNT;//670000
 extern uint64_t BUF_SCOUNT;// 2000000
 extern uint64_t BUF_SIZE;// 16000000
+extern index_t  BATCH_SIZE;//
 
 off_t fsize(const string& fname);
 

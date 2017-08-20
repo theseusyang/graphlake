@@ -35,7 +35,7 @@ class pgraph_t: public cfinfo_t {
         MAXX_ECOUNT = MAX_ECOUNT;
         sgraph = 0;
         sgraph_in = 0;
-        blog_count = (MAX_ECOUNT << 2);
+        blog_count = (BATCH_SIZE << 4);
         if (posix_memalign((void**)&blog_beg, 2097152, blog_count*sizeof(T))) {
             perror("posix memalign batch edge log");
         }
@@ -59,15 +59,20 @@ class pgraph_t: public cfinfo_t {
         index_t incr = 1;
         index_t index = __sync_fetch_and_add(&blog_head, incr);
         index_t index1 = (index % blog_count);
-        if (((MAX_ECOUNT<< 1) - 1) == (index - blog_tail)) {
+        index_t size = (index - blog_marker) % BATCH_SIZE;
+        if ((0) == (size)) {
             blog_beg[index1] = edge;
             create_marker(index);
-            //blog_marker = index;
-
             cout << "Will create a snapshot now " << endl;
             return eEndBatch;
+        } else if ((index - blog_tail) == blog_count - 1000) {
+            blog_beg[index1] = edge;
+            create_marker(index);
+            cout << "About OOM" << endl;
+            return eOOM;
         } else if ((index - blog_tail) >= blog_count) {
             //block
+            assert(0);
             return eOOM;
         }
 
@@ -85,14 +90,21 @@ class pgraph_t: public cfinfo_t {
     
     //called from snap thread 
     status_t move_marker() {
+        index_t head = q_head;
         //Need to read marker and set the blog_marker;
-        if (q_tail == q_head) {
+        if (q_tail == head) {
             return eNoWork;
         }
-        
+        /*
+        index_t m_index = head;
+        index_t marker = q_beg[m_index % q_count];
+        q_tail = head - 1;
+        blog_marker = marker;
+        */
         index_t m_index = __sync_fetch_and_add(&q_tail, 1L);
         index_t marker = q_beg[m_index % q_count];
         blog_marker = marker;
+        cout << "working on snapshot" << endl;
         return eOK;
     }
 
@@ -258,13 +270,13 @@ template <class T>
 void onegraph_t<T>::setup_adjlist()
 {
     vid_t    v_count = TO_VID(super_id);
-    vid_t          v = 0;
     vid_t          u = 0;
     degree_t count, del_count;
     
     //snapT_t<T>* snap_blob;
     snapT_t<T>* curr;
-
+    
+    #pragma omp for
     for (vid_t vid = 0; vid < v_count; ++vid) {
         del_count = nebr_count[vid].del_count;
         count = nebr_count[vid].add_count;
@@ -274,15 +286,13 @@ void onegraph_t<T>::setup_adjlist()
             //for added edges
             //even if none are added, only deleted
             nebr_count[vid].adj_list = (T*)calloc(count, sizeof(T));
-            u =__sync_fetch_and_add(&v, 1L);
+            u =__sync_fetch_and_add(&dvt_count, 1L);
             dvt[u].vid = vid;
             dvt[u].degree = count;
             if (curr) { dvt[u].degree += curr->degree; }
         }
         reset_count(vid);
     }
-    
-    dvt_count = v;
 }
 
 template <class T>
@@ -292,7 +302,8 @@ void onegraph_t<T>::update_count()
     T* adj_list1 = 0;
     T* adj_list2 = 0;
     snapid_t snap_id = g->get_snapid() + 1;
-
+    
+    #pragma omp for
     for (sid_t i = 0; i < dvt_count; ++i) {
         vid = dvt[i].vid;
         
@@ -378,12 +389,13 @@ void onegraph_t<T>::persist_vlog(const string& vtfile)
 template <class T>
 void onegraph_t<T>::prepare_slog()
 {
+    prepare_slog();
     vid_t v_count = get_vcount();
     snapid_t snap_id = g->get_snapid();
     vid_t j = 0;
     disk_snapT_t<T>* dlog = (disk_snapT_t<T>*)snap_log;
     snapT_t<T>* snap_blob;
-    
+    #pragma omp for 
     for (sid_t i = 0; i < v_count; ++i) {
         snap_blob = beg_pos[i].get_snapblob();
         if (0 == snap_blob || snap_blob->snap_id <= snap_id) continue;
@@ -399,7 +411,6 @@ void onegraph_t<T>::prepare_slog()
 template <class T>
 void onegraph_t<T>::persist_slog(const string& stfile)
 {   
-    prepare_slog();
     index_t wpos = snap_whead;
     if (snap_wtail == wpos) return;
 
@@ -582,7 +593,8 @@ void pgraph_t<T>::calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sg
     tid_t     src_index, dst_index;
     edgeT_t<T>* edges = blog_beg;
     index_t index = 0;
-    
+   
+    #pragma omp for
     for (index_t i = blog_tail; i < blog_marker; ++i) {
         index = (i % blog_count);
         src = edges[index].src_id;
@@ -667,6 +679,7 @@ void pgraph_t<T>::fill_adj_list(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgra
     edge_t*   edges = blog_beg;
 
     index_t index = 0;
+    #pragma omp for
     for (index_t i = blog_tail; i < blog_marker; ++i) {
         index = (i % blog_count);
         src = edges[index].src_id;
