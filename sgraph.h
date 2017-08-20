@@ -388,14 +388,12 @@ void onegraph_t<T>::prepare_slog()
         snap_blob = beg_pos[i].get_snapblob();
         if (0 == snap_blob || snap_blob->snap_id <= snap_id) continue;
         
+        j = __sync_fetch_and_add(&snap_count, 1L); 
         dlog[j].vid       = i;
         dlog[j].snap_id   = snap_blob->snap_id;
         dlog[j].del_count = snap_blob->del_count;
         dlog[j].degree    = snap_blob->degree;
-        j++;
     }
-    snap_count = j;
-
 }
 
 template <class T>
@@ -410,6 +408,7 @@ void onegraph_t<T>::persist_slog(const string& stfile)
     }
     
     fwrite(snap_log, sizeof(disk_snapT_t<T>), snap_count, stf);
+    snap_count = 0;
 }
 
 template <class T>
