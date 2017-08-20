@@ -335,25 +335,25 @@ void onegraph_t<T>::update_count()
         nebr_count[vid].del_count = 0;
         free(nebr_count[vid].adj_list);
     }
+    log_whead = log_head;
 }
 
 template <class T>
 void onegraph_t<T>::persist_elog(const string& etfile)
 {
-    if (log_wpos == log_head) return;
+    index_t wpos = log_whead;
+
+    if (log_wtail == wpos) return;
     
-    //Make a copy
-    sid_t wpos = log_wpos;
-    
-    //Update the mark
-    log_wpos = log_head;
-        
     //Write the file.
     if (etf == 0) {
         etf = fopen(etfile.c_str(), "wb");//append/write + binary
         assert(etf != 0);
     }
-    fwrite(log_beg+wpos, sizeof(T), log_head-wpos, etf);
+    
+    fwrite (log_beg + log_wtail, sizeof(T), wpos - log_wtail, etf);
+    //Update the mark
+    log_wtail = wpos;
 }
 
 template <class T>
@@ -388,7 +388,7 @@ void onegraph_t<T>::prepare_slog()
         snap_blob = beg_pos[i].get_snapblob();
         if (0 == snap_blob || snap_blob->snap_id <= snap_id) continue;
         
-        j = __sync_fetch_and_add(&snap_count, 1L); 
+        j = __sync_fetch_and_add(&snap_whead, 1L); 
         dlog[j].vid       = i;
         dlog[j].snap_id   = snap_blob->snap_id;
         dlog[j].del_count = snap_blob->del_count;
@@ -400,15 +400,17 @@ template <class T>
 void onegraph_t<T>::persist_slog(const string& stfile)
 {   
     prepare_slog();
-    if (snap_count == 0) return;
+    index_t wpos = snap_whead;
+    if (snap_wtail == wpos) return;
 
     if(stf == 0) {
         stf = fopen(stfile.c_str(), "wb");
         assert(stf != 0);
     }
     
-    fwrite(snap_log, sizeof(disk_snapT_t<T>), snap_count, stf);
-    snap_count = 0;
+    fwrite(snap_log +  snap_wtail, sizeof(disk_snapT_t<T>), wpos - snap_wtail, stf);
+    snap_wtail = 0;
+    snap_whead = 0;
 }
 
 template <class T>
@@ -429,7 +431,7 @@ void onegraph_t<T>::read_stable(const string& stfile)
     }
 
     //read in batches. XXX
-    assert(snap_size >= size);
+    assert(snap_count >= size);
     uint64_t read_count = fread(snap_log, sizeof(disk_snapT_t<T>), size, stf);
     snap_blob = (snapT_t<T>*)dlog_beg;
     dlog = (disk_snapT_t<T>*)snap_log; 
@@ -460,7 +462,8 @@ void onegraph_t<T>::read_etable(const string& etfile)
     fread(log_beg, sizeof(T), edge_count, etf);
 
     log_head = edge_count;
-    log_wpos = log_head;
+    log_wtail = log_head;
+    log_whead = log_head;
 }
 
 template <class T>
@@ -1115,5 +1118,3 @@ status_t pgraph_t<T>::extend_kv_td(onekv_t<T>** skv, srset_t* iset, srset_t* ose
     }
     return eOK;
 }
-
-

@@ -169,7 +169,8 @@ private:
     index_t    log_count;//size of memory log
     index_t    log_head; // current log write position
     index_t    log_tail; //current log cleaning position
-    index_t    log_wpos; //Write this pointer for write persistency
+    index_t    log_whead; //Write this pointer for write persistency
+    index_t    log_wtail; //Write upto this point
     
     //edgetable file related log
     snapT_t<T>*    dlog_beg;  //memory log pointer
@@ -184,8 +185,9 @@ private:
     vid_t    dvt_max_count;
     
     disk_snapT_t<T>* snap_log;
-    index_t snap_size;
     index_t snap_count;
+    index_t snap_whead;
+    index_t snap_wtail;
 
 
     FILE*    vtf;   //vertex table file
@@ -206,7 +208,8 @@ public:
         }
         log_head = 0;
         log_tail = 0;
-        log_wpos = 0;
+        log_whead = 0;
+        log_tail  = 0;
         
         //XXX everything is in memory
         dlog_count = (1L << 28);//256 MB
@@ -218,10 +221,12 @@ public:
         dlog_tail = 0;
         dlog_wpos = 0;
         
-        snap_size = (1L<< 28);//256 MB
-        if (posix_memalign((void**)&snap_log, 2097152, snap_size)) {
+        snap_count = (1L<< 28);//256 MB
+        if (posix_memalign((void**)&snap_log, 2097152, snap_count*sizeof(disk_snapT_t<T>))) {
             perror("posix memalign snap disk log");
         }
+        snap_whead = 0;
+        snap_wtail = 0;
 
         
         dvt_count = 0;
