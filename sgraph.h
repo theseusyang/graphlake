@@ -391,15 +391,13 @@ void onegraph_t<T>::persist_slog(const string& stfile)
         assert(stf != 0);
     }
     
-    //if (0 == g->get_snapid()) { return; }
-    
     //Lets write the snapshot log
     for (sid_t i; i < dvt_count; ++i) {
         snap_blob = beg_pos[dvt[i].vid].get_snapblob();
         dlog[i].vid       = dvt[i].vid;
         dlog[i].snap_id   = snap_blob->snap_id;
         dlog[i].del_count = snap_blob->del_count;
-        dlog->degree      = snap_blob->degree;
+        dlog[i].degree   = snap_blob->degree;
     }
 
     fwrite(snap_log, sizeof(disk_snapT_t<T>), dvt_count, stf);
