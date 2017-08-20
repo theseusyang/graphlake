@@ -376,21 +376,14 @@ void onegraph_t<T>::persist_vlog(const string& vtfile)
 }
 
 template <class T>
-void onegraph_t<T>::persist_slog(const string& stfile)
-{   
-    if (dvt_count == 0) return;
+void onegraph_t<T>::prepare_slog()
+{
     vid_t v_count = get_vcount();
     snapid_t snap_id = g->get_snapid();
-    snapT_t<T>* snap_blob;
-    disk_snapT_t<T>* dlog = (disk_snapT_t<T>*)snap_log;
-    
-    if(stf == 0) {
-        stf = fopen(stfile.c_str(), "wb");
-        assert(stf != 0);
-    }
-    
-    //Lets write the snapshot log
     vid_t j = 0;
+    disk_snapT_t<T>* dlog = (disk_snapT_t<T>*)snap_log;
+    snapT_t<T>* snap_blob;
+    
     for (sid_t i = 0; i < v_count; ++i) {
         snap_blob = beg_pos[i].get_snapblob();
         if (0 == snap_blob || snap_blob->snap_id <= snap_id) continue;
@@ -401,8 +394,22 @@ void onegraph_t<T>::persist_slog(const string& stfile)
         dlog[j].degree    = snap_blob->degree;
         j++;
     }
+    snap_count = j;
 
-    fwrite(snap_log, sizeof(disk_snapT_t<T>), j, stf);
+}
+
+template <class T>
+void onegraph_t<T>::persist_slog(const string& stfile)
+{   
+    prepare_slog();
+    if (snap_count == 0) return;
+
+    if(stf == 0) {
+        stf = fopen(stfile.c_str(), "wb");
+        assert(stf != 0);
+    }
+    
+    fwrite(snap_log, sizeof(disk_snapT_t<T>), snap_count, stf);
 }
 
 template <class T>
@@ -471,21 +478,11 @@ void onegraph_t<T>::read_vtable(const string& vtfile)
         assert(0);
     }
     vid_t count = (size/sizeof(disk_vtable_t));
-    //snapT_t<T>* curr = 0;
     //read in batches
     while (count != 0 ) {
         vid_t read_count = fread(dvt, sizeof(disk_vtable_t), dvt_max_count, vtf);
         for (vid_t v = 0; v < read_count; ++v) {
-            //curr = (snapT_t<T>*) malloc(sizeof(snapT_t<T>));
-            //curr->degree = dvt[v].degree;
-            //curr->del_count = 0;
-            //curr->adj_list = log_beg + dvt[v].file_offset;
-            //curr->snap_id = 0; 
-            //nebr_count[dvt[v].vid].add_count = 0;
-            
-            //beg_pos[dvt[v].vid].set_snapblob1(curr);
             beg_pos[dvt[v].vid].set_adjlist(log_beg + dvt[v].file_offset);
-            //beg_pos[dvt[v].vid].degree = dvt[v].degree;
         }
         count -= read_count;
     }

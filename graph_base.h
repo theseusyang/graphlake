@@ -184,7 +184,9 @@ private:
     vid_t    dvt_max_count;
     
     disk_snapT_t<T>* snap_log;
-    uint64_t snap_size;
+    index_t snap_size;
+    index_t snap_count;
+
 
     FILE*    vtf;   //vertex table file
     FILE*    etf;   //edge table file
@@ -267,6 +269,8 @@ public:
     inline vert_table_t<T>* get_begpos() { return beg_pos;}
     inline vid_t get_vcount() { return TO_VID(super_id);}
     inline tid_t get_tid() { return TO_TID(super_id);}
+
+    void prepare_slog();
 
     void persist_elog(const string& etfile);
     void persist_vlog(const string& vtfile);
