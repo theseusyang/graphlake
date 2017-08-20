@@ -244,8 +244,8 @@ public:
     }
     
     inline void add_nebr(vid_t vid, sid_t sid) { 
-        nebr_count[vid].add_nebr(nebr_count[vid].add_count, sid);
-        ++nebr_count[vid].add_count;
+        degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
+        nebr_count[vid].add_nebr(index, sid);
     }
     inline void del_nebr(vid_t vid, sid_t sid) { 
         //nebr_count[vid].del_nebr(nebr_count[vid].del_count, sid);
