@@ -270,11 +270,14 @@ template <class T>
 void onegraph_t<T>::setup_adjlist()
 {
     vid_t    v_count = TO_VID(super_id);
+    snapid_t snap_id = g->get_snapid() + 1;
     vid_t          u = 0;
-    degree_t count, del_count;
+    vid_t          j = 0;
     
-    //snapT_t<T>* snap_blob;
+    disk_snapT_t<T>* slog = (disk_snapT_t<T>*)snap_log;
+    
     snapT_t<T>* curr;
+    degree_t count, del_count;
     
     #pragma omp for
     for (vid_t vid = 0; vid < v_count; ++vid) {
@@ -286,6 +289,12 @@ void onegraph_t<T>::setup_adjlist()
             //for added edges
             //even if none are added, only deleted
             nebr_count[vid].adj_list = (T*)calloc(count, sizeof(T));
+            j = __sync_fetch_and_add(&snap_whead, 1L); 
+            slog[j].vid       = vid;
+            slog[j].snap_id   = snap_id;
+            slog[j].del_count = del_count;
+            slog[j].degree    = count;
+
             u =__sync_fetch_and_add(&dvt_count, 1L);
             dvt[u].vid = vid;
             dvt[u].degree = count;
@@ -304,7 +313,7 @@ void onegraph_t<T>::update_count()
     snapid_t snap_id = g->get_snapid() + 1;
     
     #pragma omp for
-    for (sid_t i = 0; i < dvt_count; ++i) {
+    for (sid_t i = snap_wtail; i < snap_whead; ++i) {
         vid = dvt[i].vid;
         
         snapT_t<T>* snap_blob = beg_pos[vid].get_snapblob();
@@ -413,7 +422,7 @@ void onegraph_t<T>::persist_slog(const string& stfile)
     index_t wpos = snap_whead;
     if (snap_wtail == wpos) return;
 
-    prepare_slog();
+    //prepare_slog();
     if(stf == 0) {
         stf = fopen(stfile.c_str(), "wb");
         assert(stf != 0);

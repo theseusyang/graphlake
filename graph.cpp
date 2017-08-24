@@ -286,7 +286,7 @@ void graph::store_graph_baseline(const string& odir)
     for (int i = 0; i < cf_count; i++) {
         cf_info[i]->store_graph_baseline(odirname);
     }
-    incr_snapid();
+    //incr_snapid();
 }
 
 void graph::read_graph_baseline(const string& odir)
