@@ -389,7 +389,6 @@ void onegraph_t<T>::persist_vlog(const string& vtfile)
 template <class T>
 void onegraph_t<T>::prepare_slog()
 {
-    prepare_slog();
     vid_t v_count = get_vcount();
     snapid_t snap_id = g->get_snapid();
     vid_t j = 0;
@@ -414,6 +413,7 @@ void onegraph_t<T>::persist_slog(const string& stfile)
     index_t wpos = snap_whead;
     if (snap_wtail == wpos) return;
 
+    prepare_slog();
     if(stf == 0) {
         stf = fopen(stfile.c_str(), "wb");
         assert(stf != 0);
