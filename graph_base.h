@@ -144,9 +144,6 @@ class nebrcount_t {
     inline void del_nebr_lite(vid_t index, sid_t sid, univ_t value) {
         //
     }
-    /*
-    inline void set_adjlist(T* adj_list1) { adj_list =  adj_list1;}
-    */
 };
 
 //one type's graph
@@ -163,37 +160,44 @@ private:
     nebrcount_t<T>*   nebr_count;
 
     vid_t    max_vcount;
+    
+    //edgetable file related log, persistent
+    T*         adjlog_beg;  //memory log pointer
+    index_t    adjlog_count;//size of memory log
+    index_t    adjlog_head; // current log write position
+    index_t    adjlog_tail; //current log cleaning position
 
-    //edgetable file related log
-    T*       log_beg;  //memory log pointer
+    //edgetable file related log, persistent
+    T*         log_beg;  //memory log pointer
     index_t    log_count;//size of memory log
     index_t    log_head; // current log write position
     index_t    log_tail; //current log cleaning position
     index_t    log_whead; //Write this pointer for write persistency
     index_t    log_wtail; //Write upto this point
     
-    //edgetable file related log
-    snapT_t<T>*    dlog_beg;  //memory log pointer
-    index_t    dlog_count;//size of memory log
-    index_t    dlog_head; // current log write position
-    index_t    dlog_tail; //current log cleaning position
-    index_t    dlog_wpos; //Write this pointer for write persistency
+    //degree array related log, in-memory
+    snapT_t<T>* dlog_beg;  //memory log pointer
+    index_t     dlog_count;//size of memory log
+    index_t     dlog_head; // current log write position
+    index_t     dlog_tail; //current log cleaning position
+    index_t     dlog_wpos; //Write this pointer for write persistency
 
-    //vertex table file related log
-    disk_vtable_t* dvt;
-    vid_t    dvt_count; 
-    vid_t    dvt_max_count;
-    
+    //degree array related log, for writing to disk
     disk_snapT_t<T>* snap_log;
     index_t snap_count;
     index_t snap_whead;
     index_t snap_wtail;
 
+    //vertex table file related log
+    disk_vtable_t* dvt;
+    vid_t    dvt_count; 
+    vid_t    dvt_max_count;
 
     FILE*    vtf;   //vertex table file
     FILE*    etf;   //edge table file
     FILE*    stf;   //snapshot table file
 public:
+
     inline onegraph_t() {
         super_id = 0;
         beg_pos = 0;
@@ -201,15 +205,25 @@ public:
         max_vcount = 0;
         
         //XXX everything is in memory
+        adjlog_count = (1L << 30);//256*8 MB
+        if (posix_memalign((void**)&adjlog_beg, 2097152, adjlog_count*sizeof(T))) {
+            perror("posix memalign edge log");
+        }
+        adjlog_head  = 0;
+        adjlog_tail  = 0;
+        adjlog_tail  = 0;
+        
+        //XXX everything is in memory
         log_count = (1L << 30);//256*8 MB
         if (posix_memalign((void**)&log_beg, 2097152, log_count*sizeof(T))) {
             //log_beg = (index_t*)calloc(sizeof(index_t), log_count);
             perror("posix memalign edge log");
         }
-        log_head = 0;
-        log_tail = 0;
-        log_whead = 0;
+        log_head  = 0;
         log_tail  = 0;
+        log_tail  = 0;
+        log_whead = 0;
+        log_wtail = 0;
         
         //XXX everything is in memory
         dlog_count = (1L << 28);//256 MB
@@ -251,7 +265,7 @@ public:
     }
     
     inline void add_nebr(vid_t vid, sid_t sid) { 
-        degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
+        degree_t index =__sync_add_and_fetch(&nebr_count[vid].add_count, 1L);
         nebr_count[vid].add_nebr(index, sid);
     }
     inline void del_nebr(vid_t vid, sid_t sid) { 
@@ -275,7 +289,7 @@ public:
     inline vid_t get_vcount() { return TO_VID(super_id);}
     inline tid_t get_tid() { return TO_TID(super_id);}
 
-    void prepare_slog();
+    void prepare_vlog();
 
     void persist_elog(const string& etfile);
     void persist_vlog(const string& vtfile);

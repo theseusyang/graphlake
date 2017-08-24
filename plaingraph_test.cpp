@@ -113,8 +113,8 @@ void plain_test2(const string& odir)
 {
     schema_plaingraph();
     //do some setup for plain graphs
-    vid_t v_count = (1<<21);
-    plaingraph_manager::setup_graph(v_count);    
+    //vid_t v_count = (1<<21);
+    //plaingraph_manager::setup_graph(v_count);    
     
     g->read_graph_baseline(odir);
     

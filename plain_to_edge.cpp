@@ -27,8 +27,10 @@ void plaingraph_manager::setup_graph(vid_t v_count)
     ugraph->flag1 = 1;
     ugraph->flag2 = 1;
     typekv_t* typekv = g->get_typekv();
-    typekv->manual_setup(v_count); 
+    typekv->manual_setup(v_count);
     g->prep_graph_baseline();
+    g->make_graph_baseline();
+    g->store_graph_baseline(); 
     
 }
 

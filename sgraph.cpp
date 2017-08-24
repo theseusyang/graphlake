@@ -573,7 +573,13 @@ void ugraph_t::make_graph_baseline()
     }
     end = mywtime();
     cout << "fill adj list time = " << end - start << endl;
-    
+    //double end = mywtime();
+    //cout << "make graph time = " << end - start << endl;
+}
+
+void ugraph_t::store_graph_baseline(string dir)
+{
+    double start, end;
     start = mywtime(); 
     #pragma omp parallel num_threads(32)    
     {
@@ -581,16 +587,11 @@ void ugraph_t::make_graph_baseline()
     }
     end = mywtime();
     cout << "update count time = " << end - start << endl;
-    //double end = mywtime();
-    //cout << "make graph time = " << end - start << endl;
-}
-
-void ugraph_t::store_graph_baseline(string dir)
-{
-    double start = mywtime(); 
+    
+    start = mywtime(); 
     string postfix = "";
     store_sgraph(sgraph, dir, postfix);
-    double end = mywtime();
+    end = mywtime();
     cout << "store graph time = " << end - start << endl;
 }
 
