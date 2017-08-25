@@ -288,18 +288,22 @@ void onegraph_t<T>::setup_adjlist()
             //durable adj list allocation
             if (nebr_count[vid].adj_list) {
                 count1 = get_nebrcount1(nebr_count[vid].adj_list);
-                count2 = count + count1;
+                count2 = count;// + count1;
                 index_t index_adjlog = __sync_fetch_and_add(&adjlog_head, count2 + 1);
                 assert(index_adjlog  < adjlog_count); 
                 adj_list = adjlog_beg + index_adjlog;
                 set_nebrcount1(adj_list, count2);
-                memcpy(adj_list, nebr_count[vid].adj_list + 1, count1*sizeof(T));
+                memcpy(adj_list+1, nebr_count[vid].adj_list+1, count1*sizeof(T));
+                nebr_count[vid].add_count = count1;
+                nebr_count[vid].del_count = 0;
             } else {
                 count2 = count;
                 index_t index_adjlog = __sync_fetch_and_add(&adjlog_head, count2 + 1);
                 assert(index_adjlog  < adjlog_count); 
                 adj_list = adjlog_beg + index_adjlog;
                 set_nebrcount1(adj_list, count2);
+                nebr_count[vid].add_count = 0;
+                nebr_count[vid].del_count = 0;
             }
             nebr_count[vid].adj_list = adj_list;
             //nebr_count[vid].adj_list = (T*)calloc(count, sizeof(T));
@@ -311,35 +315,39 @@ void onegraph_t<T>::setup_adjlist()
             slog[j].del_count = del_count;
             slog[j].degree    = count;
             if (curr) { slog[j].degree += curr->degree; }
+        
+            //allocate new snapshot for degree, and initialize
+            index_t index_dlog  = __sync_fetch_and_add(&dlog_head, 1L);
+            snapT_t<T>* next    = (snapT_t<T>*)(dlog_beg + index_dlog);
+            assert(index_dlog   < dlog_count);
+            next->del_count     = del_count;
+            next->snap_id       = snap_id;
+            next->next          = 0;
+            next->degree        = count;
+            if (curr)  next->degree += curr->degree; 
+            beg_pos[vid].set_snapblob1(next);
         }
-        reset_count(vid);
+        //reset_count(vid);
     }
 }
 
 template <class T>
 void onegraph_t<T>::update_count() 
 {
-    vid_t vid = 0;
+    vid_t    v_count = TO_VID(super_id);
     T* adj_list1 = 0;
     T* adj_list2 = 0;
-    snapid_t snap_id = g->get_snapid() + 1;
-    disk_snapT_t<T>* slog = (disk_snapT_t<T>*)snap_log;
+    index_t j = 0;
+    index_t count;
+    //snapid_t snap_id = g->get_snapid() + 1;
+    //vid_t vid = 0;
+    //disk_snapT_t<T>* slog = (disk_snapT_t<T>*)snap_log;
     
     #pragma omp for
-    for (sid_t i = snap_wtail; i < snap_whead; ++i) {
-        vid = slog[i].vid;
-        
-        snapT_t<T>* snap_blob = beg_pos[vid].get_snapblob();
-        
-        //allocate new snapshot for degree, and initialize
-        index_t index_dlog  = __sync_fetch_and_add(&dlog_head, 1L);
-        snapT_t<T>* curr    = (snapT_t<T>*)(dlog_beg + index_dlog);
-        assert(index_dlog   < dlog_count);
-        curr->del_count     = nebr_count[vid].del_count;
-        curr->snap_id       = snap_id;
-        curr->next          = 0;
-        curr->degree        = nebr_count[vid].add_count;
-        if (0 != snap_blob)  curr->degree += snap_blob->degree; 
+    for (vid_t vid = 0; vid < v_count ; ++vid) {
+        if (0 == nebr_count[vid].adj_list) continue;
+
+        snapT_t<T>* curr = beg_pos[vid].get_snapblob();
         
         //durable adj list allocation
         index_t index_log = __sync_fetch_and_add(&log_head, curr->degree + 1);
@@ -348,13 +356,15 @@ void onegraph_t<T>::update_count()
         adj_list2         = adj_list1;
         
         //Copy the Old durable adj list
-        if (0 != snap_blob) {
-            memcpy(adj_list1, beg_pos[vid].get_adjlist(),
-                   (snap_blob->degree + 1)*sizeof(T));
-            adj_list1 += snap_blob->degree + 1;
+        T* prev_adjlist = beg_pos[vid].get_adjlist();
+        if (0 != prev_adjlist) {
+            count = get_nebrcount1(prev_adjlist);
+            memcpy(adj_list1, prev_adjlist, (count + 1)*sizeof(T));
+            adj_list1 += count + 1;
         } else {
             adj_list1 += 1;
         }
+        
 
         //Copy the new in-memory adj-list
         memcpy(adj_list1, nebr_count[vid].adj_list + 1, 
@@ -362,12 +372,14 @@ void onegraph_t<T>::update_count()
         set_nebrcount1(adj_list2, curr->degree);
         
         beg_pos[vid].set_adjlist(adj_list2);
-        beg_pos[vid].set_snapblob1(curr);
-        
         nebr_count[vid].add_count = 0;
         nebr_count[vid].del_count = 0;
         nebr_count[vid].adj_list = 0;
-        //free(nebr_count[vid].adj_list);
+        
+        j = __sync_fetch_and_add(&dvt_count, 1L); 
+        dvt[j].vid         = vid;
+        dvt[j].degree      = curr->degree;
+        dvt[j].file_offset = index_log;
     }
     log_whead = log_head;
     adjlog_head = 0;
@@ -395,7 +407,6 @@ template <class T>
 void onegraph_t<T>::persist_vlog(const string& vtfile)
 {
     if (dvt_count == 0) return;
-    prepare_vlog(); 
    
     //Make a copy
     sid_t count =  dvt_count;

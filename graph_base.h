@@ -205,7 +205,7 @@ public:
         max_vcount = 0;
         
         //XXX everything is in memory
-        adjlog_count = (1L << 30);//256*8 MB
+        adjlog_count = (1L << 32);//256*8 MB
         if (posix_memalign((void**)&adjlog_beg, 2097152, adjlog_count*sizeof(T))) {
             perror("posix memalign edge log");
         }

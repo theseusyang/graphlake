@@ -261,20 +261,28 @@ void graph::make_graph_baseline()
 void graph::create_snapshot()
 {
     int work_done = 0;
+    int count = 0;
     do {
         work_done = 0;
         for (int i = 0; i < cf_count; i++) {
             if (eOK == cf_info[i]->move_marker()) {
                 cf_info[i]->make_graph_baseline();
                 cf_info[i]->store_graph_baseline(odirname);
+                incr_snapid();
                 ++work_done;
+                ++count;
             }
         }
-        if (work_done > 0) { 
-            incr_snapid();
-            continue;
-        } else { 
+        if (work_done == 0 && count > 0) { 
+            for (int i = 0; i < cf_count; i++) {
+                //cf_info[i]->store_graph_baseline(odirname);
+            }
             break;
+        } else if (count == 2) {
+            for (int i = 0; i < cf_count; i++) {
+                //cf_info[i]->store_graph_baseline(odirname);
+            }
+            count = 0;
         }
     } while(true);
 

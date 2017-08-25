@@ -554,7 +554,7 @@ void ugraph_t::make_graph_baseline()
     calc_edge_count(sgraph, sgraph);
     }
     double end = mywtime();
-    cout << "calc edge time = " << end - start << endl;
+    //cout << "calc edge time = " << end - start << endl;
     
     start = mywtime(); 
     //prefix sum then reset the count
@@ -563,7 +563,7 @@ void ugraph_t::make_graph_baseline()
     prep_sgraph_internal(sgraph);
     }
     end = mywtime();
-    cout << "prep_internal time = " << end - start << endl;
+    //cout << "prep_internal time = " << end - start << endl;
 
     //populate and get the original count back
     start = mywtime(); 
@@ -572,9 +572,9 @@ void ugraph_t::make_graph_baseline()
     fill_adj_list(sgraph, sgraph);
     }
     end = mywtime();
-    cout << "fill adj list time = " << end - start << endl;
+    //cout << "fill adj list time = " << end - start << endl;
     //double end = mywtime();
-    //cout << "make graph time = " << end - start << endl;
+    cout << "make graph time = " << end - start << endl;
 }
 
 void ugraph_t::store_graph_baseline(string dir)
@@ -586,7 +586,7 @@ void ugraph_t::store_graph_baseline(string dir)
     update_count(sgraph);
     }
     end = mywtime();
-    cout << "update count time = " << end - start << endl;
+    //cout << "update count time = " << end - start << endl;
     
     start = mywtime(); 
     string postfix = "";
