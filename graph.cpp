@@ -274,7 +274,7 @@ void graph::create_snapshot()
                 cout << "make" << endl;
             }
         }
-        if (count == 3) {
+        if (count == 6) {
             for (int i = 0; i < cf_count; i++) {
                 cf_info[i]->store_graph_baseline(odirname);
             }

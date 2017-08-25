@@ -155,9 +155,9 @@ class pedge_t {
 class disk_vtable_t {
     public:
     vid_t    vid;
-    degree_t degree;
-    //uint64_t old_offset;//for cleaning
+    //degree_t degree;
     uint64_t file_offset;
+    uint64_t old_offset;//for cleaning
 };
 
 //property name value pair

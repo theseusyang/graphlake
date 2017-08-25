@@ -343,17 +343,17 @@ void onegraph_t<T>::update_count()
     vid_t    v_count = TO_VID(super_id);
     T* adj_list1 = 0;
     T* adj_list2 = 0;
+    T* prev_adjlist = 0;
     index_t j = 0;
+    snapT_t<T>* curr = 0;
     index_t count;
-    //snapid_t snap_id = g->get_snapid() + 1;
-    //vid_t vid = 0;
-    //disk_snapT_t<T>* slog = (disk_snapT_t<T>*)snap_log;
     
     #pragma omp for
     for (vid_t vid = 0; vid < v_count ; ++vid) {
         if (0 == nebr_count[vid].adj_list) continue;
 
-        snapT_t<T>* curr = beg_pos[vid].get_snapblob();
+        curr = beg_pos[vid].get_snapblob();
+        prev_adjlist = beg_pos[vid].get_adjlist();
         
         //durable adj list allocation
         index_t index_log = __sync_fetch_and_add(&log_head, curr->degree + 1);
@@ -362,7 +362,6 @@ void onegraph_t<T>::update_count()
         adj_list2         = adj_list1;
         
         //Copy the Old durable adj list
-        T* prev_adjlist = beg_pos[vid].get_adjlist();
         if (0 != prev_adjlist) {
             count = get_nebrcount1(prev_adjlist);
             memcpy(adj_list1, prev_adjlist, (count + 1)*sizeof(T));
@@ -376,7 +375,6 @@ void onegraph_t<T>::update_count()
         memcpy(adj_list1, nebr_count[vid].adj_list + 1, 
                nebr_count[vid].add_count*sizeof(T));
         set_nebrcount1(adj_list2, curr->degree);
-        
         beg_pos[vid].set_adjlist(adj_list2);
         nebr_count[vid].add_count = 0;
         nebr_count[vid].del_count = 0;
@@ -384,8 +382,8 @@ void onegraph_t<T>::update_count()
         
         j = __sync_fetch_and_add(&dvt_count, 1L); 
         dvt[j].vid         = vid;
-        dvt[j].degree      = curr->degree;
         dvt[j].file_offset = index_log;
+        dvt[j].old_offset =  prev_adjlist - log_beg;
     }
     log_whead = log_head;
     adjlog_head = 0;
@@ -429,6 +427,7 @@ void onegraph_t<T>::persist_vlog(const string& vtfile)
     dvt_count = 0;
 }
 
+/*
 template <class T>
 void onegraph_t<T>::prepare_vlog()
 {
@@ -444,11 +443,9 @@ void onegraph_t<T>::prepare_vlog()
         
         j = __sync_fetch_and_add(&dvt_count, 1L); 
         dvt[j].vid       = i;
-        dvt[j].degree = snap_blob->degree;
         dvt[j].file_offset   = beg_pos[i].get_adjlist() - log_beg;
     }
 }
-/*
 template <class T>
 void onegraph_t<T>::prepare_slog()
 {
