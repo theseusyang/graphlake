@@ -91,8 +91,9 @@ void plain_test1(const string& idir, const string& odir)
     snap_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, 8, 1);
     */
     memset(level_array, 0, v_count*sizeof(uint8_t));
-    cout << "BFS on second snapshot" << endl; 
-    snap_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, 8, 1);
+    snapid_t snap_id = g->get_snapid(); 
+    cout << "BFS on snap id = " << snap_id << endl; 
+    snap_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, snap_id, 1);
     
     /*
     memset(level_array, 0, v_count*sizeof(uint8_t));
@@ -100,12 +101,12 @@ void plain_test1(const string& idir, const string& odir)
     ext_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, 1);
     */
 
-    cout << "multi-snap BFS" << endl; 
-    multisnap_bfs<sid_t>(graph, graph, v_count, edge_count, 8, 9, 1);
+    cout << "multi-snap BFS" << endl;
+    multisnap_bfs<sid_t>(graph, graph, v_count, edge_count, snap_id - 1, snap_id , 1);
     
     memset(level_array, 0, v_count*sizeof(uint8_t));
     cout << "BFS on first snapshot" << endl; 
-    snap_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, 8, 1);
+    snap_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, snap_id, 1);
     return ;
 }
 

@@ -574,7 +574,7 @@ void ugraph_t::make_graph_baseline()
     end = mywtime();
     //cout << "fill adj list time = " << end - start << endl;
     //double end = mywtime();
-    cout << "make graph time = " << end - start << endl;
+    //cout << "make graph time = " << end - start << endl;
 }
 
 void ugraph_t::store_graph_baseline(string dir)
@@ -592,7 +592,7 @@ void ugraph_t::store_graph_baseline(string dir)
     string postfix = "";
     store_sgraph(sgraph, dir, postfix);
     end = mywtime();
-    cout << "store graph time = " << end - start << endl;
+    //cout << "store graph time = " << end - start << endl;
 }
 
 void ugraph_t::read_graph_baseline(const string& dir)

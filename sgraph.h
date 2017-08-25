@@ -43,7 +43,7 @@ class pgraph_t: public cfinfo_t {
         blog_tail = 0;
         blog_marker = 0;
         
-        q_count = 32;
+        q_count = 256;
         q_beg = (index_t*)calloc(q_count, sizeof(index_t));
         if (0 == q_beg) {
             perror("posix memalign batch edge log");
@@ -63,7 +63,7 @@ class pgraph_t: public cfinfo_t {
         if ((0) == (size)) {
             blog_beg[index1] = edge;
             create_marker(index);
-            cout << "Will create a snapshot now " << endl;
+            //cout << "Will create a snapshot now " << endl;
             return eEndBatch;
         } else if ((index - blog_tail) == blog_count - 1000) {
             blog_beg[index1] = edge;
@@ -81,18 +81,22 @@ class pgraph_t: public cfinfo_t {
     }
     
     void create_marker(index_t marker) {
+        pthread_mutex_lock(&g->snap_mutex);
         index_t m_index = __sync_fetch_and_add(&q_head, 1L);
         q_beg[m_index % q_count] = marker;
-        pthread_mutex_lock(&g->snap_mutex);
         pthread_cond_signal(&g->snap_condition);
         pthread_mutex_unlock(&g->snap_mutex);
+        cout << "Marker queued. position = " << m_index % q_count << " " << marker << endl;
     } 
     
     //called from snap thread 
     status_t move_marker() {
+        pthread_mutex_lock(&g->snap_mutex);
         index_t head = q_head;
         //Need to read marker and set the blog_marker;
         if (q_tail == head) {
+            pthread_mutex_unlock(&g->snap_mutex);
+            cout << "Marker NO dequeue. Position = " << head <<  endl;
             return eNoWork;
         }
         /*
@@ -104,7 +108,9 @@ class pgraph_t: public cfinfo_t {
         index_t m_index = __sync_fetch_and_add(&q_tail, 1L);
         index_t marker = q_beg[m_index % q_count];
         blog_marker = marker;
-        cout << "working on snapshot" << endl;
+        pthread_mutex_unlock(&g->snap_mutex);
+        //cout << "working on snapshot" << endl;
+        cout << "Marker dequeue. Position = " << m_index % q_count << " " << marker << endl;
         return eOK;
     }
 
@@ -288,20 +294,20 @@ void onegraph_t<T>::setup_adjlist()
             //durable adj list allocation
             if (nebr_count[vid].adj_list) {
                 count1 = get_nebrcount1(nebr_count[vid].adj_list);
-                count2 = count;// + count1;
-                index_t index_adjlog = __sync_fetch_and_add(&adjlog_head, count2 + 1);
+                count2 = count - count1;
+                index_t index_adjlog = __sync_fetch_and_add(&adjlog_head, count + 1);
                 assert(index_adjlog  < adjlog_count); 
                 adj_list = adjlog_beg + index_adjlog;
-                set_nebrcount1(adj_list, count2);
+                set_nebrcount1(adj_list, count);
                 memcpy(adj_list+1, nebr_count[vid].adj_list+1, count1*sizeof(T));
                 nebr_count[vid].add_count = count1;
                 nebr_count[vid].del_count = 0;
             } else {
                 count2 = count;
-                index_t index_adjlog = __sync_fetch_and_add(&adjlog_head, count2 + 1);
+                index_t index_adjlog = __sync_fetch_and_add(&adjlog_head, count + 1);
                 assert(index_adjlog  < adjlog_count); 
                 adj_list = adjlog_beg + index_adjlog;
-                set_nebrcount1(adj_list, count2);
+                set_nebrcount1(adj_list, count);
                 nebr_count[vid].add_count = 0;
                 nebr_count[vid].del_count = 0;
             }
@@ -313,7 +319,7 @@ void onegraph_t<T>::setup_adjlist()
             slog[j].vid       = vid;
             slog[j].snap_id   = snap_id;
             slog[j].del_count = del_count;
-            slog[j].degree    = count;
+            slog[j].degree    = count2;
             if (curr) { slog[j].degree += curr->degree; }
         
             //allocate new snapshot for degree, and initialize
@@ -323,7 +329,7 @@ void onegraph_t<T>::setup_adjlist()
             next->del_count     = del_count;
             next->snap_id       = snap_id;
             next->next          = 0;
-            next->degree        = count;
+            next->degree        = count2;
             if (curr)  next->degree += curr->degree; 
             beg_pos[vid].set_snapblob1(next);
         }

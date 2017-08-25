@@ -267,23 +267,29 @@ void graph::create_snapshot()
         for (int i = 0; i < cf_count; i++) {
             if (eOK == cf_info[i]->move_marker()) {
                 cf_info[i]->make_graph_baseline();
-                cf_info[i]->store_graph_baseline(odirname);
+                //cf_info[i]->store_graph_baseline(odirname);
                 incr_snapid();
                 ++work_done;
                 ++count;
+                cout << "make" << endl;
             }
         }
-        if (work_done == 0 && count > 0) { 
+        if (count == 3) {
             for (int i = 0; i < cf_count; i++) {
-                //cf_info[i]->store_graph_baseline(odirname);
+                cf_info[i]->store_graph_baseline(odirname);
             }
-            break;
-        } else if (count == 2) {
-            for (int i = 0; i < cf_count; i++) {
-                //cf_info[i]->store_graph_baseline(odirname);
-            }
+            cout << "store" << " " << work_done << " " << count << endl;
             count = 0;
-        }
+        }else if (work_done == 0 && count > 0) { 
+            for (int i = 0; i < cf_count; i++) {
+                cf_info[i]->store_graph_baseline(odirname);
+            }
+            cout << "store" << " " << work_done << " " << count;
+            cout << " exiting loop" << endl;
+            count = 0;
+        } else if (work_done == 0 && count == 0) {
+            break;
+        } 
     } while(true);
 
 }
