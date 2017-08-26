@@ -264,34 +264,41 @@ void graph::create_snapshot()
     int count = 0;
     do {
         work_done = 0;
-        for (int i = 0; i < cf_count; i++) {
+        for (int i = 1; i < cf_count; i++) {
             if (eOK == cf_info[i]->move_marker()) {
                 cf_info[i]->make_graph_baseline();
                 //cf_info[i]->store_graph_baseline(odirname);
                 incr_snapid();
                 ++work_done;
                 ++count;
-                cout << "make" << endl;
-            }
+                cout << "make " << work_done << " " << count << endl;
+            } else {
+				cout << "else " << " " << work_done << " " << count << endl;
+				
+			}
         }
-        if (count == 6) {
-            for (int i = 0; i < cf_count; i++) {
+        if (count == 4) {
+            for (int i = 1; i < cf_count; i++) {
                 cf_info[i]->store_graph_baseline(odirname);
             }
             cout << "store" << " " << work_done << " " << count << endl;
             count = 0;
         }else if (work_done == 0 && count > 0) { 
-            for (int i = 0; i < cf_count; i++) {
+            cout << "store" << " " << work_done << " " << count;
+            for (int i = 1; i < cf_count; i++) {
                 cf_info[i]->store_graph_baseline(odirname);
             }
-            cout << "store" << " " << work_done << " " << count;
             cout << " exiting loop" << endl;
             count = 0;
         } else if (work_done == 0 && count == 0) {
+            cout << " exiting loop" << endl;
             break;
-        } 
-    } while(true);
+        } else {
+            cout << "exit" << " " << work_done << " " << count << endl;
+			//assert(0);
+		}
 
+    } while(true);
 }
 
 void graph::store_graph_baseline(const string& odir)

@@ -35,7 +35,7 @@ class pgraph_t: public cfinfo_t {
         MAXX_ECOUNT = MAX_ECOUNT;
         sgraph = 0;
         sgraph_in = 0;
-        blog_count = (BATCH_SIZE << 4);
+        blog_count = (BATCH_SIZE << 8);
         if (posix_memalign((void**)&blog_beg, 2097152, blog_count*sizeof(T))) {
             perror("posix memalign batch edge log");
         }
@@ -282,44 +282,43 @@ void onegraph_t<T>::setup_adjlist()
     disk_snapT_t<T>* slog = (disk_snapT_t<T>*)snap_log;
     snapT_t<T>* curr;
     T*          adj_list = 0;
-    degree_t count, del_count, count1, count2;
+	delta_adjlist_t<T>* delta_adjlist = 0;
+	delta_adjlist_t<T>* prev_delta = 0;
+    degree_t count, del_count;
     
     #pragma omp for
     for (vid_t vid = 0; vid < v_count; ++vid) {
         del_count = nebr_count[vid].del_count;
         count = nebr_count[vid].add_count;
-        curr = beg_pos[vid].get_snapblob();
+        
+        if (0 != count) {// new nebrs added/deleted
+            curr = beg_pos[vid].get_snapblob();
+            prev_delta = nebr_count[vid].delta_adjlist;
+            if (prev_delta) {
+                count = nebr_count[vid].add_count - prev_delta->get_nebrcount();
+            } 
+        
             
-        if (0 != count || del_count != 0) {// new nebrs added/deleted
-            //durable adj list allocation
-            if (nebr_count[vid].adj_list) {
-                count1 = get_nebrcount1(nebr_count[vid].adj_list);
-                count2 = count - count1;
-                index_t index_adjlog = __sync_fetch_and_add(&adjlog_head, count + 1);
-                assert(index_adjlog  < adjlog_count); 
-                adj_list = adjlog_beg + index_adjlog;
-                set_nebrcount1(adj_list, count);
-                memcpy(adj_list+1, nebr_count[vid].adj_list+1, count1*sizeof(T));
-                nebr_count[vid].add_count = count1;
-                nebr_count[vid].del_count = 0;
-            } else {
-                count2 = count;
-                index_t index_adjlog = __sync_fetch_and_add(&adjlog_head, count + 1);
-                assert(index_adjlog  < adjlog_count); 
-                adj_list = adjlog_beg + index_adjlog;
-                set_nebrcount1(adj_list, count);
-                nebr_count[vid].add_count = 0;
-                nebr_count[vid].del_count = 0;
+            if (0 == count) {
+                continue;
             }
-            nebr_count[vid].adj_list = adj_list;
-            //nebr_count[vid].adj_list = (T*)calloc(count, sizeof(T));
+            //delta adj list allocation
+            index_t index_adjlog = __sync_fetch_and_add(&adjlog_head, count + 4);//XXX
+            assert(index_adjlog  < adjlog_count); 
+            delta_adjlist = (delta_adjlist_t<T>*)(adjlog_beg + index_adjlog);
+            delta_adjlist->set_nebrcount(count);
+			delta_adjlist->add_next(nebr_count[vid].delta_adjlist);
+			nebr_count[vid].delta_adjlist = delta_adjlist;
+			
+			adj_list = delta_adjlist->get_adjlist();
+			nebr_count[vid].adj_list = adj_list;
             
             //snap log for disk write
             j = __sync_fetch_and_add(&snap_whead, 1L); 
             slog[j].vid       = vid;
             slog[j].snap_id   = snap_id;
             slog[j].del_count = del_count;
-            slog[j].degree    = count2;
+            slog[j].degree    = count;
             if (curr) { slog[j].degree += curr->degree; }
         
             //allocate new snapshot for degree, and initialize
@@ -329,11 +328,11 @@ void onegraph_t<T>::setup_adjlist()
             next->del_count     = del_count;
             next->snap_id       = snap_id;
             next->next          = 0;
-            next->degree        = count2;
+            next->degree        = count;
             if (curr)  next->degree += curr->degree; 
             beg_pos[vid].set_snapblob1(next);
         }
-        //reset_count(vid);
+        reset_count(vid);
     }
 }
 
@@ -344,6 +343,7 @@ void onegraph_t<T>::update_count()
     T* adj_list1 = 0;
     T* adj_list2 = 0;
     T* prev_adjlist = 0;
+	delta_adjlist_t<T>* delta_adjlist = 0;
     index_t j = 0;
     snapT_t<T>* curr = 0;
     index_t count;
@@ -372,13 +372,20 @@ void onegraph_t<T>::update_count()
         
 
         //Copy the new in-memory adj-list
-        memcpy(adj_list1, nebr_count[vid].adj_list + 1, 
-               nebr_count[vid].add_count*sizeof(T));
+		delta_adjlist = nebr_count[vid].delta_adjlist;
+        while(delta_adjlist) {
+			memcpy(adj_list1, delta_adjlist->get_adjlist(),
+				   delta_adjlist->get_nebrcount()*sizeof(T));
+			adj_list1 += delta_adjlist->get_nebrcount();
+			delta_adjlist = delta_adjlist->get_next();
+		}
+
         set_nebrcount1(adj_list2, curr->degree);
         beg_pos[vid].set_adjlist(adj_list2);
         nebr_count[vid].add_count = 0;
         nebr_count[vid].del_count = 0;
         nebr_count[vid].adj_list = 0;
+        nebr_count[vid].delta_adjlist = 0;
         
         j = __sync_fetch_and_add(&dvt_count, 1L); 
         dvt[j].vid         = vid;
@@ -759,6 +766,7 @@ void pgraph_t<T>::fill_adj_list(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgra
             //sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
         }
     }
+    blog_tail = blog_marker;  
 }
 
 template <class T>
@@ -788,6 +796,7 @@ void pgraph_t<T>::fill_adj_list_in(onekv_t<T>** skv_out, onegraph_t<T>** sgraph_
             //sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
         }
     }
+    blog_tail = blog_marker;  
 }
 
 template <class T>
@@ -816,6 +825,7 @@ void pgraph_t<T>::fill_adj_list_out(onegraph_t<T>** sgraph_out, onekv_t<T>** skv
             //skv_in[dst_index]->del_value(vert2_id, TO_SID(src));
         }
     }
+    blog_tail = blog_marker;  
 }
 
 template <class T>
@@ -845,6 +855,7 @@ void pgraph_t<T>::fill_skv(onekv_t<T>** skv_out, onekv_t<T>** skv_in)
             skv_in[dst_index]->del_value(vert2_id, TO_SID(src)); 
         }
     }
+    blog_tail = blog_marker;  
 }
 
 //prefix sum, allocate adj list memory then reset the count
@@ -869,7 +880,6 @@ void pgraph_t<T>::update_count(onegraph_t<T>** sgraph)
         sgraph[i]->update_count();
     }
 
-    blog_tail = blog_marker;  
 }
 
 template <class T>

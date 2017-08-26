@@ -114,10 +114,10 @@ void typekv_t::store_graph_baseline(string dir)
     vtfile = dir + "typekv.vtable";
     etfile = dir + "typekv.etable";
 
-    //if (vtf == 0) {
-    vtf = fopen(vtfile.c_str(), "wb");
-    assert(vtf != 0); 
-    //}
+    if (vtf == 0) {
+		vtf = fopen(vtfile.c_str(), "wb");
+		assert(vtf != 0); 
+    }
     fwrite(t_info, sizeof(tinfo_t), t_count, vtf);
     fclose(vtf);
 

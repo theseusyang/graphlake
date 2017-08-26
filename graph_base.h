@@ -125,7 +125,8 @@ class nebrcount_t {
  public:
     degree_t    add_count;
     degree_t    del_count;
-    T*          adj_list;
+    T* adj_list;
+	delta_adjlist_t<T>* delta_adjlist;
     
  public:
     inline void add_nebr(vid_t index, T sid) { 
@@ -265,7 +266,7 @@ public:
     }
     
     inline void add_nebr(vid_t vid, sid_t sid) { 
-        degree_t index =__sync_add_and_fetch(&nebr_count[vid].add_count, 1L);
+        degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
         nebr_count[vid].add_nebr(index, sid);
     }
     inline void del_nebr(vid_t vid, sid_t sid) { 

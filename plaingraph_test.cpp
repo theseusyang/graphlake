@@ -81,6 +81,7 @@ void plain_test1(const string& idir, const string& odir)
     index_t edge_count = (v_count << 5);
     
     string idir1 = "/mnt/disk_huge_1/pradeepk/pradeep_graph/kron_21_16_incr/"; 
+    //string idir1 = "../data/kron_21_16_incr/"; 
     plaingraph_manager::prep_graph(idir1, odir);
     
     cout << "BFS on whole graph" << endl; 

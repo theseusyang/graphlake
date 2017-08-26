@@ -144,6 +144,21 @@ class lite_edge_t {
 typedef edgeT_t<sid_t> edge_t;
 typedef edgeT_t<lite_edge_t> ledge_t;
 
+template <class T>
+class delta_adjlist_t {
+	delta_adjlist_t<T>* next;
+	degree_t count;
+	T  adj_list;
+
+ public:
+	inline delta_adjlist_t<T>() {next = 0; count = 0;}
+	inline degree_t get_nebrcount() { return count;}
+	void set_nebrcount(degree_t degree) {count = degree;}
+	inline T* get_adjlist() { return &adj_list; }
+	inline void add_next(delta_adjlist_t<T>* ptr) {next = ptr; }
+	inline delta_adjlist_t<T>* get_next() { return next; }
+};
+
 class pedge_t {
  public:
     propid_t pid;
