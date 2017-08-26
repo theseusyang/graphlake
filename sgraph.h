@@ -57,7 +57,7 @@ class pgraph_t: public cfinfo_t {
     }
     status_t batch_edge(edgeT_t<T> edge) {
         index_t incr = 1;
-        index_t index = __sync_fetch_and_add(&blog_head, incr);
+        index_t index = __sync_add_and_fetch(&blog_head, incr);
         index_t index1 = (index % blog_count);
         index_t size = (index - blog_marker) % BATCH_SIZE;
         if ((0) == (size)) {
