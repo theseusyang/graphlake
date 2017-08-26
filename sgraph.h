@@ -99,15 +99,17 @@ class pgraph_t: public cfinfo_t {
             cout << "Marker NO dequeue. Position = " << head <<  endl;
             return eNoWork;
         }
-        /*
-        index_t m_index = head;
+        
+        index_t m_index = head - 1;
         index_t marker = q_beg[m_index % q_count];
-        q_tail = head - 1;
+        q_tail = head;
         blog_marker = marker;
-        */
+        
+        /*
         index_t m_index = __sync_fetch_and_add(&q_tail, 1L);
         index_t marker = q_beg[m_index % q_count];
         blog_marker = marker;
+        */
         pthread_mutex_unlock(&g->snap_mutex);
         //cout << "working on snapshot" << endl;
         cout << "Marker dequeue. Position = " << m_index % q_count << " " << marker << endl;
