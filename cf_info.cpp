@@ -146,7 +146,7 @@ void cfinfo_t::make_graph_baseline()
     assert(0);
 }
     
-status_t cfinfo_t::move_marker()
+status_t cfinfo_t::move_marker(index_t& snap_marker)
 {
    return eNoWork;
 }

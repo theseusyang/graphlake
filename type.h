@@ -144,6 +144,20 @@ class lite_edge_t {
 typedef edgeT_t<sid_t> edge_t;
 typedef edgeT_t<lite_edge_t> ledge_t;
 
+
+class snapshot_t {
+ public:
+    snapid_t snap_id;
+    index_t marker;
+    snapshot_t* next;
+};
+
+class disk_snapshot_t {
+ public:
+    snapid_t snap_id;
+    index_t marker;
+};
+
 template <class T>
 class delta_adjlist_t {
 	delta_adjlist_t<T>* next;

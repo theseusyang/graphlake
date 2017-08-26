@@ -114,8 +114,9 @@ void plain_test1(const string& idir, const string& odir)
 void plain_test2(const string& odir)
 {
     schema_plaingraph();
+    vid_t v_count = (1<<21);
+    index_t edge_count = (v_count << 5);
     //do some setup for plain graphs
-    //vid_t v_count = (1<<21);
     //plaingraph_manager::setup_graph(v_count);    
     
     g->read_graph_baseline(odir);
@@ -123,6 +124,12 @@ void plain_test2(const string& odir)
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
     bfs<sid_t>(ugraph->sgraph, ugraph->sgraph, 1); 
+    
+    snapid_t snap_id = g->get_snapid();
+    cout << "multi-snap BFS" << endl;
+    cout << "snap id = " << snap_id << endl;
+    vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
+    multisnap_bfs<sid_t>(graph, graph, v_count, edge_count, snap_id - 1, snap_id , 1);
     return ;
 }
 

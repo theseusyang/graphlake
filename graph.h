@@ -56,12 +56,14 @@ class graph {
     batchinfo_t* batch_info;
     batchinfo_t* batch_info1;
     
-    uint8_t     batch_count;
-    uint8_t     batch_count1;
-    snapid_t    snap_id;
-    int         cf_count;
-    propid_t    p_count;
+    uint8_t      batch_count;
+    uint8_t      batch_count1;
+    int          cf_count;
+    propid_t     p_count;
 
+    snapshot_t*  snapshot;
+    string       snapfile;
+    FILE*        snap_f;
     map <string, propid_t> str2pid;
 
     //vertex information
@@ -80,11 +82,16 @@ class graph {
 
  public:
     graph();
-    inline void set_odir(const string& odir) {odirname = odir;};
-    snapid_t get_snapid();
-    void incr_snapid();
+    inline void set_odir(const string& odir) {
+        odirname = odir;
+        snapfile = odir + "graph.snap";
+    }
     void register_instances();
     void create_schema(propid_t count, const string& conf_file);
+    
+    snapid_t get_snapid();
+    void incr_snapid(index_t snap_marker);
+    void read_snapshot();
 
     void add_columnfamily(cfinfo_t* cf);
     //void create_columnfamilies(propid_t a_cf_count);

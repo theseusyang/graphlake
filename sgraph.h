@@ -90,7 +90,7 @@ class pgraph_t: public cfinfo_t {
     } 
     
     //called from snap thread 
-    status_t move_marker() {
+    status_t move_marker(index_t& snap_marker) {
         pthread_mutex_lock(&g->snap_mutex);
         index_t head = q_head;
         //Need to read marker and set the blog_marker;
@@ -104,11 +104,13 @@ class pgraph_t: public cfinfo_t {
         index_t marker = q_beg[m_index % q_count];
         q_tail = head;
         blog_marker = marker;
+        snap_marker = blog_marker;
         
         /*
         index_t m_index = __sync_fetch_and_add(&q_tail, 1L);
         index_t marker = q_beg[m_index % q_count];
         blog_marker = marker;
+        snap_marker = blog_marker;
         */
         pthread_mutex_unlock(&g->snap_mutex);
         //cout << "working on snapshot" << endl;
@@ -550,7 +552,7 @@ void onegraph_t<T>::read_etable(const string& etfile)
 template <class T>
 void onegraph_t<T>::read_vtable(const string& vtfile)
 {
-    //Write the file
+    //read the file
     if(vtf == 0) {
         vtf = fopen(vtfile.c_str(), "r+b");
         assert(vtf != 0);

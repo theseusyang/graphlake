@@ -5,18 +5,45 @@
 map<string, get_graph_instance>  graph_instance;
 map<string, get_encoder_instance>  encoder_instance;
 
-snapid_t graph::get_snapid() { return snap_id; }
+snapid_t graph::get_snapid() {
+    if (snapshot) return snapshot->snap_id;
+    else   return 0;
+}
 
-void graph::incr_snapid() { ++snap_id; }
+void graph::incr_snapid(index_t snap_marker) 
+{
+    snapshot_t* next = new snapshot_t;
+    if (snapshot) {
+        next->snap_id = snapshot->snap_id + 1;
+    } else {
+        next->snap_id = 1;
+    }
+    next->marker = snap_marker;
+    next->next = snapshot;
+    snapshot = next;
+    
+    //Write the file.
+    if (snap_f == 0) {
+        snap_f = fopen(snapfile.c_str(), "wb");//write + binary
+        assert(snap_f != 0);
+    }
+
+    disk_snapshot_t* disk_snapshot = (disk_snapshot_t*)malloc(sizeof(disk_snapshot_t));
+    disk_snapshot->snap_id= snapshot->snap_id;
+    disk_snapshot->marker = snapshot->marker;
+    fwrite(disk_snapshot, sizeof(disk_snapshot_t), 1, snap_f);
+}
 
 graph::graph()
 {
     cf_info  = 0;
     cf_count = 0;
     p_info   = 0;
-    snap_id  = 0;
     p_count  = 0;
     vert_count = 0;
+    
+    snapshot = 0;
+    snap_f = 0;
     v_graph =  new vgraph_t;
     //v_graph->create_columnfamily();
     //pinfo_t *info = new pinfo_t;
@@ -262,13 +289,14 @@ void graph::create_snapshot()
 {
     int work_done = 0;
     int count = 0;
+    index_t snap_marker = 0;
     do {
         work_done = 0;
         for (int i = 1; i < cf_count; i++) {
-            if (eOK == cf_info[i]->move_marker()) {
+            if (eOK == cf_info[i]->move_marker(snap_marker)) {
                 cf_info[i]->make_graph_baseline();
                 //cf_info[i]->store_graph_baseline(odirname);
-                incr_snapid();
+                incr_snapid(snap_marker);
                 ++work_done;
                 ++count;
                 cout << "make " << work_done << " " << count << endl;
@@ -307,16 +335,42 @@ void graph::store_graph_baseline(const string& odir)
     for (int i = 0; i < cf_count; i++) {
         cf_info[i]->store_graph_baseline(odirname);
     }
-    //incr_snapid();
 }
 
 void graph::read_graph_baseline(const string& odir)
 {
+    read_snapshot();
     for (int i = 0; i < cf_count; i++) {
         cf_info[i]->read_graph_baseline(odir);
     }
     v_graph->read_graph_baseline(odir);
     v_graph->prep_str2sid(str2vid);
+}
+
+void graph::read_snapshot()
+{
+    if (snap_f == 0) {
+        snap_f = fopen(snapfile.c_str(), "r+b");
+        assert(snap_f != 0);
+    }
+
+    off_t size = fsize(snapfile.c_str());
+    if (size == -1L) {
+        assert(0);
+    }
+    
+    snapid_t count = (size/sizeof(disk_snapshot_t));
+    disk_snapshot_t* disk_snapshot = (disk_snapshot_t*)calloc(count, sizeof(disk_snapshot_t));
+    fread(disk_snapshot, sizeof(disk_snapshot_t), count, snap_f);
+    
+    snapshot_t* next = 0;
+    for (snapid_t i = 0; i < count; ++i) {
+        next = new snapshot_t;
+        next->snap_id = disk_snapshot[i].snap_id;
+        next->marker = disk_snapshot[i].marker;
+        next->next = snapshot;
+        snapshot = next;
+    }
 }
 
 /////////////////////////////////////////

@@ -547,31 +547,31 @@ void ugraph_t::make_graph_baseline()
 {
     if (blog_tail >= blog_marker) return;
     
-    double start = mywtime(); 
+    //double start = mywtime(); 
     
     #pragma omp parallel num_threads(32)    
     {
     calc_edge_count(sgraph, sgraph);
     }
-    double end = mywtime();
+    //double end = mywtime();
     //cout << "calc edge time = " << end - start << endl;
     
-    start = mywtime(); 
+    //start = mywtime(); 
     //prefix sum then reset the count
     #pragma omp parallel num_threads(32)    
     {
     prep_sgraph_internal(sgraph);
     }
-    end = mywtime();
+    //end = mywtime();
     //cout << "prep_internal time = " << end - start << endl;
 
     //populate and get the original count back
-    start = mywtime(); 
+    //start = mywtime(); 
     #pragma omp parallel num_threads(32)    
     {
     fill_adj_list(sgraph, sgraph);
     }
-    end = mywtime();
+    //end = mywtime();
     //cout << "fill adj list time = " << end - start << endl;
     //double end = mywtime();
     //cout << "make graph time = " << end - start << endl;
@@ -579,19 +579,19 @@ void ugraph_t::make_graph_baseline()
 
 void ugraph_t::store_graph_baseline(string dir)
 {
-    double start, end;
-    start = mywtime(); 
+    //double start, end;
+    //start = mywtime(); 
     #pragma omp parallel num_threads(32)    
     {
     update_count(sgraph);
     }
-    end = mywtime();
+    //end = mywtime();
     //cout << "update count time = " << end - start << endl;
     
-    start = mywtime(); 
+    //start = mywtime(); 
     string postfix = "";
     store_sgraph(sgraph, dir, postfix);
-    end = mywtime();
+    //end = mywtime();
     //cout << "store graph time = " << end - start << endl;
 }
 
