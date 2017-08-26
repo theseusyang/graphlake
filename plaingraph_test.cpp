@@ -96,18 +96,21 @@ void plain_test1(const string& idir, const string& odir)
     cout << "BFS on snap id = " << snap_id << endl; 
     snap_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, snap_id, 1);
     
-    /*
-    memset(level_array, 0, v_count*sizeof(uint8_t));
-    cout << "BFS on whole graph" << endl; 
-    ext_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, 1);
-    */
 
     cout << "multi-snap BFS" << endl;
     multisnap_bfs<sid_t>(graph, graph, v_count, edge_count, snap_id - 1, snap_id , 1);
     
     memset(level_array, 0, v_count*sizeof(uint8_t));
+    cout << "BFS on whole graph" << endl; 
+    degree_t* degree_array = create_degreesnap(graph, v_count, snap_id);
+    ext_bfs<sid_t>(graph, graph, degree_array, degree_array, 
+                   v_count, edge_count, level_array, 1);
+    
+    /*
+    memset(level_array, 0, v_count*sizeof(uint8_t));
     cout << "BFS on first snapshot" << endl; 
     snap_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, snap_id, 1);
+    */
     return ;
 }
 

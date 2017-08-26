@@ -6,10 +6,43 @@
 #include "sgraph.h"
 #include "p_sgraph.h"
 
+template <class T>
+degree_t* create_degreesnap(vert_table_t<T>* graph, vid_t v_count, snapid_t snap_id)
+{
+    degree_t*  degree_array = (degree_t*)calloc(v_count, sizeof(degree_t));
+
+    snapT_t<T>*   snap_blob = 0;
+    vid_t        nebr_count = 0;
+
+    for (vid_t v = 0; v < v_count; ++v) {
+        snap_blob = graph[v].get_snapblob();
+        if (0 == snap_blob) { continue; }
+        
+        nebr_count = 0;
+        if (snap_id >= snap_blob->snap_id) {
+            nebr_count = snap_blob->degree; 
+        } else {
+            snap_blob = snap_blob->prev;
+            while (snap_blob && snap_id < snap_blob->snap_id) {
+                snap_blob = snap_blob->prev;
+            }
+            if (snap_blob) {
+                nebr_count = snap_blob->degree; 
+            }
+        }
+        degree_array[v] = nebr_count;
+        
+    }
+    return degree_array;
+}
+
+
 template<class T>
 void
 ext_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in, 
-      vid_t v_count, index_t edge_count, uint8_t* status, sid_t root)
+        degree_t* degree_out, degree_t* degree_in,
+        vid_t v_count, index_t edge_count, 
+        uint8_t* status, sid_t root)
 {
 	int				level      = 1;
 	int				top_down   = 1;
@@ -33,8 +66,7 @@ ext_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 					if (status[v] != level) continue;
 					
 					T* adj_list = graph[v].get_adjlist();
-					vid_t nebr_count = get_nebrcount1(adj_list);
-					//vid_t nebr_count = graph[v].degree;
+					vid_t nebr_count = degree_out[v];
 					++adj_list;
 					todo += nebr_count;
 				    
@@ -60,8 +92,7 @@ ext_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 					if (status[v] != 0) continue;
 					
 					T* adj_list = graph[v].get_adjlist();
-					vid_t nebr_count = get_nebrcount1(adj_list);
-					//vid_t nebr_count = graph[v].degree;
+					vid_t nebr_count = degree_in[v];
 					++adj_list;
 					todo += nebr_count;
 					
@@ -86,7 +117,7 @@ ext_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 		cout << " Time = " << end - start;
 		cout << endl;
 		
-		if (todo >= 0.03*edge_count) {//|| level == 2
+		if (frontier >= 0.10*v_count) {//|| level == 2
 			top_down = false;
 		} else {
             top_down = true;
