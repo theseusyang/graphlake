@@ -90,6 +90,7 @@ class graph {
     void create_schema(propid_t count, const string& conf_file);
     
     snapid_t get_snapid();
+    inline snapshot_t* get_snapshot() {return snapshot;}
     void incr_snapid(index_t snap_marker);
     void read_snapshot();
 

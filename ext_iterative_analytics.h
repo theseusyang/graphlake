@@ -31,7 +31,6 @@ degree_t* create_degreesnap(vert_table_t<T>* graph, vid_t v_count, snapid_t snap
             }
         }
         degree_array[v] = nebr_count;
-        
     }
     return degree_array;
 }
@@ -39,8 +38,9 @@ degree_t* create_degreesnap(vert_table_t<T>* graph, vid_t v_count, snapid_t snap
 
 template<class T>
 void
-ext_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in, 
-        degree_t* degree_out, degree_t* degree_in,
+ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out, 
+        vert_table_t<T>* graph_in, degree_t* degree_in,
+        snapshot_t* snapshot, index_t marker, edgeT_t<T>* edges,
         vid_t v_count, index_t edge_count, 
         uint8_t* status, sid_t root)
 {
@@ -48,6 +48,7 @@ ext_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 	int				top_down   = 1;
 	sid_t			frontier   = 0;
 	index_t			todo	   = 0;
+    index_t         old_marker = snapshot->marker;
     
 	status[root] = level;
     
@@ -55,13 +56,13 @@ ext_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 		frontier = 0;
 		todo = 0;
 		double start = mywtime();
-		if (top_down) {
-			#pragma omp parallel reduction (+:todo) reduction(+:frontier)
-			{
+		//#pragma omp parallel reduction (+:todo) reduction(+:frontier)
+		{
+		    if (top_down) {
                 sid_t sid;
                 vert_table_t<T>* graph  = graph_out;
-                //Get the frontiers
-				#pragma omp for schedule (guided) nowait
+				
+                #pragma omp for schedule (guided) nowait
 				for (vid_t v = 0; v < v_count; v++) {
 					if (status[v] != level) continue;
 					
@@ -79,14 +80,10 @@ ext_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 						}
 					}
 				}
-			}
-		} else {//bottom up
-			#pragma omp parallel reduction (+:todo) reduction(+:frontier)
-			{
+			} else {//bottom up
                 sid_t  sid;
 				vert_table_t<T>* graph = graph_in;
 				
-				//Get the frontiers
 				#pragma omp for schedule (guided) nowait
 				for (vid_t v = 0; v < v_count; v++) {
 					if (status[v] != 0) continue;
@@ -106,8 +103,25 @@ ext_bfs(vert_table_t<T>* graph_out, vert_table_t<T>* graph_in,
 						}
 					}
 				}
-			}
-		}
+		    }
+
+            //on-the-fly snapshots should process this
+            if (marker != 0) {
+                #pragma omp for schedule (guided) nowait 
+                for (index_t i = old_marker; i < marker; ++i) {
+                    vid_t src = edges[i].src_id;
+                    vid_t dst = edges[i].dst_id;
+                    if (status[src] == 0 && status[dst] == level) {
+                        status[src] = level + 1;
+                        ++frontier;
+                    } 
+                    if (status[src] == level && status[dst] == 0) {
+                        status[dst] = level + 1;
+                        ++frontier;
+                    }
+                }
+            }
+        }
 		double end = mywtime();
 	
 		cout << "Top down = " << top_down;
