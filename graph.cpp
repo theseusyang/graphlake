@@ -10,14 +10,22 @@ snapid_t graph::get_snapid() {
     else   return 0;
 }
 
-void graph::incr_snapid(index_t snap_marker) 
+void graph::incr_snapid(index_t snap_marker, index_t durable_marker /* = 0 */) 
 {
     snapshot_t* next = new snapshot_t;
     if (snapshot) {
         next->snap_id = snapshot->snap_id + 1;
+
+        if (durable_marker == 0) {
+            next->durable_marker = snapshot->durable_marker;
+        } else {
+            next->durable_marker = durable_marker;
+        }
     } else {
         next->snap_id = 1;
+        next->durable_marker = 0;
     }
+
     next->marker = snap_marker;
     next->next = snapshot;
     snapshot = next;
@@ -31,6 +39,7 @@ void graph::incr_snapid(index_t snap_marker)
     disk_snapshot_t* disk_snapshot = (disk_snapshot_t*)malloc(sizeof(disk_snapshot_t));
     disk_snapshot->snap_id= snapshot->snap_id;
     disk_snapshot->marker = snapshot->marker;
+    disk_snapshot->durable_marker = snapshot->durable_marker;
     fwrite(disk_snapshot, sizeof(disk_snapshot_t), 1, snap_f);
 }
 
@@ -296,7 +305,7 @@ void graph::create_snapshot()
             if (eOK == cf_info[i]->move_marker(snap_marker)) {
                 cf_info[i]->make_graph_baseline();
                 //cf_info[i]->store_graph_baseline(odirname);
-                incr_snapid(snap_marker);
+                //incr_snapid(snap_marker);
                 ++work_done;
                 ++count;
                 cout << "make " << work_done << " " << count << endl;
@@ -308,21 +317,24 @@ void graph::create_snapshot()
         if (count == 6) {
             for (int i = 1; i < cf_count; i++) {
                 cf_info[i]->store_graph_baseline(odirname);
+                incr_snapid(snap_marker, snap_marker);
             }
             cout << "store" << " " << work_done << " " << count << endl;
             count = 0;
-        }else if (work_done == 0 && count > 0) { 
+        } else if (work_done == 0 && count > 0) { 
             cout << "store" << " " << work_done << " " << count;
             for (int i = 1; i < cf_count; i++) {
                 //cf_info[i]->store_graph_baseline(odirname);
+                //incr_snapid(snap_marker, snap_marker);
+                incr_snapid(snap_marker, 0);
             }
-            cout << " exiting loop" << endl;
             count = 0;
         } else if (work_done == 0 && count == 0) {
             cout << " exiting loop" << endl;
             break;
         } else {
             cout << "exit" << " " << work_done << " " << count << endl;
+            incr_snapid(snap_marker);
 			//assert(0);
 		}
 
@@ -368,6 +380,7 @@ void graph::read_snapshot()
         next = new snapshot_t;
         next->snap_id = disk_snapshot[i].snap_id;
         next->marker = disk_snapshot[i].marker;
+        next->durable_marker = disk_snapshot[i].durable_marker;
         next->next = snapshot;
         snapshot = next;
     }

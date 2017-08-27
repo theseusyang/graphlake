@@ -161,6 +161,7 @@ void plain_test2(const string& odir)
     snapid_t snap_id = g->get_snapid();
     cout << "multi-snap BFS" << endl;
     cout << "snap id = " << snap_id << endl;
+    cout << "durable marker = " <<g->get_snapshot()->durable_marker << endl;
     vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
     multisnap_bfs<sid_t>(graph, graph, v_count, edge_count, snap_id - 1, snap_id , 1);
     

@@ -149,13 +149,15 @@ class snapshot_t {
  public:
     snapid_t snap_id;
     index_t marker;
+    index_t durable_marker;
     snapshot_t* next;
 };
 
 class disk_snapshot_t {
  public:
     snapid_t snap_id;
-    index_t marker;
+    index_t  marker;
+    index_t  durable_marker;
 };
 
 template <class T>

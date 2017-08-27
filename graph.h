@@ -91,7 +91,7 @@ class graph {
     
     snapid_t get_snapid();
     inline snapshot_t* get_snapshot() {return snapshot;}
-    void incr_snapid(index_t snap_marker);
+    void incr_snapid(index_t snap_marker, index_t durable_marker = 0);
     void read_snapshot();
 
     void add_columnfamily(cfinfo_t* cf);
