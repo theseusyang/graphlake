@@ -297,7 +297,7 @@ void onegraph_t<T>::setup_adjlist()
         
         if (0 != count) {// new nebrs added/deleted
             curr = beg_pos[vid].get_snapblob();
-            prev_delta = nebr_count[vid].delta_adjlist;
+            prev_delta = beg_pos[vid].delta_adjlist;
             if (prev_delta) {
                 count = nebr_count[vid].add_count - prev_delta->get_nebrcount();
             } 
@@ -311,8 +311,8 @@ void onegraph_t<T>::setup_adjlist()
             assert(index_adjlog  < adjlog_count); 
             delta_adjlist = (delta_adjlist_t<T>*)(adjlog_beg + index_adjlog);
             delta_adjlist->set_nebrcount(count);
-			delta_adjlist->add_next(nebr_count[vid].delta_adjlist);
-			nebr_count[vid].delta_adjlist = delta_adjlist;
+			delta_adjlist->add_next(beg_pos[vid].delta_adjlist);
+			beg_pos[vid].delta_adjlist = delta_adjlist;
 			
 			adj_list = delta_adjlist->get_adjlist();
 			nebr_count[vid].adj_list = adj_list;
@@ -376,7 +376,7 @@ void onegraph_t<T>::update_count()
         
 
         //Copy the new in-memory adj-list
-		delta_adjlist = nebr_count[vid].delta_adjlist;
+		delta_adjlist = beg_pos[vid].delta_adjlist;
         while(delta_adjlist) {
 			memcpy(adj_list1, delta_adjlist->get_adjlist(),
 				   delta_adjlist->get_nebrcount()*sizeof(T));
@@ -389,7 +389,7 @@ void onegraph_t<T>::update_count()
         nebr_count[vid].add_count = 0;
         nebr_count[vid].del_count = 0;
         nebr_count[vid].adj_list = 0;
-        nebr_count[vid].delta_adjlist = 0;
+        beg_pos[vid].delta_adjlist = 0;
         
         j = __sync_fetch_and_add(&dvt_count, 1L); 
         dvt[j].vid         = vid;

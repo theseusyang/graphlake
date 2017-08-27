@@ -72,6 +72,8 @@ class vert_table_t {
     //count, flag for snapshot, XXX: smart pointer count
     snapT_t<T>*   snap_blob;
     T*            adj_list;
+ public:
+	delta_adjlist_t<T>* delta_adjlist;
  
  public:
     inline vert_table_t() { snap_blob = 0; adj_list = 0;}
@@ -126,7 +128,6 @@ class nebrcount_t {
     degree_t    add_count;
     degree_t    del_count;
     T* adj_list;
-	delta_adjlist_t<T>* delta_adjlist;
     
  public:
     inline void add_nebr(vid_t index, T sid) { 
