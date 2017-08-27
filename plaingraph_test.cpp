@@ -101,8 +101,8 @@ void plain_test1(const string& idir, const string& odir)
     multisnap_bfs<sid_t>(graph, graph, v_count, edge_count, snap_id - 1, snap_id , 1);
     */
     memset(level_array, 0, v_count*sizeof(uint8_t));
-    snapshot = g->get_snapshot();
     snapshot_t* old_snapshot = snapshot;
+    //snapshot = g->get_snapshot();
     index_t marker = snapshot->marker;
     snap_id = old_snapshot->snap_id;
     degree_t* degree_array = create_degreesnap(graph, v_count, snap_id);
@@ -111,6 +111,30 @@ void plain_test1(const string& idir, const string& odir)
     ext_bfs<sid_t>(graph, degree_array, graph, degree_array, 
                    old_snapshot, marker, ugraph->blog_beg,
                    v_count, edge_count, level_array, 1);
+    
+    memset(level_array, 0, v_count*sizeof(uint8_t));
+    old_snapshot = snapshot;
+    snapshot = g->get_snapshot();
+    marker = snapshot->marker;
+    snap_id = old_snapshot->snap_id;
+    degree_array = create_degreesnap(graph, v_count, snap_id);
+    cout << "BFS on snap id = " << snap_id << endl; 
+    cout << "old marker = " << old_snapshot->marker << " New marker = " << marker << endl;
+    ext_bfs<sid_t>(graph, degree_array, graph, degree_array, 
+                   old_snapshot, marker, ugraph->blog_beg,
+                   v_count, edge_count, level_array, 1);
+    
+    memset(level_array, 0, v_count*sizeof(uint8_t));
+    old_snapshot = snapshot;
+    marker = snapshot->marker;
+    snap_id = old_snapshot->snap_id;
+    degree_array = create_degreesnap(graph, v_count, snap_id);
+    cout << "BFS on snap id = " << snap_id << endl; 
+    cout << "old marker = " << old_snapshot->marker << " New marker = " << marker << endl;
+    ext_bfs<sid_t>(graph, degree_array, graph, degree_array, 
+                   old_snapshot, marker, ugraph->blog_beg,
+                   v_count, edge_count, level_array, 1);
+    
     
     /*
     memset(level_array, 0, v_count*sizeof(uint8_t));
