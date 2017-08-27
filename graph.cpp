@@ -305,7 +305,7 @@ void graph::create_snapshot()
 				
 			}
         }
-        if (count == 4) {
+        if (count == 6) {
             for (int i = 1; i < cf_count; i++) {
                 cf_info[i]->store_graph_baseline(odirname);
             }
@@ -314,7 +314,7 @@ void graph::create_snapshot()
         }else if (work_done == 0 && count > 0) { 
             cout << "store" << " " << work_done << " " << count;
             for (int i = 1; i < cf_count; i++) {
-                cf_info[i]->store_graph_baseline(odirname);
+                //cf_info[i]->store_graph_baseline(odirname);
             }
             cout << " exiting loop" << endl;
             count = 0;

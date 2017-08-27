@@ -567,7 +567,7 @@ void ugraph_t::make_graph_baseline()
 
     //populate and get the original count back
     //start = mywtime(); 
-    #pragma omp parallel num_threads(32)    
+    //#pragma omp parallel num_threads(32)    
     {
     fill_adj_list(sgraph, sgraph);
     }

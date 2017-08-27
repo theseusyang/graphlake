@@ -36,6 +36,7 @@ class pgraph_t: public cfinfo_t {
         sgraph = 0;
         sgraph_in = 0;
         blog_count = (BATCH_SIZE << 8);
+        cout << blog_count << endl;
         if (posix_memalign((void**)&blog_beg, 2097152, blog_count*sizeof(T))) {
             perror("posix memalign batch edge log");
         }
@@ -100,18 +101,18 @@ class pgraph_t: public cfinfo_t {
             return eNoWork;
         }
         
+        /*
         index_t m_index = head - 1;
         index_t marker = q_beg[m_index % q_count];
         q_tail = head;
         blog_marker = marker;
         snap_marker = blog_marker;
+        */
         
-        /*
         index_t m_index = __sync_fetch_and_add(&q_tail, 1L);
         index_t marker = q_beg[m_index % q_count];
         blog_marker = marker;
         snap_marker = blog_marker;
-        */
         pthread_mutex_unlock(&g->snap_mutex);
         //cout << "working on snapshot" << endl;
         cout << "Marker dequeue. Position = " << m_index % q_count << " " << marker << endl;
@@ -285,7 +286,6 @@ void onegraph_t<T>::setup_adjlist()
     
     disk_snapT_t<T>* slog = (disk_snapT_t<T>*)snap_log;
     snapT_t<T>* curr;
-    T*          adj_list = 0;
 	delta_adjlist_t<T>* delta_adjlist = 0;
 	delta_adjlist_t<T>* prev_delta = 0;
     degree_t count, del_count;
@@ -297,12 +297,11 @@ void onegraph_t<T>::setup_adjlist()
         
         if (0 != count) {// new nebrs added/deleted
             curr = beg_pos[vid].get_snapblob();
-            prev_delta = beg_pos[vid].delta_adjlist;
+            prev_delta = nebr_count[vid].adj_list;
             if (prev_delta) {
                 count = nebr_count[vid].add_count - prev_delta->get_nebrcount();
             } 
         
-            
             if (0 == count) {
                 continue;
             }
@@ -311,11 +310,17 @@ void onegraph_t<T>::setup_adjlist()
             assert(index_adjlog  < adjlog_count); 
             delta_adjlist = (delta_adjlist_t<T>*)(adjlog_beg + index_adjlog);
             delta_adjlist->set_nebrcount(count);
-			delta_adjlist->add_next(beg_pos[vid].delta_adjlist);
-			beg_pos[vid].delta_adjlist = delta_adjlist;
+            delta_adjlist->add_next(0);
 			
-			adj_list = delta_adjlist->get_adjlist();
-			nebr_count[vid].adj_list = adj_list;
+            if(prev_delta) {
+                prev_delta->add_next(delta_adjlist);
+            } else {
+			    beg_pos[vid].delta_adjlist = delta_adjlist;
+            }
+        
+			
+			//adj_list = delta_adjlist->get_adjlist();
+			nebr_count[vid].adj_list = delta_adjlist;
             
             //snap log for disk write
             j = __sync_fetch_and_add(&snap_whead, 1L); 

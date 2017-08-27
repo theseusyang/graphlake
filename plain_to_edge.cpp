@@ -107,7 +107,7 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
         }
     }
     ugraph->create_marker(ugraph->blog_head);
-    sleep(5);
+    sleep(10);
     
     //g->create_snapshot();
     

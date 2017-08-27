@@ -19,7 +19,7 @@ typedef uint64_t sflag_t;
 typedef uint16_t qid_t;
 typedef uint32_t snapid_t ;
 //typedef uint16_t rdegree_t; //relative degree
-typedef uint32_t degree_t;
+typedef int32_t degree_t;
 #elif B32
 typedef uint8_t propid_t;
 typedef uint32_t vid_t;

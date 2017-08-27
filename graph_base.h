@@ -127,16 +127,17 @@ class nebrcount_t {
  public:
     degree_t    add_count;
     degree_t    del_count;
-    T* adj_list;
+    delta_adjlist_t<T>* adj_list;
     
  public:
     inline void add_nebr(vid_t index, T sid) { 
         //add_nebr1(adj_list, index, sid);
-        adj_list[index] = sid; 
+        T* adj_list1 = adj_list->get_adjlist();
+        adj_list1[index] = sid;
     }
 
     inline void add_nebr_lite(vid_t index, sid_t sid, univ_t value) {
-        add_nebr2(adj_list, index, sid, value);
+        add_nebr2(adj_list->get_adjlist(), index, sid, value);
     }
     
     inline void del_nebr(vid_t index, delentry_t<T> del_entry) { 
