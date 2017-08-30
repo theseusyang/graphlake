@@ -14,43 +14,9 @@
 
 using namespace std;
 
-void schema_plaingraph()
-{
-    g->cf_info = new cfinfo_t*[2];
-    g->p_info = new pinfo_t[2];
-    
-    pinfo_t*    p_info    = g->p_info;
-    cfinfo_t*   info      = 0;
-    const char* longname  = 0;
-    const char* shortname = 0;
-    
-    longname = "gtype";
-    shortname = "gtype";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
-    info = new typekv_t;
-    g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
-    ++p_info;
-    
-    longname = "friend";
-    shortname = "friend";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
-    info = new ugraph_t;
-    g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
-    ++p_info;
-
-    g->create_snapthread();
-}
-
-
 void plain_test0(const string& idir, const string& odir)
 {
-    schema_plaingraph();
+    plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     vid_t v_count = (1<<21);
     plaingraph_manager::setup_graph(v_count);    
@@ -65,7 +31,7 @@ void plain_test0(const string& idir, const string& odir)
 
 void plain_test1(const string& idir, const string& odir)
 {
-    schema_plaingraph();
+    plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     vid_t v_count = (1<<21);
     plaingraph_manager::setup_graph(v_count);    
@@ -146,7 +112,7 @@ void plain_test1(const string& idir, const string& odir)
 
 void plain_test2(const string& odir)
 {
-    schema_plaingraph();
+    plaingraph_manager::schema_plaingraph();
     vid_t v_count = (1<<21);
     index_t edge_count = (v_count << 5);
     //do some setup for plain graphs
@@ -181,7 +147,7 @@ void plain_test2(const string& odir)
 
 void plain_test3(const string& idir, const string& odir)
 {
-    schema_plaingraph();
+    plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     vid_t v_count = (1<<21);
     plaingraph_manager::setup_graph(v_count);    
@@ -195,7 +161,7 @@ void plain_test3(const string& idir, const string& odir)
 
 void plain_test4(const string& idir, const string& odir)
 {
-    schema_plaingraph();
+    plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     vid_t v_count = (1<<21);
     plaingraph_manager::setup_graph(v_count);    
@@ -213,7 +179,7 @@ void plain_test4(const string& idir, const string& odir)
 
 void plain_test5(const string& odir)
 {
-    schema_plaingraph();
+    plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     vid_t v_count = (1<<21);
     plaingraph_manager::setup_graph(v_count);    
@@ -228,7 +194,7 @@ void plain_test5(const string& odir)
 
 void plain_test6(const string& odir)
 {
-    schema_plaingraph();
+    plaingraph_manager::schema_plaingraph();
 
     //do some setup for plain graphs
     vid_t v_count = (1<<21);
