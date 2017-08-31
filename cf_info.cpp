@@ -5,11 +5,10 @@
 
 double bu_factor = 0.07;
 int32_t MAX_BCOUNT = 256;
-uint64_t MAX_ECOUNT = 1000000;
-uint64_t MAX_PECOUNT = 666666;
-uint64_t BUF_SCOUNT = 2000000;
-uint64_t BUF_SIZE = 16000000;
-index_t  BATCH_SIZE = 2000000;
+uint64_t MAX_ECOUNT = (1<<24);
+uint64_t MAX_PECOUNT = (MAX_ECOUNT << 1)/3;
+index_t  BATCH_SIZE = (1L << 32);
+index_t  BLOG_SIZE = (BATCH_SIZE << 1);
 using std::swap;
 
 void* alloc_buf()

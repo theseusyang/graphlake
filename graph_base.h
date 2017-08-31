@@ -164,13 +164,13 @@ private:
 
     vid_t    max_vcount;
     
-    //edgetable file related log, persistent
+    //delta adj list
     T*         adjlog_beg;  //memory log pointer
     index_t    adjlog_count;//size of memory log
     index_t    adjlog_head; // current log write position
     index_t    adjlog_tail; //current log cleaning position
 
-    //edgetable file related log, persistent
+    //durable adj list
     T*         log_beg;  //memory log pointer
     index_t    log_count;//size of memory log
     index_t    log_head; // current log write position

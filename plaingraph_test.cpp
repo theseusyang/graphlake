@@ -7,16 +7,10 @@
 #include "ext_iterative_analytics.h"
 #include "snap_iterative_analytics.h"
 
-
-#define no_argument 0
-#define required_argument 1 
-#define optional_argument 2
-
 using namespace std;
 
 void plain_test0(const string& idir, const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     vid_t v_count = (1<<21);
     plaingraph_manager::setup_graph(v_count);    
@@ -31,7 +25,6 @@ void plain_test0(const string& idir, const string& odir)
 
 void plain_test1(const string& idir, const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     vid_t v_count = (1<<21);
     plaingraph_manager::setup_graph(v_count);    
@@ -39,13 +32,12 @@ void plain_test1(const string& idir, const string& odir)
     
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
-    cout << "BFS on first part of the graph" << endl; 
     cout << "snapshot id = " << g->get_snapid() << endl;
     snapshot_t* snapshot = g->get_snapshot();
     //bfs<sid_t>(ugraph->sgraph, ugraph->sgraph, 1); 
     
     vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
-    index_t edge_count = (v_count << 5);
+    //index_t edge_count = (v_count << 5);
     
     string idir1 = "/mnt/disk_huge_1/pradeepk/pradeep_graph/kron_21_16_incr/"; 
     //string idir1 = "../data/kron_21_16_incr/"; 
@@ -68,17 +60,21 @@ void plain_test1(const string& idir, const string& odir)
     */
     memset(level_array, 0, v_count*sizeof(uint8_t));
     snapshot_t* old_snapshot = snapshot;
-    //snapshot = g->get_snapshot();
+    snapshot = g->get_snapshot();
     index_t marker = snapshot->marker;
+    
     snap_id = old_snapshot->snap_id;
     degree_t* degree_array = create_degreesnap(graph, v_count, snap_id);
+    
     cout << "BFS on snap id = " << snap_id << endl; 
     cout << "old marker = " << old_snapshot->marker << " New marker = " << marker << endl;
     ext_bfs<sid_t>(graph, degree_array, graph, degree_array, 
                    old_snapshot, marker, ugraph->blog_beg,
-                   v_count, edge_count, level_array, 1);
+                   v_count, level_array, 1);
     
+    /*
     memset(level_array, 0, v_count*sizeof(uint8_t));
+    
     old_snapshot = snapshot;
     snapshot = g->get_snapshot();
     marker = snapshot->marker;
@@ -88,7 +84,7 @@ void plain_test1(const string& idir, const string& odir)
     cout << "old marker = " << old_snapshot->marker << " New marker = " << marker << endl;
     ext_bfs<sid_t>(graph, degree_array, graph, degree_array, 
                    old_snapshot, marker, ugraph->blog_beg,
-                   v_count, edge_count, level_array, 1);
+                   v_count, level_array, 1);
     
     memset(level_array, 0, v_count*sizeof(uint8_t));
     old_snapshot = snapshot;
@@ -99,9 +95,9 @@ void plain_test1(const string& idir, const string& odir)
     cout << "old marker = " << old_snapshot->marker << " New marker = " << marker << endl;
     ext_bfs<sid_t>(graph, degree_array, graph, degree_array, 
                    old_snapshot, marker, ugraph->blog_beg,
-                   v_count, edge_count, level_array, 1);
+                   v_count, level_array, 1);
     
-    
+    */
     /*
     memset(level_array, 0, v_count*sizeof(uint8_t));
     cout << "BFS on first snapshot" << endl; 
@@ -112,7 +108,6 @@ void plain_test1(const string& idir, const string& odir)
 
 void plain_test2(const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
     vid_t v_count = (1<<21);
     index_t edge_count = (v_count << 5);
     //do some setup for plain graphs
@@ -141,13 +136,12 @@ void plain_test2(const string& odir)
     degree_t* degree_array = create_degreesnap(graph, v_count, snap_id);
     ext_bfs<sid_t>(graph, degree_array, graph, degree_array, 
                    snapshot, marker, ugraph->blog_beg,
-                   v_count, edge_count, level_array, 1);
+                   v_count, level_array, 1);
     return ;
 }
 
 void plain_test3(const string& idir, const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     vid_t v_count = (1<<21);
     plaingraph_manager::setup_graph(v_count);    
@@ -161,7 +155,6 @@ void plain_test3(const string& idir, const string& odir)
 
 void plain_test4(const string& idir, const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     vid_t v_count = (1<<21);
     plaingraph_manager::setup_graph(v_count);    
@@ -179,7 +172,6 @@ void plain_test4(const string& idir, const string& odir)
 
 void plain_test5(const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     vid_t v_count = (1<<21);
     plaingraph_manager::setup_graph(v_count);    
@@ -194,8 +186,6 @@ void plain_test5(const string& odir)
 
 void plain_test6(const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
-
     //do some setup for plain graphs
     vid_t v_count = (1<<21);
     plaingraph_manager::setup_graph(v_count);    
@@ -211,4 +201,79 @@ void plain_test6(const string& odir)
     
     snap_bfs<sid_t>(graph, graph, v_count, edge_count, level_array, 1, 1);
     return ;
+}
+
+void paper_test0(const string& idir, const string& odir)
+{
+    //do some setup for plain graphs
+    vid_t v_count = (1<<28);
+    plaingraph_manager::setup_graph(v_count);    
+    plaingraph_manager::prep_graph_paper_num(idir, odir);
+    
+    propid_t cf_id = g->get_cfid("friend");
+    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
+    vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
+    
+    uint8_t* level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
+    snapshot_t* snapshot = g->get_snapshot();
+    index_t marker = ugraph->blog_head;
+    index_t old_marker = 0;
+    index_t snap_id = 0;
+    degree_t* degree_array = 0;
+
+    if (snapshot) {
+        snap_id = snapshot->snap_id;
+        old_marker = snapshot->marker;
+        degree_array = create_degreesnap(graph, v_count, snap_id);
+    } else {
+        degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
+    }
+
+    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
+
+    ext_bfs<sid_t>(graph, degree_array, graph, degree_array, 
+                   snapshot, marker, ugraph->blog_beg,
+                   v_count, level_array, 1);
+
+}
+
+void plain_test(const string& idir, const string& odir, int job)
+{
+    plaingraph_manager::schema_plaingraph();
+    
+    switch (job) {
+        case 0:
+            g->create_snapthread();
+            plain_test0(idir, odir);
+            break;
+        case 1:
+            g->create_snapthread();
+            plain_test1(idir, odir);
+            break;
+        case 2:
+            g->create_snapthread();
+            plain_test2(odir);
+            break;
+        case 3:
+            g->create_snapthread();
+            plain_test3(idir, odir);
+            break;
+        case 4:
+            g->create_snapthread();
+            plain_test4(idir, odir);
+            break;
+        case 5:
+            g->create_snapthread();
+            plain_test5(odir);
+            break;
+        case 6:
+            g->create_snapthread();
+            plain_test6(odir);
+            break;
+        case 10:
+            paper_test0(idir, odir);
+            break;
+        default:
+            break;
+    }
 }

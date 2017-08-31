@@ -318,15 +318,16 @@ void graph::create_snapshot()
             for (int i = 1; i < cf_count; i++) {
                 cf_info[i]->store_graph_baseline(odirname);
                 incr_snapid(snap_marker, snap_marker);
+                incr_snapid(snap_marker, snap_marker);
             }
             cout << "store" << " " << work_done << " " << count << endl;
             count = 0;
         } else if (work_done == 0 && count > 0) { 
             cout << "store" << " " << work_done << " " << count;
             for (int i = 1; i < cf_count; i++) {
-                //cf_info[i]->store_graph_baseline(odirname);
-                //incr_snapid(snap_marker, snap_marker);
-                incr_snapid(snap_marker, 0);
+                cf_info[i]->store_graph_baseline(odirname);
+                incr_snapid(snap_marker, snap_marker);
+                //incr_snapid(snap_marker, 0);
             }
             count = 0;
         } else if (work_done == 0 && count == 0) {

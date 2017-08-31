@@ -45,48 +45,59 @@ void
 ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out, 
         vert_table_t<T>* graph_in, degree_t* degree_in,
         snapshot_t* snapshot, index_t marker, edgeT_t<T>* edges,
-        vid_t v_count, index_t edge_count, 
-        uint8_t* status, sid_t root)
+        vid_t v_count, uint8_t* status, sid_t root)
 {
 	int				level      = 1;
 	int				top_down   = 1;
 	sid_t			frontier   = 0;
-	index_t			todo	   = 0;
     degree_t      delta_degree = 0;
-    index_t         old_marker = snapshot->marker;
+    index_t         old_marker = 0;
+
+    if (snapshot) { 
+        old_marker = snapshot->marker;
+    }
     
+	double start1 = mywtime();
 	status[root] = level;
     
 	do {
 		frontier = 0;
-		todo = 0;
 		double start = mywtime();
-		//#pragma omp parallel reduction (+:todo) reduction(+:frontier)
+		#pragma omp parallel reduction(+:frontier)
 		{
-		    if (top_down) {
-                sid_t sid;
-                vert_table_t<T>* graph  = graph_out;
+            sid_t sid;
+            degree_t durable_degree = 0;
+            degree_t nebr_count = 0;
+            degree_t local_degree = 0;
+
+            vert_table_t<T>* graph  = 0;
+            T* adj_list = 0;
+            T* local_adjlist = 0;
+		    
+            if (top_down) {
+                graph  = graph_out;
 				
                 #pragma omp for schedule (guided) nowait
 				for (vid_t v = 0; v < v_count; v++) {
 					if (status[v] != level) continue;
-					T* adj_list = graph[v].get_adjlist();
-                    vid_t durable_degree = 0;
+					
+                    adj_list = graph[v].get_adjlist();
+                    durable_degree = 0;
                     if (0 != adj_list) {
                         durable_degree = get_nebrcount1(adj_list);
 					    ++adj_list;
                     }
-					vid_t nebr_count = degree_out[v];
-                    todo += nebr_count;
+					nebr_count = degree_out[v];
 				    //cout << "Nebr list of " << v <<" degree = " << nebr_count << endl;	
                     
                     //traverse the delta adj list
                     delta_degree = nebr_count - durable_degree;
 				    //cout << "delta adjlist " << delta_degree << endl;	
                     delta_adjlist_t<T>* delta_adjlist = graph[v].delta_adjlist;
+                    
                     while (delta_adjlist != 0 && delta_degree > 0) {
-                        T* local_adjlist = delta_adjlist->get_adjlist();
-                        degree_t local_degree = delta_adjlist->get_nebrcount();
+                        local_adjlist = delta_adjlist->get_adjlist();
+                        local_degree = delta_adjlist->get_nebrcount();
                         degree_t i_count = min(local_degree, delta_degree);
                         for (degree_t i = 0; i < i_count; ++i) {
                             sid = get_nebr(local_adjlist, i);
@@ -99,6 +110,7 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
                         delta_adjlist = delta_adjlist->get_next();
                         delta_degree -= local_degree;
                     }
+
                     degree_t k_count = min(nebr_count, durable_degree);
 				    //cout << "durable adjlist " << durable_degree << endl;	
 					//traverse the adj list
@@ -112,27 +124,25 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
 					}
 				}
 			} else {//bottom up
-                sid_t  sid;
-				vert_table_t<T>* graph = graph_in;
+				graph = graph_in;
 				
 				#pragma omp for schedule (guided) nowait
 				for (vid_t v = 0; v < v_count; v++) {
 					if (status[v] != 0 ) continue;
-					T* adj_list = graph[v].get_adjlist();
-					vid_t nebr_count = degree_in[v];
-                    vid_t durable_degree = 0;
+					adj_list = graph[v].get_adjlist();
+					nebr_count = degree_in[v];
+                    durable_degree = 0;
                     if (0 != adj_list) {
                         durable_degree = get_nebrcount1(adj_list);
 					    ++adj_list;
                     }
-					todo += nebr_count;
                     
                     //traverse the delta adj list
                     delta_degree = nebr_count - durable_degree;
                     delta_adjlist_t<T>* delta_adjlist = graph[v].delta_adjlist;
                     while (delta_adjlist != 0 && delta_degree > 0) {
-                        T* local_adjlist = delta_adjlist->get_adjlist();
-                        degree_t local_degree = delta_adjlist->get_nebrcount();
+                        local_adjlist = delta_adjlist->get_adjlist();
+                        local_degree = delta_adjlist->get_nebrcount();
                         degree_t i_count = min(local_degree, delta_degree);
                         for (degree_t i = 0; i < i_count; ++i) {
                             sid = get_nebr(local_adjlist, i);
@@ -163,10 +173,11 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
 
             //on-the-fly snapshots should process this
             //cout << "On the Fly" << endl;
+            vid_t src, dst;
             #pragma omp for schedule (guided) nowait 
             for (index_t i = old_marker; i < marker; ++i) {
-                vid_t src = edges[i].src_id;
-                vid_t dst = edges[i].dst_id;
+                src = edges[i].src_id;
+                dst = edges[i].dst_id;
                 if (status[src] == 0 && status[dst] == level) {
                     status[src] = level + 1;
                     ++frontier;
@@ -179,20 +190,32 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
                 }
             }
         }
+
 		double end = mywtime();
 	
-		cout << "Top down = " << top_down;
-		cout << " Level = " << level;
-        cout << " Frontier Count = " << frontier;
-        cout << " ToDo = " << todo;
-		cout << " Time = " << end - start;
-		cout << endl;
+		cout << "Top down = " << top_down
+		     << " Level = " << level
+             << " Frontier Count = " << frontier
+		     << " Time = " << end - start
+		     << endl;
 		
-		if (frontier >= 0.001*v_count) {//|| level == 2
+		if (frontier >= 0.05*v_count) {//|| level == 2
 			top_down = false;
 		} else {
             top_down = true;
         }
 		++level;
 	} while (frontier);
+		
+    double end1 = mywtime();
+    cout << "Total Time = " << end1 - start1 << endl;
+
+    for (int l = 1; l < level; ++l) {
+        vid_t vid_count = 0;
+        #pragma omp parallel for reduction (+:vid_count) 
+        for (vid_t v = 0; v < v_count; ++v) {
+            if (status[v] == l) ++vid_count;
+        }
+        cout << " Level = " << l << " count = " << vid_count << endl;
+    }
 }

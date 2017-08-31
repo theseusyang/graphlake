@@ -56,10 +56,10 @@ typedef uint32_t degree_t;
 #define DEL_MASK   0x8000000000000000
 #define SID_MASK   0x7FFFFFFFFFFFFFFF
 #elif B32
-#define VBIT 28
-#define VMASK 0xfffffff
-#define THIGH_MASK 0x70000000
-#define DEL_MASK   0x80000000
+#define VBIT 31
+#define VMASK 0x7fffffff
+#define THIGH_MASK 0x00000000
+#define DEL_MASK   0xE0000000
 #define SID_MASK   0x7FFFFFFF
 #endif
 #endif
@@ -89,9 +89,11 @@ extern double  bu_factor;
 extern int32_t MAX_BCOUNT; //256
 extern uint64_t MAX_ECOUNT; //1000000
 extern uint64_t MAX_PECOUNT;//670000
-extern uint64_t BUF_SCOUNT;// 2000000
-extern uint64_t BUF_SIZE;// 16000000
 extern index_t  BATCH_SIZE;//
+extern index_t  BLOG_SIZE;//
+
+void free_buf(void* buf);
+void* alloc_buf();
 
 off_t fsize(const string& fname);
 

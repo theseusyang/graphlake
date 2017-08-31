@@ -26,6 +26,7 @@ int main(int argc, char* argv[])
 		{"idir",      required_argument,  0, 'i'},
 		{"odir",      required_argument,  0, 'o'},
 		{"convert",   required_argument,  0, 'c'},
+		{"job",       required_argument,  0, 'j'},
 		{"qfile",     required_argument,  0, 'q'},
         {"typefile",  required_argument,  0, 't'},
 		{0,			  0,				  0,  0},
@@ -36,8 +37,9 @@ int main(int argc, char* argv[])
 	string typefile, idir, odir;
     string queryfile;
     int convert = -1;
+    int job = 0;
     g = new graph; 
-	while ((o = getopt_long(argc, argv, "i:c:o:q:t:vh", longopts, &index)) != -1) {
+	while ((o = getopt_long(argc, argv, "i:c:j:o:q:t:vh", longopts, &index)) != -1) {
 		switch(o) {
 			case 'v':
 				cout << "1.0" << endl;
@@ -51,6 +53,9 @@ int main(int argc, char* argv[])
 				break;
             case 'c':
                 convert = atoi(optarg);
+				break;
+            case 'j':
+                job = atoi(optarg);
 				break;
 			case 'o':
 				odir = optarg;
@@ -77,6 +82,9 @@ int main(int argc, char* argv[])
         case 2:
         lubm_test2(odir);
             break;
+        case 3:
+            plain_test(idir, odir, job);
+            break;
         case 10:
             ldbc_test0(typefile, idir, odir);
             break;
@@ -85,27 +93,6 @@ int main(int argc, char* argv[])
             break;
         case 20:
             darshan_test0(typefile, idir, odir);
-            break;
-        case 30:
-            plain_test0(idir, odir);
-            break;
-        case 31:
-            plain_test1(idir, odir);
-            break;
-        case 32:
-            plain_test2(odir);
-            break;
-        case 33:
-            plain_test3(idir, odir);
-            break;
-        case 34:
-            plain_test4(idir, odir);
-            break;
-        case 35:
-            plain_test5(odir);
-            break;
-        case 36:
-            plain_test6(odir);
             break;
         default:
             break;

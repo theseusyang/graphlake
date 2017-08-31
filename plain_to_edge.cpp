@@ -48,7 +48,6 @@ void plaingraph_manager::schema_plaingraph()
     info->add_column(p_info);
     ++p_info;
 
-    g->create_snapthread();
 }
 
 void plaingraph_manager::setup_graph(vid_t v_count)
@@ -140,13 +139,9 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
     }
     ugraph->create_marker(ugraph->blog_head);
     sleep(10);
-    
-    //g->create_snapshot();
-    
 }
 
-/*
-void plaingraph_manager::prep_graph(const string& idirname, const string& odirname)
+void plaingraph_manager::prep_graph_paper_num(const string& idirname, const string& odirname)
 {
     struct dirent *ptr;
     DIR *dir;
@@ -160,6 +155,12 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
     index_t edge_count = 0;
     index_t size1 = 0;
     index_t size2 = 0;
+    
+    batchinfo_t* batch_info;
+    int     batch_count = 0;
+    batch_info = (batchinfo_t*)calloc(sizeof(batchinfo_t), MAX_BCOUNT);
+    batch_info[0].buf = calloc(sizeof(edge_t), MAX_ECOUNT);
+    batch_info[0].count = 0; 
     
     //Read graph files
     dir = opendir(idirname.c_str());
@@ -175,32 +176,50 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
         size2 = 0;
 
         do {
-            if (eOK != ugraph->alloc_batch()) {
-                g->swap_log_buffer();
-                g->calc_degree();
-                g->make_graph_baseline();
-                g->store_graph_baseline(odirname);
+            if (batch_info[batch_count].count == MAX_ECOUNT) {
+                void* mem = alloc_buf();
+                if (mem == 0) {
+                    assert(0); 
+                } 
+                ++batch_count;
+                batch_info[batch_count].count = 0;
+                batch_info[batch_count].buf = mem; 
             }
 
-            index_t count = ugraph->batch_info1[ugraph->batch_count1].count;
-            edge_t* edge = (edge_t*)(ugraph->batch_info1[ugraph->batch_count1].buf) + count;
-            size2 = min(ugraph->MAXX_ECOUNT - count, edge_count);
+            index_t count = batch_info[batch_count].count;
+            edge_t* edge = (edge_t*)(batch_info[batch_count].buf) + count;
+            size2 = min(MAX_ECOUNT - count, edge_count);
             size1 = fread(edge, sizeof(edge_t), size2, file);
-            ugraph->batch_info1[ugraph->batch_count1].count += size1;
+            batch_info[batch_count].count += size1;
             edge_count -= size1;
         } while (edge_count > 0);
     }
     closedir(dir);
 
-    ugraph->swap_log_buffer();
-    / *
-    ugraph->fill_adj_list(ugraph->sgraph, ugraph->sgraph);
-    ugraph->create_snapshot();
-    ugraph->store_graph_baseline(odirname);
-    * /
-    
-    ugraph->calc_degree();
-    ugraph->make_graph_baseline();
-    ugraph->store_graph_baseline(odirname);
+    for (int j = 0; j <= batch_count; ++j) {
+        edge_t* edges = (edge_t*)batch_info[j].buf;
+        index_t count = batch_info[j].count; 
+        for (index_t i = 0; i < count; ++i) {
+            status_t status = ugraph->batch_edge(edges[i]);
+            if (eEndBatch == status) {
+                assert(0);
+            } else if (eOOM == status) {
+                assert(0);
+            }
+        }
+        //Free the memory
+        free_buf(edges);
+    }
+
+
+    index_t marker = (1<< 20);//ugraph->blog_head;
+    index_t snap_marker = 0;
+    if (marker == 0) return;
+
+    ugraph->create_marker(marker);
+    if (eOK == ugraph->move_marker(snap_marker)) {
+        ugraph->make_graph_baseline();
+        ugraph->store_graph_baseline(odirname);
+        g->incr_snapid(snap_marker, snap_marker);
+    }
 }
-*/

@@ -1,49 +1,68 @@
 CC=g++
-CFLAGS=-g -Wall  -std=gnu++11  -march=native -fopenmp
+#CFLAGS=-g -Wall -std=gnu++11  -march=native -DB64 -fopenmp
+#CFLAGS=-g -Wall -std=gnu++11  -march=native -DB32 -DPLAIN_GRAPH -fopenmp -lpthread
+CFLAGS=-O3 -Wall -std=gnu++11  -march=native -DB32 -DPLAIN_GRAPH -fopenmp -lpthread
 SRC=main.cpp \
+	cf_info.cpp\
 	graph.cpp\
-	ugraph.cpp\
-	dgraph.cpp\
-	many2one.cpp\
-	enumkv.cpp\
+	sgraph.cpp\
+	mlabel.cpp\
 	stringkv.cpp\
-	intkv.cpp\
+	typekv.cpp\
+    vgraph.cpp\
 	nt_to_edge.cpp\
-	intersection.cpp\
-	run_query.cpp\
-	query_union.cpp\
-	query_intersection.cpp\
-	query_stagefilter.cpp\
-	query_trianglejoin.cpp\
-	query_transform.cpp\
-	query_triplewithfilter.cpp\
+	csv_to_edge.cpp\
+	darshan_to_edge.cpp\
+	plain_to_edge.cpp\
 	query_triple.cpp\
-	query_visitor.cpp\
-	antlr4/Sparql11BaseVisitor.cpp\
-	antlr4/Sparql11Lexer.cpp\
-	antlr4/Sparql11Parser.cpp\
-	antlr4/Sparql11Visitor.cpp\
+	graph_query.cpp\
+	graph_base.cpp\
+	rset.cpp\
+	p_sgraph.cpp\
+	prop_encoder.cpp\
+	propkv.cpp\
+	lubm_test1.cpp\
+	ldbc_test.cpp\
+	darshan_test.cpp\
+	plaingraph_test.cpp\
+	
+#lite_sgraph.cpp\
 
-HEADER=rdf.h \
-	btree.h\
-	kbtree.h\
-	edges.h\
-	query_union.h\
-	query_intersection.h\
-	query_stagefilter.h\
-	query_trianglejoin.h\
-	query_transform.h\
-	query_triplewithfilter.h\
+	
+
+HEADER=graph.h\
+	cf_info.h\
+	sgraph.h\
+	p_sgraph.h\
+	prop_encoder.h\
+	propkv.h\
+	stringkv.h\
+	mlabel.h\
+	typekv.h\
+	query_node.h\
 	query_triple.h\
-	query_visitor.h\
+	type.h\
+	graph_base.h\
+	rset.h\
+    query_clause.h\
+	iterative_analytics.h\
+	ext_iterative_analytics.h\
+	snap_iterative_analytics.h\
+	nt_to_edge.h\
+	csv_to_edge.h\
+	darshan_to_edge.h\
 
-INCLUDES= -Iantlr4/include -Iantlr4
-LIBDIRS= -Lantlr4/lib
+#	lite_sgraph.h\
+
+#INCLUDES= -Iantlr4/include -Iantlr4
+#LIBDIRS= -Lantlr4/lib
+INCLUDES=
+LIBDIRS=
 
 DEPS=$(SRC) $(HEADER)
 
 grdf: $(DEPS)
-	$(CC) $(CFLAGS) $(INCLUDES) $(LIBDIRS) $(SRC) -lantlr4-runtime -o grdf
+	$(CC) $(CFLAGS) $(INCLUDES) $(LIBDIRS) $(SRC)  -o grdf
 
 clean:
 	rm grdf *.o 

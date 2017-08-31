@@ -35,7 +35,8 @@ class pgraph_t: public cfinfo_t {
         MAXX_ECOUNT = MAX_ECOUNT;
         sgraph = 0;
         sgraph_in = 0;
-        blog_count = (BATCH_SIZE << 8);
+        
+        blog_count = BLOG_SIZE;
         cout << blog_count << endl;
         if (posix_memalign((void**)&blog_beg, 2097152, blog_count*sizeof(T))) {
             perror("posix memalign batch edge log");
@@ -53,15 +54,15 @@ class pgraph_t: public cfinfo_t {
         q_tail = 0;
     }
 
+
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0) {
         return eOK;
     }
     status_t batch_edge(edgeT_t<T> edge) {
-        index_t incr = 1;
-        index_t index = __sync_add_and_fetch(&blog_head, incr);
+        index_t index = __sync_fetch_and_add(&blog_head, 1L);
         index_t index1 = (index % blog_count);
         index_t size = (index - blog_marker) % BATCH_SIZE;
-        if ((0) == (size)) {
+        if ((0 == size) && (index != 0)) {
             blog_beg[index1] = edge;
             create_marker(index);
             //cout << "Will create a snapshot now " << endl;
