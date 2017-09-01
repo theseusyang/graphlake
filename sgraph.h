@@ -1,6 +1,10 @@
 #pragma once
+
+#include <sys/mman.h>
+#include <asm/mman.h>
 #include "type.h"
 #include "graph.h"
+
 
 template <class T>
 class pgraph_t: public cfinfo_t {
@@ -37,9 +41,13 @@ class pgraph_t: public cfinfo_t {
         sgraph_in = 0;
         
         blog_count = BLOG_SIZE;
-        cout << blog_count << endl;
-        if (posix_memalign((void**)&blog_beg, 2097152, blog_count*sizeof(T))) {
-            perror("posix memalign batch edge log");
+        blog_beg = (edgeT_t<T>*)mmap(0, sizeof(edgeT_t<T>)*blog_count, PROT_READ|PROT_WRITE,
+                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0);
+        if (MAP_FAILED == blog_beg) {
+            cout << "Huge page alloc failed for edge log" << endl;
+            if (posix_memalign((void**)&blog_beg, 2097152, blog_count*sizeof(edgeT_t<T>))) {
+                perror("posix memalign batch edge log");
+            }
         }
         blog_head = 0;
         blog_tail = 0;
@@ -266,9 +274,56 @@ void onegraph_t<T>::setup(tid_t tid)
     if(0 == super_id) {
         super_id = g->get_type_scount(tid);
         vid_t v_count = TO_VID(super_id);
-        max_vcount = (v_count << 1);
+        max_vcount = v_count;// (v_count << 1);
         beg_pos = (vert_table_t<T>*)calloc(sizeof(vert_table_t<T>), max_vcount);
         nebr_count = (nebrcount_t<T>*)calloc(sizeof(nebrcount_t<T>), max_vcount);
+        
+        //dela adj list
+        adjlog_count = (1L << 34);//256*8 MB
+        adjlog_beg = (T*)mmap(NULL, sizeof(T)*adjlog_count, PROT_READ|PROT_WRITE,
+                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
+        if (MAP_FAILED == adjlog_beg) {
+            cout << "Huge page allocation failed for delta adj list" << endl;
+            if (posix_memalign((void**)&adjlog_beg, 2097152, adjlog_count*sizeof(T))) {
+                perror("posix memalign edge log");
+            }
+        }
+        
+        //durable adj list
+        log_count = (1L << 33);
+        if (posix_memalign((void**)&log_beg, 2097152, log_count*sizeof(T))) {
+            //log_beg = (index_t*)calloc(sizeof(index_t), log_count);
+            perror("posix memalign edge log");
+        }
+        
+        //degree aray realted log, in-memory
+        dlog_count = (1L << 29);//256 MB
+        /*
+         * dlog_beg = (snapT_t<T>*)mmap(NULL, sizeof(snapT_t<T>)*dlog_count, PROT_READ|PROT_WRITE,
+                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
+        
+        if (MAP_FAILED == dlog_beg) {
+            cout << "Huge page allocation failed for degree array" << endl;
+        }
+            */
+            if (posix_memalign((void**)&dlog_beg, 2097152, dlog_count*sizeof(snapT_t<T>))) {
+                //log_beg = (index_t*)calloc(sizeof(index_t), log_count);
+                perror("posix memalign snap log");
+            }
+        
+        //degree array relatd log, for writing to disk
+        snap_count = (1L<< 29);//256 MB
+        if (posix_memalign((void**)&snap_log, 2097152, snap_count*sizeof(disk_snapT_t<T>))) {
+            perror("posix memalign snap disk log");
+        }
+        
+        //vertex table log
+        dvt_max_count = (1L << 29);
+        if (posix_memalign((void**) &dvt, 2097152, 
+                           dvt_max_count*sizeof(disk_vtable_t*))) {
+            perror("posix memalign vertex log");    
+        }
+
     } else {
         super_id = g->get_type_scount(tid);
         vid_t v_count = TO_VID(super_id);

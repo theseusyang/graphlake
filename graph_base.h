@@ -207,51 +207,30 @@ public:
         nebr_count = 0;
         max_vcount = 0;
         
-        //XXX everything is in memory
-        adjlog_count = (1L << 32);//256*8 MB
-        if (posix_memalign((void**)&adjlog_beg, 2097152, adjlog_count*sizeof(T))) {
-            perror("posix memalign edge log");
-        }
+        adjlog_count = 0;
         adjlog_head  = 0;
         adjlog_tail  = 0;
         adjlog_tail  = 0;
         
-        //XXX everything is in memory
-        log_count = (1L << 30);//256*8 MB
-        if (posix_memalign((void**)&log_beg, 2097152, log_count*sizeof(T))) {
-            //log_beg = (index_t*)calloc(sizeof(index_t), log_count);
-            perror("posix memalign edge log");
-        }
+        log_count = 0;
         log_head  = 0;
         log_tail  = 0;
         log_tail  = 0;
         log_whead = 0;
         log_wtail = 0;
         
-        //XXX everything is in memory
-        dlog_count = (1L << 28);//256 MB
-        if (posix_memalign((void**)&dlog_beg, 2097152, dlog_count*sizeof(snapT_t<T>))) {
-            //log_beg = (index_t*)calloc(sizeof(index_t), log_count);
-            perror("posix memalign snap log");
-        }
+        dlog_count = 0;
         dlog_head = 0;
         dlog_tail = 0;
         dlog_wpos = 0;
         
-        snap_count = (1L<< 28);//256 MB
-        if (posix_memalign((void**)&snap_log, 2097152, snap_count*sizeof(disk_snapT_t<T>))) {
-            perror("posix memalign snap disk log");
-        }
+        snap_count = 0;
         snap_whead = 0;
         snap_wtail = 0;
 
         
         dvt_count = 0;
-        dvt_max_count = (1L << 28);
-        if (posix_memalign((void**) &dvt, 2097152, 
-                           dvt_max_count*sizeof(disk_vtable_t*))) {
-            perror("posix memalign vertex log");    
-        }
+        dvt_max_count = 0;
         vtf = 0;
         etf = 0;
         stf = 0;

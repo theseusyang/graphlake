@@ -17,6 +17,8 @@ graph* g;
 void ontology_lubm();
 void fill_lubm_inference_type();
 
+extern index_t residue;
+
 int main(int argc, char* argv[])
 {
 	const struct option longopts[] =
@@ -27,6 +29,7 @@ int main(int argc, char* argv[])
 		{"odir",      required_argument,  0, 'o'},
 		{"convert",   required_argument,  0, 'c'},
 		{"job",       required_argument,  0, 'j'},
+		{"residue",   required_argument,  0, 'r'},
 		{"qfile",     required_argument,  0, 'q'},
         {"typefile",  required_argument,  0, 't'},
 		{0,			  0,				  0,  0},
@@ -39,7 +42,7 @@ int main(int argc, char* argv[])
     int convert = -1;
     int job = 0;
     g = new graph; 
-	while ((o = getopt_long(argc, argv, "i:c:j:o:q:t:vh", longopts, &index)) != -1) {
+	while ((o = getopt_long(argc, argv, "i:c:j:o:q:t:r:vh", longopts, &index)) != -1) {
 		switch(o) {
 			case 'v':
 				cout << "1.0" << endl;
@@ -67,6 +70,9 @@ int main(int argc, char* argv[])
             case 't':
                 typefile = optarg;
                 break;
+            case 'r':
+                sscanf(optarg, "%ld", &residue);
+                cout << "residue edge log = " << residue << endl;
 			default:
                 break;
 		}

@@ -7,8 +7,8 @@ double bu_factor = 0.07;
 int32_t MAX_BCOUNT = 256;
 uint64_t MAX_ECOUNT = (1<<24);
 uint64_t MAX_PECOUNT = (MAX_ECOUNT << 1)/3;
-index_t  BATCH_SIZE = (1L << 32);
-index_t  BLOG_SIZE = (BATCH_SIZE << 1);
+index_t  BATCH_SIZE = (1L << 24);
+index_t  BLOG_SIZE = (1L << 32);
 using std::swap;
 
 void* alloc_buf()
