@@ -270,6 +270,34 @@ void paper_test_pr(const string& idir, const string& odir)
 
 }
 
+void paper_test_hop1(const string& idir, const string& odir)
+{
+    //do some setup for plain graphs
+    vid_t v_count = (1<<28);
+    plaingraph_manager::setup_graph(v_count);    
+    plaingraph_manager::prep_graph_paper_num(idir, odir);
+    
+    propid_t cf_id = g->get_cfid("friend");
+    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
+    vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
+   
+    snapshot_t* snapshot = g->get_snapshot();
+    index_t marker = ugraph->blog_head;
+    index_t old_marker = 0;
+    degree_t* degree_array = 0;
+    if (snapshot) {
+        old_marker = snapshot->marker;
+        degree_array = create_degreesnap(graph, v_count, snapshot, marker, ugraph->blog_beg);
+    } else {
+        degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
+    }
+
+    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
+
+    ext_hop1<sid_t>(graph, degree_array, snapshot, marker, ugraph->blog_beg, v_count, 0);
+
+}
+
 void plain_test(const string& idir, const string& odir, int job)
 {
     plaingraph_manager::schema_plaingraph();
@@ -308,6 +336,9 @@ void plain_test(const string& idir, const string& odir, int job)
             break;
         case 11:
             paper_test_pr(idir, odir);
+            break;
+        case 12:
+            paper_test_hop1(idir, odir);
             break;
         default:
             break;

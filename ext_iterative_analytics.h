@@ -82,6 +82,85 @@ degree_t* create_degreesnap(vert_table_t<T>* graph, vid_t v_count, snapshot_t* s
     return degree_array;
 }
 
+template<class T>
+void
+ext_hop1(vert_table_t<T>* graph_out, degree_t* degree_out, 
+        snapshot_t* snapshot, index_t marker, edgeT_t<T>* edges,
+        vid_t v_count, sid_t root)
+{
+    index_t         old_marker = 0;
+    index_t         sum = 0;
+
+    if (snapshot) { 
+        old_marker = snapshot->marker;
+    }
+    
+	double start = mywtime();
+    
+    sid_t sid = 0;
+    degree_t      delta_degree = 0;
+    degree_t    durable_degree = 0;
+    degree_t        nebr_count = 0;
+    degree_t      local_degree = 0;
+
+    vid_t v   = root;
+    vert_table_t<T>* graph  = graph_out;
+    T* adj_list = 0;
+    T* local_adjlist = 0;
+    
+        
+    adj_list = graph[v].get_adjlist();
+    durable_degree = 0;
+    if (0 != adj_list) {
+        durable_degree = get_nebrcount1(adj_list);
+        ++adj_list;
+    }
+    nebr_count = degree_out[v];
+    
+    //traverse the delta adj list
+    delta_degree = nebr_count - durable_degree;
+    delta_adjlist_t<T>* delta_adjlist = graph[v].delta_adjlist;
+    
+    while (delta_adjlist != 0 && delta_degree > 0) {
+        local_adjlist = delta_adjlist->get_adjlist();
+        local_degree = delta_adjlist->get_nebrcount();
+        degree_t i_count = min(local_degree, delta_degree);
+        for (degree_t i = 0; i < i_count; ++i) {
+            sid = get_nebr(local_adjlist, i);
+            sum += sid;
+        }
+        delta_adjlist = delta_adjlist->get_next();
+        delta_degree -= local_degree;
+    }
+    degree_t k_count = min(nebr_count, durable_degree);
+    
+    //traverse the adj list
+    for (vid_t k = 0; k < k_count; ++k) {
+        sid = get_nebr(adj_list, k);
+        sum += sid;
+    }
+
+    //on-the-fly snapshots should process this
+    vid_t src, dst;
+    index_t sum1 = 0;
+    #pragma omp parallel for reduction(+:sum1)
+    for (index_t i = old_marker; i < marker; ++i) {
+        src = edges[i].src_id;
+        dst = edges[i].dst_id;
+        if (src == v) {
+            sum1 += dst;
+        }
+
+        if (dst == v) {
+            sum1 += src;
+        }
+    }
+    sum += sum1;
+
+    double end = mywtime();
+
+    cout << "Sum = " << sum << " 1 Hop Time = " << end - start << endl;
+}
 
 template<class T>
 void
@@ -407,3 +486,5 @@ ext_pagerank(vert_table_t<T>* graph_in, degree_t* degree_in, degree_t* degree_ou
 	cout << "PR Time = " << end - start << endl;
 	cout << endl;
 }
+
+
