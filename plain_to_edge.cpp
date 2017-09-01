@@ -180,8 +180,8 @@ void plaingraph_manager::prep_graph_paper_num(const string& idirname, const stri
     start = mywtime();
 
     index_t marker = ugraph->blog_head - residue;
-    cout << "End = " << ugraph->blog_head << endl;
-    cout << "marker = " << marker << endl;
+    cout << "End marker = " << ugraph->blog_head;
+    cout << "make graph marker = " << marker << endl;
     index_t snap_marker = 0;
     if (marker == 0) return;
 
