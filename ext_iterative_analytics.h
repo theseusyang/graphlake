@@ -100,9 +100,11 @@ ext_hop1(vert_table_t<T>* graph_out, degree_t* degree_out,
     
     srand(0);
     int query_count = 512;
-    vid_t* query = (vid_t*)calloc(sizeof(vid_t), query_count); 
-    for (int i = 0; i < query_count; i++) {
-        query[i] = rand()% v_count;;
+    vid_t* query = (vid_t*)calloc(sizeof(vid_t), query_count);
+    int i1 = 0;
+    while (i1 < query_count) {
+        query[i1] = rand()% v_count;
+        if (degree_out[query[i1]] != 0) { ++i1; };
     }
 
     index_t          sum = 0;
@@ -124,12 +126,11 @@ ext_hop1(vert_table_t<T>* graph_out, degree_t* degree_out,
     T* adj_list = 0;
     T* local_adjlist = 0;
 
-    #pragma omp for reduction(+:sum) nowait
+    #pragma omp for reduction(+:sum) schedule (static) nowait
     for (int i = 0; i < query_count; i++) {
         
         v = query[i];
         nebr_count = degree_out[v];
-        if (0 == nebr_count) continue;
         
         adj_list = graph[v].get_adjlist();
         durable_degree = 0;
@@ -161,17 +162,12 @@ ext_hop1(vert_table_t<T>* graph_out, degree_t* degree_out,
         }
     }
 
-    cout << omp_get_thread_num() << " first" << endl;
     //on-the-fly snapshots should process this
-    vid_t src, dst;
-    cout << omp_get_thread_num() << " Entering "  << endl;
-    for (int i = 0; i < query_count; i++) {
-     
-        v = query[i];
-        nebr_count = degree_out[v];
-        if (0 == nebr_count) continue;
-        #pragma omp for reduction(+:sum1) nowait
-        for (index_t j = old_marker; j < marker; ++j) {
+    vid_t src, dst; 
+    #pragma omp for reduction(+:sum1) nowait
+    for (index_t j = old_marker; j < marker; ++j) {
+        for (int i = 0; i < query_count; i++) {
+            v = query[i];
             src = edges[j].src_id;
             dst = edges[j].dst_id;
             if (src == v) {
@@ -183,7 +179,6 @@ ext_hop1(vert_table_t<T>* graph_out, degree_t* degree_out,
             }
         }
     }
-    cout << omp_get_thread_num() << " Exiting " << endl;
     }
     sum += sum1;
     sum2 += sum;
