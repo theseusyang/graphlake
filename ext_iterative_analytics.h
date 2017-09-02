@@ -1,5 +1,5 @@
 #pragma once
-
+#include <omp.h>
 #include <algorithm>
 #include "graph.h"
 #include "wtime.h"
@@ -93,20 +93,26 @@ ext_hop1(vert_table_t<T>* graph_out, degree_t* degree_out,
         vid_t v_count)
 {
     index_t         old_marker = 0;
-    index_t         sum = 0;
 
     if (snapshot) { 
         old_marker = snapshot->marker;
     }
     
     srand(0);
-    int query_count = 64;
+    int query_count = 512;
     vid_t* query = (vid_t*)calloc(sizeof(vid_t), query_count); 
     for (int i = 0; i < query_count; i++) {
         query[i] = rand()% v_count;;
     }
 
+    index_t          sum = 0;
+    index_t         sum1 = 0;
+    index_t         sum2 = 0;
+    cout << "starting 1 HOP" << endl;
 	double start = mywtime();
+    
+    #pragma omp parallel
+    {
     degree_t      delta_degree = 0;
     degree_t    durable_degree = 0;
     degree_t        nebr_count = 0;
@@ -118,6 +124,7 @@ ext_hop1(vert_table_t<T>* graph_out, degree_t* degree_out,
     T* adj_list = 0;
     T* local_adjlist = 0;
 
+    #pragma omp for reduction(+:sum) nowait
     for (int i = 0; i < query_count; i++) {
         
         v = query[i];
@@ -152,27 +159,34 @@ ext_hop1(vert_table_t<T>* graph_out, degree_t* degree_out,
             sid = get_nebr(adj_list, k);
             sum += sid;
         }
+    }
 
-        //on-the-fly snapshots should process this
-        index_t sum1 = 0;
-        #pragma omp parallel 
-        {
-            vid_t src, dst;
-            #pragma omp for reduction(+:sum1)
-            for (index_t j = old_marker; j < marker; ++j) {
-                src = edges[j].src_id;
-                dst = edges[j].dst_id;
-                if (src == v) {
-                    sum1 += dst;
-                }
+    cout << omp_get_thread_num() << " first" << endl;
+    //on-the-fly snapshots should process this
+    vid_t src, dst;
+    cout << omp_get_thread_num() << " Entering "  << endl;
+    for (int i = 0; i < query_count; i++) {
+     
+        v = query[i];
+        nebr_count = degree_out[v];
+        if (0 == nebr_count) continue;
+        #pragma omp for reduction(+:sum1) nowait
+        for (index_t j = old_marker; j < marker; ++j) {
+            src = edges[j].src_id;
+            dst = edges[j].dst_id;
+            if (src == v) {
+                sum1 += dst;
+            }
 
-                if (dst == v) {
-                    sum1 += src;
-                }
+            if (dst == v) {
+                sum1 += src;
             }
         }
-        sum += sum1;
     }
+    cout << omp_get_thread_num() << " Exiting " << endl;
+    }
+    sum += sum1;
+    sum2 += sum;
     double end = mywtime();
 
     cout << "Sum = " << sum << " 1 Hop Time = " << end - start << endl;
@@ -370,7 +384,6 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
 	int				level      = 1;
 	int				top_down   = 1;
 	sid_t			frontier   = 0;
-    degree_t      delta_degree = 0;
     index_t         old_marker = 0;
 
     if (snapshot) { 
@@ -389,8 +402,10 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
             degree_t durable_degree = 0;
             degree_t nebr_count = 0;
             degree_t local_degree = 0;
+            degree_t delta_degree = 0;
 
             vert_table_t<T>* graph  = 0;
+            delta_adjlist_t<T>* delta_adjlist;;
             T* adj_list = 0;
             T* local_adjlist = 0;
 		    
@@ -413,7 +428,7 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
                     //traverse the delta adj list
                     delta_degree = nebr_count - durable_degree;
 				    //cout << "delta adjlist " << delta_degree << endl;	
-                    delta_adjlist_t<T>* delta_adjlist = graph[v].delta_adjlist;
+                    delta_adjlist = graph[v].delta_adjlist;
                     
                     while (delta_adjlist != 0 && delta_degree > 0) {
                         local_adjlist = delta_adjlist->get_adjlist();
@@ -459,7 +474,7 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
                     
                     //traverse the delta adj list
                     delta_degree = nebr_count - durable_degree;
-                    delta_adjlist_t<T>* delta_adjlist = graph[v].delta_adjlist;
+                    delta_adjlist = graph[v].delta_adjlist;
                     while (delta_adjlist != 0 && delta_degree > 0) {
                         local_adjlist = delta_adjlist->get_adjlist();
                         local_degree = delta_adjlist->get_nebrcount();
@@ -518,8 +533,9 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
              << " Frontier Count = " << frontier
 		     << " Time = " << end - start
 		     << endl;
-		
-		if (frontier >= 0.05*v_count) {//|| level == 2
+	
+        //Point is to simulate bottom up bfs, and measure the trade-off    
+		if ((frontier >= 0.002*v_count) || (level == 2)) {
 			top_down = false;
 		} else {
             top_down = true;
@@ -528,7 +544,7 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
 	} while (frontier);
 		
     double end1 = mywtime();
-    cout << "Total Time = " << end1 - start1 << endl;
+    cout << "BFS Time = " << end1 - start1 << endl;
 
     for (int l = 1; l < level; ++l) {
         vid_t vid_count = 0;
