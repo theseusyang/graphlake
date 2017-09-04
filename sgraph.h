@@ -342,6 +342,7 @@ void onegraph_t<T>::setup_adjlist()
     
     disk_snapT_t<T>* slog = (disk_snapT_t<T>*)snap_log;
     snapT_t<T>* curr;
+	vunit_t<T>* v_unit = 0;
 	delta_adjlist_t<T>* delta_adjlist = 0;
 	delta_adjlist_t<T>* prev_delta = 0;
     degree_t count, del_count;
@@ -352,11 +353,18 @@ void onegraph_t<T>::setup_adjlist()
         count = nebr_count[vid].add_count;
         
         if (0 != count) {// new nebrs added/deleted
+			if (beg_pos[vid].get_vunit()) {
+				v_unit = beg_pos[vid].get_vunit();
+            } else {
+				v_unit = new vunit_t<T>;
+				beg_pos[vid].set_vunit(v_unit);
+			}
+
             curr = beg_pos[vid].get_snapblob();
             prev_delta = nebr_count[vid].adj_list;
             if (prev_delta) {
                 count = nebr_count[vid].add_count - prev_delta->get_nebrcount();
-            } 
+			}	
         
             if (0 == count) {
                 continue;
@@ -368,13 +376,14 @@ void onegraph_t<T>::setup_adjlist()
             delta_adjlist->set_nebrcount(count);
             delta_adjlist->add_next(0);
 			
+			//If prev_delta exist, v_unit exists
             if(prev_delta) {
                 prev_delta->add_next(delta_adjlist);
             } else {
-			    beg_pos[vid].delta_adjlist = delta_adjlist;
+			    v_unit->delta_adjlist = delta_adjlist;
             }
+
         
-			
 			//adj_list = delta_adjlist->get_adjlist();
 			nebr_count[vid].adj_list = delta_adjlist;
             
@@ -408,6 +417,8 @@ void onegraph_t<T>::update_count()
     T* adj_list1 = 0;
     T* adj_list2 = 0;
     T* prev_adjlist = 0;
+	vunit_t<T>* v_unit = 0;
+	vunit_t<T>* prev_v_unit = 0;
 	delta_adjlist_t<T>* delta_adjlist = 0;
     index_t j = 0;
     snapT_t<T>* curr = 0;
@@ -416,9 +427,9 @@ void onegraph_t<T>::update_count()
     #pragma omp for
     for (vid_t vid = 0; vid < v_count ; ++vid) {
         if (0 == nebr_count[vid].adj_list) continue;
-
+		prev_v_unit = beg_pos[vid].get_vunit();
         curr = beg_pos[vid].get_snapblob();
-        prev_adjlist = beg_pos[vid].get_adjlist();
+        prev_adjlist = prev_v_unit->adj_list;
         
         //durable adj list allocation
         index_t index_log = __sync_fetch_and_add(&log_head, curr->degree + 1);
@@ -435,9 +446,8 @@ void onegraph_t<T>::update_count()
             adj_list1 += 1;
         }
         
-
         //Copy the new in-memory adj-list
-		delta_adjlist = beg_pos[vid].delta_adjlist;
+		delta_adjlist = prev_v_unit->delta_adjlist;
         while(delta_adjlist) {
 			memcpy(adj_list1, delta_adjlist->get_adjlist(),
 				   delta_adjlist->get_nebrcount()*sizeof(T));
@@ -446,11 +456,17 @@ void onegraph_t<T>::update_count()
 		}
 
         set_nebrcount1(adj_list2, curr->degree);
-        beg_pos[vid].set_adjlist(adj_list2);
         nebr_count[vid].add_count = 0;
         nebr_count[vid].del_count = 0;
         nebr_count[vid].adj_list = 0;
-        beg_pos[vid].delta_adjlist = 0;
+		v_unit = (vunit_t<T>*)malloc(sizeof(vunit_t<T>));
+		v_unit->count = curr->degree;
+		v_unit->adj_list = adj_list2;
+		v_unit->delta_adjlist = 0;
+		beg_pos[vid].set_vunit(v_unit);
+
+        //beg_pos[vid].set_adjlist(adj_list2);
+        //beg_pos[vid].set_delta_adjlist(0);
         
         j = __sync_fetch_and_add(&dvt_count, 1L); 
         dvt[j].vid         = vid;
@@ -624,11 +640,24 @@ void onegraph_t<T>::read_vtable(const string& vtfile)
         assert(0);
     }
     vid_t count = (size/sizeof(disk_vtable_t));
+	vid_t vid = 0;
+	vunit_t<T>* v_unit = 0;
     //read in batches
     while (count != 0 ) {
         vid_t read_count = fread(dvt, sizeof(disk_vtable_t), dvt_max_count, vtf);
+
         for (vid_t v = 0; v < read_count; ++v) {
-            beg_pos[dvt[v].vid].set_adjlist(log_beg + dvt[v].file_offset);
+			vid = dvt[v].vid;
+			v_unit = beg_pos[vid].get_vunit();
+			if (v_unit) {
+				v_unit->adj_list = log_beg + dvt[v].file_offset;
+				v_unit->count = dvt[v].count;
+			} else {
+				v_unit = new vunit_t<T>;
+				v_unit->adj_list = log_beg + dvt[v].file_offset;
+				v_unit->count = dvt[v].count;
+				beg_pos[vid].set_vunit(v_unit);
+			}
         }
         count -= read_count;
     }

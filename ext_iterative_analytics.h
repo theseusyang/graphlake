@@ -140,7 +140,7 @@ ext_hop1(vert_table_t<T>* graph_out, degree_t* degree_out,
         }
         //traverse the delta adj list
         delta_degree = nebr_count - durable_degree;
-        delta_adjlist_t<T>* delta_adjlist = graph[v].delta_adjlist;
+        delta_adjlist_t<T>* delta_adjlist = graph[v].get_delta_adjlist();
         
         while (delta_adjlist != 0 && delta_degree > 0) {
             local_adjlist = delta_adjlist->get_adjlist();
@@ -249,7 +249,7 @@ ext_hop2(vert_table_t<T>* graph_out, degree_t* degree_out,
         
         //traverse the delta adj list
         delta_degree = nebr_count - durable_degree;
-        delta_adjlist_t<T>* delta_adjlist = graph[v].delta_adjlist;
+        delta_adjlist_t<T>* delta_adjlist = graph[v].get_delta_adjlist();
         
         while (delta_adjlist != 0 && delta_degree > 0) {
             local_adjlist = delta_adjlist->get_adjlist();
@@ -444,7 +444,7 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
                     //traverse the delta adj list
                     delta_degree = nebr_count - durable_degree;
 				    //cout << "delta adjlist " << delta_degree << endl;	
-                    delta_adjlist = graph[v].delta_adjlist;
+                    delta_adjlist = graph[v].get_delta_adjlist();
                     
                     while (delta_adjlist != 0 && delta_degree > 0) {
                         local_adjlist = delta_adjlist->get_adjlist();
@@ -490,7 +490,7 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
                     
                     //traverse the delta adj list
                     delta_degree = nebr_count - durable_degree;
-                    delta_adjlist = graph[v].delta_adjlist;
+                    delta_adjlist = graph[v].get_delta_adjlist();
                     while (delta_adjlist != 0 && delta_degree > 0) {
                         local_adjlist = delta_adjlist->get_adjlist();
                         local_degree = delta_adjlist->get_nebrcount();
@@ -661,7 +661,7 @@ ext_pagerank(vert_table_t<T>* graph_in, degree_t* degree_in, degree_t* degree_ou
                 
                 //traverse the delta adj list
                 delta_degree = nebr_count - durable_degree;
-                delta_adjlist_t<T>* delta_adjlist = graph[v].delta_adjlist;
+                delta_adjlist_t<T>* delta_adjlist = graph[v].get_delta_adjlist();
                 while (delta_adjlist != 0 && delta_degree > 0) {
                     local_adjlist = delta_adjlist->get_adjlist();
                     local_degree = delta_adjlist->get_nebrcount();

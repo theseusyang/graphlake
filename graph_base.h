@@ -64,6 +64,23 @@ inline void set_value1(lite_edge_t* kv, vid_t vid, sid_t value, univ_t univ) {
     kv[vid].second = univ;
 }
 
+template <class T>
+class vunit_t {
+ public:
+	//Durable adj list, and num of nebrs in that
+	vflag_t       vflag;
+	degree_t      count;
+    T*            adj_list;
+	delta_adjlist_t<T>* delta_adjlist;
+
+	inline vunit_t() {
+		vflag = 0;
+		count = 0;
+		adj_list = 0;
+		delta_adjlist = 0;
+	}
+};
+
 //One vertex's neighbor information
 template <class T>
 class vert_table_t {
@@ -71,21 +88,33 @@ class vert_table_t {
     //nebr list of one vertex. First member is a spl member
     //count, flag for snapshot, XXX: smart pointer count
     snapT_t<T>*   snap_blob;
-    T*            adj_list;
+
+	vunit_t<T>*   v_unit;
  public:
-	delta_adjlist_t<T>* delta_adjlist;
- 
- public:
-    inline vert_table_t() { snap_blob = 0; adj_list = 0;}
+    inline vert_table_t() { snap_blob = 0; v_unit = 0;}
 
     inline vid_t get_nebrcount() {
         if (snap_blob) return snap_blob->degree;
         else  return 0; 
     }
     
-    inline T* get_adjlist() { return adj_list; }
-    inline void set_adjlist(T* adj_list1) { adj_list = adj_list1; }
-    inline snapT_t<T>* get_snapblob() { return snap_blob; } 
+    inline T* get_adjlist() { return v_unit->adj_list; }
+	inline void set_adjlist(T* adj_list1) { 
+		v_unit->adj_list = adj_list1; 
+	}
+	
+	inline delta_adjlist_t<T>* get_delta_adjlist() {return v_unit->delta_adjlist;}
+	inline void set_delta_adjlist(delta_adjlist_t<T>* delta_adjlist1) {
+		v_unit->delta_adjlist = delta_adjlist1;
+	}
+	
+	inline vunit_t<T>* get_vunit() {return v_unit;}
+	inline void set_vunit(vunit_t<T>* v_unit1) {
+		//Compare and exchange, and free
+		v_unit = v_unit;
+	}
+
+	inline snapT_t<T>* get_snapblob() { return snap_blob; } 
     
     /*
     //The incoming is composite or simple, depends on if/else
@@ -117,8 +146,9 @@ class vert_table_t {
         snap_blob = snap_blob1; 
     } 
     
-    inline void copy(vert_table_t<T>* beg_pos) {
-        adj_list = beg_pos->adj_list;
+    //Will go away soon.
+	inline void copy(vert_table_t<T>* beg_pos) {
+        v_unit = beg_pos->v_unit;
     }
 };
 
