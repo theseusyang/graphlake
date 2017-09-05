@@ -111,7 +111,7 @@ class vert_table_t {
 	inline vunit_t<T>* get_vunit() {return v_unit;}
 	inline void set_vunit(vunit_t<T>* v_unit1) {
 		//Compare and exchange, and free
-		v_unit = v_unit;
+		v_unit = v_unit1;
 	}
 
 	inline snapT_t<T>* get_snapblob() { return snap_blob; } 
