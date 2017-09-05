@@ -297,7 +297,7 @@ void onegraph_t<T>::setup(tid_t tid)
         }
         
         //degree aray realted log, in-memory
-        dlog_count = (1L << 29);//256 MB
+        dlog_count = (v_count << 1L);//256 MB
         /*
          * dlog_beg = (snapT_t<T>*)mmap(NULL, sizeof(snapT_t<T>)*dlog_count, PROT_READ|PROT_WRITE,
                             MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
@@ -312,17 +312,30 @@ void onegraph_t<T>::setup(tid_t tid)
             }
         
         //degree array relatd log, for writing to disk
-        snap_count = (1L<< 29);//256 MB
+        snap_count = (v_count << 1L);//256 MB
         if (posix_memalign((void**)&snap_log, 2097152, snap_count*sizeof(disk_snapT_t<T>))) {
             perror("posix memalign snap disk log");
         }
         
         //vertex table log
-        dvt_max_count = (1L << 29);
+        dvt_max_count = (v_count << 1L);
         if (posix_memalign((void**) &dvt, 2097152, 
                            dvt_max_count*sizeof(disk_vtable_t*))) {
             perror("posix memalign vertex log");    
         }
+
+		//v_unit log
+		vunit_count = (v_count << 1L);
+        if (posix_memalign((void**)&vunit_beg, 2097152, vunit_count*sizeof(vunit_t<T>))) {
+            perror("posix memalign vunit_beg");
+        }
+		if (posix_memalign((void**)&vunit_ind, 2097152, vunit_count*sizeof(vid_t))) {
+            perror("posix memalign vunit_ind");
+        }
+		
+		for (vid_t i = 0; i < vunit_count; ++i) {
+			vunit_ind[i] = i; 
+		}
 
     } else {
         super_id = g->get_type_scount(tid);
@@ -338,9 +351,7 @@ void onegraph_t<T>::setup_adjlist()
 {
     vid_t    v_count = TO_VID(super_id);
     snapid_t snap_id = g->get_snapid() + 1;
-    vid_t          j = 0;
     
-    disk_snapT_t<T>* slog = (disk_snapT_t<T>*)snap_log;
     snapT_t<T>* curr;
 	vunit_t<T>* v_unit = 0;
 	delta_adjlist_t<T>* delta_adjlist = 0;
@@ -356,7 +367,7 @@ void onegraph_t<T>::setup_adjlist()
 			if (beg_pos[vid].get_vunit()) {
 				v_unit = beg_pos[vid].get_vunit();
             } else {
-				v_unit = new vunit_t<T>;
+				v_unit = new_vunit();
 				beg_pos[vid].set_vunit(v_unit);
 			}
 
@@ -370,9 +381,7 @@ void onegraph_t<T>::setup_adjlist()
                 continue;
             }
             //delta adj list allocation
-            index_t index_adjlog = __sync_fetch_and_add(&adjlog_head, count + 4);//XXX
-            assert(index_adjlog  < adjlog_count); 
-            delta_adjlist = (delta_adjlist_t<T>*)(adjlog_beg + index_adjlog);
+			delta_adjlist = new_delta_adjlist(count + 4);
             delta_adjlist->set_nebrcount(count);
             delta_adjlist->add_next(0);
 			
@@ -383,22 +392,10 @@ void onegraph_t<T>::setup_adjlist()
 			    v_unit->delta_adjlist = delta_adjlist;
             }
 
-        
-			//adj_list = delta_adjlist->get_adjlist();
 			nebr_count[vid].adj_list = delta_adjlist;
-            
-            //snap log for disk write
-            j = __sync_fetch_and_add(&snap_whead, 1L); 
-            slog[j].vid       = vid;
-            slog[j].snap_id   = snap_id;
-            slog[j].del_count = del_count;
-            slog[j].degree    = count;
-            if (curr) { slog[j].degree += curr->degree; }
         
             //allocate new snapshot for degree, and initialize
-            index_t index_dlog  = __sync_fetch_and_add(&dlog_head, 1L);
-            snapT_t<T>* next    = (snapT_t<T>*)(dlog_beg + index_dlog);
-            assert(index_dlog   < dlog_count);
+			snapT_t<T>* next    = new_snapdegree(); 
             next->del_count     = del_count;
             next->snap_id       = snap_id;
             next->next          = 0;
@@ -414,6 +411,7 @@ template <class T>
 void onegraph_t<T>::update_count() 
 {
     vid_t    v_count = TO_VID(super_id);
+    disk_snapT_t<T>* slog = (disk_snapT_t<T>*)snap_log;
     T* adj_list1 = 0;
     T* adj_list2 = 0;
     T* prev_adjlist = 0;
@@ -423,29 +421,29 @@ void onegraph_t<T>::update_count()
     index_t j = 0;
     snapT_t<T>* curr = 0;
     index_t count;
+    snapid_t snap_id = g->get_snapid() + 1;
     
     #pragma omp for
     for (vid_t vid = 0; vid < v_count ; ++vid) {
         if (0 == nebr_count[vid].adj_list) continue;
+		
 		prev_v_unit = beg_pos[vid].get_vunit();
-        curr = beg_pos[vid].get_snapblob();
         prev_adjlist = prev_v_unit->adj_list;
         
         //durable adj list allocation
-        index_t index_log = __sync_fetch_and_add(&log_head, curr->degree + 1);
-        assert(index_log  < log_count); 
-        adj_list1         = log_beg + index_log;
-        adj_list2         = adj_list1;
+        curr		= beg_pos[vid].get_snapblob();
+        adj_list1   = new_adjlist(curr->degree + 1);
+        adj_list2   = adj_list1;
         
         //Copy the Old durable adj list
+        set_nebrcount1(adj_list1, curr->degree);
+        adj_list1 += 1;
         if (0 != prev_adjlist) {
             count = get_nebrcount1(prev_adjlist);
-            memcpy(adj_list1, prev_adjlist, (count + 1)*sizeof(T));
-            adj_list1 += count + 1;
-        } else {
-            adj_list1 += 1;
+            memcpy(adj_list1, prev_adjlist, count*sizeof(T));
+            adj_list1 += count;
         }
-        
+
         //Copy the new in-memory adj-list
 		delta_adjlist = prev_v_unit->delta_adjlist;
         while(delta_adjlist) {
@@ -455,23 +453,30 @@ void onegraph_t<T>::update_count()
 			delta_adjlist = delta_adjlist->get_next();
 		}
 
-        set_nebrcount1(adj_list2, curr->degree);
         nebr_count[vid].add_count = 0;
         nebr_count[vid].del_count = 0;
         nebr_count[vid].adj_list = 0;
-		v_unit = (vunit_t<T>*)malloc(sizeof(vunit_t<T>));
+
+		v_unit = new_vunit();
 		v_unit->count = curr->degree;
 		v_unit->adj_list = adj_list2;
 		v_unit->delta_adjlist = 0;
 		beg_pos[vid].set_vunit(v_unit);
+            
+		//snap log for disk write
+		j = __sync_fetch_and_add(&snap_whead, 1L); 
+		slog[j].vid       = vid;
+		slog[j].snap_id   = snap_id;
+		//slog[j].del_count = del_count;
+		slog[j].degree    = curr->degree;
+		if (curr) { slog[j].degree += curr->degree; }
 
-        //beg_pos[vid].set_adjlist(adj_list2);
-        //beg_pos[vid].set_delta_adjlist(0);
-        
+		//v_unit log for disk write
         j = __sync_fetch_and_add(&dvt_count, 1L); 
         dvt[j].vid         = vid;
-        dvt[j].file_offset = index_log;
-        dvt[j].old_offset =  prev_adjlist - log_beg;
+		dvt[j].count	   = curr->degree;
+        dvt[j].file_offset = adj_list2 - log_beg;
+        dvt[j].old_offset  =  prev_adjlist - log_beg;
     }
     log_whead = log_head;
     adjlog_head = 0;
@@ -592,11 +597,11 @@ void onegraph_t<T>::read_stable(const string& stfile)
 
     //read in batches. XXX
     assert(snap_count >= size);
-    uint64_t read_count = fread(snap_log, sizeof(disk_snapT_t<T>), size, stf);
+    index_t read_count = fread(snap_log, sizeof(disk_snapT_t<T>), size, stf);
     snap_blob = (snapT_t<T>*)dlog_beg;
     dlog = (disk_snapT_t<T>*)snap_log; 
     
-    for (int i  = 0; i < read_count; ++i)  {
+    for (index_t i  = 0; i < read_count; ++i)  {
         snap_blob[i].del_count = dlog[i].del_count;
         snap_blob[i].snap_id = dlog[i].snap_id;
         snap_blob[i].degree = dlog[i].degree;

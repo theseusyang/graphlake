@@ -69,12 +69,11 @@ class vunit_t {
  public:
 	//Durable adj list, and num of nebrs in that
 	vflag_t       vflag;
-    refcount_t    ref_count;
 	degree_t      count;
     T*            adj_list;
 	delta_adjlist_t<T>* delta_adjlist;
 
-	inline vunit_t() {
+	inline void reset() {
 		vflag = 0;
 		count = 0;
 		adj_list = 0;
@@ -110,11 +109,11 @@ class vert_table_t {
 	}
 	
 	inline vunit_t<T>* get_vunit() {return v_unit;}
-	inline void set_vunit(vunit_t<T>* v_unit1) {
-		//Compare and exchange, and free
-        vunit_t<T>* v_unit2 = v_unit;
-		v_unit = v_unit1;
-        if (v_unit2) delete v_unit2;
+	inline vunit_t<T>* set_vunit(vunit_t<T>* v_unit1) {
+        //prev value will be cleaned later
+		vunit_t<T>* v_unit2 = v_unit;
+		v_unit = v_unit1;//Atomic XXX
+		return v_unit2;
 	}
 
 	inline snapT_t<T>* get_snapblob() { return snap_blob; } 
@@ -203,7 +202,7 @@ private:
     index_t    adjlog_head; // current log write position
     index_t    adjlog_tail; //current log cleaning position
 
-    //durable adj list
+    //durable adj list, for writing to disk
     T*         log_beg;  //memory log pointer
     index_t    log_count;//size of memory log
     index_t    log_head; // current log write position
@@ -211,8 +210,10 @@ private:
     index_t    log_whead; //Write this pointer for write persistency
     index_t    log_wtail; //Write upto this point
     
-    //degree array related log, in-memory
+    //degree array related log, in-memory, fixed size logs
+	//indirection will help better cleaning.
     snapT_t<T>* dlog_beg;  //memory log pointer
+	index_t*    dlog_ind;  // The indirection table
     index_t     dlog_count;//size of memory log
     index_t     dlog_head; // current log write position
     index_t     dlog_tail; //current log cleaning position
@@ -223,6 +224,16 @@ private:
     index_t snap_count;
     index_t snap_whead;
     index_t snap_wtail;
+
+	//v_unit log, in-memory, fixed size log
+	//indirection will help better cleaning
+	vunit_t<T>* vunit_beg;
+	vid_t*		vunit_ind; //The indirection table
+	index_t     vunit_count;
+	index_t     vunit_head;
+	index_t     vunit_tail;
+	index_t     vunit_wtail;
+
 
     //vertex table file related log
     disk_vtable_t* dvt;
@@ -239,7 +250,15 @@ public:
         beg_pos = 0;
         nebr_count = 0;
         max_vcount = 0;
-        
+       
+	    vunit_beg	= 0;
+		vunit_count = 0;
+		vunit_ind	= 0;
+		vunit_head  = 0;
+		vunit_tail  = 0;
+		vunit_wtail = 0;
+
+
         adjlog_count = 0;
         adjlog_head  = 0;
         adjlog_tail  = 0;
@@ -292,7 +311,45 @@ public:
         nebr_count[vid].add_nebr_lite(nebr_count[vid].add_count, sid, value);
         ++nebr_count[vid].add_count;
     }
-    
+	
+	inline void set_vunit(vid_t vid, vunit_t<T>* v_unit1) {
+        //prev value will be cleaned later
+		vunit_t<T>* v_unit2 = beg_pos[vid].set_vunit();
+		if (0 != v_unit2) {
+			index_t index  = __sync_fetch_and_add(&vunit_tail, 1L);
+			vid_t index1 = index % vunit_count;
+			vunit_ind[index1] = v_unit2 - vunit_beg;
+		}
+	}
+	inline vunit_t<T>* new_vunit() {
+		index_t index = __sync_fetch_and_add(&vunit_head, 1L);
+		vid_t index1 = index % vunit_count;
+		vunit_t<T>* v_unit = vunit_beg + vunit_ind[index1];
+		v_unit->reset();
+		return v_unit;
+	}	
+   
+    //durable adj list	
+	inline T* new_adjlist(degree_t count) {
+        index_t index_log = __sync_fetch_and_add(&log_head, count);
+        assert(index_log  < log_count); 
+        return  (log_beg + index_log);
+	}
+	
+	//delta adj list allocation
+	inline delta_adjlist_t<T>* new_delta_adjlist(degree_t count) {
+		index_t index_adjlog = __sync_fetch_and_add(&adjlog_head, count);
+		assert(index_adjlog  < adjlog_count); 
+		return (delta_adjlist_t<T>*)(adjlog_beg + index_adjlog);
+	}
+
+	//in-memory snap degree
+	inline snapT_t<T>* new_snapdegree() {
+		index_t index_dlog  = __sync_fetch_and_add(&dlog_head, 1L);
+		assert(index_dlog   < dlog_count);
+		return (dlog_beg + index_dlog);
+	}
+
     void update_count();
 
     inline void reset_count(vid_t vid) {
