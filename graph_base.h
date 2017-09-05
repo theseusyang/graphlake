@@ -69,6 +69,7 @@ class vunit_t {
  public:
 	//Durable adj list, and num of nebrs in that
 	vflag_t       vflag;
+    refcount_t    ref_count;
 	degree_t      count;
     T*            adj_list;
 	delta_adjlist_t<T>* delta_adjlist;
@@ -111,7 +112,9 @@ class vert_table_t {
 	inline vunit_t<T>* get_vunit() {return v_unit;}
 	inline void set_vunit(vunit_t<T>* v_unit1) {
 		//Compare and exchange, and free
+        vunit_t<T>* v_unit2 = v_unit;
 		v_unit = v_unit1;
+        if (v_unit2) delete v_unit2;
 	}
 
 	inline snapT_t<T>* get_snapblob() { return snap_blob; } 

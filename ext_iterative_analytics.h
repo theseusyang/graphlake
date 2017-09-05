@@ -286,6 +286,7 @@ ext_hop2(vert_table_t<T>* graph_out, degree_t* degree_out,
         src = edges[i].src_id;
         dst = edges[i].dst_id;
         for (int q = 0; q < query_count; q++) {
+            vlist = query[q].vlist;
             v = query[q].vid;
             if (src == v) {
                 d1 = __sync_fetch_and_add(&query[q].d, 1);
