@@ -19,8 +19,6 @@ typedef uint64_t sflag_t;
 typedef uint16_t qid_t;
 typedef uint32_t snapid_t ;
 //typedef uint16_t rdegree_t; //relative degree
-typedef uint16_t vflag_t;
-typedef uint16_t refcount_t;
 typedef int32_t degree_t;
 #elif B32
 typedef uint8_t propid_t;
@@ -33,10 +31,10 @@ typedef uint64_t sflag_t;
 typedef uint16_t qid_t;
 typedef uint32_t snapid_t ;
 //typedef uint16_t rdegree_t; //relative degree
-typedef uint16_t vflag_t;
-typedef uint16_t refcount_t;
 typedef uint32_t degree_t;
 #endif
+
+typedef uint32_t vflag_t;
 
 #ifndef PLAIN_GRAPH 
 #ifdef B64
@@ -192,6 +190,7 @@ class pedge_t {
 class disk_vtable_t {
     public:
     vid_t    vid;
+	//Length of durable adj list
     degree_t count;
     uint64_t file_offset;
     uint64_t old_offset;//for cleaning
