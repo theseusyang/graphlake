@@ -168,15 +168,18 @@ void plaingraph_manager::prep_graph_paper_num(const string& idirname, const stri
         file_count++;
         
         file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
+        assert(file != 0);
         size = fsize(filename);
         edge_count = size/sizeof(edge_t);
-        edge += ugraph->blog_head;
+        edge = ugraph->blog_beg + ugraph->blog_head;
+        if (edge_count != fread(edge, sizeof(edge_t), edge_count, file)) {
+            assert(0);
+        }
         ugraph->blog_head += edge_count;
-        fread(edge, sizeof(edge_t), edge_count, file);
     }
     closedir(dir);
     double end = mywtime();
-    cout << "Reading time = " << end - start << endl;
+    cout << "Reading "  << file_count  << " file time = " << end - start << endl;
     start = mywtime();
 
     index_t marker = ugraph->blog_head - residue;
