@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 {
 	const struct option longopts[] =
 	{
-		{"version",   no_argument,        0, 'v'},
+		{"vcount",    required_argument,  0, 'v'},
 		{"help",      no_argument,        0, 'h'},
 		{"idir",      required_argument,  0, 'i'},
 		{"odir",      required_argument,  0, 'o'},
@@ -40,12 +40,18 @@ int main(int argc, char* argv[])
 	string typefile, idir, odir;
     string queryfile;
     int convert = -1;
+	vid_t v_count = 0;
     int job = 0;
     g = new graph; 
-	while ((o = getopt_long(argc, argv, "i:c:j:o:q:t:r:vh", longopts, &index)) != -1) {
+	while ((o = getopt_long(argc, argv, "i:c:j:o:q:t:r:v:h", longopts, &index)) != -1) {
 		switch(o) {
 			case 'v':
-				cout << "1.0" << endl;
+				#ifdef B64
+                sscanf(optarg, "%ld", &v_count);
+				#elif B32
+                sscanf(optarg, "%d", &v_count);
+				#endif
+				cout << "v_count = " << v_count << endl;
 				break;
 			case 'h':
 				cout << "Help coming soon" << endl;
@@ -89,7 +95,7 @@ int main(int argc, char* argv[])
         lubm_test2(odir);
             break;
         case 3:
-            plain_test(idir, odir, job);
+            plain_test(v_count, idir, odir, job);
             break;
         case 10:
             ldbc_test0(typefile, idir, odir);

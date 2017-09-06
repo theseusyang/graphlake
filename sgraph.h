@@ -2,6 +2,8 @@
 
 #include <sys/mman.h>
 #include <asm/mman.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include "type.h"
 #include "graph.h"
 
@@ -381,6 +383,7 @@ void onegraph_t<T>::setup_adjlist()
                 continue;
             }
             //delta adj list allocation
+			//extra space is for ptr, and count
 			delta_adjlist = new_delta_adjlist(count + 4);
             delta_adjlist->set_nebrcount(count);
             delta_adjlist->add_next(0);
@@ -405,6 +408,118 @@ void onegraph_t<T>::setup_adjlist()
         }
         reset_count(vid);
     }
+}
+
+template <class T>
+void onegraph_t<T>::prepare_dvt(const string& etfile, const string& vtfile) 
+{
+    vid_t    v_count = TO_VID(super_id);
+    T* adj_list2 = 0;
+    snapT_t<T>* curr = 0;
+	disk_vtable_t* dvt1 = 0;
+	
+	
+	if (etf != -1) {
+		etf = open(etfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
+	}
+	
+	/*
+    if (etf == 0) {
+        etf = fopen(etfile.c_str(), "wb");//append/write + binary
+        assert(etf != 0);
+    }*/
+    
+	if(vtf == 0) {
+        vtf = fopen(vtfile.c_str(), "wb");
+        assert(vtf != 0);
+    }
+
+    
+    for (vid_t vid = 0; vid < v_count ; ++vid) {
+        if (0 == nebr_count[vid].adj_list) continue;
+		
+        curr		= beg_pos[vid].get_snapblob();
+		if (log_head + curr->degree + 1 > dlog_count) {
+			adj_write();
+			log_head = 0;
+			dvt_count = 0;
+		}
+        
+        //durable adj list allocation
+		adj_list2   = new_adjlist(curr->degree + 1);
+        
+		//v_unit log for disk write
+        dvt1              = new_dvt();
+		dvt1->vid         = vid;
+		dvt1->count	     = curr->degree;
+        dvt1->file_offset = adj_list2 - log_beg;
+    }
+}
+
+template <class T>
+void onegraph_t<T>::adj_write()
+{
+	vid_t vid;
+	disk_vtable_t* dvt1 = 0;
+	vunit_t<T>* v_unit = 0;
+	vunit_t<T>* prev_v_unit = 0;
+	degree_t prev_count;
+	index_t  prev_offset;
+	delta_adjlist_t<T>* delta_adjlist = 0;
+    T* adj_list1 = 0;
+    T* adj_list2 = 0;
+
+	for (vid_t v = 0; v < dvt_count; ++v) {
+		dvt1 = dvt + v;
+		vid = dvt1->vid;
+		if (0 == nebr_count[vid].adj_list) continue;
+		
+		prev_v_unit  = beg_pos[vid].get_vunit();
+		prev_count   = prev_v_unit->count;
+		prev_offset  = prev_v_unit->adj_list - log_beg;
+		
+		//durable adj list allocated
+		adj_list1   = log_beg + dvt1->file_offset;
+		adj_list2   = adj_list1;
+	   
+        //Copy the Old durable adj list
+        set_nebrcount1(adj_list1, dvt1->count);
+		++adj_list1;
+		if (prev_count) {
+			//Read the old adj list from disk
+			pread(etf, adj_list1 , prev_count*sizeof(T), prev_offset);
+			adj_list1 += prev_count;
+		}
+
+        //Copy the new in-memory adj-list
+		delta_adjlist = prev_v_unit->delta_adjlist;
+        while(delta_adjlist) {
+			memcpy(adj_list1, delta_adjlist->get_adjlist(),
+				   delta_adjlist->get_nebrcount()*sizeof(T));
+			adj_list1 += delta_adjlist->get_nebrcount();
+			delta_adjlist = delta_adjlist->get_next();
+		}
+
+		//Write new adj list
+		//pwrite(etf, adj_list2, (dvt1->count + 1)*sizeof(T), dvt1->file_offset);
+
+		v_unit = new_vunit();
+		v_unit->count = dvt1->count;
+		v_unit->adj_list = adj_list2;
+		v_unit->delta_adjlist = 0;
+		beg_pos[vid].set_vunit(v_unit);
+            
+		nebr_count[vid].add_count = 0;
+        nebr_count[vid].del_count = 0;
+        nebr_count[vid].adj_list = 0;
+    }
+		
+	//Write new adj list
+    //fwrite (log_beg, sizeof(T), log_head, etf);
+	pwrite(etf, log_beg, log_head*sizeof(T), dvt[0].file_offset);
+
+	//Write the dvt log
+	fwrite(dvt, sizeof(disk_vtable_t), dvt_count, vtf);
 }
 
 template <class T>
@@ -453,9 +568,6 @@ void onegraph_t<T>::update_count()
 			delta_adjlist = delta_adjlist->get_next();
 		}
 
-        nebr_count[vid].add_count = 0;
-        nebr_count[vid].del_count = 0;
-        nebr_count[vid].adj_list = 0;
 
 		v_unit = new_vunit();
 		v_unit->count = curr->degree;
@@ -477,6 +589,10 @@ void onegraph_t<T>::update_count()
 		dvt[j].count	   = curr->degree;
         dvt[j].file_offset = adj_list2 - log_beg;
         dvt[j].old_offset  =  prev_adjlist - log_beg;
+        
+		nebr_count[vid].add_count = 0;
+        nebr_count[vid].del_count = 0;
+        nebr_count[vid].adj_list = 0;
     }
     log_whead = log_head;
     adjlog_head = 0;
@@ -485,6 +601,7 @@ void onegraph_t<T>::update_count()
 template <class T>
 void onegraph_t<T>::persist_elog(const string& etfile)
 {
+	/*
     index_t wpos = log_whead;
 
     if (log_wtail == wpos) return;
@@ -498,6 +615,7 @@ void onegraph_t<T>::persist_elog(const string& etfile)
     fwrite (log_beg + log_wtail, sizeof(T), wpos - log_wtail, etf);
     //Update the mark
     log_wtail = wpos;
+	*/
 }
 
 template <class T>
@@ -614,17 +732,19 @@ void onegraph_t<T>::read_stable(const string& stfile)
 template <class T>
 void onegraph_t<T>::read_etable(const string& etfile)
 {
-    if (etf == 0) {
-        etf = fopen(etfile.c_str(), "r+b");//append/write + binary
+    if (etf == -1) {
+		etf = open(etfile.c_str(), O_RDWR);
+        //etf = fopen(etfile.c_str(), "r+b");//append/write + binary
         assert(etf != 0);
     }
 
-    off_t size = fsize(etfile.c_str());
+    index_t size = fsize(etfile.c_str());
     if (size == -1L) {
         assert(0);
     }
     sid_t edge_count = size/sizeof(T);
-    fread(log_beg, sizeof(T), edge_count, etf);
+    //fread(log_beg, sizeof(T), edge_count, etf);
+    //read(etf, log_beg, size, 0);//offset as 0
 
     log_head = edge_count;
     log_wtail = log_head;
@@ -1006,9 +1126,12 @@ void pgraph_t<T>::store_sgraph(onegraph_t<T>** sgraph, string dir, string postfi
         etfile = basefile + name + "etable" + postfix;
         stfile = basefile + name + "stable" + postfix;
          
-        sgraph[i]->persist_elog(etfile);
+		sgraph[i]->prepare_dvt(etfile, vtfile);
+        /*
+		sgraph[i]->persist_elog(etfile);
         sgraph[i]->persist_slog(stfile);
         sgraph[i]->persist_vlog(vtfile);
+		*/
     }
 }
 
@@ -1042,9 +1165,9 @@ void pgraph_t<T>::read_sgraph(onegraph_t<T>** sgraph, string dir, string postfix
         
         sgraph[i] = new onegraph_t<T>;
         sgraph[i]->setup(i);
-        sgraph[i]->read_stable(stfile);
+        //sgraph[i]->read_stable(stfile);
         sgraph[i]->read_vtable(vtfile);
-        sgraph[i]->read_etable(etfile);
+        //sgraph[i]->read_etable(etfile);
     }
 }
 /******************** super kv *************************/

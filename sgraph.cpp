@@ -579,10 +579,12 @@ void ugraph_t::store_graph_baseline(string dir)
 {
     //double start, end;
     //start = mywtime(); 
-    #pragma omp parallel     
+	/*    
+	#pragma omp parallel     
     {
     update_count(sgraph);
     }
+	*/
     //end = mywtime();
     //cout << "update count time = " << end - start << endl;
     

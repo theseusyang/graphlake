@@ -241,7 +241,7 @@ private:
     vid_t    dvt_max_count;
 
     FILE*    vtf;   //vertex table file
-    FILE*    etf;   //edge table file
+    int    etf;   //edge table file
     FILE*    stf;   //snapshot table file
 public:
 
@@ -350,6 +350,13 @@ public:
 		return (dlog_beg + index_dlog);
 	}
 
+	inline disk_vtable_t* new_dvt() {
+        index_t j = __sync_fetch_and_add(&dvt_count, 1L);
+		//assert();
+		return dvt + j;
+		
+	}
+
     void update_count();
 
     inline void reset_count(vid_t vid) {
@@ -363,7 +370,10 @@ public:
 
     void prepare_vlog();
 
-    void persist_elog(const string& etfile);
+    void prepare_dvt(const string& etfile, const string& vtfile);
+	void adj_write();
+    
+	void persist_elog(const string& etfile);
     void persist_vlog(const string& vtfile);
     void persist_slog(const string& stfile);
 

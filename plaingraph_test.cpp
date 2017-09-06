@@ -203,10 +203,10 @@ void plain_test6(const string& odir)
     return ;
 }
 
-void paper_test0(const string& idir, const string& odir)
+void paper_test0(vid_t v_count, const string& idir, const string& odir)
 {
     //do some setup for plain graphs
-    vid_t v_count = (1<<28);
+    //vid_t v_count = (1<<28);
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph_paper_num(idir, odir);
     
@@ -324,9 +324,10 @@ void paper_test_hop2(const string& idir, const string& odir)
 
 }
 
-void plain_test(const string& idir, const string& odir, int job)
+void plain_test(vid_t v_count, const string& idir, const string& odir, int job)
 {
     plaingraph_manager::schema_plaingraph();
+
     
     switch (job) {
         case 0:
@@ -358,7 +359,7 @@ void plain_test(const string& idir, const string& odir, int job)
             plain_test6(odir);
             break;
         case 10:
-            paper_test0(idir, odir);
+            paper_test0(v_count, idir, odir);
             break;
         case 11:
             paper_test_pr(idir, odir);
