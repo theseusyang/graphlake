@@ -183,6 +183,14 @@ class nebrcount_t {
         //
     }
 };
+template <class T>
+class write_seg_t {
+ public:
+     disk_vtable_t* dvt;
+     T*             log_beg;
+     index_t        log_head;
+     index_t        dvt_count;
+};
 
 //one type's graph
 template <class T>
@@ -206,13 +214,15 @@ private:
     index_t    adjlog_tail; //current log cleaning position
 
     //durable adj list, for writing to disk
-    T*         log_beg;  //memory log pointer
-    index_t    log_count;//size of memory log
-    index_t    log_head; // current log write position
     index_t    log_tail; //current log cleaning position
+    index_t    log_count;//size of memory log
+    
+    /*
+    T*         log_beg;  //memory log pointer
+    index_t    log_head; // current log write position
     index_t    log_whead; //Write this pointer for write persistency
     index_t    log_wtail; //Write upto this point
-    
+    */
     //degree array related log, in-memory, fixed size logs
 	//indirection will help better cleaning.
     snapT_t<T>* dlog_beg;  //memory log pointer
@@ -239,8 +249,9 @@ private:
 
 
     //vertex table file related log
-    disk_vtable_t* dvt;
-    vid_t    dvt_count; 
+    write_seg_t<T>  write_seg[2];
+    //disk_vtable_t* dvt;
+    //vid_t    dvt_count; 
     vid_t    dvt_max_count;
 
     FILE*    vtf;   //vertex table file
@@ -269,12 +280,13 @@ public:
         adjlog_tail  = 0;
         
         log_count = 0;
+        /*
         log_head  = 0;
         log_tail  = 0;
         log_tail  = 0;
         log_whead = 0;
         log_wtail = 0;
-        
+        */
         dlog_count = 0;
         dlog_head = 0;
         dlog_tail = 0;
@@ -285,8 +297,18 @@ public:
         snap_wtail = 0;
 
         
-        dvt_count = 0;
+        //dvt_count = 0;
         dvt_max_count = 0;
+
+        write_seg[0].dvt = 0;
+        write_seg[0].dvt_count = 0;
+        write_seg[0].log_beg = 0;
+        write_seg[0].log_head = 0;
+        write_seg[1].dvt = 0;
+        write_seg[1].dvt_count = 0;
+        write_seg[1].log_beg = 0;
+        write_seg[1].log_head = 0;
+
         vtf = 0;
         etf = -1;
         stf = 0;
@@ -334,10 +356,10 @@ public:
 	}	
    
     //durable adj list	
-	inline T* new_adjlist(degree_t count) {
-        index_t index_log = __sync_fetch_and_add(&log_head, count);
+	inline T* new_adjlist(write_seg_t<T>* seg,  degree_t count) {
+        index_t index_log = __sync_fetch_and_add(&seg->log_head, count);
         assert(index_log  < log_count); 
-        return  (log_beg + index_log);
+        return  (seg->log_beg + index_log);
 	}
 	
 	//delta adj list allocation
@@ -354,10 +376,10 @@ public:
 		return (dlog_beg + index_dlog);
 	}
 
-	inline disk_vtable_t* new_dvt() {
-        index_t j = __sync_fetch_and_add(&dvt_count, 1L);
+	inline disk_vtable_t* new_dvt(write_seg_t<T>* seg) {
+        index_t j = __sync_fetch_and_add(&seg->dvt_count, 1L);
 		//assert();
-		return dvt + j;
+		return seg->dvt + j;
 		
 	}
 
@@ -375,12 +397,13 @@ public:
     void prepare_vlog();
 
     void prepare_dvt(const string& etfile, const string& vtfile);
-	void adj_write();
+	void adj_write(write_seg_t<T>* seg);
     
+    /*
 	void persist_elog(const string& etfile);
     void persist_vlog(const string& vtfile);
     void persist_slog(const string& stfile);
-
+    */
     void read_etable(const string& etfile);
     void read_vtable(const string& vtfile);
     void read_stable(const string& stfile);

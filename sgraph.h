@@ -291,12 +291,6 @@ void onegraph_t<T>::setup(tid_t tid)
             }
         }
         
-        //durable adj list
-        log_count = (1L << 33);
-        if (posix_memalign((void**)&log_beg, 2097152, log_count*sizeof(T))) {
-            //log_beg = (index_t*)calloc(sizeof(index_t), log_count);
-            perror("posix memalign edge log");
-        }
         
         //degree aray realted log, in-memory
         dlog_count = (v_count << 1L);//256 MB
@@ -314,17 +308,35 @@ void onegraph_t<T>::setup(tid_t tid)
             }
         
         //degree array relatd log, for writing to disk
-        snap_count = (v_count << 1L);//256 MB
+        snap_count = (1L << 16);//256 MB
         if (posix_memalign((void**)&snap_log, 2097152, snap_count*sizeof(disk_snapT_t<T>))) {
             perror("posix memalign snap disk log");
         }
         
-        //vertex table log
-        dvt_max_count = (v_count << 1L);
-        if (posix_memalign((void**) &dvt, 2097152, 
+        //durable vertex log and adj list log
+        dvt_max_count = (v_count);
+        log_count = (1L << 22);
+        if (posix_memalign((void**) &write_seg[0].dvt, 2097152, 
                            dvt_max_count*sizeof(disk_vtable_t*))) {
             perror("posix memalign vertex log");    
         }
+        if (posix_memalign((void**) &write_seg[1].dvt, 2097152, 
+                           dvt_max_count*sizeof(disk_vtable_t*))) {
+            perror("posix memalign vertex log");    
+        }
+        if (posix_memalign((void**)&write_seg[0].log_beg, 2097152, log_count*sizeof(T))) {
+            //log_beg = (index_t*)calloc(sizeof(index_t), log_count);
+            perror("posix memalign edge log");
+        }
+        if (posix_memalign((void**)&write_seg[1].log_beg, 2097152, log_count*sizeof(T))) {
+            //log_beg = (index_t*)calloc(sizeof(index_t), log_count);
+            perror("posix memalign edge log");
+        }
+        /*
+        if (posix_memalign((void**)&log_beg, 2097152, log_count*sizeof(T))) {
+            //log_beg = (index_t*)calloc(sizeof(index_t), log_count);
+            perror("posix memalign edge log");
+        }*/
 
 		//v_unit log
 		vunit_count = (v_count << 1L);
@@ -421,6 +433,7 @@ void onegraph_t<T>::prepare_dvt(const string& etfile, const string& vtfile)
 	
 	if (etf == -1) {
 		etf = open(etfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
+        assert(etf != -1);
 	}
 	
 	/*
@@ -434,35 +447,41 @@ void onegraph_t<T>::prepare_dvt(const string& etfile, const string& vtfile)
         assert(vtf != 0);
     }
 
+    write_seg_t<T>* seg = write_seg + 0; 
+    write_seg_t<T>* old_seg = write_seg + 1; 
     
     for (vid_t vid = 0; vid < v_count ; ++vid) {
         if (0 == nebr_count[vid].adj_list) continue;
 		
         curr		= beg_pos[vid].get_snapblob();
-		if (log_head + curr->degree + 1 > log_count) {
-			adj_write();
-			log_head = 0;
-			dvt_count = 0;
+		if ((seg->log_head + curr->degree + 1 > log_count) ||
+            (seg->dvt_count >= dvt_max_count)) {
+            swap(old_seg, seg);
+			adj_write(old_seg);
+			old_seg->log_head = 0;
+			old_seg->dvt_count = 0;
 		}
         
         //durable adj list allocation
-		adj_list2   = new_adjlist(curr->degree + 1);
+		adj_list2   = new_adjlist(seg, curr->degree + 1);
         
 		//v_unit log for disk write
-        dvt1              = new_dvt();
+        dvt1              = new_dvt(seg);
 		dvt1->vid         = vid;
 		dvt1->count	     = curr->degree;
-        dvt1->file_offset = adj_list2 - log_beg;
+        dvt1->file_offset = adj_list2 - seg->log_beg;
     }
 
-    adj_write();
-    log_head = 0;
-    dvt_count = 0;
+    swap(old_seg, seg);
+    adj_write(old_seg);
+    old_seg->log_head = 0;
+    old_seg->dvt_count = 0;
+
     adjlog_head = 0;
 }
 
 template <class T>
-void onegraph_t<T>::adj_write()
+void onegraph_t<T>::adj_write(write_seg_t<T>* seg)
 {
 	vid_t vid;
 	disk_vtable_t* dvt1 = 0;
@@ -474,8 +493,8 @@ void onegraph_t<T>::adj_write()
     T* adj_list1 = 0;
     T* adj_list2 = 0;
 
-	for (vid_t v = 0; v < dvt_count; ++v) {
-		dvt1 = dvt + v;
+	for (vid_t v = 0; v < seg->dvt_count; ++v) {
+		dvt1 = seg->dvt + v;
 		vid = dvt1->vid;
 		if (0 == nebr_count[vid].adj_list) continue;
 		
@@ -484,7 +503,7 @@ void onegraph_t<T>::adj_write()
 		prev_offset  = prev_v_unit->offset;
 		
 		//durable adj list allocated
-		adj_list1   = log_beg + dvt1->file_offset;
+		adj_list1   = seg->log_beg + dvt1->file_offset;
 		adj_list2   = adj_list1;
 	   
         //Copy the Old durable adj list
@@ -523,18 +542,22 @@ void onegraph_t<T>::adj_write()
 		
 	//Write new adj list
     //fwrite (log_beg, sizeof(T), log_head, etf);
-    if (log_head != 0) {
-	    index_t size = pwrite(etf, log_beg, log_head*sizeof(T), log_tail*sizeof(T));
-        if (size != log_head*sizeof(T)) {
+    if (seg->log_head != 0) {
+	    index_t size = pwrite(etf, seg->log_beg, seg->log_head*sizeof(T), 
+                              log_tail*sizeof(T));
+        if (size != seg->log_head*sizeof(T)) {
             perror("pwrite issue");
             assert(0);
         }
-        log_tail += log_head;
+        log_tail += seg->log_head;
     }
     
 
 	//Write the dvt log
-	fwrite(dvt, sizeof(disk_vtable_t), dvt_count, vtf);
+	fwrite(seg->dvt, sizeof(disk_vtable_t), seg->dvt_count, vtf);
+    
+    seg->log_head = 0;
+    seg->dvt_count = 0;
 }
 
 template <class T>
@@ -615,10 +638,10 @@ void onegraph_t<T>::update_count()
     */
 }
 
+/*
 template <class T>
 void onegraph_t<T>::persist_elog(const string& etfile)
 {
-	/*
     index_t wpos = log_whead;
 
     if (log_wtail == wpos) return;
@@ -632,7 +655,6 @@ void onegraph_t<T>::persist_elog(const string& etfile)
     fwrite (log_beg + log_wtail, sizeof(T), wpos - log_wtail, etf);
     //Update the mark
     log_wtail = wpos;
-	*/
 }
 
 template <class T>
@@ -654,6 +676,7 @@ void onegraph_t<T>::persist_vlog(const string& vtfile)
     //update the mark
     dvt_count = 0;
 }
+	*/
 
 /*
 template <class T>
@@ -694,7 +717,6 @@ void onegraph_t<T>::prepare_slog()
         dlog[j].degree    = snap_blob->degree;
     }
 }
-*/
 
 template <class T>
 void onegraph_t<T>::persist_slog(const string& stfile)
@@ -745,7 +767,9 @@ void onegraph_t<T>::read_stable(const string& stfile)
     }
     dlog_head = read_count;
 }
+*/
 
+/*
 template <class T>
 void onegraph_t<T>::read_etable(const string& etfile)
 {
@@ -767,7 +791,7 @@ void onegraph_t<T>::read_etable(const string& etfile)
     log_wtail = log_head;
     log_whead = log_head;
 }
-
+*/
 template <class T>
 void onegraph_t<T>::read_vtable(const string& vtfile)
 {
@@ -784,6 +808,7 @@ void onegraph_t<T>::read_vtable(const string& vtfile)
     vid_t count = (size/sizeof(disk_vtable_t));
 	vid_t vid = 0;
 	vunit_t<T>* v_unit = 0;
+    disk_vtable_t* dvt = write_seg[0].dvt;
     //read in batches
     while (count != 0 ) {
         vid_t read_count = fread(dvt, sizeof(disk_vtable_t), dvt_max_count, vtf);
@@ -803,7 +828,6 @@ void onegraph_t<T>::read_vtable(const string& vtfile)
         }
         count -= read_count;
     }
-    dvt_count = 0;
 }
 
 /**************** SKV ******************/
