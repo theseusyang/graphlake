@@ -5,6 +5,7 @@
 #include "csv_to_edge.h"
 #include "iterative_analytics.h"
 #include "ext_iterative_analytics.h"
+#include "mem_iterative_analytics.h"
 #include "snap_iterative_analytics.h"
 
 using namespace std;
@@ -51,7 +52,7 @@ void plain_test0(const string& idir, const string& odir)
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
 
-    ext_bfs<sid_t>(graph, degree_array, graph, degree_array, 
+    mem_bfs<sid_t>(graph, degree_array, graph, degree_array, 
                    snapshot, marker, ugraph->blog_beg,
                    v_count, level_array, 1);
     
@@ -103,7 +104,7 @@ void plain_test1(const string& idir, const string& odir)
     
     cout << "BFS on snap id = " << snap_id << endl; 
     cout << "old marker = " << old_snapshot->marker << " New marker = " << marker << endl;
-    ext_bfs<sid_t>(graph, degree_array, graph, degree_array, 
+    mem_bfs<sid_t>(graph, degree_array, graph, degree_array, 
                    old_snapshot, marker, ugraph->blog_beg,
                    v_count, level_array, 1);
     
@@ -117,7 +118,7 @@ void plain_test1(const string& idir, const string& odir)
     degree_array = create_degreesnap(graph, v_count, snap_id);
     cout << "BFS on snap id = " << snap_id << endl; 
     cout << "old marker = " << old_snapshot->marker << " New marker = " << marker << endl;
-    ext_bfs<sid_t>(graph, degree_array, graph, degree_array, 
+    mem_bfs<sid_t>(graph, degree_array, graph, degree_array, 
                    old_snapshot, marker, ugraph->blog_beg,
                    v_count, level_array, 1);
     
@@ -128,7 +129,7 @@ void plain_test1(const string& idir, const string& odir)
     degree_array = create_degreesnap(graph, v_count, snap_id);
     cout << "BFS on snap id = " << snap_id << endl; 
     cout << "old marker = " << old_snapshot->marker << " New marker = " << marker << endl;
-    ext_bfs<sid_t>(graph, degree_array, graph, degree_array, 
+    mem_bfs<sid_t>(graph, degree_array, graph, degree_array, 
                    old_snapshot, marker, ugraph->blog_beg,
                    v_count, level_array, 1);
     
@@ -169,7 +170,7 @@ void plain_test2(const string& odir)
     cout << "BFS on snap id = " << snap_id << endl; 
     cout << "old marker = " << snapshot->marker << " New marker = " << marker << endl;
     degree_t* degree_array = create_degreesnap(graph, v_count, snapshot, marker, ugraph->blog_beg);
-    ext_bfs<sid_t>(graph, degree_array, graph, degree_array, 
+    mem_bfs<sid_t>(graph, degree_array, graph, degree_array, 
                    snapshot, marker, ugraph->blog_beg,
                    v_count, level_array, 1);
     return ;
@@ -227,7 +228,7 @@ void plain_test6(const string& odir)
     
     g->read_graph_baseline(odir);
     
-    //call ext_bfs
+    //call mem_bfs
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
     vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
@@ -269,7 +270,7 @@ void paper_test0(vid_t v_count, const string& idir, const string& odir)
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
 
-    ext_bfs<sid_t>(graph, degree_array, graph, degree_array, 
+    mem_bfs<sid_t>(graph, degree_array, graph, degree_array, 
                    snapshot, marker, ugraph->blog_beg,
                    v_count, level_array, 1);
 
@@ -299,7 +300,7 @@ void paper_test_pr(const string& idir, const string& odir)
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
 
-    ext_pagerank<sid_t>(graph, degree_array, degree_array, 
+    mem_pagerank<sid_t>(graph, degree_array, degree_array, 
                    snapshot, marker, ugraph->blog_beg,
                    v_count, 5);
 
@@ -328,7 +329,7 @@ void paper_test_hop1(const string& idir, const string& odir)
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
 
-    ext_hop1<sid_t>(graph, degree_array, snapshot, marker, ugraph->blog_beg, v_count);
+    mem_hop1<sid_t>(graph, degree_array, snapshot, marker, ugraph->blog_beg, v_count);
 
 }
 
@@ -355,7 +356,7 @@ void paper_test_hop2(const string& idir, const string& odir)
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
 
-    ext_hop2<sid_t>(graph, degree_array, snapshot, marker, ugraph->blog_beg, v_count);
+    mem_hop2<sid_t>(graph, degree_array, snapshot, marker, ugraph->blog_beg, v_count);
 
 }
 

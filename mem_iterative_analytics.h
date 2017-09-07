@@ -3,15 +3,92 @@
 #include <algorithm>
 #include "graph.h"
 #include "wtime.h"
-#include "mem_iterative_analytics.h"
+
 #include "sgraph.h"
 #include "p_sgraph.h"
 
 using std::min;
 
+typedef float rank_t; 
+// Credits to :
+// http://www.memoryhole.net/kyle/2012/06/a_use_for_volatile_in_multithr.html
+rank_t qthread_dincr(rank_t *operand, rank_t incr)
+{
+    //*operand = *operand + incr;
+    //return incr;
+    
+    union {
+       rank_t   d;
+       uint32_t i;
+    } oldval, newval, retval;
+    do {
+         oldval.d = *(volatile rank_t *)operand;
+         newval.d = oldval.d + incr;
+         //__asm__ __volatile__ ("lock; cmpxchgq %1, (%2)"
+         __asm__ __volatile__ ("lock; cmpxchg %1, (%2)"
+                                : "=a" (retval.i)
+                                : "r" (newval.i), "r" (operand),
+                                 "0" (oldval.i)
+                                : "memory");
+    } while (retval.i != oldval.i);
+    return oldval.d;
+}
+
+template <class T>
+degree_t* create_degreesnap(vert_table_t<T>* graph, vid_t v_count, snapshot_t* snapshot, index_t marker, edgeT_t<T>* edges)
+{
+    snapid_t snap_id = 0;
+    index_t old_marker = 0;
+    if (snapshot) {
+        snap_id = snapshot->snap_id;
+        old_marker = snapshot->marker;
+    }
+
+    degree_t* degree_array  = (degree_t*)mmap(NULL, sizeof(degree_t)*v_count, PROT_READ|PROT_WRITE,
+                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
+    
+    if (MAP_FAILED == degree_array) {
+        cout << "Huge page alloc failed for degree array" << endl;
+        degree_array = (degree_t*)calloc(v_count, sizeof(degree_t));
+    }
+    #pragma omp parallel
+    {
+    snapT_t<T>*   snap_blob = 0;
+    vid_t        nebr_count = 0;
+    
+    #pragma omp for 
+    for (vid_t v = 0; v < v_count; ++v) {
+        snap_blob = graph[v].get_snapblob();
+        if (0 == snap_blob) { continue; }
+        
+        nebr_count = 0;
+        if (snap_id >= snap_blob->snap_id) {
+            nebr_count = snap_blob->degree; 
+        } else {
+            snap_blob = snap_blob->prev;
+            while (snap_blob && snap_id < snap_blob->snap_id) {
+                snap_blob = snap_blob->prev;
+            }
+            if (snap_blob) {
+                nebr_count = snap_blob->degree; 
+            }
+        }
+        degree_array[v] = nebr_count;
+        //cout << v << " " << degree_array[v] << endl;
+    }
+    #pragma omp for
+    for (index_t i = old_marker; i < marker; ++i) {
+        __sync_fetch_and_add(degree_array + edges[i].src_id, 1);
+        __sync_fetch_and_add(degree_array + edges[i].dst_id, 1);
+    }
+    }
+
+    return degree_array;
+}
+
 template<class T>
 void
-ext_hop1(vert_table_t<T>* graph_out, degree_t* degree_out, 
+mem_hop1(vert_table_t<T>* graph_out, degree_t* degree_out, 
         snapshot_t* snapshot, index_t marker, edgeT_t<T>* edges,
         vid_t v_count)
 {
@@ -48,7 +125,6 @@ ext_hop1(vert_table_t<T>* graph_out, degree_t* degree_out,
     vert_table_t<T>* graph  = graph_out;
     delta_adjlist_t<T>* delta_adjlist;
     vunit_t<T>* v_unit = 0;
-    T* adj_list = 0;
     T* local_adjlist = 0;
 
     #pragma omp for reduction(+:sum) schedule (static) nowait
@@ -59,9 +135,7 @@ ext_hop1(vert_table_t<T>* graph_out, degree_t* degree_out,
         if (0 == v_unit) continue;
 
         durable_degree = v_unit->count;
-        adj_list = v_unit->adj_list;
         delta_adjlist = v_unit->delta_adjlist;
-        ++adj_list;
         nebr_count = degree_out[v];
         
         //traverse the delta adj list
@@ -78,13 +152,7 @@ ext_hop1(vert_table_t<T>* graph_out, degree_t* degree_out,
             delta_adjlist = delta_adjlist->get_next();
             delta_degree -= local_degree;
         }
-        degree_t k_count = min(nebr_count, durable_degree);
-        
-        //traverse the adj list
-        for (vid_t k = 0; k < k_count; ++k) {
-            sid = get_nebr(adj_list, k);
-            sum += sid;
-        }
+        assert(0 == durable_degree);
     }
 
     //on-the-fly snapshots should process this
@@ -112,9 +180,16 @@ ext_hop1(vert_table_t<T>* graph_out, degree_t* degree_out,
     cout << "Sum = " << sum << " 1 Hop Time = " << end - start << endl;
 }
 
+class hop2_t {
+ public:
+     vid_t vid;
+     degree_t d;
+     vid_t* vlist;
+};
+
 template<class T>
 void
-ext_hop2(vert_table_t<T>* graph_out, degree_t* degree_out, 
+mem_hop2(vert_table_t<T>* graph_out, degree_t* degree_out, 
         snapshot_t* snapshot, index_t marker, edgeT_t<T>* edges,
         vid_t v_count)
 {
@@ -144,7 +219,6 @@ ext_hop2(vert_table_t<T>* graph_out, degree_t* degree_out,
     sid_t sid = 0;
     vid_t v   = 0;
     vert_table_t<T>* graph  = graph_out;
-    T* adj_list = 0;
     T* local_adjlist = 0;
     delta_adjlist_t<T>* delta_adjlist;
     vunit_t<T>* v_unit = 0;
@@ -163,9 +237,7 @@ ext_hop2(vert_table_t<T>* graph_out, degree_t* degree_out,
         if (0 == v_unit) continue;
 
         durable_degree = v_unit->count;
-        adj_list = v_unit->adj_list;
         delta_adjlist = v_unit->delta_adjlist;
-        ++adj_list;
         
         //traverse the delta adj list
         delta_degree = nebr_count - durable_degree;
@@ -182,14 +254,7 @@ ext_hop2(vert_table_t<T>* graph_out, degree_t* degree_out,
             delta_adjlist = delta_adjlist->get_next();
             delta_degree -= local_degree;
         }
-        degree_t k_count = min(nebr_count, durable_degree);
-        
-        //traverse the adj list
-        for (vid_t k = 0; k < k_count; ++k) {
-            sid = get_nebr(adj_list, k);
-            vlist[d] = sid;
-            ++d;
-        }
+        assert(durable_degree == 0);
         __sync_fetch_and_add(&query[q].d, d);
     }
     
@@ -231,7 +296,6 @@ ext_hop2(vert_table_t<T>* graph_out, degree_t* degree_out,
     sid_t sid = 0;
     vid_t v = 0;
     vert_table_t<T>* graph  = graph_out;
-    T* adj_list = 0;
     T* local_adjlist = 0;
     delta_adjlist_t<T>* delta_adjlist;
     vunit_t<T>* v_unit = 0;
@@ -249,9 +313,7 @@ ext_hop2(vert_table_t<T>* graph_out, degree_t* degree_out,
             if (0 == v_unit) continue;
 
             durable_degree = v_unit->count;
-            adj_list = v_unit->adj_list;
             delta_adjlist = v_unit->delta_adjlist;
-            ++adj_list;
             nebr_count = degree_out[v];
             
             //traverse the delta adj list
@@ -268,13 +330,7 @@ ext_hop2(vert_table_t<T>* graph_out, degree_t* degree_out,
                 delta_adjlist = delta_adjlist->get_next();
                 delta_degree -= local_degree;
             }
-            degree_t k_count = min(nebr_count, durable_degree);
-            
-            //traverse the adj list
-            for (vid_t k = 0; k < k_count; ++k) {
-                sid = get_nebr(adj_list, k);
-                sum += sid;
-            }
+            assert(durable_degree == 0);
         }
     }
 
@@ -313,7 +369,7 @@ ext_hop2(vert_table_t<T>* graph_out, degree_t* degree_out,
 
 template<class T>
 void
-ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out, 
+mem_bfs(vert_table_t<T>* graph_out, degree_t* degree_out, 
         vert_table_t<T>* graph_in, degree_t* degree_in,
         snapshot_t* snapshot, index_t marker, edgeT_t<T>* edges,
         vid_t v_count, uint8_t* status, sid_t root)
@@ -333,7 +389,7 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
 	do {
 		frontier = 0;
 		double start = mywtime();
-		//#pragma omp parallel reduction(+:frontier)
+		#pragma omp parallel reduction(+:frontier)
 		{
             sid_t sid;
             degree_t durable_degree = 0;
@@ -343,14 +399,13 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
 
             vert_table_t<T>* graph  = 0;
             delta_adjlist_t<T>* delta_adjlist;;
-            T* adj_list = 0;
             vunit_t<T>* v_unit = 0;
             T* local_adjlist = 0;
 		    
             if (top_down) {
                 graph  = graph_out;
 				
-                //#pragma omp for nowait
+                #pragma omp for nowait
 				for (vid_t v = 0; v < v_count; v++) {
 					if (status[v] != level) continue;
 					v_unit = graph[v].get_vunit();
@@ -358,9 +413,7 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
 
                     durable_degree = 0;
                     durable_degree = v_unit->count;
-                    adj_list = v_unit->adj_list;
                     delta_adjlist = v_unit->delta_adjlist;
-					++adj_list;
 					nebr_count = degree_out[v];
                     
                     //traverse the delta adj list
@@ -383,18 +436,6 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
                         delta_adjlist = delta_adjlist->get_next();
                         delta_degree -= local_degree;
                     }
-
-                    degree_t k_count = min(nebr_count, durable_degree);
-				    //cout << "durable adjlist " << durable_degree << endl;	
-					//traverse the adj list
-					for (vid_t k = 0; k < k_count; ++k) {
-                        sid = get_nebr(adj_list, k);
-						if (status[sid] == 0) {
-							status[sid] = level + 1;
-							++frontier;
-                            //cout << " " << sid << endl;
-						}
-					}
 				}
 			} else {//bottom up
 				graph = graph_in;
@@ -406,9 +447,7 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
                     if (0 == v_unit) continue;
 
                     durable_degree = v_unit->count;
-                    adj_list = v_unit->adj_list;
                     delta_adjlist = v_unit->delta_adjlist;
-					++adj_list;
 					
 					nebr_count = degree_in[v];
                     
@@ -431,17 +470,7 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
                     }
 					
                     if (status[v] == level + 1) continue;
-
-					//traverse the adj list
-                    degree_t k_count = min(nebr_count, durable_degree);
-					for (vid_t k = 0; k < k_count; ++k) {
-                        sid = get_nebr(adj_list, k);
-						if (status[sid] == level) {
-							status[v] = level + 1;
-							++frontier;
-							break;
-						}
-					}
+                    assert(durable_degree == 0);
 				}
 		    }
 
@@ -497,7 +526,7 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
 
 template<class T>
 void 
-ext_pagerank(vert_table_t<T>* graph_in, degree_t* degree_in, degree_t* degree_out,
+mem_pagerank(vert_table_t<T>* graph_in, degree_t* degree_in, degree_t* degree_out,
         snapshot_t* snapshot, index_t marker, edgeT_t<T>* edges,
         vid_t v_count, int iteration_count)
 {
@@ -567,7 +596,6 @@ ext_pagerank(vert_table_t<T>* graph_in, degree_t* degree_in, degree_t* degree_ou
 
             vert_table_t<T>* graph  = 0;
             delta_adjlist_t<T>* delta_adjlist;
-            T* adj_list = 0;
             T* local_adjlist = 0;
 
             vunit_t<T>* v_unit = 0;
@@ -580,9 +608,7 @@ ext_pagerank(vert_table_t<T>* graph_in, degree_t* degree_in, degree_t* degree_ou
                 if (0 == v_unit) continue;
 
                 durable_degree = v_unit->count;
-                adj_list = v_unit->adj_list;
                 delta_adjlist = v_unit->delta_adjlist;
-                ++adj_list;
                 
                 nebr_count = degree_in[v];
                 rank = 0.0f;
@@ -600,14 +626,7 @@ ext_pagerank(vert_table_t<T>* graph_in, degree_t* degree_in, degree_t* degree_ou
                     delta_adjlist = delta_adjlist->get_next();
                     delta_degree -= local_degree;
                 }
-                
-                //traverse the adj list
-                degree_t k_count = min(nebr_count, durable_degree);
-                for (vid_t k = 0; k < k_count; ++k) {
-                    sid = get_nebr(adj_list, k);
-					rank += prior_rank_array[sid];
-                    
-                }
+                assert(durable_degree == 0); 
                 //rank_array[v] = rank;
                 qthread_dincr(rank_array + v, rank);
             }
