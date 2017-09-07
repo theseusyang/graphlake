@@ -441,7 +441,7 @@ void onegraph_t<T>::prepare_dvt(const string& etfile, const string& vtfile)
         curr		= beg_pos[vid].get_snapblob();
 		if (log_head + curr->degree + 1 > log_count) {
 			adj_write();
-			//log_head = 0;
+			log_head = 0;
 			dvt_count = 0;
 		}
         
@@ -456,7 +456,7 @@ void onegraph_t<T>::prepare_dvt(const string& etfile, const string& vtfile)
     }
 
     adj_write();
-    //log_head = 0;
+    log_head = 0;
     dvt_count = 0;
     adjlog_head = 0;
 }
@@ -481,7 +481,7 @@ void onegraph_t<T>::adj_write()
 		
 		prev_v_unit  = beg_pos[vid].get_vunit();
 		prev_count   = prev_v_unit->count;
-		prev_offset  = prev_v_unit->adj_list - log_beg;
+		prev_offset  = prev_v_unit->offset;
 		
 		//durable adj list allocated
 		adj_list1   = log_beg + dvt1->file_offset;
@@ -510,7 +510,7 @@ void onegraph_t<T>::adj_write()
 
 		v_unit = new_vunit();
 		v_unit->count = dvt1->count;
-		v_unit->adj_list = adj_list2;
+		v_unit->offset = dvt1->file_offset;
 		v_unit->delta_adjlist = 0;
 		beg_pos[vid].set_vunit(v_unit);
             
@@ -527,7 +527,6 @@ void onegraph_t<T>::adj_write()
             perror("pwrite issue");
             assert(0);
         }
-
     }
     
 
@@ -538,6 +537,7 @@ void onegraph_t<T>::adj_write()
 template <class T>
 void onegraph_t<T>::update_count() 
 {
+    /*
     vid_t    v_count = TO_VID(super_id);
     disk_snapT_t<T>* slog = (disk_snapT_t<T>*)snap_log;
     T* adj_list1 = 0;
@@ -609,6 +609,7 @@ void onegraph_t<T>::update_count()
     }
     log_whead = log_head;
     adjlog_head = 0;
+    */
 }
 
 template <class T>
@@ -788,11 +789,11 @@ void onegraph_t<T>::read_vtable(const string& vtfile)
 			vid = dvt[v].vid;
 			v_unit = beg_pos[vid].get_vunit();
 			if (v_unit) {
-				v_unit->adj_list = log_beg + dvt[v].file_offset;
+				v_unit->offset = dvt[v].file_offset;
 				v_unit->count = dvt[v].count;
 			} else {
-				v_unit = new vunit_t<T>;
-				v_unit->adj_list = log_beg + dvt[v].file_offset;
+				v_unit = new_vunit();
+				v_unit->offset = dvt[v].file_offset;
 				v_unit->count = dvt[v].count;
 				beg_pos[vid].set_vunit(v_unit);
 			}

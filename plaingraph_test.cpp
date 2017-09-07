@@ -52,9 +52,9 @@ void plain_test0(const string& idir, const string& odir)
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
 
-    mem_bfs<sid_t>(graph, degree_array, graph, degree_array, 
+    ext_bfs<sid_t>(graph, degree_array, graph, degree_array, 
                    snapshot, marker, ugraph->blog_beg,
-                   v_count, level_array, 1);
+                   v_count, level_array, ugraph->sgraph[0]->etf, 1);
     
     return ;
 }

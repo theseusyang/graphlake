@@ -49,9 +49,6 @@ bfs(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, sid_t root)
 					
 					T* adj_list = graph[v].get_adjlist();
 					vid_t nebr_count = graph[v].get_nebrcount();
-					//vid_t nebr_count = get_nebrcount1(adj_list);
-					//vid_t nebr_count = graph[v].degree;
-					++adj_list;
 					todo += nebr_count;
 				    
 					//traverse the adj list
@@ -221,6 +218,11 @@ verification(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, int iteratio
 {
 
     sid_t sid;
+    delta_adjlist_t<T>* delta_adjlist;;
+    vunit_t<T>* v_unit;
+    T* local_adjlist;
+    degree_t local_degree;
+
     for (tid_t i = 0; i < 1; ++i) {
         
         //get the graph where we will traverse
@@ -230,14 +232,19 @@ verification(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, int iteratio
         vid_t v_count = 10000;
 
         for (vid_t v = 0; v < v_count; v++) {
-            T* adj_list = graph[v].get_adjlist();
-            vid_t nebr_count = get_nebrcount1(adj_list);
-            ++adj_list;
+            v_unit = graph[v].get_vunit();
+            delta_adjlist = v_unit->delta_adjlist;
+            vid_t nebr_count = graph[v].get_nebrcount();
             cout << "vertex: " << v << " : " << nebr_count << endl;	
             //traverse the adj list
-            for (vid_t k = 0; k < nebr_count; ++k) {
-                sid = get_nebr(adj_list, k);
-                cout << sid << " ";
+            while (delta_adjlist != 0 ) {
+                local_adjlist = delta_adjlist->get_adjlist();
+                local_degree = delta_adjlist->get_nebrcount();
+            
+                for (vid_t k = 0; k < local_degree; ++k) {
+                    sid = get_nebr(local_adjlist, k);
+                    cout << sid << " ";
+                }
             }
             cout << endl;
         }

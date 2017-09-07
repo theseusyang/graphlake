@@ -316,7 +316,7 @@ void
 ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out, 
         vert_table_t<T>* graph_in, degree_t* degree_in,
         snapshot_t* snapshot, index_t marker, edgeT_t<T>* edges,
-        vid_t v_count, uint8_t* status, sid_t root)
+        vid_t v_count, uint8_t* status, int etf, sid_t root)
 {
 	int				level      = 1;
 	int				top_down   = 1;
@@ -337,15 +337,17 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
 		{
             sid_t sid;
             degree_t durable_degree = 0;
-            degree_t nebr_count = 0;
-            degree_t local_degree = 0;
-            degree_t delta_degree = 0;
-
-            vert_table_t<T>* graph  = 0;
+            degree_t nebr_count     = 0;
+            degree_t local_degree   = 0;
+            degree_t delta_degree   = 0;
+            T*       local_adjlist  = 0;
+            T*            adj_list  = 0;
+            vunit_t<T>*     v_unit  = 0;
+            index_t         offset  = 0;
+            
             delta_adjlist_t<T>* delta_adjlist;;
-            T* adj_list = 0;
-            vunit_t<T>* v_unit = 0;
-            T* local_adjlist = 0;
+            
+            vert_table_t<T>* graph  = 0;
 		    
             if (top_down) {
                 graph  = graph_out;
@@ -356,17 +358,12 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
 					v_unit = graph[v].get_vunit();
                     if (0 == v_unit) continue;
 
-                    durable_degree = 0;
                     durable_degree = v_unit->count;
-                    adj_list = v_unit->adj_list;
                     delta_adjlist = v_unit->delta_adjlist;
-					++adj_list;
 					nebr_count = degree_out[v];
                     
                     //traverse the delta adj list
                     delta_degree = nebr_count - durable_degree;
-				    //cout << "delta adjlist " << delta_degree << endl;	
-				    //cout << "Nebr list of " << v <<" degree = " << nebr_count << endl;	
                     
                     while (delta_adjlist != 0 && delta_degree > 0) {
                         local_adjlist = delta_adjlist->get_adjlist();
@@ -377,7 +374,6 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
                             if (status[sid] == 0) {
                                 status[sid] = level + 1;
                                 ++frontier;
-                                //cout << " " << sid << endl;
                             }
                         }
                         delta_adjlist = delta_adjlist->get_next();
@@ -385,30 +381,34 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
                     }
 
                     degree_t k_count = min(nebr_count, durable_degree);
+                    offset = v_unit->offset;
+                    adj_list = (T*)malloc((k_count+1)*sizeof(T));
+                    if (0 != k_count) {
+                        pread(etf, adj_list, (k_count+1)*sizeof(T), offset*sizeof(T));
+                    }
 				    //cout << "durable adjlist " << durable_degree << endl;	
 					//traverse the adj list
-					for (vid_t k = 0; k < k_count; ++k) {
+					for (vid_t k = 1; k <= k_count; ++k) {
                         sid = get_nebr(adj_list, k);
 						if (status[sid] == 0) {
 							status[sid] = level + 1;
 							++frontier;
-                            //cout << " " << sid << endl;
 						}
 					}
+                    if (0 != k_count) free(adj_list);
+
 				}
 			} else {//bottom up
 				graph = graph_in;
 				
-				#pragma omp for nowait
+				//#pragma omp for nowait
 				for (vid_t v = 0; v < v_count; v++) {
 					if (status[v] != 0 ) continue;
 					v_unit = graph[v].get_vunit();
                     if (0 == v_unit) continue;
 
                     durable_degree = v_unit->count;
-                    adj_list = v_unit->adj_list;
                     delta_adjlist = v_unit->delta_adjlist;
-					++adj_list;
 					
 					nebr_count = degree_in[v];
                     
@@ -433,8 +433,13 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
                     if (status[v] == level + 1) continue;
 
 					//traverse the adj list
+                    offset = v_unit->offset;
                     degree_t k_count = min(nebr_count, durable_degree);
-					for (vid_t k = 0; k < k_count; ++k) {
+                    adj_list = (T*)malloc((k_count+1)*sizeof(T));
+                    if (0 != k_count) {
+                        pread(etf, adj_list, (k_count +1)*sizeof(T), offset*sizeof(T));
+                    }
+					for (vid_t k = 1; k <= k_count; ++k) {
                         sid = get_nebr(adj_list, k);
 						if (status[sid] == level) {
 							status[v] = level + 1;
@@ -442,6 +447,7 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
 							break;
 						}
 					}
+                    if (0 != k_count)  free(adj_list);
 				}
 		    }
 

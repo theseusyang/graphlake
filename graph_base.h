@@ -70,13 +70,13 @@ class vunit_t {
 	//Durable adj list, and num of nebrs in that
 	vflag_t       vflag;
 	degree_t      count;
-    T*            adj_list;
+    index_t       offset;
 	delta_adjlist_t<T>* delta_adjlist;
 
 	inline void reset() {
 		vflag = 0;
 		count = 0;
-		adj_list = 0;
+		offset = -1L;
 		delta_adjlist = 0;
 	}
 };
@@ -98,10 +98,13 @@ class vert_table_t {
         else  return 0; 
     }
     
-    inline T* get_adjlist() { return v_unit->adj_list; }
-	inline void set_adjlist(T* adj_list1) { 
-		v_unit->adj_list = adj_list1; 
+    inline index_t get_offset() { return v_unit->offset; }
+	inline void set_offset(index_t adj_list1) { 
+		v_unit->offset = adj_list1; 
 	}
+    
+    //XXX
+    inline T* get_adjlist() { return 0;}
 	
 	inline delta_adjlist_t<T>* get_delta_adjlist() {return v_unit->delta_adjlist;}
 	inline void set_delta_adjlist(delta_adjlist_t<T>* delta_adjlist1) {
@@ -241,8 +244,9 @@ private:
     vid_t    dvt_max_count;
 
     FILE*    vtf;   //vertex table file
-    int    etf;   //edge table file
     FILE*    stf;   //snapshot table file
+public:
+    int    etf;   //edge table file
 public:
 
     inline onegraph_t() {
