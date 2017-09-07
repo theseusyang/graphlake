@@ -80,6 +80,75 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
     FILE* file = 0;
     index_t size =  0;
     index_t edge_count = 0;
+    
+    
+    //Read graph files
+    double start = mywtime();
+    dir = opendir(idirname.c_str());
+    edge_t* edge = ugraph->blog_beg;
+    while (NULL != (ptr = readdir(dir))) {
+        if (ptr->d_name[0] == '.') continue;
+        filename = idirname + "/" + string(ptr->d_name);
+        file_count++;
+        
+        file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
+        assert(file != 0);
+        size = fsize(filename);
+        edge_count = size/sizeof(edge_t);
+        edge = ugraph->blog_beg + ugraph->blog_head;
+        if (edge_count != fread(edge, sizeof(edge_t), edge_count, file)) {
+            assert(0);
+        }
+        ugraph->blog_head += edge_count;
+    }
+    closedir(dir);
+    double end = mywtime();
+    cout << "Reading "  << file_count  << " file time = " << end - start << endl;
+    start = mywtime();
+
+    index_t marker = ugraph->blog_head - residue;
+    cout << "End marker = " << ugraph->blog_head;
+    cout << "make graph marker = " << marker << endl;
+    index_t snap_marker = 0;
+    if (marker == 0) return;
+
+    ugraph->create_marker(marker);
+    if (eOK == ugraph->move_marker(snap_marker)) {
+        ugraph->make_graph_baseline();
+        ugraph->store_graph_baseline(odirname);
+        g->incr_snapid(snap_marker, snap_marker);
+    }
+    end = mywtime ();
+    cout << "Make graph time = " << end - start << endl;
+
+    
+    //Second one
+    if (residue == 0) return;
+    marker = ugraph->blog_head;
+    cout << "make graph marker = " << marker << endl;
+    ugraph->create_marker(marker);
+    if (eOK == ugraph->move_marker(snap_marker)) {
+        ugraph->make_graph_baseline();
+        ugraph->store_graph_baseline(odirname);
+        g->incr_snapid(snap_marker, snap_marker);
+    }
+
+    
+}
+
+/*
+void plaingraph_manager::prep_graph(const string& idirname, const string& odirname)
+{
+    struct dirent *ptr;
+    DIR *dir;
+    int file_count = 0;
+    string filename;
+    propid_t cf_id = g->get_cfid("friend");
+    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
+        
+    FILE* file = 0;
+    index_t size =  0;
+    index_t edge_count = 0;
     index_t size1 = 0;
     index_t size2 = 0;
     
@@ -123,11 +192,11 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
     }
     closedir(dir);
 
-    /*
+    / *
     ugraph->fill_adj_list(ugraph->sgraph, ugraph->sgraph);
     ugraph->create_snapshot();
     ugraph->store_graph_baseline(odirname);
-    */
+    * /
     
     for (int j = 0; j <= batch_count; ++j) {
         edge_t* edges = (edge_t*)batch_info[j].buf;
@@ -143,6 +212,7 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
     ugraph->create_marker(ugraph->blog_head);
     sleep(10);
 }
+*/
 
 void plaingraph_manager::prep_graph_paper_num(const string& idirname, const string& odirname)
 {

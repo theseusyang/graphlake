@@ -419,8 +419,8 @@ void onegraph_t<T>::prepare_dvt(const string& etfile, const string& vtfile)
 	disk_vtable_t* dvt1 = 0;
 	
 	
-	if (etf != -1) {
-		etf = open(etfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
+	if (etf == -1) {
+		etf = open(etfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
 	}
 	
 	/*
@@ -439,9 +439,9 @@ void onegraph_t<T>::prepare_dvt(const string& etfile, const string& vtfile)
         if (0 == nebr_count[vid].adj_list) continue;
 		
         curr		= beg_pos[vid].get_snapblob();
-		if (log_head + curr->degree + 1 > dlog_count) {
+		if (log_head + curr->degree + 1 > log_count) {
 			adj_write();
-			log_head = 0;
+			//log_head = 0;
 			dvt_count = 0;
 		}
         
@@ -454,6 +454,11 @@ void onegraph_t<T>::prepare_dvt(const string& etfile, const string& vtfile)
 		dvt1->count	     = curr->degree;
         dvt1->file_offset = adj_list2 - log_beg;
     }
+
+    adj_write();
+    //log_head = 0;
+    dvt_count = 0;
+    adjlog_head = 0;
 }
 
 template <class T>
@@ -487,7 +492,7 @@ void onegraph_t<T>::adj_write()
 		++adj_list1;
 		if (prev_count) {
 			//Read the old adj list from disk
-			pread(etf, adj_list1 , prev_count*sizeof(T), prev_offset);
+			pread(etf, adj_list1 , prev_count*sizeof(T), prev_offset*sizeof(T));
 			adj_list1 += prev_count;
 		}
 
@@ -516,7 +521,15 @@ void onegraph_t<T>::adj_write()
 		
 	//Write new adj list
     //fwrite (log_beg, sizeof(T), log_head, etf);
-	pwrite(etf, log_beg, log_head*sizeof(T), dvt[0].file_offset);
+    if (log_head != 0) {
+	    index_t size = pwrite(etf, log_beg, log_head*sizeof(T), dvt[0].file_offset);
+        if (size != log_head*sizeof(T)) {
+            perror("pwrite issue");
+            assert(0);
+        }
+
+    }
+    
 
 	//Write the dvt log
 	fwrite(dvt, sizeof(disk_vtable_t), dvt_count, vtf);
@@ -891,7 +904,7 @@ void pgraph_t<T>::calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sg
         dst_index = TO_TID(dst);
         vert1_id = TO_VID(src);
         vert2_id = TO_VID(dst);
-        
+
         if (!IS_DEL(src)) { 
             sgraph_out[src_index]->increment_count(vert1_id);
             sgraph_in[dst_index]->increment_count(vert2_id);

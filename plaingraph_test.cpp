@@ -11,14 +11,49 @@ using namespace std;
 
 void plain_test0(const string& idir, const string& odir)
 {
-    //do some setup for plain graphs
     vid_t v_count = (1<<21);
+    /*
+    //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph(idir, odir);
     
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
     bfs<sid_t>(ugraph->sgraph, ugraph->sgraph, 1); 
+    */
+    
+    //do some setup for plain graphs
+    //vid_t v_count = (1<<28);
+    plaingraph_manager::setup_graph(v_count);    
+    plaingraph_manager::prep_graph(idir, odir);
+    
+    propid_t cf_id = g->get_cfid("friend");
+    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
+    vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
+   
+    uint8_t* level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, PROT_READ|PROT_WRITE,
+                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
+    if (MAP_FAILED == level_array) {
+        cout << "Huge page alloc failed for level array" << endl;
+        level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
+    }
+    snapshot_t* snapshot = g->get_snapshot();
+    index_t marker = ugraph->blog_head;
+    index_t old_marker = 0;
+    degree_t* degree_array = 0;
+
+    if (snapshot) {
+        old_marker = snapshot->marker;
+        degree_array = create_degreesnap(graph, v_count, snapshot, marker, ugraph->blog_beg);
+    } else {
+        degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
+    }
+
+    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
+
+    ext_bfs<sid_t>(graph, degree_array, graph, degree_array, 
+                   snapshot, marker, ugraph->blog_beg,
+                   v_count, level_array, 1);
     
     return ;
 }
@@ -331,7 +366,7 @@ void plain_test(vid_t v_count, const string& idir, const string& odir, int job)
     
     switch (job) {
         case 0:
-            g->create_snapthread();
+            //g->create_snapthread();
             plain_test0(idir, odir);
             break;
         case 1:

@@ -284,7 +284,7 @@ public:
         dvt_count = 0;
         dvt_max_count = 0;
         vtf = 0;
-        etf = 0;
+        etf = -1;
         stf = 0;
     }
     
