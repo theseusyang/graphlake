@@ -383,7 +383,6 @@ public:
 		
 	}
 
-    void update_count();
 
     inline void reset_count(vid_t vid) {
         nebr_count[vid].add_count = 0;
@@ -394,19 +393,21 @@ public:
     inline vid_t get_vcount() { return TO_VID(super_id);}
     inline tid_t get_tid() { return TO_TID(super_id);}
 
-    void prepare_vlog();
 
-    void prepare_dvt(const string& etfile, const string& vtfile);
+    void handle_write(const string& etfile, const string& vtfile);
+    void prepare_dvt(write_seg_t<T>* seg, vid_t& last_vid);
 	void adj_write(write_seg_t<T>* seg);
     
+    void update_count();
     /*
+    void prepare_vlog();
 	void persist_elog(const string& etfile);
     void persist_vlog(const string& vtfile);
     void persist_slog(const string& stfile);
-    */
     void read_etable(const string& etfile);
-    void read_vtable(const string& vtfile);
     void read_stable(const string& stfile);
+    */
+    void read_vtable(const string& vtfile);
 };
 
 typedef vert_table_t<sid_t> beg_pos_t;

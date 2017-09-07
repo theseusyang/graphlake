@@ -1,9 +1,12 @@
 #pragma once
 
+#include <omp.h>
 #include <sys/mman.h>
 #include <asm/mman.h>
 #include <unistd.h>
 #include <fcntl.h>
+
+
 #include "type.h"
 #include "graph.h"
 
@@ -423,43 +426,69 @@ void onegraph_t<T>::setup_adjlist()
 }
 
 template <class T>
-void onegraph_t<T>::prepare_dvt(const string& etfile, const string& vtfile) 
+void onegraph_t<T>::handle_write(const string& etfile, const string& vtfile)
+{
+	if (etf == -1) {
+		etf = open(etfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
+        assert(etf != -1);
+	}
+	
+	if(vtf == 0) {
+        vtf = fopen(vtfile.c_str(), "wb");
+        assert(vtf != 0);
+    }
+
+    vid_t   v_count = TO_VID(super_id);
+    vid_t last_vid1 = 0;
+    vid_t last_vid2 = 0;
+    write_seg_t<T>* seg1 = write_seg + 0;
+    write_seg_t<T>* seg2 = write_seg + 1; 
+
+    prepare_dvt(seg1, last_vid1);
+    
+    do {
+        last_vid2 = last_vid1;
+        swap(seg1, seg2);
+        #pragma omp parallel
+        {
+            #pragma omp master
+            {
+                prepare_dvt(seg1, last_vid1);
+            }
+            if (1 == omp_get_thread_num())
+            {
+                //Write the dvt log
+                fwrite(seg2->dvt, sizeof(disk_vtable_t), seg2->dvt_count, vtf);
+            }
+
+            adj_write(seg2);
+        }
+        if (seg2->log_head != 0) { 
+            log_tail += seg2->log_head;
+        }
+        seg2->log_head = 0;
+        seg2->dvt_count = 0;
+        
+    } while(last_vid2 < v_count);
+    adjlog_head = 0;
+}
+
+template <class T>
+void onegraph_t<T>::prepare_dvt(write_seg_t<T>* seg, vid_t& last_vid)
 {
     vid_t    v_count = TO_VID(super_id);
     T* adj_list2 = 0;
     snapT_t<T>* curr = 0;
 	disk_vtable_t* dvt1 = 0;
 	
-	
-	if (etf == -1) {
-		etf = open(etfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
-        assert(etf != -1);
-	}
-	
-	/*
-    if (etf == 0) {
-        etf = fopen(etfile.c_str(), "wb");//append/write + binary
-        assert(etf != 0);
-    }*/
-    
-	if(vtf == 0) {
-        vtf = fopen(vtfile.c_str(), "wb");
-        assert(vtf != 0);
-    }
-
-    write_seg_t<T>* seg = write_seg + 0; 
-    write_seg_t<T>* old_seg = write_seg + 1; 
-    
-    for (vid_t vid = 0; vid < v_count ; ++vid) {
+    for (vid_t vid = last_vid; vid < v_count ; ++vid) {
         if (0 == nebr_count[vid].adj_list) continue;
 		
         curr		= beg_pos[vid].get_snapblob();
 		if ((seg->log_head + curr->degree + 1 > log_count) ||
             (seg->dvt_count >= dvt_max_count)) {
-            swap(old_seg, seg);
-			adj_write(old_seg);
-			old_seg->log_head = 0;
-			old_seg->dvt_count = 0;
+            last_vid = vid;
+            return;
 		}
         
         //durable adj list allocation
@@ -472,12 +501,8 @@ void onegraph_t<T>::prepare_dvt(const string& etfile, const string& vtfile)
         dvt1->file_offset = adj_list2 - seg->log_beg;
     }
 
-    swap(old_seg, seg);
-    adj_write(old_seg);
-    old_seg->log_head = 0;
-    old_seg->dvt_count = 0;
-
-    adjlog_head = 0;
+    last_vid = v_count;
+    return;
 }
 
 template <class T>
@@ -493,6 +518,7 @@ void onegraph_t<T>::adj_write(write_seg_t<T>* seg)
     T* adj_list1 = 0;
     T* adj_list2 = 0;
 
+    #pragma omp for  
 	for (vid_t v = 0; v < seg->dvt_count; ++v) {
 		dvt1 = seg->dvt + v;
 		vid = dvt1->vid;
@@ -527,7 +553,8 @@ void onegraph_t<T>::adj_write(write_seg_t<T>* seg)
 		}
 
 		//Write new adj list
-		//pwrite(etf, adj_list2, (dvt1->count + 1)*sizeof(T), dvt1->file_offset);
+		pwrite(etf, adj_list2, (dvt1->count + 1)*sizeof(T), 
+               (dvt1->file_offset+log_tail)*sizeof(T));
 
 		v_unit = new_vunit();
 		v_unit->count = dvt1->count;
@@ -542,6 +569,7 @@ void onegraph_t<T>::adj_write(write_seg_t<T>* seg)
 		
 	//Write new adj list
     //fwrite (log_beg, sizeof(T), log_head, etf);
+    /*
     if (seg->log_head != 0) {
 	    index_t size = pwrite(etf, seg->log_beg, seg->log_head*sizeof(T), 
                               log_tail*sizeof(T));
@@ -549,15 +577,10 @@ void onegraph_t<T>::adj_write(write_seg_t<T>* seg)
             perror("pwrite issue");
             assert(0);
         }
-        log_tail += seg->log_head;
-    }
+    }*/
     
-
 	//Write the dvt log
-	fwrite(seg->dvt, sizeof(disk_vtable_t), seg->dvt_count, vtf);
-    
-    seg->log_head = 0;
-    seg->dvt_count = 0;
+	//fwrite(seg->dvt, sizeof(disk_vtable_t), seg->dvt_count, vtf);
 }
 
 template <class T>
@@ -1150,13 +1173,9 @@ void pgraph_t<T>::store_sgraph(onegraph_t<T>** sgraph, string dir, string postfi
     string   vtfile, etfile, stfile;
     tid_t    t_count = g->get_total_types();
     
-    //base name using relationship type
-    //const char* name = 0;
-    //typekv_t* typekv = g->get_typekv();
     char name[8];
     string  basefile = dir + col_info[0]->p_name;
 
-    
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
         if (sgraph[i] == 0) continue;
@@ -1167,7 +1186,7 @@ void pgraph_t<T>::store_sgraph(onegraph_t<T>** sgraph, string dir, string postfi
         etfile = basefile + name + "etable" + postfix;
         stfile = basefile + name + "stable" + postfix;
          
-		sgraph[i]->prepare_dvt(etfile, vtfile);
+		sgraph[i]->handle_write(etfile, vtfile);
         /*
 		sgraph[i]->persist_elog(etfile);
         sgraph[i]->persist_slog(stfile);
@@ -1184,9 +1203,6 @@ void pgraph_t<T>::read_sgraph(onegraph_t<T>** sgraph, string dir, string postfix
     string   vtfile, etfile, stfile;
     tid_t    t_count = g->get_total_types();
     
-    //base name using relationship type
-    //const char* name = 0;
-    //typekv_t* typekv = g->get_typekv();
     char name[8];
     string  basefile = dir + col_info[0]->p_name;
 
