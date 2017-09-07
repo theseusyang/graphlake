@@ -221,22 +221,30 @@ verification(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, int iteratio
     delta_adjlist_t<T>* delta_adjlist;;
     vunit_t<T>* v_unit;
     T* local_adjlist;
+    T* adj_list;
     degree_t local_degree;
+    degree_t durable_degree;
+    index_t offset;
+
 
     for (tid_t i = 0; i < 1; ++i) {
         
         //get the graph where we will traverse
         if (0 == sgraph_in[i]) continue;
+    
+        int etf = sgraph_in[i]->etf;
         
         vert_table_t<T>* graph = sgraph_in[i]->get_begpos();
         vid_t v_count = 10000;
 
         for (vid_t v = 0; v < v_count; v++) {
             v_unit = graph[v].get_vunit();
+            if (v_unit == 0) continue;
             delta_adjlist = v_unit->delta_adjlist;
             vid_t nebr_count = graph[v].get_nebrcount();
             cout << "vertex: " << v << " : " << nebr_count << endl;	
-            //traverse the adj list
+            
+            //traverse the delta adj list
             while (delta_adjlist != 0 ) {
                 local_adjlist = delta_adjlist->get_adjlist();
                 local_degree = delta_adjlist->get_nebrcount();
@@ -246,6 +254,20 @@ verification(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, int iteratio
                     cout << sid << " ";
                 }
             }
+
+            //traverse the adj list
+            durable_degree = v_unit->count;
+            offset = v_unit->offset;
+            adj_list = (T*)malloc((durable_degree+1)*sizeof(T));
+            if (0 != durable_degree) {
+                pread(etf, adj_list, (durable_degree+1)*sizeof(T), offset*sizeof(T));
+            }
+
+            for (vid_t k = 1; k <= durable_degree; ++k) {
+                sid = get_nebr(adj_list, k);
+                cout << sid << " ";
+            }
+            if (0 != durable_degree) free(adj_list);
             cout << endl;
         }
     }

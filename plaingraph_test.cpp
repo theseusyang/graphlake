@@ -9,10 +9,11 @@
 #include "snap_iterative_analytics.h"
 
 using namespace std;
+    
+vid_t v_count = 0;
 
 void plain_test0(const string& idir, const string& odir)
 {
-    vid_t v_count = (1<<21);
     /*
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
@@ -24,7 +25,6 @@ void plain_test0(const string& idir, const string& odir)
     */
     
     //do some setup for plain graphs
-    //vid_t v_count = (1<<28);
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph(idir, odir);
     
@@ -62,7 +62,6 @@ void plain_test0(const string& idir, const string& odir)
 void plain_test1(const string& idir, const string& odir)
 {
     //do some setup for plain graphs
-    vid_t v_count = (1<<21);
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph(idir, odir);
     
@@ -73,7 +72,6 @@ void plain_test1(const string& idir, const string& odir)
     //bfs<sid_t>(ugraph->sgraph, ugraph->sgraph, 1); 
     
     vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
-    //index_t edge_count = (v_count << 5);
     
     string idir1 = "/mnt/disk_huge_1/pradeepk/pradeep_graph/kron_21_16_incr/"; 
     //string idir1 = "../data/kron_21_16_incr/"; 
@@ -144,7 +142,6 @@ void plain_test1(const string& idir, const string& odir)
 
 void plain_test2(const string& odir)
 {
-    vid_t v_count = (1<<21);
     index_t edge_count = (v_count << 5);
     //do some setup for plain graphs
     //plaingraph_manager::setup_graph(v_count);    
@@ -179,7 +176,6 @@ void plain_test2(const string& odir)
 void plain_test3(const string& idir, const string& odir)
 {
     //do some setup for plain graphs
-    vid_t v_count = (1<<21);
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph(idir, odir);
     
@@ -192,7 +188,6 @@ void plain_test3(const string& idir, const string& odir)
 void plain_test4(const string& idir, const string& odir)
 {
     //do some setup for plain graphs
-    vid_t v_count = (1<<21);
     plaingraph_manager::setup_graph(v_count);    
     
     plaingraph_manager::prep_graph(idir, odir);
@@ -209,7 +204,6 @@ void plain_test4(const string& idir, const string& odir)
 void plain_test5(const string& odir)
 {
     //do some setup for plain graphs
-    vid_t v_count = (1<<21);
     plaingraph_manager::setup_graph(v_count);    
     
     g->read_graph_baseline(odir);
@@ -223,7 +217,6 @@ void plain_test5(const string& odir)
 void plain_test6(const string& odir)
 {
     //do some setup for plain graphs
-    vid_t v_count = (1<<21);
     plaingraph_manager::setup_graph(v_count);    
     
     g->read_graph_baseline(odir);
@@ -242,7 +235,6 @@ void plain_test6(const string& odir)
 void paper_test0(vid_t v_count, const string& idir, const string& odir)
 {
     //do some setup for plain graphs
-    //vid_t v_count = (1<<28);
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph_paper_num(idir, odir);
     
@@ -279,7 +271,6 @@ void paper_test0(vid_t v_count, const string& idir, const string& odir)
 void paper_test_pr(const string& idir, const string& odir)
 {
     //do some setup for plain graphs
-    vid_t v_count = (1<<28);
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph_paper_num(idir, odir);
     
@@ -309,7 +300,6 @@ void paper_test_pr(const string& idir, const string& odir)
 void paper_test_hop1(const string& idir, const string& odir)
 {
     //do some setup for plain graphs
-    vid_t v_count = (1<<28);
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph_paper_num(idir, odir);
     
@@ -336,7 +326,6 @@ void paper_test_hop1(const string& idir, const string& odir)
 void paper_test_hop2(const string& idir, const string& odir)
 {
     //do some setup for plain graphs
-    vid_t v_count = (1<<28);
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph_paper_num(idir, odir);
     
@@ -360,11 +349,10 @@ void paper_test_hop2(const string& idir, const string& odir)
 
 }
 
-void plain_test(vid_t v_count, const string& idir, const string& odir, int job)
+void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
 {
     plaingraph_manager::schema_plaingraph();
-
-    
+    v_count = v_count1; 
     switch (job) {
         case 0:
             //g->create_snapthread();
@@ -395,7 +383,7 @@ void plain_test(vid_t v_count, const string& idir, const string& odir, int job)
             plain_test6(odir);
             break;
         case 10:
-            paper_test0(v_count, idir, odir);
+            paper_test0(v_count1, idir, odir);
             break;
         case 11:
             paper_test_pr(idir, odir);

@@ -488,13 +488,15 @@ void onegraph_t<T>::adj_write()
 		adj_list2   = adj_list1;
 	   
         //Copy the Old durable adj list
-        set_nebrcount1(adj_list1, dvt1->count);
-		++adj_list1;
 		if (prev_count) {
 			//Read the old adj list from disk
-			pread(etf, adj_list1 , prev_count*sizeof(T), prev_offset*sizeof(T));
-			adj_list1 += prev_count;
-		}
+			pread(etf, adj_list1 , (prev_count+1)*sizeof(T), prev_offset*sizeof(T));
+            set_nebrcount1(adj_list1, dvt1->count);
+			adj_list1 += prev_count + 1;
+		} else {
+            set_nebrcount1(adj_list1, dvt1->count);
+		    ++adj_list1;
+        }
 
         //Copy the new in-memory adj-list
 		delta_adjlist = prev_v_unit->delta_adjlist;
@@ -510,7 +512,7 @@ void onegraph_t<T>::adj_write()
 
 		v_unit = new_vunit();
 		v_unit->count = dvt1->count;
-		v_unit->offset = dvt1->file_offset;
+		v_unit->offset = dvt1->file_offset + log_tail;
 		v_unit->delta_adjlist = 0;
 		beg_pos[vid].set_vunit(v_unit);
             
@@ -522,11 +524,12 @@ void onegraph_t<T>::adj_write()
 	//Write new adj list
     //fwrite (log_beg, sizeof(T), log_head, etf);
     if (log_head != 0) {
-	    index_t size = pwrite(etf, log_beg, log_head*sizeof(T), dvt[0].file_offset);
+	    index_t size = pwrite(etf, log_beg, log_head*sizeof(T), log_tail*sizeof(T));
         if (size != log_head*sizeof(T)) {
             perror("pwrite issue");
             assert(0);
         }
+        log_tail += log_head;
     }
     
 

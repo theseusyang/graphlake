@@ -386,7 +386,7 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
                     if (0 != k_count) {
                         pread(etf, adj_list, (k_count+1)*sizeof(T), offset*sizeof(T));
                     }
-				    //cout << "durable adjlist " << durable_degree << endl;	
+                    //cout << "Vertex: " << v << " durable degree " << durable_degree << endl;
 					//traverse the adj list
 					for (vid_t k = 1; k <= k_count; ++k) {
                         sid = get_nebr(adj_list, k);
