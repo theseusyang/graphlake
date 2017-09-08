@@ -237,7 +237,7 @@ void plain_test4(const string& idir, const string& odir)
 void plain_test5(const string& odir)
 {
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
+    //plaingraph_manager::setup_graph(v_count);    
     
     g->read_graph_baseline(odir);
     

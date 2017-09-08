@@ -333,7 +333,7 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
 	do {
 		frontier = 0;
 		double start = mywtime();
-		//#pragma omp parallel reduction(+:frontier)
+		#pragma omp parallel reduction(+:frontier)
 		{
             sid_t sid;
             degree_t durable_degree = 0;
@@ -352,7 +352,7 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
             if (top_down) {
                 graph  = graph_out;
 				
-                //#pragma omp for nowait
+                #pragma omp for nowait
 				for (vid_t v = 0; v < v_count; v++) {
 					if (status[v] != level) continue;
 					v_unit = graph[v].get_vunit();
@@ -401,7 +401,7 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
 			} else {//bottom up
 				graph = graph_in;
 				
-				//#pragma omp for nowait
+				#pragma omp for nowait
 				for (vid_t v = 0; v < v_count; v++) {
 					if (status[v] != 0 ) continue;
 					v_unit = graph[v].get_vunit();

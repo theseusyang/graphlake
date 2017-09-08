@@ -235,9 +235,10 @@ verification(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, int iteratio
         int etf = sgraph_in[i]->etf;
         
         vert_table_t<T>* graph = sgraph_in[i]->get_begpos();
-        vid_t v_count = 10000;
+        vid_t v_count = 2097152;
+        vid_t v_start = 1600000;
 
-        for (vid_t v = 0; v < v_count; v++) {
+        for (vid_t v = v_start; v < v_count; v++) {
             v_unit = graph[v].get_vunit();
             if (v_unit == 0) continue;
             delta_adjlist = v_unit->delta_adjlist;

@@ -187,9 +187,9 @@ template <class T>
 class write_seg_t {
  public:
      disk_vtable_t* dvt;
+     index_t        dvt_count;
      T*             log_beg;
      index_t        log_head;
-     index_t        dvt_count;
 };
 
 //one type's graph
@@ -396,7 +396,7 @@ public:
 
     void handle_write(const string& etfile, const string& vtfile);
     void handle_read(const string& etfile, const string& vtfile);
-    void prepare_dvt(write_seg_t<T>* seg, vid_t& last_vid);
+    void prepare_dvt(write_seg_t<T>* seg, vid_t& last_vid, index_t& file_offset);
 	void adj_write(write_seg_t<T>* seg);
     
     void update_count();
