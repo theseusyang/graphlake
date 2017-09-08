@@ -116,7 +116,7 @@ void csv_manager::prep_graph(const string& conf_file,
     g->swap_log_buffer();
     g->calc_degree();
     g->make_graph_baseline();
-    g->store_graph_baseline(odirname);
+    g->store_graph_baseline();
 }
 
 //predicate here is the vertex type

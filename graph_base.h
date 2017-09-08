@@ -386,10 +386,9 @@ public:
     inline tid_t get_tid() { return TO_TID(super_id);}
 
 
-    void handle_write(const string& etfile, const string& vtfile);
-    void handle_read(const string& etfile, const string& vtfile);
     void prepare_dvt(write_seg_t<T>* seg, vid_t& last_vid, index_t& file_offset);
 	void adj_write(write_seg_t<T>* seg);
+    void handle_write();
     
     void update_count();
     /*
@@ -400,7 +399,8 @@ public:
     void read_etable(const string& etfile);
     void read_stable(const string& stfile);
     */
-    void read_vtable(const string& vtfile);
+    void read_vtable();
+    void file_open(const string& filename, bool trunc);
 };
 
 typedef vert_table_t<sid_t> beg_pos_t;
@@ -546,8 +546,9 @@ class onekv_t {
         ++dvt_count;
     }
     
-    void persist_kvlog(const string& kvfile);
-    void read_kv(const string& kvfile); 
+    void persist_kvlog();
+    void read_kv(); 
+    void file_open(const string& filename, bool trunc);
 };
 
 typedef onekv_t<sid_t> skv_t; 

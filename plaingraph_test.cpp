@@ -25,6 +25,7 @@ void plain_test0(const string& idir, const string& odir)
     */
     
     //do some setup for plain graphs
+    g->file_open(true);
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph_sync(idir, odir);
     
@@ -147,7 +148,7 @@ void plain_test2(const string& odir)
     //do some setup for plain graphs
     //plaingraph_manager::setup_graph(v_count);    
     
-    g->read_graph_baseline(odir);
+    g->read_graph_baseline();
    
 
     propid_t cf_id = g->get_cfid("friend");
@@ -242,7 +243,7 @@ void plain_test5(const string& odir)
     //do some setup for plain graphs
     //plaingraph_manager::setup_graph(v_count);    
     
-    g->read_graph_baseline(odir);
+    g->read_graph_baseline();
     
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
@@ -255,7 +256,7 @@ void plain_test6(const string& odir)
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
     
-    g->read_graph_baseline(odir);
+    g->read_graph_baseline();
     
     //call mem_bfs
     propid_t cf_id = g->get_cfid("friend");

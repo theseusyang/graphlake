@@ -80,8 +80,10 @@ class cfinfo_t {
     virtual void calc_degree();
     virtual void make_graph_baseline();
     virtual status_t move_marker(index_t& snap_marker);
-    virtual void store_graph_baseline(string dir);
-    virtual void read_graph_baseline(const string& dir);
+    virtual status_t write_edgelog();
+    virtual void store_graph_baseline();
+    virtual void read_graph_baseline();
+    virtual void file_open(const string& filename, bool trunc);
 
 
     //Graph specific

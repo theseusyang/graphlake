@@ -26,13 +26,7 @@ class pgraph_t: public cfinfo_t {
 
         //edge batching buffer
         blog_t<T>*  blog;
-        /*
-        edgeT_t<T>* blog_beg;
-        index_t     blog_count;
-        index_t     blog_head;
-        index_t     blog_tail;
-        index_t     blog_marker;
-        */
+        FILE*       wtf;   //edge log file
 
         //queue
         index_t*   q_beg;
@@ -64,6 +58,7 @@ class pgraph_t: public cfinfo_t {
         }
         q_head = 0;
         q_tail = 0;
+        wtf = 0;
     }
 
 
@@ -91,7 +86,42 @@ class pgraph_t: public cfinfo_t {
         }
 
         blog->blog_beg[index1] = edge;
+
+        //Make the edge log durable
+        if(index - blog->blog_wmarker == W_SIZE) {
+            create_wmarker(index);
+        }
         return eOK; 
+    }
+    
+    //Called from front end thread
+    void create_wmarker(index_t marker) {
+        pthread_mutex_lock(&g->w_mutex);
+        if (marker > blog->blog_wmarker) {
+            blog->blog_marker = marker;
+        }
+        pthread_cond_signal(&g->w_condition);
+        pthread_mutex_unlock(&g->w_mutex);
+        cout << "WMarker queued." << endl;
+    }
+    
+    //called from w thread 
+    status_t write_edgelog() {
+        index_t w_marker = 0;
+        index_t w_tail = 0;
+        index_t w_count = 0;
+        pthread_mutex_lock(&g->w_mutex);
+        w_marker = blog->blog_wmarker;
+        pthread_mutex_unlock(&g->w_mutex);
+        w_tail = blog->blog_wtail;
+        w_count = w_marker - w_tail;
+        if (w_count) {
+            //write and update tail
+            fwrite(blog->blog_beg + w_tail, sizeof(edgeT_t<T>), w_count, wtf);
+            blog->blog_wtail = w_marker;
+            return eOK;
+        }
+        return eNoWork;
     }
     
     void create_marker(index_t marker) {
@@ -143,11 +173,14 @@ class pgraph_t: public cfinfo_t {
     void prep_sgraph_internal(onegraph_t<T>** sgraph);
     void update_count(onegraph_t<T>** sgraph);
     
-    void store_sgraph(onegraph_t<T>** sgraph, string dir, string postfix);
-    void store_skv(onekv_t<T>** skv, string dir, string postfix);
+    void store_sgraph(onegraph_t<T>** sgraph);
+    void store_skv(onekv_t<T>** skv);
     
-    void read_sgraph(onegraph_t<T>** sgraph, string dir, string postfix);
-    void read_skv(onekv_t<T>** skv, string dir, string postfix);
+    void read_sgraph(onegraph_t<T>** sgraph);
+    void read_skv(onekv_t<T>** skv);
+    
+    void file_open_sgraph(onegraph_t<T>** sgraph, const string& odir, const string& postfix, bool trunc);
+    void file_open_skv(onekv_t<T>** skv, const string& odir, const string& postfix, bool trunc);
     
     void fill_adj_list(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in);
     void fill_adj_list_in(onekv_t<T>** skv_out, onegraph_t<T>** sgraph_in); 
@@ -177,8 +210,9 @@ class ugraph_t: public pgraph_t<sid_t> {
     void calc_degree();
     void make_graph_baseline();
     void create_snapshot();
-    void store_graph_baseline(string dir);
-    void read_graph_baseline(const string& dir);
+    void store_graph_baseline();
+    void read_graph_baseline();
+    void file_open(const string& odir,  bool trunc);
     
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
@@ -198,8 +232,9 @@ class dgraph_t: public pgraph_t<sid_t> {
     void calc_degree();
     void make_graph_baseline();
     void create_snapshot();
-    void store_graph_baseline(string dir);
-    void read_graph_baseline(const string& dir);
+    void store_graph_baseline();
+    void read_graph_baseline();
+    void file_open(const string& odir,  bool trunc);
     
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
@@ -219,8 +254,9 @@ class many2one_t: public pgraph_t<sid_t> {
     void calc_degree();
     void make_graph_baseline();
     void create_snapshot();
-    void store_graph_baseline(string dir);
-    void read_graph_baseline(const string& dir);
+    void store_graph_baseline();
+    void read_graph_baseline();
+    void file_open(const string& odir,  bool trunc);
     
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
@@ -240,8 +276,9 @@ class one2one_t: public pgraph_t<sid_t> {
     void calc_degree();
     void make_graph_baseline();
     void create_snapshot();
-    void store_graph_baseline(string dir);
-    void read_graph_baseline(const string& dir);
+    void store_graph_baseline();
+    void read_graph_baseline();
+    void file_open(const string& odir,  bool trunc);
     
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
@@ -261,8 +298,9 @@ class one2many_t: public pgraph_t<sid_t> {
     void calc_degree();
     void make_graph_baseline();
     void create_snapshot();
-    void store_graph_baseline(string dir);
-    void read_graph_baseline(const string& dir);
+    void store_graph_baseline();
+    void read_graph_baseline();
+    void file_open(const string& odir,  bool trunc);
     
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
@@ -292,7 +330,6 @@ void onegraph_t<T>::setup(tid_t tid)
                 perror("posix memalign edge log");
             }
         }
-        
         
         //degree aray realted log, in-memory
         dlog_count = (v_count << 1L);//256 MB
@@ -362,6 +399,7 @@ void onegraph_t<T>::setup(tid_t tid)
     }
 }
 
+
 template <class T>
 void onegraph_t<T>::setup_adjlist()
 {
@@ -425,30 +463,24 @@ void onegraph_t<T>::setup_adjlist()
 }
 
 template <class T>
-void onegraph_t<T>::handle_read(const string& etfile, const string& vtfile)
+void onegraph_t<T>::file_open(const string& filename, bool trunc)
 {
-	if (etf == -1) {
-		etf = open(etfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
-        assert(etf != -1);
-	}
+    string  vtfile = filename + ".vtable";
+    string  etfile = filename + ".etable";
+    //string  stfile = filename + ".stable";
 
-    read_vtable(vtfile);
+    if (trunc) {
+		etf = open(etfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
+        vtf = fopen(vtfile.c_str(), "wb");
+    } else {
+		etf = open(etfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
+        vtf = fopen(vtfile.c_str(), "r+b");
+    }
 }
 
-
 template <class T>
-void onegraph_t<T>::handle_write(const string& etfile, const string& vtfile)
+void onegraph_t<T>::handle_write()
 {
-	if (etf == -1) {
-		etf = open(etfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
-        assert(etf != -1);
-	}
-	
-	if(vtf == 0) {
-        vtf = fopen(vtfile.c_str(), "wb");
-        assert(vtf != 0);
-    }
-
     vid_t   v_count = TO_VID(super_id);
     vid_t last_vid1 = 0;
     vid_t last_vid2 = 0;
@@ -833,15 +865,9 @@ void onegraph_t<T>::read_etable(const string& etfile)
 }
 */
 template <class T>
-void onegraph_t<T>::read_vtable(const string& vtfile)
+void onegraph_t<T>::read_vtable()
 {
-    //read the file
-    if(vtf == 0) {
-        vtf = fopen(vtfile.c_str(), "r+b");
-        assert(vtf != 0);
-    }
-
-    off_t size = fsize(vtfile.c_str());
+    off_t size = 0; //XXX fsize(vtfile.c_str());
     if (size == -1L) {
         assert(0);
     }
@@ -899,7 +925,19 @@ void onekv_t<T>::setup(tid_t tid)
 }
 
 template <class T>
-void onekv_t<T>::persist_kvlog(const string& vtfile)
+void onekv_t<T>::file_open(const string& vtfile, bool trunc)
+{
+    if(trunc) {
+        vtf = fopen(vtfile.c_str(), "wb");
+        assert(vtf != 0);
+    } else {
+        vtf = fopen(vtfile.c_str(), "r+b");
+        assert(vtf != 0);
+    }
+}
+
+template <class T>
+void onekv_t<T>::persist_kvlog()
 {
     //Make a copy
     sid_t count =  dvt_count;
@@ -908,23 +946,13 @@ void onekv_t<T>::persist_kvlog(const string& vtfile)
     dvt_count = 0;
 
     //Write the file
-    if(vtf == 0) {
-        vtf = fopen(vtfile.c_str(), "a+b");
-        assert(vtf != 0);
-    }
     fwrite(dvt, sizeof(disk_kvT_t<T>), count, vtf);
 }
 
 template <class T>
-void onekv_t<T>::read_kv(const string& vtfile)
+void onekv_t<T>::read_kv()
 {
-    //Write the file
-    if(vtf == 0) {
-        vtf = fopen(vtfile.c_str(), "r+b");
-        assert(vtf != 0);
-    }
-
-    off_t size = fsize(vtfile.c_str());
+    off_t size = 0; // XXX fsize(vtfile.c_str());
     if (size == -1L) {
         assert(0);
     }
@@ -1193,27 +1221,16 @@ void pgraph_t<T>::update_count(onegraph_t<T>** sgraph)
 }
 
 template <class T>
-void pgraph_t<T>::store_sgraph(onegraph_t<T>** sgraph, string dir, string postfix)
+void pgraph_t<T>::store_sgraph(onegraph_t<T>** sgraph)
 {
     if (sgraph == 0) return;
     
-    string   vtfile, etfile, stfile;
     tid_t    t_count = g->get_total_types();
     
-    char name[8];
-    string  basefile = dir + col_info[0]->p_name;
-
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
         if (sgraph[i] == 0) continue;
-
-        //name = typekv->get_type_name(i);
-        sprintf(name, "%d", i);
-        vtfile = basefile + name + postfix + ".vtable";
-        etfile = basefile + name + postfix + ".etable";
-        stfile = basefile + name + postfix + ".stable";
-         
-		sgraph[i]->handle_write(etfile, vtfile);
+		sgraph[i]->handle_write();
         /*
 		sgraph[i]->persist_elog(etfile);
         sgraph[i]->persist_slog(stfile);
@@ -1223,76 +1240,64 @@ void pgraph_t<T>::store_sgraph(onegraph_t<T>** sgraph, string dir, string postfi
 }
 
 template <class T>
-void pgraph_t<T>::read_sgraph(onegraph_t<T>** sgraph, string dir, string postfix)
+void pgraph_t<T>::file_open_sgraph(onegraph_t<T>** sgraph, const string& dir, const string& postfix, bool trunc)
 {
     if (sgraph == 0) return;
     
-    string   vtfile, etfile, stfile;
-    tid_t    t_count = g->get_total_types();
-    
     char name[8];
     string  basefile = dir + col_info[0]->p_name;
+    string filename; 
 
-    
     // For each file.
+    tid_t    t_count = g->get_total_types();
     for (tid_t i = 0; i < t_count; ++i) {
+        if (sgraph[i] == 0) continue;
 
         //name = typekv->get_type_name(i);
         sprintf(name, "%d", i);
-        vtfile = basefile + name + postfix + ".vtable";
-        etfile = basefile + name + postfix + ".etable";
-        stfile = basefile + name + postfix + ".stable";
-        
-        FILE* vtf = fopen(vtfile.c_str(), "r+b");
-        if (vtf == 0)  continue;
-        fclose(vtf); 
-        
+        filename = basefile + name + postfix ; 
+		sgraph[i]->file_open(filename, trunc);
+    }
+}
+
+template <class T>
+void pgraph_t<T>::read_sgraph(onegraph_t<T>** sgraph)
+{
+    if (sgraph == 0) return;
+    
+    tid_t    t_count = g->get_total_types();
+    
+    // For each file.
+    for (tid_t i = 0; i < t_count; ++i) {
         sgraph[i] = new onegraph_t<T>;
         sgraph[i]->setup(i);
-        sgraph[i]->handle_read(etfile, vtfile);
+        sgraph[i]->read_vtable();
         //sgraph[i]->read_stable(stfile);
         //sgraph[i]->read_etable(etfile);
     }
 }
 /******************** super kv *************************/
 template <class T>
-void pgraph_t<T>::read_skv(onekv_t<T>** skv, string dir, string postfix)
+void pgraph_t<T>::read_skv(onekv_t<T>** skv)
 {
     if (skv == 0) return;
 
-    //const char* name = 0;
-    //typekv_t*   typekv = g->get_typekv();
-    char name[8];
     tid_t       t_count = g->get_total_types();
     
-    //base name using relationship type
-    string basefile = dir + col_info[0]->p_name;
-    string vtfile;
-
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
         
-        //name = typekv->get_type_name(i);
-        sprintf(name, "%d.", i);
-        vtfile = basefile + name + "kv" + postfix;
-        
-        FILE* vtf = fopen(vtfile.c_str(), "r+b");
-        if (vtf == 0)  continue; 
-        fclose(vtf); 
-
         skv[i] = new onekv_t<T>;
         skv[i]->setup(i);
-        skv[i]->read_kv(vtfile);
+        skv[i]->read_kv();
     }
 }
 
 template <class T>
-void pgraph_t<T>::store_skv(onekv_t<T>** skv, string dir, string postfix)
+void pgraph_t<T>::file_open_skv(onekv_t<T>** skv, const string& dir, const string& postfix, bool trunc)
 {
     if (skv == 0) return;
 
-    //const char* name = 0;
-    //typekv_t*   typekv = g->get_typekv();
     char name[8];
     tid_t       t_count = g->get_total_types();
     
@@ -1303,11 +1308,25 @@ void pgraph_t<T>::store_skv(onekv_t<T>** skv, string dir, string postfix)
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
         if (skv[i] == 0) continue;
-        //name = typekv->get_type_name(i);
-        sprintf(name, "%d.", i);
-        vtfile = basefile + name + "kv" + postfix;
+        sprintf(name, "%d", i);
+        vtfile = basefile + name + postfix;
 
-        skv[i]->persist_kvlog(vtfile);
+        skv[i]->file_open(vtfile, trunc);
+    }
+}
+
+template <class T>
+void pgraph_t<T>::store_skv(onekv_t<T>** skv)
+{
+    if (skv == 0) return;
+
+    tid_t       t_count = g->get_total_types();
+
+    // For each file.
+    for (tid_t i = 0; i < t_count; ++i) {
+        if (skv[i] == 0) continue;
+
+        skv[i]->persist_kvlog();
     }
 }
 

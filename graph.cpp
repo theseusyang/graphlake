@@ -60,6 +60,10 @@ graph::graph()
 
     pthread_mutex_init(&snap_mutex, 0);
     pthread_cond_init(&snap_condition, 0);
+    
+    pthread_mutex_init(&w_mutex, 0);
+    pthread_cond_init(&w_condition, 0);
+    
     register_instances();
 }
     
@@ -184,7 +188,7 @@ void graph::type_done()
 
 void graph::type_store(const string& odir)
 {
-    v_graph->store_graph_baseline(odirname);
+    v_graph->store_graph_baseline();
 }
 
 propid_t graph::get_cfid(propid_t pid)
@@ -294,6 +298,27 @@ void graph::make_graph_baseline()
     }
 }
 
+void graph::create_snapthread()
+{
+    if (0 != pthread_create(&snap_thread, 0, graph::snap_func , g)) {
+        assert(0);
+    }
+}
+
+void* graph::snap_func(void* arg)
+{
+    graph* g_ptr = (graph*)(arg);
+    
+    do {
+        pthread_mutex_lock(&g_ptr->snap_mutex);
+        pthread_cond_wait(&g_ptr->snap_condition, &g_ptr->snap_mutex);
+        pthread_mutex_unlock(&g_ptr->snap_mutex);
+        g_ptr->create_snapshot();
+    } while(1);
+
+    return 0;
+}
+
 void graph::create_snapshot()
 {
     int work_done = 0;
@@ -304,7 +329,7 @@ void graph::create_snapshot()
         for (int i = 1; i < cf_count; i++) {
             if (eOK == cf_info[i]->move_marker(snap_marker)) {
                 cf_info[i]->make_graph_baseline();
-                //cf_info[i]->store_graph_baseline(odirname);
+                //cf_info[i]->store_graph_baseline();
                 //incr_snapid(snap_marker);
                 ++work_done;
                 ++count;
@@ -316,7 +341,7 @@ void graph::create_snapshot()
         }
         if (count == 6) {
             for (int i = 1; i < cf_count; i++) {
-                cf_info[i]->store_graph_baseline(odirname);
+                cf_info[i]->store_graph_baseline();
                 incr_snapid(snap_marker, snap_marker);
                 incr_snapid(snap_marker, snap_marker);
             }
@@ -325,7 +350,7 @@ void graph::create_snapshot()
         } else if (work_done == 0 && count > 0) { 
             cout << "store" << " " << work_done << " " << count;
             for (int i = 1; i < cf_count; i++) {
-                cf_info[i]->store_graph_baseline(odirname);
+                cf_info[i]->store_graph_baseline();
                 incr_snapid(snap_marker, snap_marker);
                 //incr_snapid(snap_marker, 0);
             }
@@ -342,21 +367,29 @@ void graph::create_snapshot()
     } while(true);
 }
 
-void graph::store_graph_baseline(const string& odir)
+void graph::file_open(bool trunc)
 {
-    //Store graph
+    //
     for (int i = 0; i < cf_count; i++) {
-        cf_info[i]->store_graph_baseline(odirname);
+        cf_info[i]->file_open(odirname, trunc);
     }
 }
 
-void graph::read_graph_baseline(const string& odir)
+void graph::store_graph_baseline()
+{
+    //Store graph
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->store_graph_baseline();
+    }
+}
+
+void graph::read_graph_baseline()
 {
     read_snapshot();
     for (int i = 0; i < cf_count; i++) {
-        cf_info[i]->read_graph_baseline(odir);
+        cf_info[i]->read_graph_baseline();
     }
-    v_graph->read_graph_baseline(odir);
+    v_graph->read_graph_baseline();
     v_graph->prep_str2sid(str2vid);
 }
 
@@ -390,19 +423,10 @@ void graph::read_snapshot()
 /////////////////////////////////////////
 void pinfo_t::populate_property(const char* longname, const char* property_name)
 {
-
     p_name  = gstrdup(property_name);
     p_longname = gstrdup(longname);
     cf_id = 0;//will be corrected later
 }
-
-
-/*
-static int 
-is_literal(string str) {
-       return ('<' != str[0]);
-}
-*/
 
 void graph::add_columnfamily(cfinfo_t* cf) 
 {
@@ -412,23 +436,38 @@ void graph::add_columnfamily(cfinfo_t* cf)
 }
 
 
-void* graph::snap_func(void* arg)
+void graph::create_wthread()
 {
+    if (0 != pthread_create(&w_thread, 0, graph::w_func , g)) {
+        assert(0);
+    }
+}
+
+void* graph::w_func(void* arg)
+{
+    
     graph* g_ptr = (graph*)(arg);
     
     do {
-        pthread_mutex_lock(&g_ptr->snap_mutex);
-        pthread_cond_wait(&g_ptr->snap_condition, &g_ptr->snap_mutex);
-        pthread_mutex_unlock(&g_ptr->snap_mutex);
-        g_ptr->create_snapshot();
+        pthread_mutex_lock(&g_ptr->w_mutex);
+        pthread_cond_wait(&g_ptr->w_condition, &g_ptr->w_mutex);
+        pthread_mutex_unlock(&g_ptr->w_mutex);
+        g_ptr->write_edgelog();
     } while(1);
 
     return 0;
 }
 
-void graph::create_snapthread()
+void graph::write_edgelog()
 {
-    if (0 != pthread_create(&snap_thread, 0, graph::snap_func , g)) {
-        assert(0);
-    }
+    index_t work_done = 0;
+    do {
+        work_done = 0;
+        for (int i = 1; i < cf_count; i++) {
+            if (eOK == cf_info[i]->write_edgelog()) {
+                ++work_done;
+			}
+            if (0 == work_done) break;
+        }
+    } while(true);
 }

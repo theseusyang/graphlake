@@ -388,29 +388,25 @@ void p_dgraph_t::make_graph_baseline()
     cleanup();
 }
 
-void p_dgraph_t::store_graph_baseline(string dir)
+void p_dgraph_t::store_graph_baseline()
 {
-    string postfix = "out";
-    store_sgraph(sgraph_out, dir, postfix);
-    postfix = "in";
-    store_sgraph(sgraph_in,  dir, postfix);
+    store_sgraph(sgraph_out);
+    store_sgraph(sgraph_in);
 }
 
-void p_dgraph_t::read_graph_baseline(const string& dir)
+void p_dgraph_t::read_graph_baseline()
 {
     tid_t   t_count    = g->get_total_types();
     
-    string postfix = "out";
     if (0 == sgraph_out) {
         sgraph_out  = (lite_sgraph_t**) calloc (sizeof(lite_sgraph_t*), t_count);
     }
-    read_sgraph(sgraph_out, dir, postfix);
+    read_sgraph(sgraph_out);
     
-    postfix = "in";
     if (0 == sgraph_in) {
         sgraph_in  = (lite_sgraph_t**) calloc (sizeof(lite_sgraph_t*), t_count);
     }
-    read_sgraph(sgraph_in,  dir, postfix);
+    read_sgraph(sgraph_in);
 }
 
 /*******************************************/
@@ -453,21 +449,19 @@ void p_ugraph_t::make_graph_baseline()
     cleanup();
 }
 
-void p_ugraph_t::store_graph_baseline(string dir)
+void p_ugraph_t::store_graph_baseline()
 {
-    string postfix = "";
-    store_sgraph(sgraph, dir, postfix);
+    store_sgraph(sgraph);
 }
 
-void p_ugraph_t::read_graph_baseline(const string& dir)
+void p_ugraph_t::read_graph_baseline()
 {
     tid_t   t_count = g->get_total_types();
-    string postfix = "";
     
     if (0 == sgraph) {
         sgraph  = (lite_sgraph_t**) calloc (sizeof(lite_sgraph_t*), t_count);
     }
-    read_sgraph(sgraph, dir, postfix);
+    read_sgraph(sgraph);
 }
 
 /***************************************/
@@ -514,29 +508,25 @@ void p_many2one_t::make_graph_baseline()
     cleanup();
 }
 
-void p_many2one_t::store_graph_baseline(string dir)
+void p_many2one_t::store_graph_baseline()
 {
-    string postfix = "out";
-    store_skv(skv_out, dir, postfix);
-    postfix = "in";
-    store_sgraph(sgraph_in, dir, postfix);
+    store_skv(skv_out);
+    store_sgraph(sgraph_in);
 }
 
-void p_many2one_t::read_graph_baseline(const string& dir)
+void p_many2one_t::read_graph_baseline()
 {
     tid_t   t_count = g->get_total_types();
     
     if (0 == skv_out) {
         skv_out  = (lite_skv_t**) calloc (sizeof(lite_skv_t*), t_count);
     }
-    string postfix = "out";
-    read_skv(skv_out, dir, postfix);
+    read_skv(skv_out);
     
     if (0 == sgraph_in) {
         sgraph_in  = (lite_sgraph_t**) calloc (sizeof(lite_sgraph_t*), t_count);
     }
-    postfix = "in";
-    read_sgraph(sgraph_in, dir, postfix);
+    read_sgraph(sgraph_in);
 }
 
 /*******************************************/
@@ -583,29 +573,25 @@ void p_one2many_t::make_graph_baseline()
     cleanup();
 }
 
-void p_one2many_t::store_graph_baseline(string dir)
+void p_one2many_t::store_graph_baseline()
 {
-    string postfix = "out";
-    store_sgraph(sgraph_out, dir, postfix);
-    postfix = "in";
-    store_skv(skv_in, dir, postfix);
+    store_sgraph(sgraph_out);
+    store_skv(skv_in);
 }
 
-void p_one2many_t::read_graph_baseline(const string& dir)
+void p_one2many_t::read_graph_baseline()
 {
     tid_t   t_count = g->get_total_types();
     
     if (0 == sgraph_out) {
         sgraph_out  = (lite_sgraph_t**) calloc (sizeof(lite_sgraph_t*), t_count);
     }
-    string postfix = "out";
-    read_sgraph(sgraph_out, dir, postfix);
+    read_sgraph(sgraph_out);
     
     if (0 == skv_in) {
         skv_in  = (lite_skv_t**) calloc (sizeof(lite_skv_t*), t_count);
     }
-    postfix = "in";
-    read_skv(skv_in, dir, postfix);
+    read_skv(skv_in);
 }
 
 /************************************************/
@@ -644,29 +630,25 @@ void p_one2one_t::make_graph_baseline()
     cleanup();
 }
 
-void p_one2one_t::store_graph_baseline(string dir)
+void p_one2one_t::store_graph_baseline()
 {
-    string postfix = "out";
-    store_skv(skv_out, dir, postfix);
-    postfix = "in";
-    store_skv(skv_in, dir, postfix);
+    store_skv(skv_out);
+    store_skv(skv_in);
 }
 
-void p_one2one_t::read_graph_baseline(const string& dir)
+void p_one2one_t::read_graph_baseline()
 {
     tid_t   t_count    = g->get_total_types();
     
-    string postfix = "out";
     if (0 == skv_out) {
         skv_out  = (lite_skv_t**) calloc (sizeof(lite_skv_t*), t_count);
     }
-    read_skv(skv_out, dir, postfix);
+    read_skv(skv_out);
     
-    postfix = "in";
     if (0 == skv_in) {
         skv_in  = (lite_skv_t**) calloc (sizeof(lite_skv_t*), t_count);
     }
-    read_skv(skv_in, dir, postfix);
+    read_skv(skv_in);
 }
 
 /*

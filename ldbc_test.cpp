@@ -592,7 +592,7 @@ void ldbc_test0(const string& conf_file, const string& idir, const string& odir)
 void ldbc_test2(const string& odir)
 {
     schema_ldbc();
-    g->read_graph_baseline(odir);
+    g->read_graph_baseline();
     cout << "----------Test 4-----------------" << endl;
     test4();
     cout << "----------Test 1-----------------" << endl;

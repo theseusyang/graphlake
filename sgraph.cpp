@@ -494,29 +494,33 @@ void dgraph_t::make_graph_baseline()
     update_count(sgraph_in);
 }
 
-void dgraph_t::store_graph_baseline(string dir)
+void dgraph_t::store_graph_baseline()
 {
-    string postfix = "out";
-    store_sgraph(sgraph_out, dir, postfix);
-    postfix = "in";
-    store_sgraph(sgraph_in,  dir, postfix);
+    store_sgraph(sgraph_out);
+    store_sgraph(sgraph_in);
 }
 
-void dgraph_t::read_graph_baseline(const string& dir)
+void dgraph_t::file_open(const string& odir, bool trunc)
+{
+    string postfix = "out";
+    file_open_sgraph(sgraph_out, odir, postfix, trunc);
+    postfix = "in";
+    file_open_sgraph(sgraph_in, odir, postfix, trunc);
+}
+
+void dgraph_t::read_graph_baseline()
 {
     tid_t   t_count    = g->get_total_types();
     
-    string postfix = "out";
     if (0 == sgraph_out) {
         sgraph_out  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
     }
-    read_sgraph(sgraph_out, dir, postfix);
+    read_sgraph(sgraph_out);
     
-    postfix = "in";
     if (0 == sgraph_in) {
         sgraph_in  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
     }
-    read_sgraph(sgraph_in,  dir, postfix);
+    read_sgraph(sgraph_in);
 }
 
 /*******************************************/
@@ -575,35 +579,36 @@ void ugraph_t::make_graph_baseline()
     cout << "fill adj list time = " << end - start << endl;
 }
 
-void ugraph_t::store_graph_baseline(string dir)
+void ugraph_t::store_graph_baseline()
 {
     //double start, end;
-    //start = mywtime(); 
 	/*    
 	#pragma omp parallel     
     {
     update_count(sgraph);
     }
 	*/
-    //end = mywtime();
-    //cout << "update count time = " << end - start << endl;
     
     //start = mywtime(); 
-    string postfix = "";
-    store_sgraph(sgraph, dir, postfix);
+    store_sgraph(sgraph);
     //end = mywtime();
     //cout << "store graph time = " << end - start << endl;
 }
 
-void ugraph_t::read_graph_baseline(const string& dir)
+void ugraph_t::file_open(const string& odir, bool trunc)
+{
+    string postfix = "";
+    file_open_sgraph(sgraph_out, odir, postfix, trunc);
+}
+
+void ugraph_t::read_graph_baseline()
 {
     tid_t   t_count = g->get_total_types();
-    string postfix = "";
     
     if (0 == sgraph) {
         sgraph  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
     }
-    read_sgraph(sgraph, dir, postfix);
+    read_sgraph(sgraph);
 }
 
 /***************************************/
@@ -648,29 +653,33 @@ void many2one_t::make_graph_baseline()
     update_count(sgraph_in);
 }
 
-void many2one_t::store_graph_baseline(string dir)
+void many2one_t::store_graph_baseline()
 {
-    string postfix = "out";
-    store_skv(skv_out, dir, postfix);
-    postfix = "in";
-    store_sgraph(sgraph_in, dir, postfix);
+    store_skv(skv_out);
+    store_sgraph(sgraph_in);
 }
 
-void many2one_t::read_graph_baseline(const string& dir)
+void many2one_t::file_open(const string& odir, bool trunc)
+{
+    string postfix = "in";
+    file_open_sgraph(sgraph_in, odir, postfix, trunc);
+    postfix = "out";
+    file_open_skv(skv_in, odir, postfix, trunc);
+}
+
+void many2one_t::read_graph_baseline()
 {
     tid_t   t_count = g->get_total_types();
     
     if (0 == skv_out) {
         skv_out  = (skv_t**) calloc (sizeof(skv_t*), t_count);
     }
-    string postfix = "out";
-    read_skv(skv_out, dir, postfix);
+    read_skv(skv_out);
     
     if (0 == sgraph_in) {
         sgraph_in  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
     }
-    postfix = "in";
-    read_sgraph(sgraph_in, dir, postfix);
+    read_sgraph(sgraph_in);
 }
 
 /*******************************************/
@@ -716,29 +725,33 @@ void one2many_t::make_graph_baseline()
     
 }
 
-void one2many_t::store_graph_baseline(string dir)
+void one2many_t::store_graph_baseline()
 {
-    string postfix = "out";
-    store_sgraph(sgraph_out, dir, postfix);
-    postfix = "in";
-    store_skv(skv_in, dir, postfix);
+    store_sgraph(sgraph_out);
+    store_skv(skv_in);
 }
 
-void one2many_t::read_graph_baseline(const string& dir)
+void one2many_t::file_open(const string& odir, bool trunc)
+{
+    string postfix = "out";
+    file_open_sgraph(sgraph_out, odir, postfix, trunc);
+    postfix = "in";
+    file_open_skv(skv_in, odir, postfix, trunc);
+}
+
+void one2many_t::read_graph_baseline()
 {
     tid_t   t_count = g->get_total_types();
     
     if (0 == sgraph_out) {
         sgraph_out  = (sgraph_t**) calloc (sizeof(sgraph_t*), t_count);
     }
-    string postfix = "out";
-    read_sgraph(sgraph_out, dir, postfix);
+    read_sgraph(sgraph_out);
     
     if (0 == skv_in) {
         skv_in  = (skv_t**) calloc (sizeof(skv_t*), t_count);
     }
-    postfix = "in";
-    read_skv(skv_in, dir, postfix);
+    read_skv(skv_in);
 }
 
 /************************************************/
@@ -774,29 +787,33 @@ void one2one_t::make_graph_baseline()
     
 }
 
-void one2one_t::store_graph_baseline(string dir)
+void one2one_t::store_graph_baseline()
 {
-    string postfix = "out";
-    store_skv(skv_out, dir, postfix);
-    postfix = "in";
-    store_skv(skv_in, dir, postfix);
+    store_skv(skv_out);
+    store_skv(skv_in);
 }
 
-void one2one_t::read_graph_baseline(const string& dir)
+void one2one_t::file_open(const string& odir, bool trunc)
+{
+    string postfix = "out";
+    file_open_skv(skv_out, odir, postfix, trunc);
+    postfix = "in";
+    file_open_skv(skv_in, odir, postfix, trunc);
+}
+
+void one2one_t::read_graph_baseline()
 {
     tid_t   t_count    = g->get_total_types();
     
-    string postfix = "out";
     if (0 == skv_out) {
         skv_out  = (skv_t**) calloc (sizeof(skv_t*), t_count);
     }
-    read_skv(skv_out, dir, postfix);
+    read_skv(skv_out);
     
-    postfix = "in";
     if (0 == skv_in) {
         skv_in  = (skv_t**) calloc (sizeof(skv_t*), t_count);
     }
-    read_skv(skv_in, dir, postfix);
+    read_skv(skv_in);
 }
 
 /////////// QUERIES ///////////////////////////

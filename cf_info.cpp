@@ -10,6 +10,7 @@ uint64_t MAX_PECOUNT = (MAX_ECOUNT << 1)/3;
 index_t  BATCH_SIZE = (1L << 24);
 index_t  BLOG_SIZE = (1L << 32);
 index_t  DELTA_ESIZE = (1L<<24);
+index_t  W_SIZE = (1L << 20);
 
 
 using std::swap;
@@ -153,12 +154,22 @@ status_t cfinfo_t::move_marker(index_t& snap_marker)
    return eNoWork;
 }
 
-void cfinfo_t::store_graph_baseline(string dir)
+status_t cfinfo_t::write_edgelog()
+{
+   return eNoWork;
+}
+
+void cfinfo_t::store_graph_baseline()
 {
     assert(0);
 }
 
-void cfinfo_t::read_graph_baseline(const string& dir)
+void cfinfo_t::read_graph_baseline()
+{
+    assert(0);
+}
+
+void cfinfo_t::file_open(const string& filename, bool trunc)
 {
     assert(0);
 }

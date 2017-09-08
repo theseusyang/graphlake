@@ -47,8 +47,8 @@ class p_ugraph_t: public p_pgraph_t {
     void prep_graph_baseline();
     void calc_degree();
     void make_graph_baseline();
-    void store_graph_baseline(string dir);
-    void read_graph_baseline(const string& dir);
+    void store_graph_baseline();
+    void read_graph_baseline();
     
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
@@ -66,8 +66,8 @@ class p_dgraph_t: public p_pgraph_t {
     void prep_graph_baseline();
     void calc_degree();
     void make_graph_baseline();
-    void store_graph_baseline(string dir);
-    void read_graph_baseline(const string& dir);
+    void store_graph_baseline();
+    void read_graph_baseline();
     
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
@@ -85,8 +85,8 @@ class p_many2one_t: public p_pgraph_t {
     void prep_graph_baseline();
     void calc_degree();
     void make_graph_baseline();
-    void store_graph_baseline(string dir);
-    void read_graph_baseline(const string& dir);
+    void store_graph_baseline();
+    void read_graph_baseline();
     
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
@@ -104,8 +104,8 @@ class p_one2one_t: public p_pgraph_t {
     void prep_graph_baseline();
     void calc_degree();
     void make_graph_baseline();
-    void store_graph_baseline(string dir);
-    void read_graph_baseline(const string& dir);
+    void store_graph_baseline();
+    void read_graph_baseline();
     
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
@@ -123,8 +123,8 @@ class p_one2many_t: public p_pgraph_t {
     void prep_graph_baseline();
     void calc_degree();
     void make_graph_baseline();
-    void store_graph_baseline(string dir);
-    void read_graph_baseline(const string& dir);
+    void store_graph_baseline();
+    void read_graph_baseline();
     
     status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);

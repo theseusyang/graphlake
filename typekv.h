@@ -89,8 +89,9 @@ class typekv_t : public cfinfo_t {
     
     sid_t type_update(const string& src, const string& dst);
     void make_graph_baseline();
-    void store_graph_baseline(string dir); 
-    void read_graph_baseline(const string& dir); 
+    void store_graph_baseline(); 
+    void read_graph_baseline();
+    void file_open(const string& odir, bool trunc); 
 
   public:
     virtual status_t filter(sid_t sid, univ_t value, filter_fn_t fn);

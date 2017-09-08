@@ -6,6 +6,7 @@ SRC=main.cpp \
 	cf_info.cpp\
 	graph.cpp\
 	sgraph.cpp\
+	p_sgraph.cpp\
 	mlabel.cpp\
 	stringkv.cpp\
 	typekv.cpp\
@@ -18,7 +19,6 @@ SRC=main.cpp \
 	graph_query.cpp\
 	graph_base.cpp\
 	rset.cpp\
-	p_sgraph.cpp\
 	prop_encoder.cpp\
 	propkv.cpp\
 	lubm_test1.cpp\

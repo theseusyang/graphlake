@@ -37,11 +37,12 @@ class strkv_t {
  public: 
     void setup(tid_t tid); 
     void set_value(vid_t vid, char* value); 
-    void persist_vlog(const string& vtfile);
-    void persist_elog(const string& etfile);
-    void read_vtable(const string& vtfile);
-    void read_etable(const string& etfile);
+    void persist_vlog();
+    void persist_elog();
+    void read_vtable();
+    void read_etable();
     void prep_str2sid(map<string, sid_t>& str2sid);
+    void file_open(const string& filename, bool trunc);
     
     /*
     inline char* alloc_mem(size_t sz) {
@@ -61,8 +62,9 @@ class stringkv_t : public cfinfo_t {
     static cfinfo_t* create_instance();
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     void make_graph_baseline();
-    void store_graph_baseline(string dir);
-    void read_graph_baseline(const string& dir);
+    void store_graph_baseline();
+    void read_graph_baseline();
+    void file_open(const string& dir, bool trunc);
 
     strkv_t** prep_strkv();
     void fill_kv_out();

@@ -116,7 +116,7 @@ void plaingraph_manager::prep_graph_sync(const string& idirname, const string& o
     ugraph->create_marker(marker);
     if (eOK == ugraph->move_marker(snap_marker)) {
         ugraph->make_graph_baseline();
-        ugraph->store_graph_baseline(odirname);
+        ugraph->store_graph_baseline();
         g->incr_snapid(snap_marker, snap_marker);
     }
     end = mywtime ();
@@ -130,7 +130,7 @@ void plaingraph_manager::prep_graph_sync(const string& idirname, const string& o
     ugraph->create_marker(marker);
     if (eOK == ugraph->move_marker(snap_marker)) {
         ugraph->make_graph_baseline();
-        ugraph->store_graph_baseline(odirname);
+        ugraph->store_graph_baseline();
         g->incr_snapid(snap_marker, snap_marker);
     }
 }
@@ -194,7 +194,7 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
     //
     //ugraph->fill_adj_list(ugraph->sgraph, ugraph->sgraph);
     //ugraph->create_snapshot();
-    //ugraph->store_graph_baseline(odirname);
+    //ugraph->store_graph_baseline();
     //
     blog_t<sid_t>* blog = ugraph->blog;
     
@@ -261,7 +261,7 @@ void plaingraph_manager::prep_graph_paper_num(const string& idirname, const stri
     ugraph->create_marker(marker);
     if (eOK == ugraph->move_marker(snap_marker)) {
         ugraph->make_graph_baseline();
-        //ugraph->store_graph_baseline(odirname);
+        //ugraph->store_graph_baseline();
         g->incr_snapid(snap_marker, snap_marker);
     }
     end = mywtime ();

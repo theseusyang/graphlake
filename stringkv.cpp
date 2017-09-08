@@ -104,76 +104,62 @@ void stringkv_t::fill_kv_out()
     }
 }
 
-void stringkv_t::store_graph_baseline(string dir)
+void stringkv_t::file_open(const string& dir, bool trunc)
 {
     if (strkv_out == 0) return;
     
-    string postfix = "out";
-
-    //const char* name = 0;
-    //typekv_t*   typekv = g->get_typekv();
     char name[8];
+    string postfix = "out";
     tid_t       t_count = g->get_total_types();
     
     //base name using relationship type
-    string basefile;
+    string basefile, filename;
     if (col_count) {
         basefile = dir + col_info[0]->p_name;
     } else {
         basefile = dir;
     }
-    string vtfile, etfile;
 
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
         if (strkv_out[i] == 0) continue;
         //name = typekv->get_type_name(i);
-        sprintf(name, "%d.", i);
-        vtfile = basefile + name + "vtable" + postfix;
-        etfile = basefile + name + "etable" + postfix;
+        sprintf(name, "%d", i);
+        filename = basefile + name + postfix;
 
-        strkv_out[i]->persist_vlog(vtfile);
-        strkv_out[i]->persist_elog(etfile);
+        strkv_out[i]->file_open(filename, trunc);
     }
 }
 
-void stringkv_t::read_graph_baseline(const string& dir)
+void stringkv_t::store_graph_baseline()
+{
+    if (strkv_out == 0) return;
+    
+    tid_t       t_count = g->get_total_types();
+    
+    // For each file.
+    for (tid_t i = 0; i < t_count; ++i) {
+        if (strkv_out[i] == 0) continue;
+
+        strkv_out[i]->persist_vlog();
+        strkv_out[i]->persist_elog();
+    }
+}
+
+void stringkv_t::read_graph_baseline()
 {
     tid_t   t_count = g->get_total_types();
     if (0 == strkv_out) {
         strkv_out  = (strkv_t**) calloc (sizeof(strkv_t*), t_count);
     }
     
-    string postfix = "out";
-
-    //const char* name = 0;
-    //typekv_t*   typekv = g->get_typekv();
-    char name[8];
-    
-    //base name using relationship type
-    string basefile;
-    if (col_count) {
-        basefile = dir + col_info[0]->p_name;
-    } else {
-        basefile = dir;
-    }
-    string vtfile, etfile;
-
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
-        //name = typekv->get_type_name(i);
-        sprintf(name, "%d.", i);
-        vtfile = basefile + name + "vtable" + postfix;
-        etfile = basefile + name + "etable" + postfix;
-
-        FILE* vtf = fopen(vtfile.c_str(), "r+b");
-        if (vtf == 0) continue;
-        fclose(vtf);
 
         strkv_out[i] = new strkv_t;
         strkv_out[i]->setup(i);
-        strkv_out[i]->read_vtable(vtfile);
-        strkv_out[i]->read_etable(etfile);
+        strkv_out[i]->read_vtable();
+        strkv_out[i]->read_etable();
     }
 }
 
@@ -234,7 +220,7 @@ void strkv_t::setup(tid_t tid)
     }
 }
 
-void strkv_t::persist_elog(const string& etfile)
+void strkv_t::persist_elog()
 {
     //Make a copy
     sid_t wpos = log_wpos;
@@ -242,15 +228,10 @@ void strkv_t::persist_elog(const string& etfile)
     //Update the mark
     log_wpos = log_head;
         
-    //Write the file.
-    if (etf == 0) {
-        etf = fopen(etfile.c_str(), "a+b");//append/write + binary
-        assert(etf != 0);
-    }
     fwrite(log_beg+wpos, sizeof(char), log_head-wpos, etf);
 }
 
-void strkv_t::persist_vlog(const string& vtfile)
+void strkv_t::persist_vlog()
 {
     //Make a copy
     sid_t count =  dvt_count;
@@ -258,22 +239,30 @@ void strkv_t::persist_vlog(const string& vtfile)
     //update the mark
     dvt_count = 0;
 
-    //Write the file
-    if(vtf == 0) {
-        vtf = fopen(vtfile.c_str(), "a+b");
-        assert(vtf != 0);
-    }
     fwrite(dvt, sizeof(disk_strkv_t), count, vtf);
 }
 
-void strkv_t::read_etable(const string& etfile)
+void strkv_t::file_open(const string& filename, bool trunc)
 {
-    if (etf == 0) {
+    string vtfile = filename + ".vtable";
+    string etfile = filename + ".etable";
+    if (trunc) {
+        etf = fopen(etfile.c_str(), "wb");//append/write + binary
+        assert(etf != 0);
+        vtf = fopen(vtfile.c_str(), "wb");
+        assert(vtf != 0);
+
+    } else {
         etf = fopen(etfile.c_str(), "r+b");//append/write + binary
         assert(etf != 0);
+        vtf = fopen(vtfile.c_str(), "r+b");
+        assert(vtf != 0);
     }
+}
 
-    off_t size = fsize(etfile.c_str());
+void strkv_t::read_etable()
+{
+    off_t size = 0; //XXX fsize(etfile.c_str());
     if (size == -1L) {
         assert(0);
     }
@@ -284,15 +273,9 @@ void strkv_t::read_etable(const string& etfile)
     log_wpos = log_head;
 }
 
-void strkv_t::read_vtable(const string& vtfile)
+void strkv_t::read_vtable()
 {
-    //Write the file
-    if(vtf == 0) {
-        vtf = fopen(vtfile.c_str(), "r+b");
-        assert(vtf != 0);
-    }
-
-    off_t size = fsize(vtfile.c_str());
+    off_t size = 0; //XXX fsize(vtfile.c_str());
     if (size == -1L) {
         assert(0);
     }

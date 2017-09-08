@@ -79,6 +79,10 @@ class graph {
     pthread_t snap_thread;
     pthread_mutex_t snap_mutex;
     pthread_cond_t  snap_condition;
+    
+    pthread_t w_thread;
+    pthread_mutex_t w_mutex;
+    pthread_cond_t  w_condition;
 
  public:
     graph();
@@ -128,11 +132,16 @@ class graph {
     void calc_degree();
     void make_graph_baseline();
     void create_snapshot();
-    void store_graph_baseline(const string& odir = "");
-    void read_graph_baseline(const string& odir);
+    void write_edgelog();
+    void store_graph_baseline();
+    void read_graph_baseline();
+    void file_open(bool trunc);
     
     void create_snapthread();
     static void* snap_func(void* arg);
+
+    void create_wthread();
+    static void* w_func(void* arg);
 };
 
 

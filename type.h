@@ -93,6 +93,7 @@ extern uint64_t MAX_ECOUNT; //1000000
 extern uint64_t MAX_PECOUNT;//670000
 extern index_t  BATCH_SIZE;//
 extern index_t  BLOG_SIZE;//
+extern index_t  W_SIZE;//Durable edge log offset
 
 void free_buf(void* buf);
 void* alloc_buf();
@@ -255,10 +256,18 @@ template <class T>
 class blog_t {
  public:
     edgeT_t<T>* blog_beg;
+    //In memory size
     index_t     blog_count;
+    //current batching position
     index_t     blog_head;
+    //Make adj list from this point
     index_t     blog_tail;
+    //Make adj list upto this point
     index_t     blog_marker;
+    //Make edge durable from this point
+    index_t     blog_wtail;
+    //Make edge durable upto this point
+    index_t     blog_wmarker;
 
     blog_t() {
         blog_beg = 0;
@@ -266,6 +275,8 @@ class blog_t {
         blog_head = 0;
         blog_tail = 0;
         blog_marker = 0;
+        blog_wtail = 0;
+        blog_wmarker = 0;
     }
 };
 
