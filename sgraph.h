@@ -318,13 +318,13 @@ void onegraph_t<T>::setup(tid_t tid)
         
         //durable vertex log and adj list log
         dvt_max_count = (v_count);
-        log_count = (1L << 22);
+        log_count = (1L << 27);
         if (posix_memalign((void**) &write_seg[0].dvt, 2097152, 
-                           dvt_max_count*sizeof(disk_vtable_t*))) {
+                           dvt_max_count*sizeof(disk_vtable_t))) {
             perror("posix memalign vertex log");    
         }
         if (posix_memalign((void**) &write_seg[1].dvt, 2097152, 
-                           dvt_max_count*sizeof(disk_vtable_t*))) {
+                           dvt_max_count*sizeof(disk_vtable_t))) {
             perror("posix memalign vertex log");    
         }
         if (posix_memalign((void**)&write_seg[0].log_beg, 2097152, log_count*sizeof(T))) {

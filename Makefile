@@ -1,7 +1,7 @@
 CC=g++
 #CFLAGS=-g -Wall -std=gnu++11  -march=native -DB64 -fopenmp
-#CFLAGS=-g -Wall -std=gnu++11  -march=native -DB32 -DPLAIN_GRAPH -fopenmp -lpthread
-CFLAGS=-O3 -Wall -std=gnu++11  -march=native -DB32 -DPLAIN_GRAPH -fopenmp -lpthread
+CFLAGS=-g -Wall -std=gnu++11  -march=native -DB32 -DPLAIN_GRAPH -fopenmp -lpthread
+#CFLAGS=-O3 -Wall -std=gnu++11  -march=native -DB32 -DPLAIN_GRAPH -fopenmp -lpthread
 SRC=main.cpp \
 	cf_info.cpp\
 	graph.cpp\
@@ -47,6 +47,7 @@ HEADER=graph.h\
     query_clause.h\
 	iterative_analytics.h\
 	ext_iterative_analytics.h\
+	mem_iterative_analytics.h\
 	snap_iterative_analytics.h\
 	nt_to_edge.h\
 	csv_to_edge.h\
