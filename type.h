@@ -233,6 +233,42 @@ class  disk_snapT_t {
 
 snapid_t get_snapid();
 
+//Used for writing adj list to disk
+template <class T>
+class write_seg_t {
+ public:
+     disk_vtable_t* dvt;
+     index_t        dvt_count;
+     T*             log_beg;
+     index_t        log_head;
+
+     write_seg_t() {
+        dvt = 0;
+        dvt_count = 0;
+        log_beg = 0;
+        log_head = 0;
+     }
+};
+
+//edge batching buffer
+template <class T>
+class blog_t {
+ public:
+    edgeT_t<T>* blog_beg;
+    index_t     blog_count;
+    index_t     blog_head;
+    index_t     blog_tail;
+    index_t     blog_marker;
+
+    blog_t() {
+        blog_beg = 0;
+        blog_count = 0;
+        blog_head = 0;
+        blog_tail = 0;
+        blog_marker = 0;
+    }
+};
+
 typedef struct __econf_t {
     string filename;
     string predicate;

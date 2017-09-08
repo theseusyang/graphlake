@@ -23,15 +23,16 @@ class pgraph_t: public cfinfo_t {
             onekv_t<T>** skv_in;
             onegraph_t<T>** sgraph_in;
         };
-        int ref_count;
-        int snapshot_id;
 
         //edge batching buffer
+        blog_t<T>*  blog;
+        /*
         edgeT_t<T>* blog_beg;
         index_t     blog_count;
         index_t     blog_head;
         index_t     blog_tail;
         index_t     blog_marker;
+        */
 
         //queue
         index_t*   q_beg;
@@ -45,18 +46,16 @@ class pgraph_t: public cfinfo_t {
         sgraph = 0;
         sgraph_in = 0;
         
-        blog_count = BLOG_SIZE;
-        blog_beg = (edgeT_t<T>*)mmap(0, sizeof(edgeT_t<T>)*blog_count, PROT_READ|PROT_WRITE,
+        blog = new blog_t<T>;
+        blog->blog_count = BLOG_SIZE;
+        blog->blog_beg = (edgeT_t<T>*)mmap(0, sizeof(edgeT_t<T>)*blog->blog_count, PROT_READ|PROT_WRITE,
                             MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0);
-        if (MAP_FAILED == blog_beg) {
+        if (MAP_FAILED == blog->blog_beg) {
             cout << "Huge page alloc failed for edge log" << endl;
-            if (posix_memalign((void**)&blog_beg, 2097152, blog_count*sizeof(edgeT_t<T>))) {
+            if (posix_memalign((void**)&blog->blog_beg, 2097152, blog->blog_count*sizeof(edgeT_t<T>))) {
                 perror("posix memalign batch edge log");
             }
         }
-        blog_head = 0;
-        blog_tail = 0;
-        blog_marker = 0;
         
         q_count = 256;
         q_beg = (index_t*)calloc(q_count, sizeof(index_t));
@@ -72,26 +71,26 @@ class pgraph_t: public cfinfo_t {
         return eOK;
     }
     status_t batch_edge(edgeT_t<T> edge) {
-        index_t index = __sync_fetch_and_add(&blog_head, 1L);
-        index_t index1 = (index % blog_count);
-        index_t size = (index - blog_marker) % BATCH_SIZE;
+        index_t index = __sync_fetch_and_add(&blog->blog_head, 1L);
+        index_t index1 = (index % blog->blog_count);
+        index_t size = (index - blog->blog_marker) % BATCH_SIZE;
         if ((0 == size) && (index != 0)) {
-            blog_beg[index1] = edge;
+            blog->blog_beg[index1] = edge;
             create_marker(index);
             //cout << "Will create a snapshot now " << endl;
             return eEndBatch;
-        } else if ((index - blog_tail) == blog_count - 1000) {
-            blog_beg[index1] = edge;
+        } else if ((index - blog->blog_tail) == blog->blog_count - 1000) {
+            blog->blog_beg[index1] = edge;
             create_marker(index);
             cout << "About OOM" << endl;
             return eOOM;
-        } else if ((index - blog_tail) >= blog_count) {
+        } else if ((index - blog->blog_tail) >= blog->blog_count) {
             //block
             assert(0);
             return eOOM;
         }
 
-        blog_beg[index1] = edge;
+        blog->blog_beg[index1] = edge;
         return eOK; 
     }
     
@@ -125,8 +124,8 @@ class pgraph_t: public cfinfo_t {
         
         index_t m_index = __sync_fetch_and_add(&q_tail, 1L);
         index_t marker = q_beg[m_index % q_count];
-        blog_marker = marker;
-        snap_marker = blog_marker;
+        blog->blog_marker = marker;
+        snap_marker = blog->blog_marker;
         pthread_mutex_unlock(&g->snap_mutex);
         //cout << "working on snapshot" << endl;
         cout << "Marker dequeue. Position = " << m_index % q_count << " " << marker << endl;
@@ -970,12 +969,12 @@ void pgraph_t<T>::calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sg
     sid_t     src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    edgeT_t<T>* edges = blog_beg;
+    edgeT_t<T>* edges = blog->blog_beg;
     index_t index = 0;
    
     #pragma omp for
-    for (index_t i = blog_tail; i < blog_marker; ++i) {
-        index = (i % blog_count);
+    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
+        index = (i % blog->blog_count);
         src = edges[index].src_id;
         dst = get_sid(edges[index].dst_id);
         
@@ -1001,11 +1000,11 @@ void pgraph_t<T>::calc_edge_count_out(onegraph_t<T>** sgraph_out)
     sid_t     src;
     vid_t     vert1_id;
     tid_t     src_index;
-    edgeT_t<T>* edges = blog_beg;
+    edgeT_t<T>* edges = blog->blog_beg;
     
     index_t index = 0;
-    for (index_t i = blog_tail; i < blog_marker; ++i) {
-        index = (i % blog_count);
+    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
+        index = (i % blog->blog_count);
         src = edges[index].src_id;
         src_index = TO_TID(src);
         vert1_id = TO_VID(src);
@@ -1023,7 +1022,7 @@ void pgraph_t<T>::calc_edge_count_in(onegraph_t<T>** sgraph_in)
     sid_t     src, dst;
     vid_t     vert2_id;
     tid_t     dst_index;
-    edgeT_t<T>* edges = blog_beg;
+    edgeT_t<T>* edges = blog->blog_beg;
     
     /*
     edgeT_t<T>*  edges;
@@ -1034,8 +1033,8 @@ void pgraph_t<T>::calc_edge_count_in(onegraph_t<T>** sgraph_in)
     }*/
     
     index_t index = 0;
-    for (index_t i = blog_tail; i < blog_marker; ++i) {
-        index = (i % blog_count);
+    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
+        index = (i % blog->blog_count);
         src = edges[index].src_id;
         dst = get_sid(edges[index].dst_id);
         dst_index = TO_TID(dst);
@@ -1055,12 +1054,12 @@ void pgraph_t<T>::fill_adj_list(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgra
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
     
-    edge_t*   edges = blog_beg;
+    edge_t*   edges = blog->blog_beg;
 
     index_t index = 0;
     #pragma omp for
-    for (index_t i = blog_tail; i < blog_marker; ++i) {
-        index = (i % blog_count);
+    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
+        index = (i % blog->blog_count);
         src = edges[index].src_id;
         dst = edges[index].dst_id;
         src_index = TO_TID(src);
@@ -1077,7 +1076,7 @@ void pgraph_t<T>::fill_adj_list(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgra
             //sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
         }
     }
-    blog_tail = blog_marker;  
+    blog->blog_tail = blog->blog_marker;  
 }
 
 template <class T>
@@ -1086,11 +1085,11 @@ void pgraph_t<T>::fill_adj_list_in(onekv_t<T>** skv_out, onegraph_t<T>** sgraph_
     sid_t src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    edge_t*   edges = blog_beg;
+    edge_t*   edges = blog->blog_beg;
     
     index_t index = 0;
-    for (index_t i = blog_tail; i < blog_marker; ++i) {
-        index = (i % blog_count);
+    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
+        index = (i % blog->blog_count);
         src = edges[index].src_id;
         dst = edges[index].dst_id;
         src_index = TO_TID(src);
@@ -1107,7 +1106,7 @@ void pgraph_t<T>::fill_adj_list_in(onekv_t<T>** skv_out, onegraph_t<T>** sgraph_
             //sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
         }
     }
-    blog_tail = blog_marker;  
+    blog->blog_tail = blog->blog_marker;  
 }
 
 template <class T>
@@ -1116,11 +1115,11 @@ void pgraph_t<T>::fill_adj_list_out(onegraph_t<T>** sgraph_out, onekv_t<T>** skv
     sid_t   src, dst;
     vid_t   vert1_id, vert2_id;
     tid_t   src_index, dst_index; 
-    edge_t*   edges = blog_beg;
+    edge_t*   edges = blog->blog_beg;
     
     index_t index = 0;
-    for (index_t i = blog_tail; i < blog_marker; ++i) {
-        index = (i % blog_count);
+    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
+        index = (i % blog->blog_count);
         src = edges[index].src_id;
         dst = edges[index].dst_id;
         src_index = TO_TID(src);
@@ -1136,7 +1135,7 @@ void pgraph_t<T>::fill_adj_list_out(onegraph_t<T>** sgraph_out, onekv_t<T>** skv
             //skv_in[dst_index]->del_value(vert2_id, TO_SID(src));
         }
     }
-    blog_tail = blog_marker;  
+    blog->blog_tail = blog->blog_marker;  
 }
 
 template <class T>
@@ -1145,11 +1144,11 @@ void pgraph_t<T>::fill_skv(onekv_t<T>** skv_out, onekv_t<T>** skv_in)
     sid_t src, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    edge_t*   edges = blog_beg;
+    edge_t*   edges = blog->blog_beg;
     
     index_t index = 0;
-    for (index_t i = blog_tail; i < blog_marker; ++i) {
-        index = (i % blog_count);
+    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
+        index = (i % blog->blog_count);
         src = edges[index].src_id;
         dst = edges[index].dst_id;
         src_index = TO_TID(src);
@@ -1166,7 +1165,7 @@ void pgraph_t<T>::fill_skv(onekv_t<T>** skv_out, onekv_t<T>** skv_in)
             skv_in[dst_index]->del_value(vert2_id, TO_SID(src)); 
         }
     }
-    blog_tail = blog_marker;  
+    blog->blog_tail = blog->blog_marker;  
 }
 
 //prefix sum, allocate adj list memory then reset the count

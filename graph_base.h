@@ -183,14 +183,6 @@ class nebrcount_t {
         //
     }
 };
-template <class T>
-class write_seg_t {
- public:
-     disk_vtable_t* dvt;
-     index_t        dvt_count;
-     T*             log_beg;
-     index_t        log_head;
-};
 
 //one type's graph
 template <class T>
