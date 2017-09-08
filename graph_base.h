@@ -395,6 +395,7 @@ public:
 
 
     void handle_write(const string& etfile, const string& vtfile);
+    void handle_read(const string& etfile, const string& vtfile);
     void prepare_dvt(write_seg_t<T>* seg, vid_t& last_vid);
 	void adj_write(write_seg_t<T>* seg);
     

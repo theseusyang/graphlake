@@ -426,6 +426,18 @@ void onegraph_t<T>::setup_adjlist()
 }
 
 template <class T>
+void onegraph_t<T>::handle_read(const string& etfile, const string& vtfile)
+{
+	if (etf == -1) {
+		etf = open(etfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
+        assert(etf != -1);
+	}
+
+    read_vtable(vtfile);
+}
+
+
+template <class T>
 void onegraph_t<T>::handle_write(const string& etfile, const string& vtfile)
 {
 	if (etf == -1) {
@@ -458,7 +470,9 @@ void onegraph_t<T>::handle_write(const string& etfile, const string& vtfile)
             if (1 == omp_get_thread_num())
             {
                 //Write the dvt log
-                fwrite(seg2->dvt, sizeof(disk_vtable_t), seg2->dvt_count, vtf);
+                if (seg2->dvt_count) {
+                    fwrite(seg2->dvt, sizeof(disk_vtable_t), seg2->dvt_count, vtf);
+                }
             }
 
             adj_write(seg2);
@@ -778,8 +792,8 @@ void onegraph_t<T>::read_stable(const string& stfile)
     //read in batches. XXX
     assert(snap_count >= size);
     index_t read_count = fread(snap_log, sizeof(disk_snapT_t<T>), size, stf);
-    snap_blob = (snapT_t<T>*)dlog_beg;
     dlog = (disk_snapT_t<T>*)snap_log; 
+    snap_blob = (snapT_t<T>*)dlog_beg;
     
     for (index_t i  = 0; i < read_count; ++i)  {
         snap_blob[i].del_count = dlog[i].del_count;
@@ -832,6 +846,9 @@ void onegraph_t<T>::read_vtable(const string& vtfile)
 	vid_t vid = 0;
 	vunit_t<T>* v_unit = 0;
     disk_vtable_t* dvt = write_seg[0].dvt;
+	snapT_t<T>* next ; 
+    snapid_t snap_id = 1;
+
     //read in batches
     while (count != 0 ) {
         vid_t read_count = fread(dvt, sizeof(disk_vtable_t), dvt_max_count, vtf);
@@ -848,6 +865,13 @@ void onegraph_t<T>::read_vtable(const string& vtfile)
 				v_unit->count = dvt[v].count;
 				beg_pos[vid].set_vunit(v_unit);
 			}
+            //allocate new snapshot for degree, and initialize
+			next                = new_snapdegree(); 
+            next->del_count     = 0;
+            next->snap_id       = snap_id;
+            next->next          = 0;
+            next->degree        = dvt[v].count;
+            beg_pos[vid].set_snapblob1(next);
         }
         count -= read_count;
     }
@@ -1181,10 +1205,10 @@ void pgraph_t<T>::store_sgraph(onegraph_t<T>** sgraph, string dir, string postfi
         if (sgraph[i] == 0) continue;
 
         //name = typekv->get_type_name(i);
-        sprintf(name, "%d.", i);
-        vtfile = basefile + name + "vtable" + postfix;
-        etfile = basefile + name + "etable" + postfix;
-        stfile = basefile + name + "stable" + postfix;
+        sprintf(name, "%d", i);
+        vtfile = basefile + name + postfix + ".vtable";
+        etfile = basefile + name + postfix + ".etable";
+        stfile = basefile + name + postfix + ".stable";
          
 		sgraph[i]->handle_write(etfile, vtfile);
         /*
@@ -1211,10 +1235,10 @@ void pgraph_t<T>::read_sgraph(onegraph_t<T>** sgraph, string dir, string postfix
     for (tid_t i = 0; i < t_count; ++i) {
 
         //name = typekv->get_type_name(i);
-        sprintf(name, "%d.", i);
-        vtfile = basefile + name + "vtable" + postfix;
-        etfile = basefile + name + "etable" + postfix;
-        stfile = basefile + name + "stable" + postfix;
+        sprintf(name, "%d", i);
+        vtfile = basefile + name + postfix + ".vtable";
+        etfile = basefile + name + postfix + ".etable";
+        stfile = basefile + name + postfix + ".stable";
         
         FILE* vtf = fopen(vtfile.c_str(), "r+b");
         if (vtf == 0)  continue;
@@ -1222,8 +1246,8 @@ void pgraph_t<T>::read_sgraph(onegraph_t<T>** sgraph, string dir, string postfix
         
         sgraph[i] = new onegraph_t<T>;
         sgraph[i]->setup(i);
+        sgraph[i]->handle_read(etfile, vtfile);
         //sgraph[i]->read_stable(stfile);
-        sgraph[i]->read_vtable(vtfile);
         //sgraph[i]->read_etable(etfile);
     }
 }
