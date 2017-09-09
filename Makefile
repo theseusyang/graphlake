@@ -1,12 +1,11 @@
 CC=g++
 #CFLAGS=-g -Wall -std=gnu++11  -march=native -DB64 -fopenmp
-CFLAGS=-g -Wall -std=gnu++11  -march=native -DB32 -DPLAIN_GRAPH -fopenmp -lpthread
+CFLAGS=-g -Wall -std=gnu++11 -march=native -DB32 -DPLAIN_GRAPH -fopenmp -lpthread
 #CFLAGS=-O3 -Wall -std=gnu++11  -march=native -DB32 -DPLAIN_GRAPH -fopenmp -lpthread
 SRC=main.cpp \
 	cf_info.cpp\
 	graph.cpp\
 	sgraph.cpp\
-	p_sgraph.cpp\
 	mlabel.cpp\
 	stringkv.cpp\
 	typekv.cpp\
@@ -27,13 +26,13 @@ SRC=main.cpp \
 	plaingraph_test.cpp\
 	
 #lite_sgraph.cpp\
+#p_sgraph.cpp\
 
 	
 
 HEADER=graph.h\
 	cf_info.h\
 	sgraph.h\
-	p_sgraph.h\
 	prop_encoder.h\
 	propkv.h\
 	stringkv.h\
@@ -54,6 +53,7 @@ HEADER=graph.h\
 	darshan_to_edge.h\
 
 #	lite_sgraph.h\
+#	p_sgraph.h\
 
 #INCLUDES= -Iantlr4/include -Iantlr4
 #LIBDIRS= -Lantlr4/lib

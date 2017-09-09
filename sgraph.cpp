@@ -31,6 +31,271 @@ status_t pgraph_t<sid_t>::batch_update(const string& src, const string& dst, pro
     return batch_edge(edge);
 }
 
+/////////////////////////
+template <>
+void pgraph_t<lite_edge_t>::fill_adj_list(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgraph_in)
+{
+    sid_t     src, dst;
+    vid_t     vert1_id, vert2_id;
+    tid_t     src_index, dst_index;
+    univ_t    univ;
+    
+    ledge_t*   edges;
+    index_t   count;
+
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (ledge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+        for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
+            dst = get_sid(edges[i].dst_id);
+            univ = edges[i].dst_id.second;
+            src_index = TO_TID(src);
+            dst_index = TO_TID(dst);
+            vert1_id = TO_VID(src);
+            vert2_id = TO_VID(dst);
+            
+            if (!IS_DEL(src)) {
+                sgraph_out[src_index]->add_nebr_lite(vert1_id, dst, univ);
+                sgraph_in[dst_index]->add_nebr_lite(vert2_id, src, univ);
+            } else {
+                //sgraph_out[src_index]->del_nebr_lite(vert1_id, dst, univ);
+                //sgraph_in[dst_index]->del_nebr_lite(vert2_id, TO_SID(src), univ);
+            }
+        }
+    }
+}
+
+template <>
+void pgraph_t<lite_edge_t>::fill_adj_list_in(lite_skv_t** skv_out, lite_sgraph_t** sgraph_in) 
+{
+    sid_t src, dst;
+    vid_t     vert1_id, vert2_id;
+    tid_t     src_index, dst_index;
+    ledge_t*   edges;
+    index_t   count;
+    univ_t    univ;
+    lite_edge_t lite_edge;
+
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (ledge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+        for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
+            dst = get_sid(edges[i].dst_id);
+            univ = edges[i].dst_id.second;
+            src_index = TO_TID(src);
+            dst_index = TO_TID(dst);
+            vert1_id = TO_VID(src);
+            vert2_id = TO_VID(dst);
+            
+            lite_edge.first = dst;
+            lite_edge.second = univ; 
+            
+            if (!IS_DEL(src)) {
+                skv_out[src_index]->set_value(vert1_id, lite_edge);
+                sgraph_in[dst_index]->add_nebr_lite(vert2_id, src, univ);
+            } else {
+                //skv_out[src_index]->del_value(vert1_id, lite_edge);
+                //sgraph_in[dst_index]->del_nebr_lite(vert2_id, TO_SID(src), univ);
+            }
+        }
+    }
+}
+
+template <>
+void pgraph_t<lite_edge_t>::fill_adj_list_out(lite_sgraph_t** sgraph_out, lite_skv_t** skv_in) 
+{
+    sid_t   src, dst;
+    vid_t   vert1_id, vert2_id;
+    tid_t   src_index, dst_index; 
+    ledge_t*   edges;
+    index_t   count;
+    lite_edge_t lite_edge;
+    univ_t  univ;
+    
+    
+    for (int j = 0; j <= batch_count; ++j) { 
+        edges = (ledge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+        for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
+            dst = get_sid(edges[i].dst_id);
+            univ = edges[i].dst_id.second;
+            src_index = TO_TID(src);
+            dst_index = TO_TID(dst);
+            
+            vert1_id = TO_VID(src);
+            vert2_id = TO_VID(dst);
+            lite_edge.first = src;
+            lite_edge.second = univ;
+           
+            if (!IS_DEL(src)) {
+                sgraph_out[src_index]->add_nebr_lite(vert1_id, dst, univ);
+                skv_in[dst_index]->set_value(vert2_id, lite_edge);
+            } else {
+                //sgraph_out[src_index]->del_nebr_lite(vert1_id, dst, univ);
+                //skv_in[dst_index]->del_value_lite(vert2_id, TO_SID(src), univ);
+            }
+        }
+    }
+}
+template <>
+void pgraph_t<lite_edge_t>::fill_skv(lite_skv_t** skv_out, lite_skv_t** skv_in)
+{
+    sid_t     src, dst;
+    vid_t     vert1_id, vert2_id;
+    tid_t     src_index, dst_index;
+    ledge_t*  edges;
+    index_t   count;
+    univ_t    univ;
+    
+    for (int j = 0; j <= batch_count; ++j) {
+        edges = (ledge_t*)batch_info[j].buf;
+        count = batch_info[j].count;
+    
+        for (index_t i = 0; i < count; ++i) {
+            src = edges[i].src_id;
+            dst = get_sid(edges[i].dst_id);
+            univ = edges[i].dst_id.second;
+            src_index = TO_TID(src);
+            dst_index = TO_TID(dst);
+            
+            vert1_id = TO_VID(src);
+            vert2_id = TO_VID(dst);
+            
+            if (!IS_DEL(src)) {
+                skv_out[src_index]->set_value_lite(vert1_id, dst, univ); 
+                skv_in[dst_index]->set_value_lite(vert2_id, src, univ);
+            } else {
+                skv_out[src_index]->del_value_lite(vert1_id, dst, univ); 
+                skv_in[dst_index]->del_value_lite(vert2_id, TO_SID(src), univ);
+            }
+        }
+    }
+}
+
+template <>
+void pgraph_t<sid_t>::fill_adj_list(onegraph_t<sid_t>** sgraph_out, onegraph_t<sid_t>** sgraph_in)
+{
+    sid_t     src, dst;
+    vid_t     vert1_id, vert2_id;
+    tid_t     src_index, dst_index;
+    
+    edge_t*   edges = blog->blog_beg;
+
+    index_t index = 0;
+    #pragma omp for
+    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
+        index = (i % blog->blog_count);
+        src = edges[index].src_id;
+        dst = edges[index].dst_id;
+        src_index = TO_TID(src);
+        dst_index = TO_TID(dst);
+        vert1_id = TO_VID(src);
+        vert2_id = TO_VID(dst);
+       
+        if (!IS_DEL(src)) { 
+            sgraph_out[src_index]->add_nebr(vert1_id, dst);
+            sgraph_in[dst_index]->add_nebr(vert2_id, src);
+        } else {
+            assert(0);
+            //sgraph_out[src_index]->del_nebr(vert1_id, dst);
+            //sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
+        }
+    }
+    blog->blog_tail = blog->blog_marker;  
+}
+
+template <>
+void pgraph_t<sid_t>::fill_adj_list_in(onekv_t<sid_t>** skv_out, onegraph_t<sid_t>** sgraph_in) 
+{
+    sid_t src, dst;
+    vid_t     vert1_id, vert2_id;
+    tid_t     src_index, dst_index;
+    edge_t*   edges = blog->blog_beg;
+    
+    index_t index = 0;
+    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
+        index = (i % blog->blog_count);
+        src = edges[index].src_id;
+        dst = edges[index].dst_id;
+        src_index = TO_TID(src);
+        dst_index = TO_TID(dst);
+        
+        vert1_id = TO_VID(src);
+        vert2_id = TO_VID(dst);
+        
+        if (!IS_DEL(src)) { 
+            skv_out[src_index]->set_value(vert1_id, dst);
+            sgraph_in[dst_index]->add_nebr(vert2_id, src);
+        } else {
+            //skv_out[src_index]->del_value(vert1_id, dst);
+            //sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
+        }
+    }
+    blog->blog_tail = blog->blog_marker;  
+}
+
+template <>
+void pgraph_t<sid_t>::fill_adj_list_out(onegraph_t<sid_t>** sgraph_out, onekv_t<sid_t>** skv_in) 
+{
+    sid_t   src, dst;
+    vid_t   vert1_id, vert2_id;
+    tid_t   src_index, dst_index; 
+    edge_t*   edges = blog->blog_beg;
+    
+    index_t index = 0;
+    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
+        index = (i % blog->blog_count);
+        src = edges[index].src_id;
+        dst = edges[index].dst_id;
+        src_index = TO_TID(src);
+        dst_index = TO_TID(dst);
+        
+        vert1_id = TO_VID(src);
+        vert2_id = TO_VID(dst);
+        if (!IS_DEL(src)) {
+            sgraph_out[src_index]->add_nebr(vert1_id, dst);
+            skv_in[dst_index]->set_value(vert2_id, src); 
+        } else {
+            //sgraph_out[src_index]->del_nebr(vert1_id, dst);
+            //skv_in[dst_index]->del_value(vert2_id, TO_SID(src));
+        }
+    }
+    blog->blog_tail = blog->blog_marker;  
+}
+
+template <>
+void pgraph_t<sid_t>::fill_skv(onekv_t<sid_t>** skv_out, onekv_t<sid_t>** skv_in)
+{
+    sid_t src, dst;
+    vid_t     vert1_id, vert2_id;
+    tid_t     src_index, dst_index;
+    edge_t*   edges = blog->blog_beg;
+    
+    index_t index = 0;
+    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
+        index = (i % blog->blog_count);
+        src = edges[index].src_id;
+        dst = edges[index].dst_id;
+        src_index = TO_TID(src);
+        dst_index = TO_TID(dst);
+        
+        vert1_id = TO_VID(src);
+        vert2_id = TO_VID(dst);
+        
+        if (!IS_DEL(src)) {
+            skv_out[src_index]->set_value(vert1_id, dst); 
+            skv_in[dst_index]->set_value(vert2_id, src); 
+        } else {
+            skv_out[src_index]->del_value(vert1_id, dst); 
+            skv_in[dst_index]->del_value(vert2_id, TO_SID(src)); 
+        }
+    }
+    blog->blog_tail = blog->blog_marker;  
+}
+
 /*
 //Applicable to graphs only, labels should be aware of it.
 status_t pgraph_t::batch_update(const string& src, const string& dst, propid_t pid / * = 0 * /)
@@ -451,6 +716,7 @@ skv_t** pgraph_t::prep_skv(sflag_t ori_flag, skv_t** skv)
 */
 
 /************* Semantic graphs  *****************/
+/*
 void dgraph_t::prep_graph_baseline()
 {
     flag1_count = __builtin_popcountll(flag1);
@@ -525,8 +791,9 @@ void dgraph_t::read_graph_baseline()
     }
     read_sgraph(sgraph_in);
 }
-
+*/
 /*******************************************/
+/*
 void ugraph_t::prep_graph_baseline()
 {
     flag1 = flag1 | flag2;
@@ -585,12 +852,12 @@ void ugraph_t::make_graph_baseline()
 void ugraph_t::store_graph_baseline()
 {
     //double start, end;
-	/*    
-	#pragma omp parallel     
-    {
+	    
+	//#pragma omp parallel     
+    //{
     update_count(sgraph);
-    }
-	*/
+    //}
+	
     
     //start = mywtime(); 
     store_sgraph(sgraph);
@@ -613,8 +880,9 @@ void ugraph_t::read_graph_baseline()
     }
     read_sgraph(sgraph);
 }
-
+*/
 /***************************************/
+/*
 void many2one_t::prep_graph_baseline()
 {
     flag1_count = __builtin_popcountll(flag1);
@@ -684,8 +952,9 @@ void many2one_t::read_graph_baseline()
     }
     read_sgraph(sgraph_in);
 }
-
+*/
 /*******************************************/
+/*
 void one2many_t::prep_graph_baseline()
 {
     flag1_count = __builtin_popcountll(flag1);
@@ -756,8 +1025,9 @@ void one2many_t::read_graph_baseline()
     }
     read_skv(skv_in);
 }
-
+*/
 /************************************************/
+/*
 void one2one_t::prep_graph_baseline()
 {
     flag1_count = __builtin_popcountll(flag1);
@@ -818,7 +1088,7 @@ void one2one_t::read_graph_baseline()
     }
     read_skv(skv_in);
 }
-
+*/
 /////////// QUERIES ///////////////////////////
 /*
 status_t pgraph_t::query_adjlist_td(sgraph_t** sgraph, srset_t* iset, srset_t* oset)
@@ -996,6 +1266,7 @@ pgraph_t::extend_kv_td(skv_t** skv, srset_t* iset, srset_t* oset)
     return eOK;
 }
 */
+/*
 cfinfo_t* ugraph_t::create_instance()
 {
     return new ugraph_t;
@@ -1021,7 +1292,7 @@ cfinfo_t* many2one_t::create_instance()
     return new many2one_t;
 }
 //////
-void ugraph_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
+void ugraph_t::incr_count(sid_t src, sid_t dst, int del / *= 0 * /)
 {
     vid_t vert1_id = TO_VID(src);
     vid_t vert2_id = TO_VID(dst);
@@ -1038,7 +1309,7 @@ void ugraph_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
     }
 }
 
-void dgraph_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
+void dgraph_t::incr_count(sid_t src, sid_t dst, int del / *= 0 * /)
 {
     tid_t src_index = TO_TID(src);
     tid_t dst_index = TO_TID(dst);
@@ -1055,11 +1326,11 @@ void dgraph_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
     }
 }
 
-void one2one_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
+void one2one_t::incr_count(sid_t src, sid_t dst, int del / *= 0* /)
 {
 }
 
-void one2many_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
+void one2many_t::incr_count(sid_t src, sid_t dst, int del / *= 0 * /)
 {
     tid_t dst_index = TO_TID(dst);
     
@@ -1072,7 +1343,7 @@ void one2many_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
     }
 }
 
-void many2one_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
+void many2one_t::incr_count(sid_t src, sid_t dst, int del / *= 0* /)
 {
     tid_t src_index = TO_TID(src);
     
@@ -1085,7 +1356,7 @@ void many2one_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
     }
 }
 
-void ugraph_t::add_nebr(sid_t src, sid_t dst, int del /*= 0*/)
+void ugraph_t::add_nebr(sid_t src, sid_t dst, int del / *= 0* /)
 {
     vid_t vert1_id = TO_VID(src);
     vid_t vert2_id = TO_VID(dst);
@@ -1102,7 +1373,7 @@ void ugraph_t::add_nebr(sid_t src, sid_t dst, int del /*= 0*/)
     }
 }
 
-void dgraph_t::add_nebr(sid_t src, sid_t dst, int del /*= 0*/)
+void dgraph_t::add_nebr(sid_t src, sid_t dst, int del / *= 0* /)
 {
     tid_t src_index = TO_TID(src);
     tid_t dst_index = TO_TID(dst);
@@ -1119,7 +1390,7 @@ void dgraph_t::add_nebr(sid_t src, sid_t dst, int del /*= 0*/)
     }
 }
 
-void one2one_t::add_nebr(sid_t src, sid_t dst, int del /*= 0*/)
+void one2one_t::add_nebr(sid_t src, sid_t dst, int del / *= 0* /)
 {
     tid_t src_index = TO_TID(src);
     tid_t dst_index = TO_TID(dst);
@@ -1136,7 +1407,7 @@ void one2one_t::add_nebr(sid_t src, sid_t dst, int del /*= 0*/)
     }
 }
 
-void one2many_t::add_nebr(sid_t src, sid_t dst, int del /*= 0*/)
+void one2many_t::add_nebr(sid_t src, sid_t dst, int del / *= 0* /)
 {
     tid_t src_index = TO_TID(src);
     tid_t dst_index = TO_TID(dst);
@@ -1153,7 +1424,7 @@ void one2many_t::add_nebr(sid_t src, sid_t dst, int del /*= 0*/)
     }
 }
 
-void many2one_t::add_nebr(sid_t src, sid_t dst, int del /*= 0*/)
+void many2one_t::add_nebr(sid_t src, sid_t dst, int del / *= 0* /)
 {
     tid_t src_index = TO_TID(src);
     tid_t dst_index = TO_TID(dst);
@@ -1195,3 +1466,5 @@ void many2one_t::create_snapshot()
 {
     update_count(sgraph_in);
 }
+*/
+

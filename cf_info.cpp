@@ -191,3 +191,16 @@ status_t cfinfo_t::get_encoded_value(const char* value, univ_t* univ)
     assert(0);
     return eQueryFail;
 }
+
+///****************///
+status_t cfinfo_t::transform(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    assert(0);
+    return eOK;
+}
+
+status_t cfinfo_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    assert(0);
+    return eOK;
+}

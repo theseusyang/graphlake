@@ -9,7 +9,7 @@
 
 #include "type.h"
 #include "graph.h"
-
+#include "wtime.h"
 
 template <class T>
 class pgraph_t: public cfinfo_t {
@@ -196,10 +196,27 @@ class pgraph_t: public cfinfo_t {
     status_t extend_kv_td(onekv_t<T>** skv, srset_t* iset, srset_t* oset);
 
 };
-
-class ugraph_t: public pgraph_t<sid_t> {
+template <class T>
+class ugraph: public pgraph_t<T> {
  public:
-    //sgraph_t** sgraph;
+    using pgraph_t<T>::sgraph;
+    using pgraph_t<T>::flag1;
+    using pgraph_t<T>::flag2;
+    using pgraph_t<T>::flag1_count;
+    using pgraph_t<T>::flag2_count;
+    using pgraph_t<T>::blog;
+
+    using pgraph_t<T>::read_sgraph;
+    using pgraph_t<T>::prep_sgraph;
+    using pgraph_t<T>::file_open_sgraph;
+    using pgraph_t<T>::calc_edge_count;
+    using pgraph_t<T>::prep_sgraph_internal;
+    using pgraph_t<T>::fill_adj_list;
+    using pgraph_t<T>::store_sgraph;
+    using pgraph_t<T>::extend_adjlist_td;
+    using pgraph_t<T>::query_adjlist_td;
+    using pgraph_t<T>::query_adjlist_bu;
+
 
  public:
     static cfinfo_t* create_instance();
@@ -218,11 +235,31 @@ class ugraph_t: public pgraph_t<sid_t> {
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
-class dgraph_t: public pgraph_t<sid_t> {
+template <class T>
+class dgraph: public pgraph_t<T> {
  public:
     //count is hidden in type count
     //sgraph_t** sgraph_out;
     //sgraph_t** sgraph_in; 
+    using pgraph_t<T>::sgraph_in;
+    using pgraph_t<T>::sgraph_out;
+    using pgraph_t<T>::flag1;
+    using pgraph_t<T>::flag2;
+    using pgraph_t<T>::flag1_count;
+    using pgraph_t<T>::flag2_count;
+    using pgraph_t<T>::blog;
+    
+    using pgraph_t<T>::prep_sgraph;
+    using pgraph_t<T>::read_sgraph;
+    using pgraph_t<T>::file_open_sgraph;
+    using pgraph_t<T>::calc_edge_count;
+    using pgraph_t<T>::prep_sgraph_internal;
+    using pgraph_t<T>::fill_adj_list;
+    using pgraph_t<T>::store_sgraph;
+    using pgraph_t<T>::extend_adjlist_td;
+    using pgraph_t<T>::query_adjlist_td;
+    using pgraph_t<T>::query_adjlist_bu;
+
  public:
     static cfinfo_t* create_instance();
     
@@ -240,10 +277,36 @@ class dgraph_t: public pgraph_t<sid_t> {
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
-class many2one_t: public pgraph_t<sid_t> {
+template <class T>
+class many2one: public pgraph_t<T> {
  public:
     //skv_t**     skv_out;
     //sgraph_t**  sgraph_in;
+    using pgraph_t<T>::sgraph_in;
+    using pgraph_t<T>::skv_out;
+    using pgraph_t<T>::flag1;
+    using pgraph_t<T>::flag2;
+    using pgraph_t<T>::flag1_count;
+    using pgraph_t<T>::flag2_count;
+    using pgraph_t<T>::blog;
+    
+    using pgraph_t<T>::read_sgraph;
+    using pgraph_t<T>::read_skv;
+    using pgraph_t<T>::prep_sgraph;
+    using pgraph_t<T>::prep_skv;
+    using pgraph_t<T>::file_open_sgraph;
+    using pgraph_t<T>::file_open_skv;
+    using pgraph_t<T>::calc_edge_count_in;
+    using pgraph_t<T>::prep_sgraph_internal;
+    using pgraph_t<T>::fill_adj_list_in;
+    using pgraph_t<T>::store_sgraph;
+    using pgraph_t<T>::store_skv;
+    using pgraph_t<T>::extend_adjlist_td;
+    using pgraph_t<T>::extend_kv_td;
+    using pgraph_t<T>::query_adjlist_td;
+    using pgraph_t<T>::query_adjlist_bu;
+    using pgraph_t<T>::query_kv_td;
+    using pgraph_t<T>::query_kv_bu;
 
  public:
     static cfinfo_t* create_instance();
@@ -262,10 +325,27 @@ class many2one_t: public pgraph_t<sid_t> {
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
-class one2one_t: public pgraph_t<sid_t> {
+template <class T>
+class one2one: public pgraph_t<T> {
  public:
     //skv_t**   skv_in;
     //skv_t**   skv_out;
+    using pgraph_t<T>::skv_in;
+    using pgraph_t<T>::skv_out;
+    using pgraph_t<T>::flag1;
+    using pgraph_t<T>::flag2;
+    using pgraph_t<T>::flag1_count;
+    using pgraph_t<T>::flag2_count;
+    using pgraph_t<T>::blog;
+    
+    using pgraph_t<T>::read_skv;
+    using pgraph_t<T>::prep_skv;
+    using pgraph_t<T>::file_open_skv;
+    using pgraph_t<T>::store_skv;
+    using pgraph_t<T>::fill_skv;
+    using pgraph_t<T>::extend_kv_td;
+    using pgraph_t<T>::query_kv_td;
+    using pgraph_t<T>::query_kv_bu;
 
  public:
     static cfinfo_t* create_instance();
@@ -284,10 +364,36 @@ class one2one_t: public pgraph_t<sid_t> {
     virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
-class one2many_t: public pgraph_t<sid_t> {
+template <class T>
+class one2many: public pgraph_t<T> {
  public:
     //sgraph_t**   sgraph_out;
     //skv_t**      skv_in;
+    using pgraph_t<T>::skv_in;
+    using pgraph_t<T>::sgraph_out;
+    using pgraph_t<T>::flag1;
+    using pgraph_t<T>::flag2;
+    using pgraph_t<T>::flag1_count;
+    using pgraph_t<T>::flag2_count;
+    using pgraph_t<T>::blog;
+    
+    using pgraph_t<T>::read_sgraph;
+    using pgraph_t<T>::read_skv;
+    using pgraph_t<T>::prep_sgraph;
+    using pgraph_t<T>::prep_skv;
+    using pgraph_t<T>::file_open_sgraph;
+    using pgraph_t<T>::file_open_skv;
+    using pgraph_t<T>::calc_edge_count_out;
+    using pgraph_t<T>::prep_sgraph_internal;
+    using pgraph_t<T>::fill_adj_list_out;
+    using pgraph_t<T>::store_sgraph;
+    using pgraph_t<T>::store_skv;
+    using pgraph_t<T>::extend_adjlist_td;
+    using pgraph_t<T>::extend_kv_td;
+    using pgraph_t<T>::query_adjlist_td;
+    using pgraph_t<T>::query_adjlist_bu;
+    using pgraph_t<T>::query_kv_td;
+    using pgraph_t<T>::query_kv_bu;
 
  public:
     static cfinfo_t* create_instance();
@@ -307,6 +413,17 @@ class one2many_t: public pgraph_t<sid_t> {
 };
 
 
+typedef ugraph<sid_t> ugraph_t;
+typedef dgraph<sid_t> dgraph_t;
+typedef one2many<sid_t> one2many_t;
+typedef many2one<sid_t> many2one_t;
+typedef one2one<sid_t> one2one_t;
+
+typedef ugraph<lite_edge_t> p_ugraph_t;
+typedef dgraph<lite_edge_t> p_dgraph_t;
+typedef one2many<lite_edge_t> p_one2many_t;
+typedef many2one<lite_edge_t> p_many2one_t;
+typedef one2one<lite_edge_t> p_one2one_t;
 
 /*****************************/
 
@@ -1085,126 +1202,6 @@ void pgraph_t<T>::calc_edge_count_in(onegraph_t<T>** sgraph_in)
     }
 }
 
-template <class T>
-void pgraph_t<T>::fill_adj_list(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in)
-{
-    sid_t     src, dst;
-    vid_t     vert1_id, vert2_id;
-    tid_t     src_index, dst_index;
-    
-    edge_t*   edges = blog->blog_beg;
-
-    index_t index = 0;
-    #pragma omp for
-    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
-        index = (i % blog->blog_count);
-        src = edges[index].src_id;
-        dst = edges[index].dst_id;
-        src_index = TO_TID(src);
-        dst_index = TO_TID(dst);
-        vert1_id = TO_VID(src);
-        vert2_id = TO_VID(dst);
-       
-        if (!IS_DEL(src)) { 
-            sgraph_out[src_index]->add_nebr(vert1_id, dst);
-            sgraph_in[dst_index]->add_nebr(vert2_id, src);
-        } else {
-            assert(0);
-            //sgraph_out[src_index]->del_nebr(vert1_id, dst);
-            //sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
-        }
-    }
-    blog->blog_tail = blog->blog_marker;  
-}
-
-template <class T>
-void pgraph_t<T>::fill_adj_list_in(onekv_t<T>** skv_out, onegraph_t<T>** sgraph_in) 
-{
-    sid_t src, dst;
-    vid_t     vert1_id, vert2_id;
-    tid_t     src_index, dst_index;
-    edge_t*   edges = blog->blog_beg;
-    
-    index_t index = 0;
-    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
-        index = (i % blog->blog_count);
-        src = edges[index].src_id;
-        dst = edges[index].dst_id;
-        src_index = TO_TID(src);
-        dst_index = TO_TID(dst);
-        
-        vert1_id = TO_VID(src);
-        vert2_id = TO_VID(dst);
-        
-        if (!IS_DEL(src)) { 
-            skv_out[src_index]->set_value(vert1_id, dst);
-            sgraph_in[dst_index]->add_nebr(vert2_id, src);
-        } else {
-            //skv_out[src_index]->del_value(vert1_id, dst);
-            //sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
-        }
-    }
-    blog->blog_tail = blog->blog_marker;  
-}
-
-template <class T>
-void pgraph_t<T>::fill_adj_list_out(onegraph_t<T>** sgraph_out, onekv_t<T>** skv_in) 
-{
-    sid_t   src, dst;
-    vid_t   vert1_id, vert2_id;
-    tid_t   src_index, dst_index; 
-    edge_t*   edges = blog->blog_beg;
-    
-    index_t index = 0;
-    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
-        index = (i % blog->blog_count);
-        src = edges[index].src_id;
-        dst = edges[index].dst_id;
-        src_index = TO_TID(src);
-        dst_index = TO_TID(dst);
-        
-        vert1_id = TO_VID(src);
-        vert2_id = TO_VID(dst);
-        if (!IS_DEL(src)) {
-            sgraph_out[src_index]->add_nebr(vert1_id, dst);
-            skv_in[dst_index]->set_value(vert2_id, src); 
-        } else {
-            //sgraph_out[src_index]->del_nebr(vert1_id, dst);
-            //skv_in[dst_index]->del_value(vert2_id, TO_SID(src));
-        }
-    }
-    blog->blog_tail = blog->blog_marker;  
-}
-
-template <class T>
-void pgraph_t<T>::fill_skv(onekv_t<T>** skv_out, onekv_t<T>** skv_in)
-{
-    sid_t src, dst;
-    vid_t     vert1_id, vert2_id;
-    tid_t     src_index, dst_index;
-    edge_t*   edges = blog->blog_beg;
-    
-    index_t index = 0;
-    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
-        index = (i % blog->blog_count);
-        src = edges[index].src_id;
-        dst = edges[index].dst_id;
-        src_index = TO_TID(src);
-        dst_index = TO_TID(dst);
-        
-        vert1_id = TO_VID(src);
-        vert2_id = TO_VID(dst);
-        
-        if (!IS_DEL(src)) {
-            skv_out[src_index]->set_value(vert1_id, dst); 
-            skv_in[dst_index]->set_value(vert2_id, src); 
-        } else {
-            skv_out[src_index]->del_value(vert1_id, dst); 
-            skv_in[dst_index]->del_value(vert2_id, TO_SID(src)); 
-        }
-    }
-    blog->blog_tail = blog->blog_marker;  
-}
 
 //prefix sum, allocate adj list memory then reset the count
 template <class T>
@@ -1531,6 +1528,975 @@ status_t pgraph_t<T>::extend_kv_td(onekv_t<T>** skv, srset_t* iset, srset_t* ose
         
         for (vid_t v = 0; v < v_count; v++) {
             rset2->add_kv(v, get_nebr(graph, varray[v]));
+        }
+    }
+    return eOK;
+}
+
+/************* Semantic graphs  *****************/
+template <class T> 
+void dgraph<T>::prep_graph_baseline()
+{
+    flag1_count = __builtin_popcountll(flag1);
+    flag2_count = __builtin_popcountll(flag2);
+
+    //super bins memory allocation
+    tid_t   t_count = g->get_total_types();
+    
+    if (0 == sgraph_out) {
+        sgraph_out  = (onegraph_t<T>**) calloc (sizeof(onegraph_t<T>*), t_count);
+    }
+    prep_sgraph(flag1, sgraph_out);    
+    
+    if (0 == sgraph_in) {
+        sgraph_in  = (onegraph_t<T>**) calloc (sizeof(onegraph_t<T>*), t_count);
+    }
+    prep_sgraph(flag2, sgraph_in);
+}
+
+template <class T> 
+void dgraph<T>::calc_degree()
+{
+    //estimate edge count
+    calc_edge_count(sgraph_out, sgraph_in);
+}
+
+//We assume that no new vertex type is defined
+template <class T> 
+void dgraph<T>::make_graph_baseline()
+{
+    if (blog->blog_tail >= blog->blog_marker) return;
+
+    #pragma omp parallel
+    {
+    calc_edge_count(sgraph_out, sgraph_in);
+
+    //prefix sum then reset the count
+    prep_sgraph_internal(sgraph_out);
+    prep_sgraph_internal(sgraph_in);
+
+    //populate and get the original count back
+    fill_adj_list(sgraph_out, sgraph_in);
+    }
+}
+
+template <class T> 
+void dgraph<T>::store_graph_baseline()
+{
+    //#pragma omp parallel
+    {
+    store_sgraph(sgraph_out);
+    store_sgraph(sgraph_in);
+    }
+}
+
+template <class T> 
+void dgraph<T>::file_open(const string& odir, bool trunc)
+{
+    string postfix = "out";
+    file_open_sgraph(sgraph_out, odir, postfix, trunc);
+    postfix = "in";
+    file_open_sgraph(sgraph_in, odir, postfix, trunc);
+}
+
+template <class T> 
+void dgraph<T>::read_graph_baseline()
+{
+    tid_t   t_count    = g->get_total_types();
+    
+    if (0 == sgraph_out) {
+        sgraph_out  = (onegraph_t<T>**) calloc (sizeof(onegraph_t<T>*), t_count);
+    }
+    read_sgraph(sgraph_out);
+    
+    if (0 == sgraph_in) {
+        sgraph_in  = (onegraph_t<T>**) calloc (sizeof(onegraph_t<T>*), t_count);
+    }
+    read_sgraph(sgraph_in);
+}
+
+/*******************************************/
+template <class T> 
+void ugraph<T>::prep_graph_baseline()
+{
+    flag1 = flag1 | flag2;
+    flag2 = flag1;
+
+    flag1_count = __builtin_popcountll(flag1);
+    flag2_count = flag1_count;
+
+    //super bins memory allocation
+    tid_t   t_count = g->get_total_types();
+    
+    if (0 == sgraph) {
+        sgraph  = (onegraph_t<T>**) calloc (sizeof(onegraph_t<T>*), t_count);
+    }
+    prep_sgraph(flag1, sgraph); 
+}
+
+template <class T> 
+void ugraph<T>::calc_degree()
+{
+    //estimate edge count
+    calc_edge_count(sgraph, sgraph);
+}
+
+template <class T> 
+void ugraph<T>::make_graph_baseline()
+{
+    if (blog->blog_tail >= blog->blog_marker) return;
+    
+    double start = mywtime(); 
+    
+    #pragma omp parallel     
+    {
+    calc_edge_count(sgraph, sgraph);
+    }
+    double end = mywtime();
+    cout << "calc edge time = " << end - start << endl;
+    
+    start = mywtime(); 
+    //prefix sum then reset the count
+    #pragma omp parallel     
+    {
+    prep_sgraph_internal(sgraph);
+    }
+    end = mywtime();
+    cout << "prep_internal time = " << end - start << endl;
+
+    //populate and get the original count back
+    start = mywtime(); 
+    #pragma omp parallel     
+    {
+    fill_adj_list(sgraph, sgraph);
+    }
+    end = mywtime();
+    cout << "fill adj list time = " << end - start << endl;
+}
+
+template <class T> 
+void ugraph<T>::store_graph_baseline()
+{
+    //double start, end;
+	/*    
+	#pragma omp parallel     
+    {
+    update_count(sgraph);
+    }
+	*/
+    
+    //start = mywtime(); 
+    store_sgraph(sgraph);
+    //end = mywtime();
+    //cout << "store graph time = " << end - start << endl;
+}
+
+template <class T> 
+void ugraph<T>::file_open(const string& odir, bool trunc)
+{
+    string postfix = "";
+    file_open_sgraph(sgraph, odir, postfix, trunc);
+}
+
+template <class T> 
+void ugraph<T>::read_graph_baseline()
+{
+    tid_t   t_count = g->get_total_types();
+    
+    if (0 == sgraph) {
+        sgraph  = (onegraph_t<T>**) calloc (sizeof(onegraph_t<T>*), t_count);
+    }
+    read_sgraph(sgraph);
+}
+
+/***************************************/
+template <class T> 
+void many2one<T>::prep_graph_baseline()
+{
+    flag1_count = __builtin_popcountll(flag1);
+    flag2_count = __builtin_popcountll(flag2);
+
+    //super bins memory allocation
+    tid_t   t_count = g->get_total_types();
+    
+    if (0 == sgraph_in) {
+        sgraph_in  = (onegraph_t<T>**) calloc (sizeof(onegraph_t<T>*), t_count);
+    }
+    prep_sgraph(flag2, sgraph_in);
+    
+    if (0 == skv_out) {
+        skv_out  = (onekv_t<T>**) calloc (sizeof(onekv_t<T>*), t_count);
+    }
+
+    skv_out  = prep_skv(flag1, skv_out);
+}
+
+template <class T> 
+void many2one<T>::calc_degree()
+{
+    //estimate edge count
+    calc_edge_count_in(sgraph_in);
+}
+
+template <class T> 
+void many2one<T>::make_graph_baseline()
+{
+    if (blog->blog_tail >= blog->blog_marker) return;
+    
+    calc_edge_count_in(sgraph_in);
+    
+    //prefix sum then reset the count
+    prep_sgraph_internal(sgraph_in);
+
+    //populate and get the original count back
+    //handle kv_out as well.
+    fill_adj_list_in(skv_out, sgraph_in);
+    //update_count(sgraph_in);
+}
+
+template <class T> 
+void many2one<T>::store_graph_baseline()
+{
+    store_skv(skv_out);
+    store_sgraph(sgraph_in);
+}
+
+template <class T> 
+void many2one<T>::file_open(const string& odir, bool trunc)
+{
+    string postfix = "in";
+    file_open_sgraph(sgraph_in, odir, postfix, trunc);
+    postfix = "out";
+    file_open_skv(skv_out, odir, postfix, trunc);
+}
+
+template <class T> 
+void many2one<T>::read_graph_baseline()
+{
+    tid_t   t_count = g->get_total_types();
+    
+    if (0 == skv_out) {
+        skv_out  = (onekv_t<T>**) calloc (sizeof(onekv_t<T>*), t_count);
+    }
+    read_skv(skv_out);
+    
+    if (0 == sgraph_in) {
+        sgraph_in  = (onegraph_t<T>**) calloc (sizeof(onegraph_t<T>*), t_count);
+    }
+    read_sgraph(sgraph_in);
+}
+
+/*******************************************/
+template <class T> 
+void one2many<T>::prep_graph_baseline()
+{
+    flag1_count = __builtin_popcountll(flag1);
+    flag2_count = __builtin_popcountll(flag2);
+
+    //super bins memory allocation
+    tid_t   t_count = g->get_total_types();
+    
+    if (0 == sgraph_out) {
+        sgraph_out  = (onegraph_t<T>**) calloc (sizeof(onegraph_t<T>*), t_count);
+    }
+    prep_sgraph(flag1, sgraph_out);
+    
+    if (0 == skv_in) {
+        skv_in  = (onekv_t<T>**) calloc (sizeof(onekv_t<T>*), t_count);
+    }
+    
+    skv_in   = prep_skv(flag2, skv_in);
+}
+    
+template <class T> 
+void one2many<T>::calc_degree()
+{
+    //estimate edge count
+    calc_edge_count_out(sgraph_out);
+}
+    
+template <class T> 
+void one2many<T>::make_graph_baseline()
+{
+    if (blog->blog_tail >= blog->blog_marker) return;
+    
+    calc_edge_count_out(sgraph_out);
+    
+    //prefix sum then reset the count
+    prep_sgraph_internal(sgraph_out);
+
+    //populate and get the original count back
+    //handle kv_in as well.
+    fill_adj_list_out(sgraph_out, skv_in);
+    //update_count(sgraph_out);
+    
+}
+
+template <class T> 
+void one2many<T>::store_graph_baseline()
+{
+    store_sgraph(sgraph_out);
+    store_skv(skv_in);
+}
+
+template <class T> 
+void one2many<T>::file_open(const string& odir, bool trunc)
+{
+    string postfix = "out";
+    file_open_sgraph(sgraph_out, odir, postfix, trunc);
+    postfix = "in";
+    file_open_skv(skv_in, odir, postfix, trunc);
+}
+
+template <class T> 
+void one2many<T>::read_graph_baseline()
+{
+    tid_t   t_count = g->get_total_types();
+    
+    if (0 == sgraph_out) {
+        sgraph_out  = (onegraph_t<T>**) calloc (sizeof(onegraph_t<T>*), t_count);
+    }
+    read_sgraph(sgraph_out);
+    
+    if (0 == skv_in) {
+        skv_in  = (onekv_t<T>**) calloc (sizeof(onekv_t<T>*), t_count);
+    }
+    read_skv(skv_in);
+}
+
+/************************************************/
+template <class T> 
+void one2one<T>::prep_graph_baseline()
+{
+    flag1_count = __builtin_popcountll(flag1);
+    flag2_count = __builtin_popcountll(flag2);
+    tid_t   t_count    = g->get_total_types();
+
+    //super bins memory allocation
+    
+    if (0 == skv_in) {
+        skv_in  = (onekv_t<T>**) calloc (sizeof(onekv_t<T>*), t_count);
+    }
+    skv_in  = prep_skv(flag2, skv_in);
+    
+    if (0 == skv_out) {
+        skv_out  = (onekv_t<T>**) calloc (sizeof(onekv_t<T>*), t_count);
+    }
+    skv_out = prep_skv(flag1, skv_out);
+}
+
+template <class T> 
+void one2one<T>::calc_degree()
+{
+}
+
+template <class T> 
+void one2one<T>::make_graph_baseline()
+{
+    if (blog->blog_tail >= blog->blog_marker) return;
+
+    //handle kv_out as well as kv_in.
+    fill_skv(skv_out, skv_in);
+    
+}
+
+template <class T> 
+void one2one<T>::store_graph_baseline()
+{
+    store_skv(skv_out);
+    store_skv(skv_in);
+}
+
+template <class T> 
+void one2one<T>::file_open(const string& odir, bool trunc)
+{
+    string postfix = "out";
+    file_open_skv(skv_out, odir, postfix, trunc);
+    postfix = "in";
+    file_open_skv(skv_in, odir, postfix, trunc);
+}
+
+template <class T> 
+void one2one<T>::read_graph_baseline()
+{
+    tid_t   t_count    = g->get_total_types();
+    
+    if (0 == skv_out) {
+        skv_out  = (onekv_t<T>**) calloc (sizeof(onekv_t<T>*), t_count);
+    }
+    read_skv(skv_out);
+    
+    if (0 == skv_in) {
+        skv_in  = (onekv_t<T>**) calloc (sizeof(onekv_t<T>*), t_count);
+    }
+    read_skv(skv_in);
+}
+
+/////////// QUERIES ///////////////////////////
+/*
+status_t pgraph_t::query_adjlist_td(sgraph_t** sgraph, srset_t* iset, srset_t* oset)
+{
+    tid_t    iset_count = iset->get_rset_count();
+    rset_t*        rset = 0;
+
+    for (tid_t i = 0; i < iset_count; ++i) {
+        rset = iset->rset + i;
+        vid_t v_count = rset->get_vcount();
+        vid_t* vlist = rset->get_vlist();
+        
+        //get the graph where we will traverse
+        tid_t        tid = rset->get_tid();
+        if (0 == sgraph[tid]) continue;
+        beg_pos_t* graph = sgraph[tid]->get_begpos();
+
+        
+        //Get the frontiers
+        vid_t     frontier;
+        for (vid_t v = 0; v < v_count; v++) {
+            frontier = vlist[v];
+            sid_t* adj_list = graph[frontier].get_adjlist();
+            vid_t nebr_count = adj_list[0];
+            ++adj_list;
+            
+            //traverse the adj list
+            for (vid_t k = 0; k < nebr_count; ++k) {
+                oset->set_status(adj_list[k]);
+            }
+        }
+    }
+    return eOK;
+}
+status_t pgraph_t::query_kv_td(skv_t** skv, srset_t* iset, srset_t* oset)
+{
+    tid_t    iset_count = iset->get_rset_count();
+    rset_t*        rset = 0;
+
+    for (tid_t i = 0; i < iset_count; ++i) {
+        rset = iset->rset + i;
+        vid_t v_count = rset->get_vcount();
+        vid_t* vlist = rset->get_vlist();
+        
+        //get the graph where we will traverse
+        tid_t        tid = rset->get_tid();
+        if (0 == skv[tid]) continue;
+        sid_t* kv = skv[tid]->get_kv(); 
+
+        //Get the frontiers
+        vid_t     frontier;
+        for (vid_t v = 0; v < v_count; v++) {
+            frontier = vlist[v];
+            oset->set_status(kv[frontier]);
+        }
+    }
+    return eOK;
+}
+
+//sgraph_in and oset share the same flag.
+status_t pgraph_t::query_adjlist_bu(sgraph_t** sgraph, srset_t* iset, srset_t* oset)
+{
+    rset_t* rset = 0;
+    tid_t   tid  = 0;
+    tid_t oset_count = oset->get_rset_count();
+
+    for (tid_t i = 0; i < oset_count; ++i) {
+        
+        //get the graph where we will traverse
+        rset = oset->rset + i;
+        tid  = rset->get_tid();
+        if (0 == sgraph[tid]) continue; 
+
+        beg_pos_t* graph = sgraph[tid]->get_begpos(); 
+        vid_t    v_count = sgraph[tid]->get_vcount();
+        
+        
+        for (vid_t v = 0; v < v_count; v++) {
+            //traverse the adj list
+            sid_t* adj_list = graph[v].get_adjlist();
+            vid_t nebr_count = adj_list[0];
+            ++adj_list;
+            for (vid_t k = 0; k < nebr_count; ++k) {
+                if (iset->get_status(adj_list[k])) {
+                    rset->set_status(v);
+                    break;
+                }
+            }
+        }
+    }
+    return eOK;
+}
+
+status_t pgraph_t::query_kv_bu(skv_t** skv, srset_t* iset, srset_t* oset) 
+{
+    rset_t*  rset = 0;
+    tid_t    tid  = 0;
+    tid_t    oset_count = oset->get_rset_count();
+    for (tid_t i = 0; i < oset_count; ++i) {
+
+        //get the graph where we will traverse
+        rset = oset->rset + i;
+        tid  = rset->get_tid(); 
+        if (0 == skv[tid]) continue;
+
+        vid_t*       kv = skv[tid]->get_kv(); 
+        sid_t   v_count = skv[tid]->get_vcount();
+        
+        for (vid_t v = 0; v < v_count; ++v) {
+            if (iset->get_status(kv[v])) {
+                rset->set_status(v);
+                break;
+            }
+        }
+    }
+    return eOK;
+}
+
+//////extend functions ------------------------
+status_t 
+pgraph_t::extend_adjlist_td(sgraph_t** sgraph, srset_t* iset, srset_t* oset)
+{
+    tid_t    iset_count = iset->get_rset_count();
+    rset_t*        rset = 0;
+    rset_t*        rset2 = 0;
+
+    iset->bitwise2vlist();
+    //prepare the output 1,2;
+    oset->copy_setup(iset, eAdjlist);
+
+    for (tid_t i = 0; i < iset_count; ++i) {
+        rset = iset->rset + i;
+        rset2 = oset->rset + i;
+        vid_t v_count = rset->get_vcount();
+        sid_t* varray = rset->get_vlist();
+        
+        //get the graph where we will traverse
+        tid_t        tid = rset->get_tid();
+        if (0 == sgraph[tid]) continue;
+        beg_pos_t* graph = sgraph[tid]->get_begpos(); 
+        
+        for (vid_t v = 0; v < v_count; v++) {
+            rset2->add_adjlist_ro(v, graph+varray[v]);
+        }
+    }
+    return eOK;
+}
+
+status_t 
+pgraph_t::extend_kv_td(skv_t** skv, srset_t* iset, srset_t* oset)
+{
+    tid_t    iset_count = iset->get_rset_count();
+    rset_t*        rset = 0;
+    rset_t*       rset2 = 0;
+
+    iset->bitwise2vlist();
+    //prepare the output 1,2;
+    oset->copy_setup(iset, eKV);
+
+    for (tid_t i = 0; i < iset_count; ++i) {
+        rset = iset->rset + i;
+        rset2 = oset->rset + i;
+        vid_t v_count = rset->get_vcount();
+        sid_t* varray = rset->get_vlist();
+        
+        //get the graph where we will traverse
+        tid_t     tid = rset->get_tid();
+        if (0 == skv[tid]) continue;
+        sid_t*  graph = skv[tid]->get_kv(); 
+        
+        for (vid_t v = 0; v < v_count; v++) {
+            rset2->add_kv(v, graph[varray[v]]);
+        }
+    }
+    return eOK;
+}
+*/
+template <class T> 
+cfinfo_t* ugraph<T>::create_instance()
+{
+    return new ugraph_t;
+}
+
+template <class T> 
+cfinfo_t* dgraph<T>::create_instance()
+{
+    return new dgraph_t;
+}
+
+template <class T> 
+cfinfo_t* one2one<T>::create_instance()
+{
+    return new one2one_t;
+}
+
+template <class T> 
+cfinfo_t* one2many<T>::create_instance()
+{
+    return new one2many_t;
+}
+
+template <class T> 
+cfinfo_t* many2one<T>::create_instance()
+{
+    return new many2one_t;
+}
+//////
+template <class T> 
+void ugraph<T>::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
+{
+    vid_t vert1_id = TO_VID(src);
+    vid_t vert2_id = TO_VID(dst);
+    
+    tid_t src_index = TO_TID(src);
+    tid_t dst_index = TO_TID(dst);
+    
+    if (!del) { 
+        sgraph[src_index]->increment_count(vert1_id);
+        sgraph[dst_index]->increment_count(vert2_id);
+    } else { 
+        sgraph[src_index]->decrement_count(vert1_id);
+        sgraph[dst_index]->decrement_count(vert2_id);
+    }
+}
+
+template <class T> 
+void dgraph<T>::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
+{
+    tid_t src_index = TO_TID(src);
+    tid_t dst_index = TO_TID(dst);
+    
+    vid_t vert1_id = TO_VID(src);
+    vid_t vert2_id = TO_VID(dst);
+    
+    if (!del) { 
+        sgraph_out[src_index]->increment_count(vert1_id);
+        sgraph_in[dst_index]->increment_count(vert2_id);
+    } else { 
+        sgraph_out[src_index]->decrement_count(vert1_id);
+        sgraph_in[dst_index]->decrement_count(vert2_id);
+    }
+}
+
+template <class T> 
+void one2one<T>::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
+{
+}
+
+template <class T> 
+void one2many<T>::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
+{
+    tid_t dst_index = TO_TID(dst);
+    
+    vid_t vert2_id = TO_VID(dst);
+    
+    if (!del) { 
+        sgraph_out[dst_index]->increment_count(vert2_id);
+    } else { 
+        skv_in[dst_index]->decrement_count(vert2_id);
+    }
+}
+
+template <class T> 
+void many2one<T>::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
+{
+    tid_t src_index = TO_TID(src);
+    
+    vid_t vert1_id = TO_VID(src);
+    
+    if (!del) { 
+        skv_out[src_index]->increment_count(vert1_id);
+    } else { 
+        sgraph_in[src_index]->decrement_count(vert1_id);
+    }
+}
+
+template <class T> 
+void ugraph<T>::add_nebr(sid_t src, sid_t dst, int del /*= 0*/)
+{
+    vid_t vert1_id = TO_VID(src);
+    vid_t vert2_id = TO_VID(dst);
+    
+    tid_t src_index = TO_TID(src);
+    tid_t dst_index = TO_TID(dst);
+    
+    if (!del) { 
+        sgraph[src_index]->add_nebr(vert1_id, dst);
+        sgraph[dst_index]->add_nebr(vert2_id, src);
+    } else { 
+        sgraph[src_index]->del_nebr(vert1_id, dst);
+        sgraph[dst_index]->del_nebr(vert2_id, src);
+    }
+}
+
+template <class T> 
+void dgraph<T>::add_nebr(sid_t src, sid_t dst, int del /*= 0*/)
+{
+    tid_t src_index = TO_TID(src);
+    tid_t dst_index = TO_TID(dst);
+    
+    vid_t vert1_id = TO_VID(src);
+    vid_t vert2_id = TO_VID(dst);
+    
+    if (!del) { 
+        sgraph_out[src_index]->add_nebr(vert1_id, dst);
+        sgraph_in[dst_index]->add_nebr(vert2_id, src);
+    } else { 
+        sgraph_out[src_index]->del_nebr(vert1_id, dst);
+        sgraph_in[dst_index]->del_nebr(vert2_id, src);
+    }
+}
+
+template <class T> 
+void one2one<T>::add_nebr(sid_t src, sid_t dst, int del /*= 0*/)
+{
+    tid_t src_index = TO_TID(src);
+    tid_t dst_index = TO_TID(dst);
+    
+    vid_t vert1_id = TO_VID(src);
+    vid_t vert2_id = TO_VID(dst);
+    
+    if (!del) { 
+        skv_out[src_index]->set_value(vert1_id, dst);
+        skv_in[dst_index]->set_value(vert2_id, src);
+    } else { 
+        skv_out[src_index]->set_value(vert1_id, dst);
+        skv_in[dst_index]->set_value(vert2_id, src);
+    }
+}
+
+template <class T> 
+void many2one<T>::add_nebr(sid_t src, sid_t dst, int del /*= 0*/)
+{
+    tid_t src_index = TO_TID(src);
+    tid_t dst_index = TO_TID(dst);
+    
+    vid_t vert1_id = TO_VID(src);
+    vid_t vert2_id = TO_VID(dst);
+    
+    if (!del) { 
+        sgraph_in[dst_index]->add_nebr(vert2_id, src);
+        skv_out[src_index]->set_value(vert1_id, dst);
+    } else { 
+        sgraph_in[dst_index]->del_nebr(vert2_id, src);
+        skv_out[src_index]->set_value(vert1_id, dst);
+    }
+}
+
+template <class T> 
+void one2many<T>::add_nebr(sid_t src, sid_t dst, int del /*= 0*/)
+{
+    tid_t src_index = TO_TID(src);
+    tid_t dst_index = TO_TID(dst);
+    
+    vid_t vert1_id = TO_VID(src);
+    vid_t vert2_id = TO_VID(dst);
+    
+    if (!del) { 
+        sgraph_out[src_index]->add_nebr(vert1_id, dst);
+        skv_in[dst_index]->set_value(vert2_id, src);
+    } else { 
+        sgraph_out[src_index]->del_nebr(vert1_id, dst);
+        skv_in[dst_index]->set_value(vert2_id, src);
+    }
+}
+/////
+template <class T> 
+void ugraph<T>::create_snapshot()
+{
+    update_count(sgraph);
+}
+
+template <class T> 
+void dgraph<T>::create_snapshot()
+{
+    update_count(sgraph_out);
+    update_count(sgraph_in);
+}
+
+template <class T> 
+void one2one<T>::create_snapshot()
+{
+    return;
+}
+
+template <class T> 
+void one2many<T>::create_snapshot()
+{
+    update_count(sgraph_out);
+}
+
+template <class T> 
+void many2one<T>::create_snapshot()
+{
+    update_count(sgraph_in);
+}
+
+template <class T>
+status_t ugraph<T>::extend(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    return extend_adjlist_td(sgraph, iset, oset);
+}
+
+//due to many2one structure, we give preference to bottom up approach
+template <class T>
+status_t many2one<T>::extend(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    if (direction == eout) {
+        return extend_kv_td(skv_out,  iset, oset);
+    } else {
+        assert(direction == ein);
+        return extend_adjlist_td(sgraph_in, iset, oset);
+    }
+    return eOK;
+}
+
+template <class T>
+status_t dgraph<T>::extend(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    if (direction == eout) {
+        return extend_adjlist_td(sgraph_out, iset, oset);
+    } else {
+        assert(direction == ein);
+        return extend_adjlist_td(sgraph_in, iset, oset);
+    }
+    return eOK;
+}
+
+template <class T>
+status_t one2one<T>::extend(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    if (direction == eout) {
+        return extend_kv_td(skv_out, iset, oset);
+    } else {
+        assert(direction == ein);
+        return extend_kv_td(skv_in, iset, oset);
+    }
+    return eOK;
+}
+
+template <class T>
+status_t one2many<T>::extend(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    if (direction == eout) {
+        return extend_adjlist_td(sgraph_out, iset, oset);
+    } else {
+        assert(direction == ein);
+        return extend_kv_td(skv_in, iset, oset);
+    }
+    return eOK;
+}
+
+////////
+template <class T>
+status_t ugraph<T>::transform(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    //prepare the output 1,2;
+    oset->full_setup(sgraph);
+    int total_count = 0;
+    
+    if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
+        return query_adjlist_td(sgraph, iset, oset);
+    } else { //bottom up approach
+        return query_adjlist_bu(sgraph, iset, oset);
+    }
+    return eOK;
+}
+
+//due to many2one structure, we give preference to bottom up approach
+template <class T>
+status_t many2one<T>::transform(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    int total_count = 0;
+
+    if (direction == eout) {
+        oset->full_setup(sgraph_in);
+        total_count = 0;
+        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
+            return query_kv_td(skv_out, iset, oset);
+        } else { //bottom up approach
+            return query_adjlist_bu(sgraph_in, iset, oset);
+        }
+    } else {
+        assert(direction == ein);
+        oset->full_setup(skv_out);
+        total_count = 0;
+        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
+            return query_adjlist_td(sgraph_in, iset, oset);
+        } else { //bottom up approach 
+            return query_kv_bu(skv_out, iset, oset);
+        }
+    }
+    return eOK;
+}
+
+template <class T>
+status_t dgraph<T>::transform(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    int total_count = 0;
+    if (direction == eout) {
+        total_count = 0;
+        oset->full_setup(sgraph_in);
+        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
+            return query_adjlist_td(sgraph_out, iset, oset);
+        } else { //bottom up approach
+            return query_adjlist_bu(sgraph_in, iset, oset);
+        }
+    } else {
+        assert(direction == ein);
+        total_count = 0;
+        oset->full_setup(sgraph_out);
+        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
+            return query_adjlist_td(sgraph_in, iset, oset);
+        } else { //bottom up approach 
+            return query_adjlist_bu(sgraph_out, iset, oset);
+        }
+    }
+    return eOK;
+}
+
+template <class T>
+status_t one2one<T>::transform(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    int total_count = 0;
+    if (direction == eout) {
+        total_count = 0;
+        oset->full_setup(skv_in);
+        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
+            return query_kv_td(skv_out, iset, oset);
+        } else { //bottom up approach
+            return query_kv_bu(skv_in, iset, oset);
+        }
+    } else {
+        assert(direction == ein);
+        total_count = 0;
+        oset->full_setup(skv_out);
+        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
+            return query_kv_td(skv_in, iset, oset);
+        } else { //bottom up approach 
+            return query_kv_bu(skv_out, iset, oset);
+        }
+    }
+    return eOK;
+}
+
+template <class T>
+status_t one2many<T>::transform(srset_t* iset, srset_t* oset, direction_t direction)
+{
+    int total_count = 0;
+    if (direction == eout) {
+        total_count = 0;
+        oset->full_setup(skv_in);
+        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
+            return query_adjlist_td(sgraph_out, iset, oset);
+        } else { //bottom up approach
+            return query_kv_bu(skv_in, iset, oset);
+        }
+    } else {
+        assert(direction == ein);
+        total_count = 0;
+        oset->full_setup(sgraph_out);
+        if (iset->get_total_vcount() <= bu_factor*total_count) { //top down approach
+            return query_kv_td(skv_in, iset, oset);
+        } else { //bottom up approach 
+            return query_adjlist_bu(sgraph_out, iset, oset);
         }
     }
     return eOK;

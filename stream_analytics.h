@@ -4,7 +4,7 @@
 #include "wtime.h"
 
 #include "sgraph.h"
-#include "p_sgraph.h"
+//#include "p_sgraph.h"
 
 class stream_wcc {
   private:
