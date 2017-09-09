@@ -146,12 +146,16 @@ void plain_test2(const string& odir)
 {
     //do some setup for plain graphs
     //plaingraph_manager::setup_graph(v_count);    
+    propid_t cf_id = g->get_cfid("friend");
+    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
+    ugraph->flag1 = 1;
+    ugraph->flag2 = 1;
     
     g->read_graph_baseline();
    
-
+/*
     propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
+    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];*/
     vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
     blog_t<sid_t>* blog = ugraph->blog;
    

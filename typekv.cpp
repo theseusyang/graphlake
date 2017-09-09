@@ -114,20 +114,26 @@ void typekv_t::file_open(const string& dir, bool trunc)
     etfile = dir + "typekv.etable";
 
     if(trunc) {
-		vtf = fopen(vtfile.c_str(), "wb");
-		assert(vtf != 0); 
-        etf = fopen(etfile.c_str(), "wb");
+		etf = open(etfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
+		vtf = open(vtfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
+		//vtf = fopen(vtfile.c_str(), "wb");
+        //etf = fopen(etfile.c_str(), "wb");
+		assert(vtf != -1); 
+		assert(etf != -1); 
     } else {
-		vtf = fopen(vtfile.c_str(), "r+b");
-		assert(vtf != 0); 
-        etf = fopen(etfile.c_str(), "r+b");
+		etf = open(etfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
+		vtf = open(vtfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
+		//vtf = fopen(vtfile.c_str(), "r+b");
+        //etf = fopen(etfile.c_str(), "r+b");
+		assert(vtf != -1); 
+		assert(etf != -1); 
     }
 }
 
 void typekv_t::store_graph_baseline()
 {
     //write down the type info, t_info
-    fwrite(t_info, sizeof(tinfo_t), t_count, vtf);
+    write(vtf, t_info, sizeof(tinfo_t)*t_count);
 
     //Make a copy
     sid_t wpos = log_wpos;
@@ -135,7 +141,7 @@ void typekv_t::store_graph_baseline()
     //Update the mark
     log_wpos = log_head;
     
-    fwrite(log_beg + wpos, sizeof(char), log_head-wpos, etf);
+    write(etf, log_beg + wpos, sizeof(char)*(log_head-wpos));
 
     //str2enum: No need to write. We make it from disk during initial read.
     //XXX: write down the deleted id list
@@ -144,24 +150,24 @@ void typekv_t::store_graph_baseline()
 
 void typekv_t::read_graph_baseline()
 {
-    off_t size = 0; //XXXfsize(etfile.c_str());
+    off_t size = fsize(etf);
     if (size == -1L) {
         assert(0);
     }
     
     sid_t edge_count = size/sizeof(char);
-    fread(log_beg, sizeof(char), edge_count, etf);
+    read(etf, log_beg, sizeof(char)*edge_count);
 
     log_head = edge_count;
     log_wpos = log_head;
 
     //read vtable
-    size = 0; // fsize(vtfile.c_str());
+    size = fsize(vtf);
     if (size == -1L) {
         assert(0);
     }
     t_count = size/sizeof(tinfo_t);
-    fread(t_info, sizeof(tinfo_t), t_count, vtf);
+    read(vtf, t_info, sizeof(tinfo_t)*t_count);
 
     //Populate str2enum now.
     string dst;
@@ -190,8 +196,8 @@ typekv_t::typekv_t()
                        dvt_max_count*sizeof(disk_typekv_t*))) {
         perror("posix memalign vertex log");    
     }
-    vtf = 0;
-    etf = 0;
+    vtf = -1;
+    etf = -1;
 }
 
 void typekv_t::manual_setup(sid_t  vert_count)

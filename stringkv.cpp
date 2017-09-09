@@ -294,6 +294,7 @@ void strkv_t::read_vtable()
 
 void strkv_t::prep_str2sid(map<string, sid_t>& str2sid)
 {
+    if (log_head == 0) return;
     string dst;
     sid_t sid = TO_THIGH(super_id);
     for(sid_t v = sid; v < super_id; ++v) {

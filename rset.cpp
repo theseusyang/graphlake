@@ -18,6 +18,16 @@ off_t fsize(const string& fname)
     return -1L;
 }
 
+off_t fsize(int fd)
+{
+    struct stat st;
+    if (0 == fstat(fd, &st)) {
+        return st.st_size;
+    }
+    perror("stat issue");
+    return -1L;
+}
+
 /******************************/
 void rset_t::bitwise2vlist()
 {

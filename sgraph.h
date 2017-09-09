@@ -471,10 +471,12 @@ void onegraph_t<T>::file_open(const string& filename, bool trunc)
 
     if (trunc) {
 		etf = open(etfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
-        vtf = fopen(vtfile.c_str(), "wb");
+		vtf = open(vtfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
+        //vtf = fopen(vtfile.c_str(), "wb");
     } else {
 		etf = open(etfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
-        vtf = fopen(vtfile.c_str(), "r+b");
+		vtf = open(vtfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
+        //vtf = fopen(vtfile.c_str(), "r+b");
     }
 }
 
@@ -503,7 +505,8 @@ void onegraph_t<T>::handle_write()
             {
                 //Write the dvt log
                 if (seg2->dvt_count) {
-                    fwrite(seg2->dvt, sizeof(disk_vtable_t), seg2->dvt_count, vtf);
+                    //fwrite(seg2->dvt, sizeof(disk_vtable_t), seg2->dvt_count, vtf);
+                    write(vtf, seg2->dvt, sizeof(disk_vtable_t)*seg2->dvt_count);
                 }
             }
 
@@ -867,7 +870,7 @@ void onegraph_t<T>::read_etable(const string& etfile)
 template <class T>
 void onegraph_t<T>::read_vtable()
 {
-    off_t size = 0; //XXX fsize(vtfile.c_str());
+    off_t size = fsize(vtf);
     if (size == -1L) {
         assert(0);
     }
@@ -880,7 +883,9 @@ void onegraph_t<T>::read_vtable()
 
     //read in batches
     while (count != 0 ) {
-        vid_t read_count = fread(dvt, sizeof(disk_vtable_t), dvt_max_count, vtf);
+        //vid_t read_count = read(dvt, sizeof(disk_vtable_t), dvt_max_count, vtf);
+        vid_t read_count = read(vtf, dvt, sizeof(disk_vtable_t)*dvt_max_count);
+        read_count /= sizeof(disk_vtable_t); 
 
         for (vid_t v = 0; v < read_count; ++v) {
 			vid = dvt[v].vid;
@@ -928,10 +933,12 @@ template <class T>
 void onekv_t<T>::file_open(const string& vtfile, bool trunc)
 {
     if(trunc) {
-        vtf = fopen(vtfile.c_str(), "wb");
+        //vtf = fopen(vtfile.c_str(), "wb");
+		vtf = open(vtfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
         assert(vtf != 0);
     } else {
-        vtf = fopen(vtfile.c_str(), "r+b");
+        //vtf = fopen(vtfile.c_str(), "r+b");
+		vtf = open(vtfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
         assert(vtf != 0);
     }
 }
@@ -946,13 +953,14 @@ void onekv_t<T>::persist_kvlog()
     dvt_count = 0;
 
     //Write the file
-    fwrite(dvt, sizeof(disk_kvT_t<T>), count, vtf);
+    //fwrite(dvt, sizeof(disk_kvT_t<T>), count, vtf);
+    write(vtf, dvt, sizeof(disk_kvT_t<T>)*count);
 }
 
 template <class T>
 void onekv_t<T>::read_kv()
 {
-    off_t size = 0; // XXX fsize(vtfile.c_str());
+    off_t size = fsize(vtf);
     if (size == -1L) {
         assert(0);
     }
@@ -960,7 +968,9 @@ void onekv_t<T>::read_kv()
 
     //read in batches
     while (count !=0) {
-        vid_t read_count = fread(dvt, sizeof(disk_kvT_t<T>), dvt_max_count, vtf);
+        //vid_t read_count = fread(dvt, sizeof(disk_kvT_t<T>), dvt_max_count, vtf);
+        vid_t read_count = read(vtf, dvt, sizeof(disk_kvT_t<T>)*dvt_max_count);
+        read_count /= sizeof(disk_kvT_t<T>);
         for (vid_t v = 0; v < read_count; ++v) {
             kv[dvt[v].vid] = dvt[v].dst;
         }
@@ -1246,17 +1256,33 @@ void pgraph_t<T>::file_open_sgraph(onegraph_t<T>** sgraph, const string& dir, co
     
     char name[8];
     string  basefile = dir + col_info[0]->p_name;
-    string filename; 
+    string  vtfile, filename; 
+    FILE*   vtf = 0;
 
     // For each file.
     tid_t    t_count = g->get_total_types();
     for (tid_t i = 0; i < t_count; ++i) {
-        if (sgraph[i] == 0) continue;
 
         //name = typekv->get_type_name(i);
         sprintf(name, "%d", i);
         filename = basefile + name + postfix ; 
-		sgraph[i]->file_open(filename, trunc);
+        if (trunc) {
+            if (sgraph[i]) {
+                sgraph[i]->file_open(filename, trunc);
+                continue;
+            }
+        } 
+
+        vtfile = filename + ".vtable";
+        vtf = fopen(vtfile.c_str(), "rb");
+        if(vtf == 0) continue;
+        fclose(vtf);
+
+        sgraph[i] = new onegraph_t<T>;
+        sgraph[i]->setup(i);
+        
+        sgraph[i]->file_open(filename, trunc);
+        sgraph[i]->read_vtable();
     }
 }
 
@@ -1269,8 +1295,9 @@ void pgraph_t<T>::read_sgraph(onegraph_t<T>** sgraph)
     
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
-        sgraph[i] = new onegraph_t<T>;
-        sgraph[i]->setup(i);
+        if (sgraph[i] == 0) continue;
+        //sgraph[i] = new onegraph_t<T>;
+        //sgraph[i]->setup(i);
         sgraph[i]->read_vtable();
         //sgraph[i]->read_stable(stfile);
         //sgraph[i]->read_etable(etfile);

@@ -52,8 +52,8 @@ class typekv_t : public cfinfo_t {
     vid_t    dvt_count; 
     vid_t    dvt_max_count;
 
-    FILE*    vtf;   //vertex table file
-    FILE*    etf;   //edge table file
+    int    vtf;   //vertex table file
+    int    etf;   //edge table file
 
   public:
 

@@ -386,8 +386,13 @@ void graph::store_graph_baseline()
 void graph::read_graph_baseline()
 {
     read_snapshot();
-    for (int i = 0; i < cf_count; i++) {
-        cf_info[i]->read_graph_baseline();
+    
+    cf_info[0]->file_open(odirname, false);
+    cf_info[0]->read_graph_baseline();
+    
+    for (int i = 1; i < cf_count; i++) {
+        cf_info[i]->prep_graph_baseline();
+        cf_info[i]->file_open(odirname, false);
     }
     v_graph->read_graph_baseline();
     v_graph->prep_str2sid(str2vid);

@@ -246,7 +246,7 @@ private:
     //vid_t    dvt_count; 
     vid_t    dvt_max_count;
 
-    FILE*    vtf;   //vertex table file
+    int      vtf;   //vertex table file
     FILE*    stf;   //snapshot table file
 public:
     int    etf;   //edge table file
@@ -301,7 +301,7 @@ public:
         write_seg[1].log_beg = 0;
         write_seg[1].log_head = 0;
 
-        vtf = 0;
+        vtf = -1;
         etf = -1;
         stf = 0;
     }
@@ -489,7 +489,7 @@ class onekv_t {
     vid_t dvt_count;
     vid_t dvt_max_count;
 
-    FILE* vtf;
+    int  vtf;
 
  public:
     inline onekv_t() {
@@ -503,7 +503,7 @@ class onekv_t {
                            dvt_max_count*sizeof(disk_kvT_t<T>*))) {
             perror("posix memalign vertex log");    
         }
-        vtf = 0;
+        vtf = -1;
     }
 
     void setup(tid_t tid);

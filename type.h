@@ -4,6 +4,8 @@
 #include <string>
 #include <time.h>
 #include <assert.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include "bitmap.h"
 
 using std::string;
@@ -99,6 +101,7 @@ void free_buf(void* buf);
 void* alloc_buf();
 
 off_t fsize(const string& fname);
+off_t fsize(int fd);
 
 enum direction_t {
     eout = 0, 
