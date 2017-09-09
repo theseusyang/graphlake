@@ -14,31 +14,26 @@ vid_t v_count = 0;
 
 void plain_test0(const string& idir, const string& odir)
 {
-    /*
-    //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph(idir, odir);
-    
-    propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
-    bfs<sid_t>(ugraph->sgraph, ugraph->sgraph, 1); 
-    */
-    
+    plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph_sync(idir, odir);
     
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
-    vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
+    onegraph_t<sid_t>*   sgraph = ugraph->sgraph[0];
+    vert_table_t<sid_t>* graph = sgraph->get_begpos();
     blog_t<sid_t>* blog = ugraph->blog;
    
-    uint8_t* level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, PROT_READ|PROT_WRITE,
+    uint8_t* level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, 
+                            PROT_READ|PROT_WRITE,
                             MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
+    
     if (MAP_FAILED == level_array) {
         cout << "Huge page alloc failed for level array" << endl;
         level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
     }
+    
     snapshot_t* snapshot = g->get_snapshot();
     index_t marker = blog->blog_head;
     index_t old_marker = 0;
@@ -53,15 +48,59 @@ void plain_test0(const string& idir, const string& odir)
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
 
-    ext_bfs<sid_t>(graph, degree_array, graph, degree_array, 
+    ext_bfs<sid_t>(sgraph, degree_array, sgraph, degree_array, 
                    snapshot, marker, blog->blog_beg,
-                   v_count, level_array, ugraph->sgraph[0]->etf, 1);
+                   v_count, level_array, 1);
     
+    return;
+}
+
+void plaind_test0(const string& idir, const string& odir)
+{
+    plaingraph_manager::schema_plaingraphd();
+    //do some setup for plain graphs
+    plaingraph_manager::setup_graph(v_count);    
+    plaingraph_manager::prep_graph_sync(idir, odir);
+    
+    propid_t cf_id = g->get_cfid("friend");
+    pgraph_t<sid_t>* pgraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+    onegraph_t<sid_t>* sgraph_out = pgraph->sgraph_out[0];
+    onegraph_t<sid_t>* sgraph_in  = pgraph->sgraph_in[0];
+    blog_t<sid_t>* blog = pgraph->blog;
+   
+    uint8_t* level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count,
+                            PROT_READ|PROT_WRITE,
+                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
+    
+    if (MAP_FAILED == level_array) {
+        cout << "Huge page alloc failed for level array" << endl;
+        level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
+    }
+    
+    snapshot_t* snapshot = g->get_snapshot();
+    index_t marker = blog->blog_head;
+    index_t old_marker = 0;
+    degree_t* degree_out = 0;
+    degree_t* degree_in = 0;
+
+    if (snapshot) {
+        old_marker = snapshot->marker;
+        create_degreesnapd (sgraph_out, sgraph_in, snapshot, marker, blog->blog_beg,
+                            degree_out, degree_in);
+    }
+
+    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
+
+
+    ext_bfs<sid_t>(sgraph_out, degree_out, sgraph_in, degree_in, 
+                   snapshot, marker, blog->blog_beg,
+                   v_count, level_array, 1);
     return ;
 }
 
 void plain_test1(const string& idir, const string& odir)
 {
+    plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph(idir, odir);
@@ -142,8 +181,54 @@ void plain_test1(const string& idir, const string& odir)
     return ;
 }
 
+void plaind_test1(const string& odir)
+{
+    plaingraph_manager::schema_plaingraphd();
+    //do some setup for plain graphs
+    //plaingraph_manager::setup_graph(v_count);    
+    propid_t cf_id = g->get_cfid("friend");
+    pgraph_t<sid_t>* pgraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+    pgraph->flag1 = 1;
+    pgraph->flag2 = 1;
+    
+    g->read_graph_baseline();
+   
+    onegraph_t<sid_t>* sgraph_out = pgraph->sgraph_out[0];
+    onegraph_t<sid_t>* sgraph_in  = pgraph->sgraph_in[0];
+    blog_t<sid_t>* blog = pgraph->blog;
+   
+    uint8_t* level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, 
+                            PROT_READ|PROT_WRITE,
+                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
+    if (MAP_FAILED == level_array) {
+        cout << "Huge page alloc failed for level array" << endl;
+        level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
+    }
+
+    snapshot_t* snapshot = g->get_snapshot();
+    index_t marker = blog->blog_head;
+    index_t old_marker = 0;
+    degree_t* degree_out = 0;
+    degree_t* degree_in  = 0;
+
+    if (snapshot) {
+        old_marker = snapshot->marker;
+        create_degreesnapd(sgraph_out, sgraph_in, snapshot, marker, blog->blog_beg,
+                           degree_out, degree_in);
+    }
+
+    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
+
+    ext_bfs<sid_t>(sgraph_out, degree_out, sgraph_in, degree_in, 
+                   snapshot, marker, blog->blog_beg,
+                   v_count, level_array, 1);
+    
+    return ;
+}
+
 void plain_test2(const string& odir)
 {
+    plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     //plaingraph_manager::setup_graph(v_count);    
     propid_t cf_id = g->get_cfid("friend");
@@ -156,7 +241,8 @@ void plain_test2(const string& odir)
 /*
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];*/
-    vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
+    onegraph_t<sid_t>* sgraph = ugraph->sgraph[0];
+    vert_table_t<sid_t>* graph = sgraph->get_begpos();
     blog_t<sid_t>* blog = ugraph->blog;
    
     uint8_t* level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, 
@@ -181,9 +267,9 @@ void plain_test2(const string& odir)
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
 
-    ext_bfs<sid_t>(graph, degree_array, graph, degree_array, 
+    ext_bfs<sid_t>(sgraph, degree_array, sgraph, degree_array, 
                    snapshot, marker, blog->blog_beg,
-                   v_count, level_array, ugraph->sgraph[0]->etf, 1);
+                   v_count, level_array, 1);
     
 /*
     index_t edge_count = (v_count << 5);
@@ -215,6 +301,7 @@ void plain_test2(const string& odir)
 
 void plain_test3(const string& idir, const string& odir)
 {
+    plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph(idir, odir);
@@ -227,6 +314,7 @@ void plain_test3(const string& idir, const string& odir)
 
 void plain_test4(const string& idir, const string& odir)
 {
+    plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
     
@@ -243,6 +331,7 @@ void plain_test4(const string& idir, const string& odir)
 
 void plain_test5(const string& odir)
 {
+    plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     //plaingraph_manager::setup_graph(v_count);    
     
@@ -256,6 +345,7 @@ void plain_test5(const string& odir)
 
 void plain_test6(const string& odir)
 {
+    plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
     
@@ -274,6 +364,7 @@ void plain_test6(const string& odir)
 
 void paper_test0(vid_t v_count, const string& idir, const string& odir)
 {
+    plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph_paper_num(idir, odir);
@@ -311,6 +402,7 @@ void paper_test0(vid_t v_count, const string& idir, const string& odir)
 
 void paper_test_pr(const string& idir, const string& odir)
 {
+    plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph_paper_num(idir, odir);
@@ -341,6 +433,7 @@ void paper_test_pr(const string& idir, const string& odir)
 
 void paper_test_hop1(const string& idir, const string& odir)
 {
+    plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph_paper_num(idir, odir);
@@ -368,6 +461,7 @@ void paper_test_hop1(const string& idir, const string& odir)
 
 void paper_test_hop2(const string& idir, const string& odir)
 {
+    plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph_paper_num(idir, odir);
@@ -395,7 +489,6 @@ void paper_test_hop2(const string& idir, const string& odir)
 
 void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
 {
-    plaingraph_manager::schema_plaingraph();
     v_count = v_count1; 
     switch (job) {
         case 0:
@@ -418,6 +511,12 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             break;
         case 6:
             plain_test6(odir);
+            break;
+        case 7:
+            plaind_test0(idir, odir);
+            break;
+        case 8:
+            plaind_test1(odir);
             break;
         case 10:
             paper_test0(v_count1, idir, odir);

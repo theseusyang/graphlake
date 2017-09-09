@@ -313,15 +313,20 @@ ext_hop2(vert_table_t<T>* graph_out, degree_t* degree_out,
 
 template<class T>
 void
-ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out, 
-        vert_table_t<T>* graph_in, degree_t* degree_in,
+ext_bfs(onegraph_t<T>* sgraph_out, degree_t* degree_out, 
+        onegraph_t<T>* sgraph_in, degree_t* degree_in,
         snapshot_t* snapshot, index_t marker, edgeT_t<T>* edges,
-        vid_t v_count, uint8_t* status, int etf, sid_t root)
+        vid_t v_count, uint8_t* status, sid_t root)
 {
 	int				level      = 1;
 	int				top_down   = 1;
 	sid_t			frontier   = 0;
     index_t         old_marker = 0;
+    vert_table_t<T>* graph_out = sgraph_out->get_begpos();
+    vert_table_t<T>* graph_in = sgraph_in->get_begpos();
+    int etf_out = sgraph_out->etf;
+    int etf_in  = sgraph_in->etf;
+
 
     if (snapshot) { 
         old_marker = snapshot->marker;
@@ -384,7 +389,7 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
                     offset = v_unit->offset;
                     adj_list = (T*)malloc((k_count+1)*sizeof(T));
                     if (0 != k_count) {
-                        pread(etf, adj_list, (k_count+1)*sizeof(T), offset*sizeof(T));
+                        pread(etf_out, adj_list, (k_count+1)*sizeof(T), offset*sizeof(T));
                     }
                     //cout << "Vertex: " << v << " durable degree " << durable_degree << endl;
 					//traverse the adj list
@@ -437,7 +442,7 @@ ext_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
                     degree_t k_count = min(nebr_count, durable_degree);
                     adj_list = (T*)malloc((k_count+1)*sizeof(T));
                     if (0 != k_count) {
-                        pread(etf, adj_list, (k_count +1)*sizeof(T), offset*sizeof(T));
+                        pread(etf_in, adj_list, (k_count +1)*sizeof(T), offset*sizeof(T));
                     }
 					for (vid_t k = 1; k <= k_count; ++k) {
                         sid = get_nebr(adj_list, k);
