@@ -53,20 +53,51 @@ void plaingraph_manager::schema_plaingraph()
 
 }
 
+void plaingraph_manager::schema_plaingraphd()
+{
+    g->cf_info = new cfinfo_t*[2];
+    g->p_info = new pinfo_t[2];
+    
+    pinfo_t*    p_info    = g->p_info;
+    cfinfo_t*   info      = 0;
+    const char* longname  = 0;
+    const char* shortname = 0;
+    
+    longname = "gtype";
+    shortname = "gtype";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new typekv_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
+    
+    longname = "friend";
+    shortname = "friend";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new dgraph_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
+}
+
+
 void plaingraph_manager::setup_graph(vid_t v_count)
 {
     //do some setup for plain graphs
     propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
-    ugraph->flag1 = 1;
-    ugraph->flag2 = 1;
+    pgraph_t<sid_t>* graph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+    graph->flag1 = 1;
+    graph->flag2 = 1;
     typekv_t* typekv = g->get_typekv();
     typekv->manual_setup(v_count);
     g->prep_graph_baseline();
     g->file_open(true);
     g->make_graph_baseline();
     g->store_graph_baseline(); 
-    
 }
 
 void plaingraph_manager::prep_graph_sync(const string& idirname, const string& odirname)
@@ -76,7 +107,7 @@ void plaingraph_manager::prep_graph_sync(const string& idirname, const string& o
     int file_count = 0;
     string filename;
     propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
         
     FILE* file = 0;
     index_t size =  0;
@@ -143,7 +174,7 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
     int file_count = 0;
     string filename;
     propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
         
     FILE* file = 0;
     index_t size =  0;
@@ -221,7 +252,7 @@ void plaingraph_manager::prep_graph_paper_num(const string& idirname, const stri
     int file_count = 0;
     string filename;
     propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
         
     FILE* file = 0;
     index_t size =  0;

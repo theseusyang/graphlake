@@ -481,7 +481,6 @@ void dgraph_t::make_graph_baseline()
 {
     if (blog->blog_tail >= blog->blog_marker) return;
 
-    
     calc_edge_count(sgraph_out, sgraph_in);
 
     //prefix sum then reset the count
@@ -490,8 +489,6 @@ void dgraph_t::make_graph_baseline()
 
     //populate and get the original count back
     fill_adj_list(sgraph_out, sgraph_in);
-    update_count(sgraph_out);
-    update_count(sgraph_in);
 }
 
 void dgraph_t::store_graph_baseline()

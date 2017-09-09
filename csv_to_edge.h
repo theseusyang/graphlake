@@ -16,6 +16,7 @@ class csv_manager {
 class plaingraph_manager {
     public:
     static void schema_plaingraph();
+    static void schema_plaingraphd();
     static void setup_graph(vid_t v_count);
     static void prep_graph(const string& idirname, const string& odirname);
     static void prep_graph_sync(const string& idirname, const string& odirname);
