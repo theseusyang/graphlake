@@ -1256,33 +1256,16 @@ void pgraph_t<T>::file_open_sgraph(onegraph_t<T>** sgraph, const string& dir, co
     
     char name[8];
     string  basefile = dir + col_info[0]->p_name;
-    string  vtfile, filename; 
-    FILE*   vtf = 0;
+    string  filename; 
 
     // For each file.
     tid_t    t_count = g->get_total_types();
     for (tid_t i = 0; i < t_count; ++i) {
+        if (0 == sgraph[i]) continue;
 
-        //name = typekv->get_type_name(i);
         sprintf(name, "%d", i);
         filename = basefile + name + postfix ; 
-        if (trunc) {
-            if (sgraph[i]) {
-                sgraph[i]->file_open(filename, trunc);
-                continue;
-            }
-        } 
-
-        vtfile = filename + ".vtable";
-        vtf = fopen(vtfile.c_str(), "rb");
-        if(vtf == 0) continue;
-        fclose(vtf);
-
-        sgraph[i] = new onegraph_t<T>;
-        sgraph[i]->setup(i);
-        
         sgraph[i]->file_open(filename, trunc);
-        sgraph[i]->read_vtable();
     }
 }
 
@@ -1296,8 +1279,6 @@ void pgraph_t<T>::read_sgraph(onegraph_t<T>** sgraph)
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
         if (sgraph[i] == 0) continue;
-        //sgraph[i] = new onegraph_t<T>;
-        //sgraph[i]->setup(i);
         sgraph[i]->read_vtable();
         //sgraph[i]->read_stable(stfile);
         //sgraph[i]->read_etable(etfile);
@@ -1313,9 +1294,7 @@ void pgraph_t<T>::read_skv(onekv_t<T>** skv)
     
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
-        
-        skv[i] = new onekv_t<T>;
-        skv[i]->setup(i);
+        if (skv[i] == 0) continue;
         skv[i]->read_kv();
     }
 }
@@ -1337,6 +1316,8 @@ void pgraph_t<T>::file_open_skv(onekv_t<T>** skv, const string& dir, const strin
         if (skv[i] == 0) continue;
         sprintf(name, "%d", i);
         vtfile = basefile + name + postfix;
+        skv[i] = new onekv_t<T>;
+        skv[i]->setup(i);
 
         skv[i]->file_open(vtfile, trunc);
     }

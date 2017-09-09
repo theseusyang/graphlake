@@ -30,11 +30,6 @@ void graph::incr_snapid(index_t snap_marker, index_t durable_marker /* = 0 */)
     next->next = snapshot;
     snapshot = next;
     
-    //Write the file.
-    if (snap_f == 0) {
-        snap_f = fopen(snapfile.c_str(), "wb");//write + binary
-        assert(snap_f != 0);
-    }
 
     disk_snapshot_t* disk_snapshot = (disk_snapshot_t*)malloc(sizeof(disk_snapshot_t));
     disk_snapshot->snap_id= snapshot->snap_id;
@@ -367,19 +362,23 @@ void graph::create_snapshot()
     } while(true);
 }
 
-void graph::file_open(bool trunc)
-{
-    //
-    for (int i = 0; i < cf_count; i++) {
-        cf_info[i]->file_open(odirname, trunc);
-    }
-}
-
 void graph::store_graph_baseline()
 {
     //Store graph
     for (int i = 0; i < cf_count; i++) {
         cf_info[i]->store_graph_baseline();
+    }
+}
+
+// Being called for write only,
+// For loading, call read graph baseline
+void graph::file_open(bool trunc)
+{
+    snap_f = fopen(snapfile.c_str(), "wb");//write + binary
+    assert(snap_f != 0);
+    
+    for (int i = 0; i < cf_count; i++) {
+        cf_info[i]->file_open(odirname, trunc);
     }
 }
 
@@ -393,6 +392,7 @@ void graph::read_graph_baseline()
     for (int i = 1; i < cf_count; i++) {
         cf_info[i]->prep_graph_baseline();
         cf_info[i]->file_open(odirname, false);
+        cf_info[i]->read_graph_baseline();
     }
     v_graph->read_graph_baseline();
     v_graph->prep_str2sid(str2vid);
@@ -400,10 +400,8 @@ void graph::read_graph_baseline()
 
 void graph::read_snapshot()
 {
-    if (snap_f == 0) {
-        snap_f = fopen(snapfile.c_str(), "r+b");
-        assert(snap_f != 0);
-    }
+    snap_f = fopen(snapfile.c_str(), "r+b");
+    assert(snap_f != 0);
 
     off_t size = fsize(snapfile.c_str());
     if (size == -1L) {
