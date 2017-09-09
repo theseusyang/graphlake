@@ -25,7 +25,6 @@ void plain_test0(const string& idir, const string& odir)
     */
     
     //do some setup for plain graphs
-    g->file_open(true);
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph_sync(idir, odir);
     

@@ -598,7 +598,7 @@ void ugraph_t::store_graph_baseline()
 void ugraph_t::file_open(const string& odir, bool trunc)
 {
     string postfix = "";
-    file_open_sgraph(sgraph_out, odir, postfix, trunc);
+    file_open_sgraph(sgraph, odir, postfix, trunc);
 }
 
 void ugraph_t::read_graph_baseline()

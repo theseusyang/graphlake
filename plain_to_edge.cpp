@@ -63,6 +63,7 @@ void plaingraph_manager::setup_graph(vid_t v_count)
     typekv_t* typekv = g->get_typekv();
     typekv->manual_setup(v_count);
     g->prep_graph_baseline();
+    g->file_open(true);
     g->make_graph_baseline();
     g->store_graph_baseline(); 
     
