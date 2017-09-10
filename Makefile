@@ -1,7 +1,11 @@
 CC=g++
+EXE1=graphone32
+EXE2=graphone64
+EXE3=graphlake32
+EXE4=graphlake64
 #CFLAGS=-g -Wall -std=gnu++11  -march=native -DB64 -fopenmp
-CFLAGS=-g -Wall -std=gnu++11 -march=native -DB32 -DPLAIN_GRAPH -fopenmp -lpthread
-#CFLAGS=-O3 -Wall -std=gnu++11  -march=native -DB32 -DPLAIN_GRAPH -fopenmp -lpthread
+CFLAGS=-g -Wall -std=gnu++11 -march=native -fopenmp -lpthread
+#CFLAGS=-O3 -Wall -std=gnu++11  -march=native -fopenmp -lpthread
 SRC=main.cpp \
 	cf_info.cpp\
 	graph.cpp\
@@ -27,8 +31,6 @@ SRC=main.cpp \
 	
 #lite_sgraph.cpp\
 #p_sgraph.cpp\
-
-	
 
 HEADER=graph.h\
 	cf_info.h\
@@ -62,8 +64,13 @@ LIBDIRS=
 
 DEPS=$(SRC) $(HEADER)
 
-grdf: $(DEPS)
-	$(CC) $(CFLAGS) $(INCLUDES) $(LIBDIRS) $(SRC)  -o grdf
+all:${EXE1} ${EXE2}
+
+${EXE1}: $(DEPS)
+	$(CC) $(CFLAGS) -DB32 -DPLAIN_GRAPH $(INCLUDES) $(LIBDIRS) $(SRC)  -o ${EXE1}
+
+${EXE2}: $(DEPS)
+	$(CC) $(CFLAGS) -DB64 -DPLAIN_GRAPH $(INCLUDES) $(LIBDIRS) $(SRC)  -o ${EXE2}
 
 clean:
-	rm grdf *.o 
+	rm ${EXE1} ${EXE2} 

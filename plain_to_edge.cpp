@@ -131,6 +131,21 @@ void plaingraph_manager::setup_graph(vid_t v_count)
     g->store_graph_baseline(); 
 }
 
+void plaingraph_manager::setup_weightedgraph(vid_t v_count)
+{
+    //do some setup for plain graphs
+    propid_t cf_id = g->get_cfid("friend");
+    pgraph_t<lite_edge_t>* graph = (pgraph_t<lite_edge_t>*)g->cf_info[cf_id];
+    graph->flag1 = 1;
+    graph->flag2 = 1;
+    typekv_t* typekv = g->get_typekv();
+    typekv->manual_setup(v_count);
+    g->prep_graph_baseline();
+    g->file_open(true);
+    g->make_graph_baseline();
+    g->store_graph_baseline(); 
+}
+
 void plaingraph_manager::prep_weighted_rmat(const string& graph_file, const string& action_file)
 {
     int fd = open(graph_file.c_str(), O_RDONLY);

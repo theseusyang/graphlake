@@ -19,6 +19,7 @@ class plaingraph_manager {
     static void schema_plaingraphd();
     static void schema_weightedgraphd();
     static void setup_graph(vid_t v_count);
+    static void setup_weightedgraph(vid_t v_count);
     static void prep_graph(const string& idirname, const string& odirname);
     static void prep_graph_sync(const string& idirname, const string& odirname);
     static void prep_graph_paper_num(const string& idirname, const string& odirname);

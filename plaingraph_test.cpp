@@ -98,6 +98,53 @@ void plaind_test0(const string& idir, const string& odir)
     return ;
 }
 
+void weighted_dtest0(const string& idir, const string& odir)
+{
+    
+    plaingraph_manager::schema_weightedgraphd();
+    //do some setup for plain graphs
+    plaingraph_manager::setup_weightedgraph(v_count);    
+    
+    string graph_file = idir + "g.10.8.bin";
+    string action_file = idir + "a.10.8.100000.bin"; 
+    plaingraph_manager::prep_weighted_rmat(graph_file, action_file);
+    
+    propid_t cf_id = g->get_cfid("friend");
+    pgraph_t<sid_t>* pgraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+    onegraph_t<sid_t>* sgraph_out = pgraph->sgraph_out[0];
+    onegraph_t<sid_t>* sgraph_in  = pgraph->sgraph_in[0];
+    blog_t<sid_t>* blog = pgraph->blog;
+   
+    uint8_t* level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count,
+                            PROT_READ|PROT_WRITE,
+                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
+    
+    if (MAP_FAILED == level_array) {
+        cout << "Huge page alloc failed for level array" << endl;
+        level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
+    }
+    
+    snapshot_t* snapshot = g->get_snapshot();
+    index_t marker = blog->blog_head;
+    index_t old_marker = 0;
+    degree_t* degree_out = 0;
+    degree_t* degree_in = 0;
+
+    if (snapshot) {
+        old_marker = snapshot->marker;
+        create_degreesnapd (sgraph_out, sgraph_in, snapshot, marker, blog->blog_beg,
+                            degree_out, degree_in);
+    }
+
+    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
+
+
+    ext_bfs<sid_t>(sgraph_out, degree_out, sgraph_in, degree_in, 
+                   snapshot, marker, blog->blog_beg,
+                   v_count, level_array, 1);
+    return ;
+}
+
 void plain_test1(const string& idir, const string& odir)
 {
     plaingraph_manager::schema_plaingraph();
@@ -517,6 +564,9 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             break;
         case 8:
             plaind_test1(odir);
+            break;
+        case 9:
+            weighted_dtest0(idir, odir);
             break;
         case 10:
             paper_test0(v_count1, idir, odir);
