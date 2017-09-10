@@ -146,6 +146,7 @@ void plaingraph_manager::setup_weightedgraph(vid_t v_count)
     g->store_graph_baseline(); 
 }
 
+extern vid_t v_count;
 void plaingraph_manager::prep_weighted_rmat(const string& graph_file, const string& action_file)
 {
     int fd = open(graph_file.c_str(), O_RDONLY);
@@ -163,6 +164,8 @@ void plaingraph_manager::prep_weighted_rmat(const string& graph_file, const stri
     int64_t* weight = index + ne;
 
     //Do ingestion
+    v_count = nv;
+    setup_weightedgraph(v_count);
     propid_t cf_id = g->get_cfid("friend");
     pgraph_t<lite_edge_t>* graph = (pgraph_t<lite_edge_t>*)g->cf_info[cf_id];
     edgeT_t<lite_edge_t>   edge;
@@ -193,7 +196,7 @@ void plaingraph_manager::prep_weighted_rmat(const string& graph_file, const stri
 
 
     //Graph Updates
-    int fd1 = open(graph_file.c_str(), O_RDONLY);
+    int fd1 = open(action_file.c_str(), O_RDONLY);
     assert(fd1 != -1);
     index_t size1 = fsize(fd1);
     int64_t* buf1 = (int64_t*)malloc(size1);
@@ -201,12 +204,32 @@ void plaingraph_manager::prep_weighted_rmat(const string& graph_file, const stri
     int64_t little_endian1 = buf1[0];
     assert(little_endian1 == 0x1234ABCD);
 
-    int64_t na = buf[1];
-    edge_t* edges = (edge_t*)(buf + 2);
+    int64_t na = buf1[1];
+    edge_t* edges = (edge_t*)(buf1 + 2);
 
     //Do ingestion
+    int64_t del_count = 0;
+    start = mywtime();
+    for (int64_t i = 0; i < na; i++) {
+        edge.src_id = edges[i].src_id;
+        edge.dst_id.first = edges[i].dst_id;
+        edge.dst_id.second.value_64b = 1;
+        if (IS_DEL(edge.src_id)) {++del_count;}
+        else graph->batch_edge(edge);
+    }
 
+    cout << "no of actions " << na << endl;
+    cout << "del_count "<<del_count << endl;
     
+    marker = blog->blog_head;
+    graph->create_marker(marker);
+    if (eOK == graph->move_marker(snap_marker)) {
+        graph->make_graph_baseline();
+        graph->store_graph_baseline();
+        g->incr_snapid(snap_marker, snap_marker);
+    }
+    end = mywtime();
+    cout << "Make graph time = " << end - start << endl;
 }
 
 void plaingraph_manager::prep_graph_sync(const string& idirname, const string& odirname)

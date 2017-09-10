@@ -69,14 +69,14 @@ class pgraph_t: public cfinfo_t {
         index_t index = __sync_fetch_and_add(&blog->blog_head, 1L);
         index_t index1 = (index % blog->blog_count);
         index_t size = (index - blog->blog_marker) % BATCH_SIZE;
-        if ((0 == size) && (index != 0)) {
+        if ((0 == size) && (index != blog->blog_marker)) {
             blog->blog_beg[index1] = edge;
-            create_marker(index);
+            create_marker(index + 1);
             //cout << "Will create a snapshot now " << endl;
             return eEndBatch;
         } else if ((index - blog->blog_tail) == blog->blog_count - 1000) {
             blog->blog_beg[index1] = edge;
-            create_marker(index);
+            create_marker(index + 1);
             cout << "About OOM" << endl;
             return eOOM;
         } else if ((index - blog->blog_tail) >= blog->blog_count) {
