@@ -516,6 +516,60 @@ void onegraph_t<T>::setup(tid_t tid)
     }
 }
 
+//returns the location of the found value
+template <class T>
+degree_t onegraph_t<T>::find_nebr(vid_t vid, sid_t sid) 
+{
+    //Find the location of deleted one
+    vunit_t<T>* v_unit = beg_pos[vid].get_vunit();
+    if (0 == v_unit) return INVALID_DEGREE;
+
+    degree_t  durable_degree = v_unit->count;
+    degree_t    local_degree = 0;
+    degree_t          degree = 0;
+    sid_t               nebr = 0;
+    T*         local_adjlist = 0;
+    delta_adjlist_t<T>* delta_adjlist = v_unit->delta_adjlist;
+    delta_adjlist_t<T>* next = delta_adjlist->get_next();
+    
+    while (next != 0) {
+        local_adjlist = delta_adjlist->get_adjlist();
+        local_degree  = delta_adjlist->get_nebrcount();
+        for (degree_t i = 0; i < local_degree; ++i) {
+            nebr = get_nebr(local_adjlist, i);
+            if (nebr == sid) {
+                return i + degree + durable_degree;
+            }
+        }
+        degree += local_degree;
+        delta_adjlist = next;
+        next = next->get_next();
+    }
+
+    local_adjlist = delta_adjlist->get_adjlist();
+    local_degree = nebr_count[vid].add_count;
+    for (degree_t i = 0; i < local_degree; ++i) {
+        nebr = get_nebr(local_adjlist, i);
+        if (nebr == sid) {
+            return i + degree + durable_degree;
+        }
+    }
+    //Durable adj list 
+    if (durable_degree == 0) return INVALID_DEGREE;
+
+    index_t   offset = v_unit->offset;
+    index_t sz_to_read = offset*sizeof(T) + sizeof(durable_adjlist_t<T>);
+    durable_adjlist_t<T>* durable_adjlist = (durable_adjlist_t<T>*)malloc(sz_to_read);
+    pread(etf, durable_adjlist, sz_to_read, offset);
+    T* adj_list = delta_adjlist->get_adjlist();
+    for (degree_t i = 0; i < durable_degree; ++i) {
+        nebr = get_nebr(adj_list, i);
+        if (nebr == sid) {
+            return i;
+        }
+    }
+    return INVALID_DEGREE;
+}
 
 template <class T>
 void onegraph_t<T>::setup_adjlist()

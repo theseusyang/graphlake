@@ -311,50 +311,7 @@ public:
         }
     }
 
-    inline degree_t find_nebr(vid_t vid, sid_t sid) {
-        //Find the location of deleted one
-        vunit_t<T>* v_unit = beg_pos[vid].get_vunit();
-        if (0 == v_unit) return INVALID_DEGREE;
-
-        degree_t    local_degree = 0;
-        degree_t  durable_degree = 0;
-        degree_t          degree = 0;
-        sid_t               nebr = 0;
-        T*         local_adjlist = 0;
-        delta_adjlist_t<T>* delta_adjlist = v_unit->delta_adjlist;
-        delta_adjlist_t<T>* next = delta_adjlist->get_next();
-        
-        while (next != 0) {
-            local_adjlist = delta_adjlist->get_adjlist();
-            local_degree  = delta_adjlist->get_nebrcount();
-            for (degree_t i = 0; i < local_degree; ++i) {
-                nebr = get_nebr(local_adjlist, i);
-                if (nebr == sid) {
-                    return i + degree + durable_degree;
-                }
-            }
-            degree += local_degree;
-            delta_adjlist = next;
-            next = next->get_next();
-        }
-
-        local_adjlist = delta_adjlist->get_adjlist();
-        local_degree = nebr_count[vid].add_count;
-        for (degree_t i = 0; i < local_degree; ++i) {
-            nebr = get_nebr(local_adjlist, i);
-            if (nebr == sid) {
-                return i + degree + durable_degree;
-            }
-        }
-        //Durable adj list XXX
-        for (degree_t i = 0; i < durable_degree; ++i) {
-            nebr = get_nebr(local_adjlist, i);
-            if (nebr == sid) {
-                return i;
-            }
-        }
-        return INVALID_DEGREE;
-    }
+    degree_t find_nebr(vid_t vid, sid_t sid); 
     
 	inline void set_vunit(vid_t vid, vunit_t<T>* v_unit1) {
         //prev value will be cleaned later
