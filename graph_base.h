@@ -399,7 +399,9 @@ public:
 	
 	//delta adj list allocation
 	inline delta_adjlist_t<T>* new_delta_adjlist(degree_t count) {
-		index_t index_adjlog = __sync_fetch_and_add(&adjlog_head, count);
+        //It will have issues, in some T sizes, not fixed yet
+        degree_t new_count = count + sizeof(delta_adjlist_t<T>)/sizeof(T);
+		index_t index_adjlog = __sync_fetch_and_add(&adjlog_head, new_count);
 		assert(index_adjlog  < adjlog_count); 
 		return (delta_adjlist_t<T>*)(adjlog_beg + index_adjlog);
 	}

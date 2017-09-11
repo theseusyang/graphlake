@@ -555,7 +555,7 @@ void onegraph_t<T>::setup_adjlist()
 
             //delta adj list allocation
 			//extra space is for ptr, and count
-			delta_adjlist = new_delta_adjlist(total_count + 4);
+			delta_adjlist = new_delta_adjlist(total_count);
             delta_adjlist->set_nebrcount(total_count);
             delta_adjlist->add_next(0);
 			
