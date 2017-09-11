@@ -350,7 +350,8 @@ ext_bfs(onegraph_t<T>* sgraph_out, degree_t* degree_out,
             vunit_t<T>*     v_unit  = 0;
             index_t         offset  = 0;
             
-            delta_adjlist_t<T>* delta_adjlist;;
+            delta_adjlist_t<T>*   delta_adjlist;;
+            durable_adjlist_t<T>* durable_adjlist;;
             
             vert_table_t<T>* graph  = 0;
 		    
@@ -386,21 +387,22 @@ ext_bfs(onegraph_t<T>* sgraph_out, degree_t* degree_out,
                     }
 
                     degree_t k_count = min(nebr_count, durable_degree);
+                    if (k_count == 0) continue;
                     offset = v_unit->offset;
-                    adj_list = (T*)malloc((k_count+1)*sizeof(T));
-                    if (0 != k_count) {
-                        pread(etf_out, adj_list, (k_count+1)*sizeof(T), offset*sizeof(T));
-                    }
+                    index_t sz_to_read = (k_count)*sizeof(T) + sizeof(durable_adjlist_t<T>);
+                    durable_adjlist = (durable_adjlist_t<T>*)malloc(sz_to_read);
+                    adj_list = durable_adjlist->get_adjlist();
+                    pread(etf_out, durable_adjlist, sz_to_read, offset);
+                    
                     //cout << "Vertex: " << v << " durable degree " << durable_degree << endl;
 					//traverse the adj list
-					for (vid_t k = 1; k <= k_count; ++k) {
+					for (vid_t k = 0; k < k_count; ++k) {
                         sid = get_nebr(adj_list, k);
 						if (status[sid] == 0) {
 							status[sid] = level + 1;
 							++frontier;
 						}
 					}
-                    if (0 != k_count) free(adj_list);
 
 				}
 			} else {//bottom up
@@ -438,13 +440,15 @@ ext_bfs(onegraph_t<T>* sgraph_out, degree_t* degree_out,
                     if (status[v] == level + 1) continue;
 
 					//traverse the adj list
-                    offset = v_unit->offset;
                     degree_t k_count = min(nebr_count, durable_degree);
-                    adj_list = (T*)malloc((k_count+1)*sizeof(T));
-                    if (0 != k_count) {
-                        pread(etf_in, adj_list, (k_count +1)*sizeof(T), offset*sizeof(T));
-                    }
-					for (vid_t k = 1; k <= k_count; ++k) {
+                    if (k_count == 0) continue;
+                    offset = v_unit->offset;
+                    index_t sz_to_read = (k_count)*sizeof(T) + sizeof(durable_adjlist_t<T>);
+                    durable_adjlist = (durable_adjlist_t<T>*)malloc(sz_to_read);
+                    adj_list = durable_adjlist->get_adjlist();
+                    pread(etf_in, durable_adjlist, sz_to_read, offset);
+					
+                    for (vid_t k = 0; k < k_count; ++k) {
                         sid = get_nebr(adj_list, k);
 						if (status[sid] == level) {
 							status[v] = level + 1;
@@ -452,7 +456,6 @@ ext_bfs(onegraph_t<T>* sgraph_out, degree_t* degree_out,
 							break;
 						}
 					}
-                    if (0 != k_count)  free(adj_list);
 				}
 		    }
 

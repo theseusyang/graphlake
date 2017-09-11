@@ -459,7 +459,6 @@ void onegraph_t<T>::setup(tid_t tid)
         }
             */
             if (posix_memalign((void**)&dlog_beg, 2097152, dlog_count*sizeof(snapT_t<T>))) {
-                //log_beg = (index_t*)calloc(sizeof(index_t), log_count);
                 perror("posix memalign snap log");
             }
         
@@ -471,7 +470,7 @@ void onegraph_t<T>::setup(tid_t tid)
         
         //durable vertex log and adj list log
         dvt_max_count = (v_count);
-        log_count = (1L << 22);
+        log_count = (1L << 28);
         if (posix_memalign((void**) &write_seg[0].dvt, 2097152, 
                            dvt_max_count*sizeof(disk_vtable_t))) {
             perror("posix memalign vertex log");    
@@ -480,11 +479,11 @@ void onegraph_t<T>::setup(tid_t tid)
                            dvt_max_count*sizeof(disk_vtable_t))) {
             perror("posix memalign vertex log");    
         }
-        if (posix_memalign((void**)&write_seg[0].log_beg, 2097152, log_count*sizeof(T))) {
+        if (posix_memalign((void**)&write_seg[0].log_beg, 2097152, log_count)) {
             //log_beg = (index_t*)calloc(sizeof(index_t), log_count);
             perror("posix memalign edge log");
         }
-        if (posix_memalign((void**)&write_seg[1].log_beg, 2097152, log_count*sizeof(T))) {
+        if (posix_memalign((void**)&write_seg[1].log_beg, 2097152, log_count)) {
             //log_beg = (index_t*)calloc(sizeof(index_t), log_count);
             perror("posix memalign edge log");
         }
@@ -609,8 +608,8 @@ void onegraph_t<T>::handle_write()
     vid_t   v_count = TO_VID(super_id);
     vid_t last_vid1 = 0;
     vid_t last_vid2 = 0;
-    write_seg_t<T>* seg1 = write_seg + 0;
-    write_seg_t<T>* seg2 = write_seg + 1; 
+    write_seg_t* seg1 = write_seg + 0;
+    write_seg_t* seg2 = write_seg + 1; 
     index_t       offset = log_tail;
     
     prepare_dvt(seg1, last_vid1, offset);
@@ -646,10 +645,10 @@ void onegraph_t<T>::handle_write()
 }
 
 template <class T>
-void onegraph_t<T>::prepare_dvt(write_seg_t<T>* seg, vid_t& last_vid, index_t& offset)
+void onegraph_t<T>::prepare_dvt(write_seg_t* seg, vid_t& last_vid, index_t& offset)
 {
     vid_t    v_count = TO_VID(super_id);
-    T* adj_list2 = 0;
+    durable_adjlist_t<T>* adj_list2 = 0;
     snapT_t<T>* curr = 0;
 	disk_vtable_t* dvt1 = 0;
 	
@@ -657,7 +656,7 @@ void onegraph_t<T>::prepare_dvt(write_seg_t<T>* seg, vid_t& last_vid, index_t& o
         if (0 == nebr_count[vid].adj_list) continue;
 		
         curr		= beg_pos[vid].get_snapblob();
-		if ((seg->log_head + curr->degree + 1 > log_count) ||
+		if ((seg->log_head + curr->degree*sizeof(T) + sizeof(durable_adjlist_t<T>)  > log_count) ||
             (seg->dvt_count >= dvt_max_count)) {
             last_vid = vid;
             offset += seg->log_head;
@@ -665,14 +664,14 @@ void onegraph_t<T>::prepare_dvt(write_seg_t<T>* seg, vid_t& last_vid, index_t& o
 		}
         
         //durable adj list allocation
-		adj_list2   = new_adjlist(seg, curr->degree + 1);
+		adj_list2   = new_adjlist(seg, curr->degree);
         
 		//v_unit log for disk write
         dvt1              = new_dvt(seg);
 		dvt1->vid         = vid;
 		dvt1->count	     = curr->degree;
         dvt1->del_count  = curr->del_count;
-        dvt1->file_offset = adj_list2 - seg->log_beg;
+        dvt1->file_offset = (char*)adj_list2 - seg->log_beg;
         dvt1->file_offset += offset;
     }
 
@@ -682,7 +681,7 @@ void onegraph_t<T>::prepare_dvt(write_seg_t<T>* seg, vid_t& last_vid, index_t& o
 }
 
 template <class T>
-void onegraph_t<T>::adj_write(write_seg_t<T>* seg)
+void onegraph_t<T>::adj_write(write_seg_t* seg)
 {
 	vid_t vid;
 	disk_vtable_t* dvt1 = 0;
@@ -693,33 +692,32 @@ void onegraph_t<T>::adj_write(write_seg_t<T>* seg)
     degree_t prev_total_count;
 
 	delta_adjlist_t<T>* delta_adjlist = 0;
+	durable_adjlist_t<T>* durable_adjlist = 0;
     T* adj_list1 = 0;
-    T* adj_list2 = 0;
 
     #pragma omp for  
 	for (vid_t v = 0; v < seg->dvt_count; ++v) {
 		dvt1 = seg->dvt + v;
 		vid = dvt1->vid;
 		if (0 == nebr_count[vid].adj_list) continue;
-		prev_v_unit  = beg_pos[vid].get_vunit();
-		prev_total_count   = prev_v_unit->count;
-		prev_offset  = prev_v_unit->offset;
-        total_count = dvt1->count + dvt1->del_count;
+		prev_v_unit       = beg_pos[vid].get_vunit();
+		prev_total_count  = prev_v_unit->count;
+		prev_offset       = prev_v_unit->offset;
+        total_count       = dvt1->count + dvt1->del_count;
 		
 		//Find the allocated durable adj list
-		adj_list1   = seg->log_beg + dvt1->file_offset - log_tail;//XXX
-		adj_list2   = adj_list1;
+		durable_adjlist = (durable_adjlist_t<T>*)(seg->log_beg + dvt1->file_offset - log_tail);
+        adj_list1 = durable_adjlist->get_adjlist();
 	   
         //Copy the Old durable adj list
 		if (prev_total_count) {
 			//Read the old adj list from disk
-			pread(etf, adj_list1 , (prev_total_count+1)*sizeof(T), prev_offset*sizeof(T));
-            set_nebrcount1(adj_list1, total_count);
-			adj_list1 += prev_total_count + 1;
-		} else {
-            set_nebrcount1(adj_list1, total_count);
-		    ++adj_list1;
+            index_t sz_to_read = sizeof(durable_adjlist_t<T>) + prev_total_count*sizeof(T);
+			pread(etf, durable_adjlist , sz_to_read, prev_offset);
+			adj_list1 += prev_total_count;
         }
+        
+        durable_adjlist->set_nebrcount(total_count);
 
         //Copy the new in-memory adj-list
 		delta_adjlist = prev_v_unit->delta_adjlist;
@@ -731,8 +729,8 @@ void onegraph_t<T>::adj_write(write_seg_t<T>* seg)
 		}
 
 		//Write new adj list
-		pwrite(etf, adj_list2, (total_count + 1)*sizeof(T), 
-               (dvt1->file_offset)*sizeof(T));
+        index_t sz_to_write = total_count*sizeof(T) + sizeof(durable_adjlist_t<T>);
+		pwrite (etf, durable_adjlist, sz_to_write, dvt1->file_offset);
 
 		v_unit = new_vunit();
 		v_unit->count = total_count;
@@ -760,6 +758,7 @@ void onegraph_t<T>::adj_write(write_seg_t<T>* seg)
 	//Write the dvt log
 	//fwrite(seg->dvt, sizeof(disk_vtable_t), seg->dvt_count, vtf);
 }
+
 template <class T>
 void onegraph_t<T>::read_vtable()
 {

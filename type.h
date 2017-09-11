@@ -183,6 +183,36 @@ class delta_adjlist_t {
 	inline delta_adjlist_t<T>* get_next() { return next; }
 };
 
+template <class T>
+class durable_adjlist_t {
+    sid_t vid;
+	sid_t count;
+	//T  adj_list;
+
+ public:
+	inline durable_adjlist_t<T>() {count = 0;}
+	inline degree_t get_nebrcount() { return count;}
+	void set_nebrcount(degree_t degree) {count = degree;}
+	inline T* get_adjlist() { return (T*)(&count + 1); }
+};
+
+template <class T>
+class vunit_t {
+ public:
+	//Durable adj list, and num of nebrs in that
+	vflag_t       vflag;
+	degree_t      count;
+    index_t       offset;
+	delta_adjlist_t<T>* delta_adjlist;
+
+	inline void reset() {
+		vflag = 0;
+		count = 0;
+		offset = -1L;
+		delta_adjlist = 0;
+	}
+};
+
 class pedge_t {
  public:
     propid_t pid;
@@ -239,12 +269,11 @@ class  disk_snapT_t {
 snapid_t get_snapid();
 
 //Used for writing adj list to disk
-template <class T>
 class write_seg_t {
  public:
      disk_vtable_t* dvt;
      index_t        dvt_count;
-     T*             log_beg;
+     char*          log_beg;
      index_t        log_head;
 
      write_seg_t() {

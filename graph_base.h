@@ -65,23 +65,6 @@ inline void set_value1(lite_edge_t* kv, vid_t vid, sid_t value, univ_t univ) {
     kv[vid].second = univ;
 }
 
-template <class T>
-class vunit_t {
- public:
-	//Durable adj list, and num of nebrs in that
-	vflag_t       vflag;
-	degree_t      count;
-    index_t       offset;
-	delta_adjlist_t<T>* delta_adjlist;
-
-	inline void reset() {
-		vflag = 0;
-		count = 0;
-		offset = -1L;
-		delta_adjlist = 0;
-	}
-};
-
 //One vertex's neighbor information
 template <class T>
 class vert_table_t {
@@ -234,7 +217,7 @@ private:
 
 
     //vertex table file related log
-    write_seg_t<T>  write_seg[2];
+    write_seg_t  write_seg[2];
     //disk_vtable_t* dvt;
     //vid_t    dvt_count; 
     vid_t    dvt_max_count;
@@ -363,9 +346,9 @@ public:
                 return i + degree + durable_degree;
             }
         }
-
-        for (degree_t i = 0, j = 1; i < durable_degree; ++i, ++j) {
-            nebr = get_nebr(local_adjlist, j);
+        //Durable adj list XXX
+        for (degree_t i = 0; i < durable_degree; ++i) {
+            nebr = get_nebr(local_adjlist, i);
             if (nebr == sid) {
                 return i;
             }
@@ -391,10 +374,11 @@ public:
 	}	
    
     //durable adj list	
-	inline T* new_adjlist(write_seg_t<T>* seg,  degree_t count) {
-        index_t index_log = __sync_fetch_and_add(&seg->log_head, count);
+	inline durable_adjlist_t<T>* new_adjlist(write_seg_t* seg,  degree_t count) {
+        degree_t new_count = count*sizeof(T)+sizeof(durable_adjlist_t<T>);
+        index_t index_log = __sync_fetch_and_add(&seg->log_head, new_count);
         assert(index_log  < log_count); 
-        return  (seg->log_beg + index_log);
+        return  (durable_adjlist_t<T>*)(seg->log_beg + index_log);
 	}
 	
 	//delta adj list allocation
@@ -413,7 +397,7 @@ public:
 		return (dlog_beg + index_dlog);
 	}
 
-	inline disk_vtable_t* new_dvt(write_seg_t<T>* seg) {
+	inline disk_vtable_t* new_dvt(write_seg_t* seg) {
         index_t j = __sync_fetch_and_add(&seg->dvt_count, 1L);
 		//assert();
 		return seg->dvt + j;
@@ -431,8 +415,8 @@ public:
     inline tid_t get_tid() { return TO_TID(super_id);}
 
 
-    void prepare_dvt(write_seg_t<T>* seg, vid_t& last_vid, index_t& file_offset);
-	void adj_write(write_seg_t<T>* seg);
+    void prepare_dvt(write_seg_t* seg, vid_t& last_vid, index_t& file_offset);
+	void adj_write(write_seg_t* seg);
     void handle_write();
     
     void update_count();
