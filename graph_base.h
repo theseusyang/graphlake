@@ -176,10 +176,10 @@ private:
     vid_t    max_vcount;
     
     //delta adj list
-    T*         adjlog_beg;  //memory log pointer
+    char*      adjlog_beg;  //memory log pointer
     index_t    adjlog_count;//size of memory log
     index_t    adjlog_head; // current log write position
-    index_t    adjlog_tail; //current log cleaning position
+   // index_t    adjlog_tail; //current log cleaning position
 
     //durable adj list, for writing to disk
     index_t    log_tail; //current log cleaning position
@@ -200,12 +200,13 @@ private:
     index_t     dlog_tail; //current log cleaning position
     index_t     dlog_wpos; //Write this pointer for write persistency
 
+    /*
     //degree array related log, for writing to disk
     disk_snapT_t<T>* snap_log;
     index_t snap_count;
     index_t snap_whead;
     index_t snap_wtail;
-
+*/
 	//v_unit log, in-memory, fixed size log
 	//indirection will help better cleaning
 	vunit_t<T>* vunit_beg;
@@ -244,8 +245,6 @@ public:
 
         adjlog_count = 0;
         adjlog_head  = 0;
-        adjlog_tail  = 0;
-        adjlog_tail  = 0;
         
         log_count = 0;
         /*
@@ -259,11 +258,12 @@ public:
         dlog_head = 0;
         dlog_tail = 0;
         dlog_wpos = 0;
-        
+       
+       /* 
         snap_count = 0;
         snap_whead = 0;
         snap_wtail = 0;
-
+       */
         
         //dvt_count = 0;
         dvt_max_count = 0;
@@ -384,7 +384,7 @@ public:
 	//delta adj list allocation
 	inline delta_adjlist_t<T>* new_delta_adjlist(degree_t count) {
         //It will have issues, in some T sizes, not fixed yet
-        degree_t new_count = count + sizeof(delta_adjlist_t<T>)/sizeof(T);
+        degree_t new_count = count*sizeof(T) + sizeof(delta_adjlist_t<T>);
 		index_t index_adjlog = __sync_fetch_and_add(&adjlog_head, new_count);
 		assert(index_adjlog  < adjlog_count); 
 		return (delta_adjlist_t<T>*)(adjlog_beg + index_adjlog);

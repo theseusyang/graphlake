@@ -438,9 +438,9 @@ void onegraph_t<T>::setup(tid_t tid)
         nebr_count = (nebrcount_t<T>*)calloc(sizeof(nebrcount_t<T>), max_vcount);
         
         //dela adj list
-        adjlog_count = (1L << 34);//256*8 MB
-        adjlog_beg = (T*)mmap(NULL, sizeof(T)*adjlog_count, PROT_READ|PROT_WRITE,
-                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
+        adjlog_count = (1L << 33); //8GB
+        adjlog_beg = (char*)mmap(NULL, adjlog_count, PROT_READ|PROT_WRITE,
+                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0);
         if (MAP_FAILED == adjlog_beg) {
             cout << "Huge page allocation failed for delta adj list" << endl;
             if (posix_memalign((void**)&adjlog_beg, 2097152, adjlog_count*sizeof(T))) {
@@ -461,12 +461,13 @@ void onegraph_t<T>::setup(tid_t tid)
             if (posix_memalign((void**)&dlog_beg, 2097152, dlog_count*sizeof(snapT_t<T>))) {
                 perror("posix memalign snap log");
             }
-        
+        /*
         //degree array relatd log, for writing to disk
         snap_count = (1L << 16);//256 MB
         if (posix_memalign((void**)&snap_log, 2097152, snap_count*sizeof(disk_snapT_t<T>))) {
             perror("posix memalign snap disk log");
         }
+        */
         
         //durable vertex log and adj list log
         dvt_max_count = (v_count);
@@ -671,7 +672,7 @@ void onegraph_t<T>::prepare_dvt(write_seg_t* seg, vid_t& last_vid, index_t& offs
 		dvt1->vid         = vid;
 		dvt1->count	     = curr->degree;
         dvt1->del_count  = curr->del_count;
-        dvt1->file_offset = (char*)adj_list2 - seg->log_beg;
+        dvt1->file_offset = ((char*)adj_list2) - seg->log_beg;
         dvt1->file_offset += offset;
     }
 
