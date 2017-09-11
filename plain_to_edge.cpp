@@ -209,13 +209,22 @@ void plaingraph_manager::prep_weighted_rmat(const string& graph_file, const stri
 
     //Do ingestion
     int64_t del_count = 0;
+    int64_t src, dst;
     start = mywtime();
     for (int64_t i = 0; i < na; i++) {
-        edge.src_id = edges[i].src_id;
-        edge.dst_id.first = edges[i].dst_id;
+        src = edges[i].src_id;
         edge.dst_id.second.value_64b = 1;
-        if (IS_DEL(edge.src_id)) {++del_count;}
-        else graph->batch_edge(edge);
+        dst = edges[i].dst_id;
+        if (src >= 0) {
+            edge.src_id = src;
+            edge.dst_id.first = dst;
+            graph->batch_edge(edge);
+        } else {
+            edge.src_id = DEL_SID(-src);
+            edge.dst_id.first = DEL_SID(-dst);
+            graph->batch_edge(edge);
+            ++del_count;
+        }
     }
 
     cout << "no of actions " << na << endl;

@@ -59,8 +59,8 @@ void pgraph_t<lite_edge_t>::fill_adj_list(lite_sgraph_t** sgraph_out, lite_sgrap
                 sgraph_out[src_index]->add_nebr_lite(vert1_id, dst, univ);
                 sgraph_in[dst_index]->add_nebr_lite(vert2_id, src, univ);
             } else {
-                //sgraph_out[src_index]->del_nebr_lite(vert1_id, dst, univ);
-                //sgraph_in[dst_index]->del_nebr_lite(vert2_id, TO_SID(src), univ);
+                sgraph_out[src_index]->del_nebr(vert1_id, dst);
+                sgraph_in[dst_index]->del_nebr(vert2_id, src);
             }
         }
     }

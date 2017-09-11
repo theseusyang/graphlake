@@ -63,7 +63,7 @@ typedef uint32_t vflag_t;
 #define VBIT 31
 #define VMASK 0x7fffffff
 #define THIGH_MASK 0x00000000
-#define DEL_MASK   0xE0000000
+#define DEL_MASK   0x80000000
 #define SID_MASK   0x7FFFFFFF
 #endif
 #endif

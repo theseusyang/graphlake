@@ -320,9 +320,54 @@ public:
         degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
         nebr_count[vid].add_nebr(index, sid);
     }
-    inline void del_nebr(vid_t vid, sid_t sid) { 
+    inline void del_nebr(vid_t vid, sid_t sid) {
         //nebr_count[vid].del_nebr(nebr_count[vid].del_count, sid);
         //++nebr_count[vid].del_count;
+    }
+
+    inline degree_t find_nebr(vid_t vid, sid_t sid) {
+        //Find the location of deleted one
+        vunit_t<T>* v_unit = beg_pos[vid].get_vunit();
+        if (0 == v_unit) return;
+        degree_t    local_degree = 0;
+        degree_t    delta_degree = 0;
+        degree_t  durable_degree = 0;
+        degree_t          degree = 0;
+        sid_t               nebr = 0;
+        T*         local_adjlist = 0;
+        delta_adjlist_t<T>* delta_adjlist = v_unit->delta_adjlist;
+        delta_adjlist_t<T>* next = delta_adjlist->get_next();
+        
+        while (next != 0) {
+            local_adjlist = delta_adjlist->get_adjlist();
+            local_degree  = delta_adjlist->get_nebrcount();
+            for (degree_t i = 0; i < local_degree; ++i) {
+                nebr = get_nebr(local_adjlist, i);
+                if (nebr == sid) {
+                    return i + degree + durable_degree;
+                }
+            }
+            degree += local_degree;
+            delta_adjlist = next;
+            next = next->get_next();
+        }
+
+        local_adjlist = delta_adjlist->get_adjlist();
+        local_degree = nebr_count[vid].add_count;
+        for (degree_t i = 0; i < local_degree; ++i) {
+            nebr = get_nebr(local_adjlist, i);
+            if (nebr == sid) {
+                return i + degree + durable_degree;
+            }
+        }
+
+        for (degree_t i = 0, j = 1; i < durable_degree; ++i, ++j) {
+            nebr = get_nebr(local_adjlist, j);
+            if (nebr == sid) {
+                return i;
+            }
+        }
+
     }
     
     inline void add_nebr_lite(vid_t vid, sid_t sid, univ_t value) { 
