@@ -534,7 +534,7 @@ void onegraph_t<T>::setup_adjlist()
         del_count = nebr_count[vid].del_count;
         count = nebr_count[vid].add_count;
         
-        if (0 != count) {// new nebrs added/deleted
+        if (0 != count || 0 != del_count) {// new nebrs added/deleted
 			if (beg_pos[vid].get_vunit()) {
 				v_unit = beg_pos[vid].get_vunit();
             } else {

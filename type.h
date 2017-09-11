@@ -82,7 +82,7 @@ typedef uint32_t vflag_t;
 extern propid_t INVALID_PID;
 extern tid_t    INVALID_TID;
 extern sid_t    INVALID_SID;
-
+extern degree_t INVALID_DEGREE;
 //#define INVALID_PID 0xFFFF
 //#define INVALID_TID 0xFFFFFFFF
 //#define INVALID_SID 0xFFFFFFFFFFFFFFFF

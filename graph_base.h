@@ -165,22 +165,14 @@ class nebrcount_t {
     delta_adjlist_t<T>* adj_list;
     
  public:
-    inline void add_nebr(vid_t index, T sid) { 
-        //add_nebr1(adj_list, index, sid);
+    inline void add_nebr(vid_t index, sid_t sid) { 
         T* adj_list1 = adj_list->get_adjlist();
-        adj_list1[index] = sid;
+        add_nebr1(adj_list1, index, sid);
+        //adj_list1[index] = sid;
     }
 
     inline void add_nebr_lite(vid_t index, sid_t sid, univ_t value) {
         add_nebr2(adj_list->get_adjlist(), index, sid, value);
-    }
-    
-    inline void del_nebr(vid_t index, delentry_t<T> del_entry) { 
-        //XXX 
-    }
-
-    inline void del_nebr_lite(vid_t index, sid_t sid, univ_t value) {
-        //
     }
 };
 
@@ -320,17 +312,27 @@ public:
         degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
         nebr_count[vid].add_nebr(index, sid);
     }
+    
+    inline void add_nebr_lite(vid_t vid, sid_t sid, univ_t value) { 
+        degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
+        nebr_count[vid].add_nebr_lite(index, sid, value);
+    }
+	
     inline void del_nebr(vid_t vid, sid_t sid) {
-        //nebr_count[vid].del_nebr(nebr_count[vid].del_count, sid);
-        //++nebr_count[vid].del_count;
+        degree_t location = find_nebr(vid, sid);
+        if (INVALID_DEGREE != location) {
+            degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
+            //++nebr_count[vid].del_count;
+            nebr_count[vid].add_nebr(index, sid);
+        }
     }
 
     inline degree_t find_nebr(vid_t vid, sid_t sid) {
         //Find the location of deleted one
         vunit_t<T>* v_unit = beg_pos[vid].get_vunit();
-        if (0 == v_unit) return;
+        if (0 == v_unit) return INVALID_DEGREE;
+
         degree_t    local_degree = 0;
-        degree_t    delta_degree = 0;
         degree_t  durable_degree = 0;
         degree_t          degree = 0;
         sid_t               nebr = 0;
@@ -367,14 +369,9 @@ public:
                 return i;
             }
         }
-
+        return INVALID_DEGREE;
     }
     
-    inline void add_nebr_lite(vid_t vid, sid_t sid, univ_t value) { 
-        nebr_count[vid].add_nebr_lite(nebr_count[vid].add_count, sid, value);
-        ++nebr_count[vid].add_count;
-    }
-	
 	inline void set_vunit(vid_t vid, vunit_t<T>* v_unit1) {
         //prev value will be cleaned later
 		vunit_t<T>* v_unit2 = beg_pos[vid].set_vunit();

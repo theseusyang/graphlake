@@ -17,7 +17,7 @@ tid_t    INVALID_TID  = 0xFF;
 sid_t    INVALID_SID  = 0xFFFFFFFF;
 #endif
 
-
+degree_t INVALID_DEGREE = 0xFFFFFFFF;
 
 /*
 void lite_skv_t::setup(tid_t tid)
