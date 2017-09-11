@@ -196,8 +196,9 @@ class disk_vtable_t {
     vid_t    vid;
 	//Length of durable adj list
     degree_t count;
+    degree_t del_count;
     uint64_t file_offset;
-    uint64_t old_offset;//for cleaning
+    //uint64_t old_offset;//for cleaning
 };
 
 //property name value pair

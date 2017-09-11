@@ -527,7 +527,7 @@ void onegraph_t<T>::setup_adjlist()
 	vunit_t<T>* v_unit = 0;
 	delta_adjlist_t<T>* delta_adjlist = 0;
 	delta_adjlist_t<T>* prev_delta = 0;
-    degree_t count, del_count;
+    degree_t count, del_count, total_count;
     
     #pragma omp for
     for (vid_t vid = 0; vid < v_count; ++vid) {
@@ -547,14 +547,16 @@ void onegraph_t<T>::setup_adjlist()
             if (prev_delta) {
                 count = nebr_count[vid].add_count - prev_delta->get_nebrcount();
 			}	
+            total_count = count + del_count;
         
-            if (0 == count) {
+            if (0 == total_count) {
                 continue;
             }
+
             //delta adj list allocation
 			//extra space is for ptr, and count
-			delta_adjlist = new_delta_adjlist(count + 4);
-            delta_adjlist->set_nebrcount(count);
+			delta_adjlist = new_delta_adjlist(total_count + 4);
+            delta_adjlist->set_nebrcount(total_count);
             delta_adjlist->add_next(0);
 			
 			//If prev_delta exist, v_unit exists
@@ -572,7 +574,11 @@ void onegraph_t<T>::setup_adjlist()
             next->snap_id       = snap_id;
             next->next          = 0;
             next->degree        = count;
-            if (curr)  next->degree += curr->degree; 
+            if (curr) {
+                next->degree    += curr->degree;
+                next->del_count += curr->del_count;
+            }
+
             beg_pos[vid].set_snapblob1(next);
         }
         reset_count(vid);
@@ -665,6 +671,7 @@ void onegraph_t<T>::prepare_dvt(write_seg_t<T>* seg, vid_t& last_vid, index_t& o
         dvt1              = new_dvt(seg);
 		dvt1->vid         = vid;
 		dvt1->count	     = curr->degree;
+        dvt1->del_count  = curr->del_count;
         dvt1->file_offset = adj_list2 - seg->log_beg;
         dvt1->file_offset += offset;
     }
@@ -681,8 +688,10 @@ void onegraph_t<T>::adj_write(write_seg_t<T>* seg)
 	disk_vtable_t* dvt1 = 0;
 	vunit_t<T>* v_unit = 0;
 	vunit_t<T>* prev_v_unit = 0;
-	degree_t prev_count;
 	index_t  prev_offset;
+    degree_t total_count = 0;
+    degree_t prev_total_count;
+
 	delta_adjlist_t<T>* delta_adjlist = 0;
     T* adj_list1 = 0;
     T* adj_list2 = 0;
@@ -693,24 +702,24 @@ void onegraph_t<T>::adj_write(write_seg_t<T>* seg)
 		vid = dvt1->vid;
 		if (0 == nebr_count[vid].adj_list) continue;
 		prev_v_unit  = beg_pos[vid].get_vunit();
-		prev_count   = prev_v_unit->count;
+		prev_total_count   = prev_v_unit->count;
 		prev_offset  = prev_v_unit->offset;
+        total_count = dvt1->count + dvt1->del_count;
 		
-		//durable adj list allocated
+		//Find the allocated durable adj list
 		adj_list1   = seg->log_beg + dvt1->file_offset - log_tail;//XXX
 		adj_list2   = adj_list1;
 	   
         //Copy the Old durable adj list
-		if (prev_count) {
+		if (prev_total_count) {
 			//Read the old adj list from disk
-			pread(etf, adj_list1 , (prev_count+1)*sizeof(T), prev_offset*sizeof(T));
-            set_nebrcount1(adj_list1, dvt1->count);
-			adj_list1 += prev_count + 1;
+			pread(etf, adj_list1 , (prev_total_count+1)*sizeof(T), prev_offset*sizeof(T));
+            set_nebrcount1(adj_list1, total_count);
+			adj_list1 += prev_total_count + 1;
 		} else {
-            set_nebrcount1(adj_list1, dvt1->count);
+            set_nebrcount1(adj_list1, total_count);
 		    ++adj_list1;
         }
-	    assert(vid == dvt1->vid);	
 
         //Copy the new in-memory adj-list
 		delta_adjlist = prev_v_unit->delta_adjlist;
@@ -722,11 +731,11 @@ void onegraph_t<T>::adj_write(write_seg_t<T>* seg)
 		}
 
 		//Write new adj list
-		pwrite(etf, adj_list2, (dvt1->count + 1)*sizeof(T), 
+		pwrite(etf, adj_list2, (total_count + 1)*sizeof(T), 
                (dvt1->file_offset)*sizeof(T));
 
 		v_unit = new_vunit();
-		v_unit->count = dvt1->count;
+		v_unit->count = total_count;
 		v_unit->offset = dvt1->file_offset;// + log_tail;
 		v_unit->delta_adjlist = 0;
 		beg_pos[vid].set_vunit(v_unit);
@@ -751,239 +760,6 @@ void onegraph_t<T>::adj_write(write_seg_t<T>* seg)
 	//Write the dvt log
 	//fwrite(seg->dvt, sizeof(disk_vtable_t), seg->dvt_count, vtf);
 }
-
-template <class T>
-void onegraph_t<T>::update_count() 
-{
-    /*
-    vid_t    v_count = TO_VID(super_id);
-    disk_snapT_t<T>* slog = (disk_snapT_t<T>*)snap_log;
-    T* adj_list1 = 0;
-    T* adj_list2 = 0;
-    T* prev_adjlist = 0;
-	vunit_t<T>* v_unit = 0;
-	vunit_t<T>* prev_v_unit = 0;
-	delta_adjlist_t<T>* delta_adjlist = 0;
-    index_t j = 0;
-    snapT_t<T>* curr = 0;
-    index_t count;
-    snapid_t snap_id = g->get_snapid() + 1;
-    
-    #pragma omp for
-    for (vid_t vid = 0; vid < v_count ; ++vid) {
-        if (0 == nebr_count[vid].adj_list) continue;
-		
-		prev_v_unit = beg_pos[vid].get_vunit();
-        prev_adjlist = prev_v_unit->adj_list;
-        
-        //durable adj list allocation
-        curr		= beg_pos[vid].get_snapblob();
-        adj_list1   = new_adjlist(curr->degree + 1);
-        adj_list2   = adj_list1;
-        
-        //Copy the Old durable adj list
-        set_nebrcount1(adj_list1, curr->degree);
-        adj_list1 += 1;
-        if (0 != prev_adjlist) {
-            count = get_nebrcount1(prev_adjlist);
-            memcpy(adj_list1, prev_adjlist, count*sizeof(T));
-            adj_list1 += count;
-        }
-
-        //Copy the new in-memory adj-list
-		delta_adjlist = prev_v_unit->delta_adjlist;
-        while(delta_adjlist) {
-			memcpy(adj_list1, delta_adjlist->get_adjlist(),
-				   delta_adjlist->get_nebrcount()*sizeof(T));
-			adj_list1 += delta_adjlist->get_nebrcount();
-			delta_adjlist = delta_adjlist->get_next();
-		}
-
-
-		v_unit = new_vunit();
-		v_unit->count = curr->degree;
-		v_unit->adj_list = adj_list2;
-		v_unit->delta_adjlist = 0;
-		beg_pos[vid].set_vunit(v_unit);
-            
-		//snap log for disk write
-		j = __sync_fetch_and_add(&snap_whead, 1L); 
-		slog[j].vid       = vid;
-		slog[j].snap_id   = snap_id;
-		//slog[j].del_count = del_count;
-		slog[j].degree    = curr->degree;
-		if (curr) { slog[j].degree += curr->degree; }
-
-		//v_unit log for disk write
-        j = __sync_fetch_and_add(&dvt_count, 1L); 
-        dvt[j].vid         = vid;
-		dvt[j].count	   = curr->degree;
-        dvt[j].file_offset = adj_list2 - log_beg;
-        dvt[j].old_offset  =  prev_adjlist - log_beg;
-        
-		nebr_count[vid].add_count = 0;
-        nebr_count[vid].del_count = 0;
-        nebr_count[vid].adj_list = 0;
-    }
-    log_whead = log_head;
-    adjlog_head = 0;
-    */
-}
-
-/*
-template <class T>
-void onegraph_t<T>::persist_elog(const string& etfile)
-{
-    index_t wpos = log_whead;
-
-    if (log_wtail == wpos) return;
-    
-    //Write the file.
-    if (etf == 0) {
-        etf = fopen(etfile.c_str(), "wb");//append/write + binary
-        assert(etf != 0);
-    }
-    
-    fwrite (log_beg + log_wtail, sizeof(T), wpos - log_wtail, etf);
-    //Update the mark
-    log_wtail = wpos;
-}
-
-template <class T>
-void onegraph_t<T>::persist_vlog(const string& vtfile)
-{
-    if (dvt_count == 0) return;
-   
-    //Make a copy
-    sid_t count =  dvt_count;
-
-
-    //Write the file
-    if(vtf == 0) {
-        vtf = fopen(vtfile.c_str(), "wb");
-        assert(vtf != 0);
-    }
-    fwrite(dvt, sizeof(disk_vtable_t), count, vtf);
-    
-    //update the mark
-    dvt_count = 0;
-}
-	*/
-
-/*
-template <class T>
-void onegraph_t<T>::prepare_vlog()
-{
-    vid_t v_count = get_vcount();
-    snapid_t snap_id = g->get_snapid();
-    snapT_t<T>* snap_blob;
-    vid_t j = 0;
-    
-    #pragma omp for 
-    for (sid_t i = 0; i < v_count; ++i) {
-        snap_blob = beg_pos[i].get_snapblob();
-        if (0 == snap_blob || snap_blob->snap_id <= snap_id) continue;
-        
-        j = __sync_fetch_and_add(&dvt_count, 1L); 
-        dvt[j].vid       = i;
-        dvt[j].file_offset   = beg_pos[i].get_adjlist() - log_beg;
-    }
-}
-template <class T>
-void onegraph_t<T>::prepare_slog()
-{
-    vid_t v_count = get_vcount();
-    snapid_t snap_id = g->get_snapid();
-    vid_t j = 0;
-    disk_snapT_t<T>* dlog = (disk_snapT_t<T>*)snap_log;
-    snapT_t<T>* snap_blob;
-    #pragma omp for 
-    for (sid_t i = 0; i < v_count; ++i) {
-        snap_blob = beg_pos[i].get_snapblob();
-        if (0 == snap_blob || snap_blob->snap_id <= snap_id) continue;
-        
-        j = __sync_fetch_and_add(&snap_whead, 1L); 
-        dlog[j].vid       = i;
-        dlog[j].snap_id   = snap_blob->snap_id;
-        dlog[j].del_count = snap_blob->del_count;
-        dlog[j].degree    = snap_blob->degree;
-    }
-}
-
-template <class T>
-void onegraph_t<T>::persist_slog(const string& stfile)
-{   
-    index_t wpos = snap_whead;
-    if (snap_wtail == wpos) return;
-
-    //prepare_slog();
-    if(stf == 0) {
-        stf = fopen(stfile.c_str(), "wb");
-        assert(stf != 0);
-    }
-    
-    fwrite(snap_log + snap_wtail, sizeof(disk_snapT_t<T>), wpos - snap_wtail, stf);
-    snap_wtail = 0;
-    snap_whead = 0;
-}
-
-template <class T>
-void onegraph_t<T>::read_stable(const string& stfile)
-{
-    snapT_t<T>*      snap_blob;
-    disk_snapT_t<T>* dlog;
-    
-    //read the file
-    if(stf == 0) {
-        stf = fopen(stfile.c_str(), "r+b");
-        assert(stf != 0);
-    }
-
-    off_t size = fsize(stfile.c_str());
-    if (size == -1L) {
-        assert(0);
-    }
-
-    //read in batches. XXX
-    assert(snap_count >= size);
-    index_t read_count = fread(snap_log, sizeof(disk_snapT_t<T>), size, stf);
-    dlog = (disk_snapT_t<T>*)snap_log; 
-    snap_blob = (snapT_t<T>*)dlog_beg;
-    
-    for (index_t i  = 0; i < read_count; ++i)  {
-        snap_blob[i].del_count = dlog[i].del_count;
-        snap_blob[i].snap_id = dlog[i].snap_id;
-        snap_blob[i].degree = dlog[i].degree;
-
-        beg_pos[dlog[i].vid].set_snapblob1(snap_blob + i);
-    }
-    dlog_head = read_count;
-}
-*/
-
-/*
-template <class T>
-void onegraph_t<T>::read_etable(const string& etfile)
-{
-    if (etf == -1) {
-		etf = open(etfile.c_str(), O_RDWR);
-        //etf = fopen(etfile.c_str(), "r+b");//append/write + binary
-        assert(etf != 0);
-    }
-
-    index_t size = fsize(etfile.c_str());
-    if (size == -1L) {
-        assert(0);
-    }
-    sid_t edge_count = size/sizeof(T);
-    //fread(log_beg, sizeof(T), edge_count, etf);
-    //read(etf, log_beg, size, 0);//offset as 0
-
-    log_head = edge_count;
-    log_wtail = log_head;
-    log_whead = log_head;
-}
-*/
 template <class T>
 void onegraph_t<T>::read_vtable()
 {
@@ -1009,16 +785,16 @@ void onegraph_t<T>::read_vtable()
 			v_unit = beg_pos[vid].get_vunit();
 			if (v_unit) {
 				v_unit->offset = dvt[v].file_offset;
-				v_unit->count = dvt[v].count;
+				v_unit->count = dvt[v].count + dvt[v].del_count;
 			} else {
 				v_unit = new_vunit();
 				v_unit->offset = dvt[v].file_offset;
-				v_unit->count = dvt[v].count;
+				v_unit->count = dvt[v].count + dvt->del_count;
 				beg_pos[vid].set_vunit(v_unit);
 			}
             //allocate new snapshot for degree, and initialize
 			next                = new_snapdegree(); 
-            next->del_count     = 0;
+            next->del_count     = dvt[v].del_count;
             next->snap_id       = snap_id;
             next->next          = 0;
             next->degree        = dvt[v].count;
@@ -1215,17 +991,6 @@ void pgraph_t<T>::prep_sgraph_internal(onegraph_t<T>** sgraph)
     }
 }
 
-template <class T>
-void pgraph_t<T>::update_count(onegraph_t<T>** sgraph)
-{
-    tid_t       t_count = g->get_total_types();
-    
-    for(tid_t i = 0; i < t_count; i++) {
-        if (0 == sgraph[i]) continue;
-        sgraph[i]->update_count();
-    }
-
-}
 
 template <class T>
 void pgraph_t<T>::store_sgraph(onegraph_t<T>** sgraph)
@@ -1677,7 +1442,7 @@ void ugraph<T>::make_graph_baseline()
 template <class T> 
 void ugraph<T>::store_graph_baseline()
 {
-    //double start, end;
+    double start, end;
 	/*    
 	#pragma omp parallel     
     {
@@ -1685,10 +1450,10 @@ void ugraph<T>::store_graph_baseline()
     }
 	*/
     
-    //start = mywtime(); 
+    start = mywtime(); 
     store_sgraph(sgraph);
-    //end = mywtime();
-    //cout << "store graph time = " << end - start << endl;
+    end = mywtime();
+    cout << "store graph time = " << end - start << endl;
 }
 
 template <class T> 
@@ -1932,183 +1697,6 @@ void one2one<T>::read_graph_baseline()
     read_skv(skv_in);
 }
 
-/////////// QUERIES ///////////////////////////
-/*
-status_t pgraph_t::query_adjlist_td(sgraph_t** sgraph, srset_t* iset, srset_t* oset)
-{
-    tid_t    iset_count = iset->get_rset_count();
-    rset_t*        rset = 0;
-
-    for (tid_t i = 0; i < iset_count; ++i) {
-        rset = iset->rset + i;
-        vid_t v_count = rset->get_vcount();
-        vid_t* vlist = rset->get_vlist();
-        
-        //get the graph where we will traverse
-        tid_t        tid = rset->get_tid();
-        if (0 == sgraph[tid]) continue;
-        beg_pos_t* graph = sgraph[tid]->get_begpos();
-
-        
-        //Get the frontiers
-        vid_t     frontier;
-        for (vid_t v = 0; v < v_count; v++) {
-            frontier = vlist[v];
-            sid_t* adj_list = graph[frontier].get_adjlist();
-            vid_t nebr_count = adj_list[0];
-            ++adj_list;
-            
-            //traverse the adj list
-            for (vid_t k = 0; k < nebr_count; ++k) {
-                oset->set_status(adj_list[k]);
-            }
-        }
-    }
-    return eOK;
-}
-status_t pgraph_t::query_kv_td(skv_t** skv, srset_t* iset, srset_t* oset)
-{
-    tid_t    iset_count = iset->get_rset_count();
-    rset_t*        rset = 0;
-
-    for (tid_t i = 0; i < iset_count; ++i) {
-        rset = iset->rset + i;
-        vid_t v_count = rset->get_vcount();
-        vid_t* vlist = rset->get_vlist();
-        
-        //get the graph where we will traverse
-        tid_t        tid = rset->get_tid();
-        if (0 == skv[tid]) continue;
-        sid_t* kv = skv[tid]->get_kv(); 
-
-        //Get the frontiers
-        vid_t     frontier;
-        for (vid_t v = 0; v < v_count; v++) {
-            frontier = vlist[v];
-            oset->set_status(kv[frontier]);
-        }
-    }
-    return eOK;
-}
-
-//sgraph_in and oset share the same flag.
-status_t pgraph_t::query_adjlist_bu(sgraph_t** sgraph, srset_t* iset, srset_t* oset)
-{
-    rset_t* rset = 0;
-    tid_t   tid  = 0;
-    tid_t oset_count = oset->get_rset_count();
-
-    for (tid_t i = 0; i < oset_count; ++i) {
-        
-        //get the graph where we will traverse
-        rset = oset->rset + i;
-        tid  = rset->get_tid();
-        if (0 == sgraph[tid]) continue; 
-
-        beg_pos_t* graph = sgraph[tid]->get_begpos(); 
-        vid_t    v_count = sgraph[tid]->get_vcount();
-        
-        
-        for (vid_t v = 0; v < v_count; v++) {
-            //traverse the adj list
-            sid_t* adj_list = graph[v].get_adjlist();
-            vid_t nebr_count = adj_list[0];
-            ++adj_list;
-            for (vid_t k = 0; k < nebr_count; ++k) {
-                if (iset->get_status(adj_list[k])) {
-                    rset->set_status(v);
-                    break;
-                }
-            }
-        }
-    }
-    return eOK;
-}
-
-status_t pgraph_t::query_kv_bu(skv_t** skv, srset_t* iset, srset_t* oset) 
-{
-    rset_t*  rset = 0;
-    tid_t    tid  = 0;
-    tid_t    oset_count = oset->get_rset_count();
-    for (tid_t i = 0; i < oset_count; ++i) {
-
-        //get the graph where we will traverse
-        rset = oset->rset + i;
-        tid  = rset->get_tid(); 
-        if (0 == skv[tid]) continue;
-
-        vid_t*       kv = skv[tid]->get_kv(); 
-        sid_t   v_count = skv[tid]->get_vcount();
-        
-        for (vid_t v = 0; v < v_count; ++v) {
-            if (iset->get_status(kv[v])) {
-                rset->set_status(v);
-                break;
-            }
-        }
-    }
-    return eOK;
-}
-
-//////extend functions ------------------------
-status_t 
-pgraph_t::extend_adjlist_td(sgraph_t** sgraph, srset_t* iset, srset_t* oset)
-{
-    tid_t    iset_count = iset->get_rset_count();
-    rset_t*        rset = 0;
-    rset_t*        rset2 = 0;
-
-    iset->bitwise2vlist();
-    //prepare the output 1,2;
-    oset->copy_setup(iset, eAdjlist);
-
-    for (tid_t i = 0; i < iset_count; ++i) {
-        rset = iset->rset + i;
-        rset2 = oset->rset + i;
-        vid_t v_count = rset->get_vcount();
-        sid_t* varray = rset->get_vlist();
-        
-        //get the graph where we will traverse
-        tid_t        tid = rset->get_tid();
-        if (0 == sgraph[tid]) continue;
-        beg_pos_t* graph = sgraph[tid]->get_begpos(); 
-        
-        for (vid_t v = 0; v < v_count; v++) {
-            rset2->add_adjlist_ro(v, graph+varray[v]);
-        }
-    }
-    return eOK;
-}
-
-status_t 
-pgraph_t::extend_kv_td(skv_t** skv, srset_t* iset, srset_t* oset)
-{
-    tid_t    iset_count = iset->get_rset_count();
-    rset_t*        rset = 0;
-    rset_t*       rset2 = 0;
-
-    iset->bitwise2vlist();
-    //prepare the output 1,2;
-    oset->copy_setup(iset, eKV);
-
-    for (tid_t i = 0; i < iset_count; ++i) {
-        rset = iset->rset + i;
-        rset2 = oset->rset + i;
-        vid_t v_count = rset->get_vcount();
-        sid_t* varray = rset->get_vlist();
-        
-        //get the graph where we will traverse
-        tid_t     tid = rset->get_tid();
-        if (0 == skv[tid]) continue;
-        sid_t*  graph = skv[tid]->get_kv(); 
-        
-        for (vid_t v = 0; v < v_count; v++) {
-            rset2->add_kv(v, graph[varray[v]]);
-        }
-    }
-    return eOK;
-}
-*/
 template <class T> 
 cfinfo_t* ugraph<T>::create_instance()
 {
@@ -2501,3 +2089,426 @@ status_t one2many<T>::transform(srset_t* iset, srset_t* oset, direction_t direct
     }
     return eOK;
 }
+
+    /*
+template <class T>
+void onegraph_t<T>::update_count() 
+{
+    vid_t    v_count = TO_VID(super_id);
+    disk_snapT_t<T>* slog = (disk_snapT_t<T>*)snap_log;
+    T* adj_list1 = 0;
+    T* adj_list2 = 0;
+    T* prev_adjlist = 0;
+	vunit_t<T>* v_unit = 0;
+	vunit_t<T>* prev_v_unit = 0;
+	delta_adjlist_t<T>* delta_adjlist = 0;
+    index_t j = 0;
+    snapT_t<T>* curr = 0;
+    index_t count;
+    snapid_t snap_id = g->get_snapid() + 1;
+    
+    #pragma omp for
+    for (vid_t vid = 0; vid < v_count ; ++vid) {
+        if (0 == nebr_count[vid].adj_list) continue;
+		
+		prev_v_unit = beg_pos[vid].get_vunit();
+        prev_adjlist = prev_v_unit->adj_list;
+        
+        //durable adj list allocation
+        curr		= beg_pos[vid].get_snapblob();
+        adj_list1   = new_adjlist(curr->degree + 1);
+        adj_list2   = adj_list1;
+        
+        //Copy the Old durable adj list
+        set_nebrcount1(adj_list1, curr->degree);
+        adj_list1 += 1;
+        if (0 != prev_adjlist) {
+            count = get_nebrcount1(prev_adjlist);
+            memcpy(adj_list1, prev_adjlist, count*sizeof(T));
+            adj_list1 += count;
+        }
+
+        //Copy the new in-memory adj-list
+		delta_adjlist = prev_v_unit->delta_adjlist;
+        while(delta_adjlist) {
+			memcpy(adj_list1, delta_adjlist->get_adjlist(),
+				   delta_adjlist->get_nebrcount()*sizeof(T));
+			adj_list1 += delta_adjlist->get_nebrcount();
+			delta_adjlist = delta_adjlist->get_next();
+		}
+
+
+		v_unit = new_vunit();
+		v_unit->count = curr->degree;
+		v_unit->adj_list = adj_list2;
+		v_unit->delta_adjlist = 0;
+		beg_pos[vid].set_vunit(v_unit);
+            
+		//snap log for disk write
+		j = __sync_fetch_and_add(&snap_whead, 1L); 
+		slog[j].vid       = vid;
+		slog[j].snap_id   = snap_id;
+		//slog[j].del_count = del_count;
+		slog[j].degree    = curr->degree;
+		if (curr) { slog[j].degree += curr->degree; }
+
+		//v_unit log for disk write
+        j = __sync_fetch_and_add(&dvt_count, 1L); 
+        dvt[j].vid         = vid;
+		dvt[j].count	   = curr->degree;
+        dvt[j].file_offset = adj_list2 - log_beg;
+        dvt[j].old_offset  =  prev_adjlist - log_beg;
+        
+		nebr_count[vid].add_count = 0;
+        nebr_count[vid].del_count = 0;
+        nebr_count[vid].adj_list = 0;
+    }
+    log_whead = log_head;
+    adjlog_head = 0;
+}
+    */
+
+/*
+template <class T>
+void onegraph_t<T>::persist_elog(const string& etfile)
+{
+    index_t wpos = log_whead;
+
+    if (log_wtail == wpos) return;
+    
+    //Write the file.
+    if (etf == 0) {
+        etf = fopen(etfile.c_str(), "wb");//append/write + binary
+        assert(etf != 0);
+    }
+    
+    fwrite (log_beg + log_wtail, sizeof(T), wpos - log_wtail, etf);
+    //Update the mark
+    log_wtail = wpos;
+}
+
+template <class T>
+void onegraph_t<T>::persist_vlog(const string& vtfile)
+{
+    if (dvt_count == 0) return;
+   
+    //Make a copy
+    sid_t count =  dvt_count;
+
+
+    //Write the file
+    if(vtf == 0) {
+        vtf = fopen(vtfile.c_str(), "wb");
+        assert(vtf != 0);
+    }
+    fwrite(dvt, sizeof(disk_vtable_t), count, vtf);
+    
+    //update the mark
+    dvt_count = 0;
+}
+	*/
+
+/*
+template <class T>
+void onegraph_t<T>::prepare_vlog()
+{
+    vid_t v_count = get_vcount();
+    snapid_t snap_id = g->get_snapid();
+    snapT_t<T>* snap_blob;
+    vid_t j = 0;
+    
+    #pragma omp for 
+    for (sid_t i = 0; i < v_count; ++i) {
+        snap_blob = beg_pos[i].get_snapblob();
+        if (0 == snap_blob || snap_blob->snap_id <= snap_id) continue;
+        
+        j = __sync_fetch_and_add(&dvt_count, 1L); 
+        dvt[j].vid       = i;
+        dvt[j].file_offset   = beg_pos[i].get_adjlist() - log_beg;
+    }
+}
+template <class T>
+void onegraph_t<T>::prepare_slog()
+{
+    vid_t v_count = get_vcount();
+    snapid_t snap_id = g->get_snapid();
+    vid_t j = 0;
+    disk_snapT_t<T>* dlog = (disk_snapT_t<T>*)snap_log;
+    snapT_t<T>* snap_blob;
+    #pragma omp for 
+    for (sid_t i = 0; i < v_count; ++i) {
+        snap_blob = beg_pos[i].get_snapblob();
+        if (0 == snap_blob || snap_blob->snap_id <= snap_id) continue;
+        
+        j = __sync_fetch_and_add(&snap_whead, 1L); 
+        dlog[j].vid       = i;
+        dlog[j].snap_id   = snap_blob->snap_id;
+        dlog[j].del_count = snap_blob->del_count;
+        dlog[j].degree    = snap_blob->degree;
+    }
+}
+
+template <class T>
+void onegraph_t<T>::persist_slog(const string& stfile)
+{   
+    index_t wpos = snap_whead;
+    if (snap_wtail == wpos) return;
+
+    //prepare_slog();
+    if(stf == 0) {
+        stf = fopen(stfile.c_str(), "wb");
+        assert(stf != 0);
+    }
+    
+    fwrite(snap_log + snap_wtail, sizeof(disk_snapT_t<T>), wpos - snap_wtail, stf);
+    snap_wtail = 0;
+    snap_whead = 0;
+}
+
+template <class T>
+void onegraph_t<T>::read_stable(const string& stfile)
+{
+    snapT_t<T>*      snap_blob;
+    disk_snapT_t<T>* dlog;
+    
+    //read the file
+    if(stf == 0) {
+        stf = fopen(stfile.c_str(), "r+b");
+        assert(stf != 0);
+    }
+
+    off_t size = fsize(stfile.c_str());
+    if (size == -1L) {
+        assert(0);
+    }
+
+    //read in batches. XXX
+    assert(snap_count >= size);
+    index_t read_count = fread(snap_log, sizeof(disk_snapT_t<T>), size, stf);
+    dlog = (disk_snapT_t<T>*)snap_log; 
+    snap_blob = (snapT_t<T>*)dlog_beg;
+    
+    for (index_t i  = 0; i < read_count; ++i)  {
+        snap_blob[i].del_count = dlog[i].del_count;
+        snap_blob[i].snap_id = dlog[i].snap_id;
+        snap_blob[i].degree = dlog[i].degree;
+
+        beg_pos[dlog[i].vid].set_snapblob1(snap_blob + i);
+    }
+    dlog_head = read_count;
+}
+*/
+
+/*
+template <class T>
+void onegraph_t<T>::read_etable(const string& etfile)
+{
+    if (etf == -1) {
+		etf = open(etfile.c_str(), O_RDWR);
+        //etf = fopen(etfile.c_str(), "r+b");//append/write + binary
+        assert(etf != 0);
+    }
+
+    index_t size = fsize(etfile.c_str());
+    if (size == -1L) {
+        assert(0);
+    }
+    sid_t edge_count = size/sizeof(T);
+    //fread(log_beg, sizeof(T), edge_count, etf);
+    //read(etf, log_beg, size, 0);//offset as 0
+
+    log_head = edge_count;
+    log_wtail = log_head;
+    log_whead = log_head;
+}
+*/
+/*
+template <class T>
+void pgraph_t<T>::update_count(onegraph_t<T>** sgraph)
+{
+    tid_t       t_count = g->get_total_types();
+    
+    for(tid_t i = 0; i < t_count; i++) {
+        if (0 == sgraph[i]) continue;
+        sgraph[i]->update_count();
+    }
+
+}
+*/
+/////////// QUERIES ///////////////////////////
+/*
+status_t pgraph_t::query_adjlist_td(sgraph_t** sgraph, srset_t* iset, srset_t* oset)
+{
+    tid_t    iset_count = iset->get_rset_count();
+    rset_t*        rset = 0;
+
+    for (tid_t i = 0; i < iset_count; ++i) {
+        rset = iset->rset + i;
+        vid_t v_count = rset->get_vcount();
+        vid_t* vlist = rset->get_vlist();
+        
+        //get the graph where we will traverse
+        tid_t        tid = rset->get_tid();
+        if (0 == sgraph[tid]) continue;
+        beg_pos_t* graph = sgraph[tid]->get_begpos();
+
+        
+        //Get the frontiers
+        vid_t     frontier;
+        for (vid_t v = 0; v < v_count; v++) {
+            frontier = vlist[v];
+            sid_t* adj_list = graph[frontier].get_adjlist();
+            vid_t nebr_count = adj_list[0];
+            ++adj_list;
+            
+            //traverse the adj list
+            for (vid_t k = 0; k < nebr_count; ++k) {
+                oset->set_status(adj_list[k]);
+            }
+        }
+    }
+    return eOK;
+}
+status_t pgraph_t::query_kv_td(skv_t** skv, srset_t* iset, srset_t* oset)
+{
+    tid_t    iset_count = iset->get_rset_count();
+    rset_t*        rset = 0;
+
+    for (tid_t i = 0; i < iset_count; ++i) {
+        rset = iset->rset + i;
+        vid_t v_count = rset->get_vcount();
+        vid_t* vlist = rset->get_vlist();
+        
+        //get the graph where we will traverse
+        tid_t        tid = rset->get_tid();
+        if (0 == skv[tid]) continue;
+        sid_t* kv = skv[tid]->get_kv(); 
+
+        //Get the frontiers
+        vid_t     frontier;
+        for (vid_t v = 0; v < v_count; v++) {
+            frontier = vlist[v];
+            oset->set_status(kv[frontier]);
+        }
+    }
+    return eOK;
+}
+
+//sgraph_in and oset share the same flag.
+status_t pgraph_t::query_adjlist_bu(sgraph_t** sgraph, srset_t* iset, srset_t* oset)
+{
+    rset_t* rset = 0;
+    tid_t   tid  = 0;
+    tid_t oset_count = oset->get_rset_count();
+
+    for (tid_t i = 0; i < oset_count; ++i) {
+        
+        //get the graph where we will traverse
+        rset = oset->rset + i;
+        tid  = rset->get_tid();
+        if (0 == sgraph[tid]) continue; 
+
+        beg_pos_t* graph = sgraph[tid]->get_begpos(); 
+        vid_t    v_count = sgraph[tid]->get_vcount();
+        
+        
+        for (vid_t v = 0; v < v_count; v++) {
+            //traverse the adj list
+            sid_t* adj_list = graph[v].get_adjlist();
+            vid_t nebr_count = adj_list[0];
+            ++adj_list;
+            for (vid_t k = 0; k < nebr_count; ++k) {
+                if (iset->get_status(adj_list[k])) {
+                    rset->set_status(v);
+                    break;
+                }
+            }
+        }
+    }
+    return eOK;
+}
+
+status_t pgraph_t::query_kv_bu(skv_t** skv, srset_t* iset, srset_t* oset) 
+{
+    rset_t*  rset = 0;
+    tid_t    tid  = 0;
+    tid_t    oset_count = oset->get_rset_count();
+    for (tid_t i = 0; i < oset_count; ++i) {
+
+        //get the graph where we will traverse
+        rset = oset->rset + i;
+        tid  = rset->get_tid(); 
+        if (0 == skv[tid]) continue;
+
+        vid_t*       kv = skv[tid]->get_kv(); 
+        sid_t   v_count = skv[tid]->get_vcount();
+        
+        for (vid_t v = 0; v < v_count; ++v) {
+            if (iset->get_status(kv[v])) {
+                rset->set_status(v);
+                break;
+            }
+        }
+    }
+    return eOK;
+}
+
+//////extend functions ------------------------
+status_t 
+pgraph_t::extend_adjlist_td(sgraph_t** sgraph, srset_t* iset, srset_t* oset)
+{
+    tid_t    iset_count = iset->get_rset_count();
+    rset_t*        rset = 0;
+    rset_t*        rset2 = 0;
+
+    iset->bitwise2vlist();
+    //prepare the output 1,2;
+    oset->copy_setup(iset, eAdjlist);
+
+    for (tid_t i = 0; i < iset_count; ++i) {
+        rset = iset->rset + i;
+        rset2 = oset->rset + i;
+        vid_t v_count = rset->get_vcount();
+        sid_t* varray = rset->get_vlist();
+        
+        //get the graph where we will traverse
+        tid_t        tid = rset->get_tid();
+        if (0 == sgraph[tid]) continue;
+        beg_pos_t* graph = sgraph[tid]->get_begpos(); 
+        
+        for (vid_t v = 0; v < v_count; v++) {
+            rset2->add_adjlist_ro(v, graph+varray[v]);
+        }
+    }
+    return eOK;
+}
+
+status_t 
+pgraph_t::extend_kv_td(skv_t** skv, srset_t* iset, srset_t* oset)
+{
+    tid_t    iset_count = iset->get_rset_count();
+    rset_t*        rset = 0;
+    rset_t*       rset2 = 0;
+
+    iset->bitwise2vlist();
+    //prepare the output 1,2;
+    oset->copy_setup(iset, eKV);
+
+    for (tid_t i = 0; i < iset_count; ++i) {
+        rset = iset->rset + i;
+        rset2 = oset->rset + i;
+        vid_t v_count = rset->get_vcount();
+        sid_t* varray = rset->get_vlist();
+        
+        //get the graph where we will traverse
+        tid_t     tid = rset->get_tid();
+        if (0 == skv[tid]) continue;
+        sid_t*  graph = skv[tid]->get_kv(); 
+        
+        for (vid_t v = 0; v < v_count; v++) {
+            rset2->add_kv(v, graph[varray[v]]);
+        }
+    }
+    return eOK;
+}
+*/

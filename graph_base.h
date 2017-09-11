@@ -4,6 +4,7 @@
 
 ////
 inline void add_nebr1(sid_t* adj_list, vid_t index, sid_t value) {
+    //degree_t index = __sync_fetch_and_add(adj_list, 1L);
     adj_list[index] = value;
 }
 
