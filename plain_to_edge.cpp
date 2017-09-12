@@ -440,3 +440,66 @@ void plaingraph_manager::prep_graph_paper_num(const string& idirname, const stri
     end = mywtime ();
     cout << "Make graph time = " << end - start << endl;
 }
+
+void plaingraph_manager::prep_graph_paper_chain(const string& idirname, const string& odirname)
+{
+    struct dirent *ptr;
+    DIR *dir;
+    int file_count = 0;
+    string filename;
+    propid_t cf_id = g->get_cfid("friend");
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+        
+    FILE* file = 0;
+    index_t size =  0;
+    index_t edge_count = 0;
+    blog_t<sid_t>* blog = ugraph->blog;
+    
+    
+    //Read graph files
+    double start = mywtime();
+    dir = opendir(idirname.c_str());
+    edge_t* edge = blog->blog_beg;
+    while (NULL != (ptr = readdir(dir))) {
+        if (ptr->d_name[0] == '.') continue;
+        filename = idirname + "/" + string(ptr->d_name);
+        file_count++;
+        
+        file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
+        assert(file != 0);
+        size = fsize(filename);
+        edge_count = size/sizeof(edge_t);
+        edge = blog->blog_beg + blog->blog_head;
+        if (edge_count != fread(edge, sizeof(edge_t), edge_count, file)) {
+            assert(0);
+        }
+        blog->blog_head += edge_count;
+    }
+    closedir(dir);
+    double end = mywtime();
+    cout << "Reading "  << file_count  << " file time = " << end - start << endl;
+    cout << "Creating graph in " << residue << " installment" << endl;
+
+    start = mywtime();
+
+
+    index_t marker = blog->blog_head/residue;
+    index_t new_marker = 0;
+    for (index_t i = 1; i <= residue; ++i) {
+
+        new_marker = marker*i;
+        cout << "make graph marker = " << new_marker << endl;
+        index_t snap_marker = 0;
+        if (marker == 0) return;
+
+        ugraph->create_marker(new_marker);
+        if (eOK == ugraph->move_marker(snap_marker)) {
+            ugraph->make_graph_baseline();
+            //ugraph->store_graph_baseline();
+            g->incr_snapid(snap_marker, snap_marker);
+        }
+    }
+
+    end = mywtime ();
+    cout << "Make graph time = " << end - start << endl;
+}

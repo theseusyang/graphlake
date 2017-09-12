@@ -55,13 +55,8 @@ void pgraph_t<lite_edge_t>::fill_adj_list(lite_sgraph_t** sgraph_out, lite_sgrap
             vert1_id = TO_VID(src);
             vert2_id = TO_VID(dst);
             
-            if (!IS_DEL(src)) {
-                sgraph_out[src_index]->add_nebr_lite(vert1_id, dst, univ);
-                sgraph_in[dst_index]->add_nebr_lite(vert2_id, src, univ);
-            } else {
-                sgraph_out[src_index]->del_nebr(vert1_id, dst);
-                sgraph_in[dst_index]->del_nebr(vert2_id, src);
-            }
+            sgraph_out[src_index]->add_nebr_lite(vert1_id, dst, univ);
+            sgraph_in[dst_index]->add_nebr_lite(vert2_id, src, univ);
         }
     }
 }
@@ -92,13 +87,8 @@ void pgraph_t<lite_edge_t>::fill_adj_list_in(lite_skv_t** skv_out, lite_sgraph_t
             lite_edge.first = dst;
             lite_edge.second = univ; 
             
-            if (!IS_DEL(src)) {
-                skv_out[src_index]->set_value(vert1_id, lite_edge);
-                sgraph_in[dst_index]->add_nebr_lite(vert2_id, src, univ);
-            } else {
-                //skv_out[src_index]->del_value(vert1_id, lite_edge);
-                //sgraph_in[dst_index]->del_nebr_lite(vert2_id, TO_SID(src), univ);
-            }
+            skv_out[src_index]->set_value(vert1_id, lite_edge);
+            sgraph_in[dst_index]->add_nebr_lite(vert2_id, src, univ);
         }
     }
 }
@@ -130,13 +120,8 @@ void pgraph_t<lite_edge_t>::fill_adj_list_out(lite_sgraph_t** sgraph_out, lite_s
             lite_edge.first = src;
             lite_edge.second = univ;
            
-            if (!IS_DEL(src)) {
-                sgraph_out[src_index]->add_nebr_lite(vert1_id, dst, univ);
-                skv_in[dst_index]->set_value(vert2_id, lite_edge);
-            } else {
-                //sgraph_out[src_index]->del_nebr_lite(vert1_id, dst, univ);
-                //skv_in[dst_index]->del_value_lite(vert2_id, TO_SID(src), univ);
-            }
+            sgraph_out[src_index]->add_nebr_lite(vert1_id, dst, univ);
+            skv_in[dst_index]->set_value(vert2_id, lite_edge);
         }
     }
 }
@@ -164,13 +149,8 @@ void pgraph_t<lite_edge_t>::fill_skv(lite_skv_t** skv_out, lite_skv_t** skv_in)
             vert1_id = TO_VID(src);
             vert2_id = TO_VID(dst);
             
-            if (!IS_DEL(src)) {
-                skv_out[src_index]->set_value_lite(vert1_id, dst, univ); 
-                skv_in[dst_index]->set_value_lite(vert2_id, src, univ);
-            } else {
-                skv_out[src_index]->del_value_lite(vert1_id, dst, univ); 
-                skv_in[dst_index]->del_value_lite(vert2_id, TO_SID(src), univ);
-            }
+            skv_out[src_index]->set_value_lite(vert1_id, dst, univ); 
+            skv_in[dst_index]->set_value_lite(vert2_id, src, univ);
         }
     }
 }
@@ -194,15 +174,8 @@ void pgraph_t<sid_t>::fill_adj_list(onegraph_t<sid_t>** sgraph_out, onegraph_t<s
         dst_index = TO_TID(dst);
         vert1_id = TO_VID(src);
         vert2_id = TO_VID(dst);
-       
-        if (!IS_DEL(src)) { 
-            sgraph_out[src_index]->add_nebr(vert1_id, dst);
-            sgraph_in[dst_index]->add_nebr(vert2_id, src);
-        } else {
-            assert(0);
-            //sgraph_out[src_index]->del_nebr(vert1_id, dst);
-            //sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
-        }
+        sgraph_out[src_index]->add_nebr(vert1_id, dst);
+        sgraph_in[dst_index]->add_nebr(vert2_id, src);
     }
     blog->blog_tail = blog->blog_marker;  
 }
@@ -226,13 +199,8 @@ void pgraph_t<sid_t>::fill_adj_list_in(onekv_t<sid_t>** skv_out, onegraph_t<sid_
         vert1_id = TO_VID(src);
         vert2_id = TO_VID(dst);
         
-        if (!IS_DEL(src)) { 
-            skv_out[src_index]->set_value(vert1_id, dst);
-            sgraph_in[dst_index]->add_nebr(vert2_id, src);
-        } else {
-            //skv_out[src_index]->del_value(vert1_id, dst);
-            //sgraph_in[dst_index]->del_nebr(vert2_id, TO_SID(src));
-        }
+        skv_out[src_index]->set_value(vert1_id, dst);
+        sgraph_in[dst_index]->add_nebr(vert2_id, src);
     }
     blog->blog_tail = blog->blog_marker;  
 }
@@ -255,13 +223,8 @@ void pgraph_t<sid_t>::fill_adj_list_out(onegraph_t<sid_t>** sgraph_out, onekv_t<
         
         vert1_id = TO_VID(src);
         vert2_id = TO_VID(dst);
-        if (!IS_DEL(src)) {
-            sgraph_out[src_index]->add_nebr(vert1_id, dst);
-            skv_in[dst_index]->set_value(vert2_id, src); 
-        } else {
-            //sgraph_out[src_index]->del_nebr(vert1_id, dst);
-            //skv_in[dst_index]->del_value(vert2_id, TO_SID(src));
-        }
+        sgraph_out[src_index]->add_nebr(vert1_id, dst);
+        skv_in[dst_index]->set_value(vert2_id, src); 
     }
     blog->blog_tail = blog->blog_marker;  
 }
@@ -285,13 +248,8 @@ void pgraph_t<sid_t>::fill_skv(onekv_t<sid_t>** skv_out, onekv_t<sid_t>** skv_in
         vert1_id = TO_VID(src);
         vert2_id = TO_VID(dst);
         
-        if (!IS_DEL(src)) {
-            skv_out[src_index]->set_value(vert1_id, dst); 
-            skv_in[dst_index]->set_value(vert2_id, src); 
-        } else {
-            skv_out[src_index]->del_value(vert1_id, dst); 
-            skv_in[dst_index]->del_value(vert2_id, TO_SID(src)); 
-        }
+        skv_out[src_index]->set_value(vert1_id, dst); 
+        skv_in[dst_index]->set_value(vert2_id, src); 
     }
     blog->blog_tail = blog->blog_marker;  
 }

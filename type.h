@@ -248,7 +248,7 @@ class delentry_t {
 template <class T>
 class  snapT_t {
  public:
-    snapT_t<T>*     next;//next snapshot of this vid 
+    //snapT_t<T>*     next;//next snapshot of this vid 
     snapT_t<T>*     prev;//prev snapshot of this vid 
     //T*        adj_list;//validity depends on cleaning state 
     snapid_t  snap_id;

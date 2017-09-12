@@ -125,12 +125,12 @@ class vert_table_t {
     inline void set_snapblob1(snapT_t<T>* snap_blob1) { 
         if (0 == snap_blob) {
             snap_blob1->prev  = 0;
-            snap_blob1->next = 0;
+            //snap_blob1->next = 0;
         } else {
             snap_blob1->prev = snap_blob;
-            snap_blob1->next = 0;
+            //snap_blob1->next = 0;
             
-            snap_blob->next = snap_blob1;
+            //snap_blob->next = snap_blob1;
         }
         snap_blob = snap_blob1; 
     } 
@@ -227,8 +227,27 @@ private:
     FILE*    stf;   //snapshot table file
 public:
     int    etf;   //edge table file
-public:
 
+private:    
+    inline void del_nebr(vid_t vid, sid_t sid) {
+        sid_t actual_sid = TO_SID(sid); 
+        degree_t location = find_nebr(vid, actual_sid);
+        if (INVALID_DEGREE != location) {
+            degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
+            nebr_count[vid].add_nebr(index, sid);
+        }
+    }
+
+    inline void del_nebr_lite(vid_t vid, sid_t sid, univ_t value) {
+        sid_t actual_sid = TO_SID(sid); 
+        degree_t location = find_nebr(vid, actual_sid);
+        if (INVALID_DEGREE != location) {
+            degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
+            nebr_count[vid].add_nebr_lite(index, sid, value);
+        }
+    }
+
+public:
     inline onegraph_t() {
         super_id = 0;
         beg_pos = 0;
@@ -292,23 +311,20 @@ public:
         __sync_fetch_and_add(&nebr_count[vid].del_count, 1L);
     }
     
-    inline void add_nebr(vid_t vid, sid_t sid) { 
+    inline void add_nebr(vid_t vid, sid_t sid) {
+        if (IS_DEL(sid)) { 
+            return del_nebr(vid, sid);
+        }
         degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
         nebr_count[vid].add_nebr(index, sid);
     }
     
     inline void add_nebr_lite(vid_t vid, sid_t sid, univ_t value) { 
+        if (IS_DEL(sid)) { 
+            return del_nebr_lite(vid, sid, value);
+        }
         degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
         nebr_count[vid].add_nebr_lite(index, sid, value);
-    }
-	
-    inline void del_nebr(vid_t vid, sid_t sid) {
-        degree_t location = find_nebr(vid, sid);
-        if (INVALID_DEGREE != location) {
-            degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
-            //++nebr_count[vid].del_count;
-            nebr_count[vid].add_nebr(index, sid);
-        }
     }
 
     degree_t find_nebr(vid_t vid, sid_t sid); 
@@ -360,7 +376,6 @@ public:
 		return seg->dvt + j;
 		
 	}
-
 
     inline void reset_count(vid_t vid) {
         nebr_count[vid].add_count = 0;
