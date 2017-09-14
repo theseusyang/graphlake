@@ -438,18 +438,18 @@ void onegraph_t<T>::setup(tid_t tid)
         nebr_count = (nebrcount_t<T>*)calloc(sizeof(nebrcount_t<T>), max_vcount);
         
         //dela adj list
-        adjlog_count = (1L << 36); //8GB
+        adjlog_count = (1L << 28); //8GB
         adjlog_beg = (char*)mmap(NULL, adjlog_count, PROT_READ|PROT_WRITE,
                             MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0);
         if (MAP_FAILED == adjlog_beg) {
             cout << "Huge page allocation failed for delta adj list" << endl;
             if (posix_memalign((void**)&adjlog_beg, 2097152, adjlog_count*sizeof(T))) {
-                perror("posix memalign edge log");
+                perror("posix memalign delta adj list");
             }
         }
         
         //degree aray realted log, in-memory
-        dlog_count = (((index_t)v_count) << 5L);//256 MB
+        dlog_count = (((index_t)v_count) << 2L);//256 MB
         /*
          * dlog_beg = (snapT_t<T>*)mmap(NULL, sizeof(snapT_t<T>)*dlog_count, PROT_READ|PROT_WRITE,
                             MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );

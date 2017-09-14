@@ -366,7 +366,7 @@ public:
         //assert(index_log  < log_count); 
         index_t index_log = seg->log_head;
         seg->log_head += new_count;
-        assert(seg->log_head  < log_count); 
+        assert(seg->log_head  <= log_count); 
         return  (durable_adjlist_t<T>*)(seg->log_beg + index_log);
 	}
 	
