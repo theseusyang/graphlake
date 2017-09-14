@@ -234,7 +234,7 @@ private:
 
 
     //vertex table file related log
-    write_seg_t  write_seg[2];
+    write_seg_t  write_seg[3];
     //disk_vtable_t* dvt;
     //vid_t    dvt_count; 
     vid_t    dvt_max_count;
@@ -304,15 +304,9 @@ public:
         
         //dvt_count = 0;
         dvt_max_count = 0;
-
-        write_seg[0].dvt = 0;
-        write_seg[0].dvt_count = 0;
-        write_seg[0].log_beg = 0;
-        write_seg[0].log_head = 0;
-        write_seg[1].dvt = 0;
-        write_seg[1].dvt_count = 0;
-        write_seg[1].log_beg = 0;
-        write_seg[1].log_head = 0;
+		write_seg[0].reset();
+		write_seg[1].reset();
+		write_seg[2].reset();
 
         vtf = -1;
         etf = -1;
@@ -414,7 +408,7 @@ public:
 
     void prepare_dvt(write_seg_t* seg, vid_t& last_vid);
 	void adj_prep(write_seg_t* seg);
-	void adj_write(write_seg_t* seg);
+	void adj_update(write_seg_t* seg);
     void handle_write();
     
     void update_count();
