@@ -338,6 +338,18 @@ public:
 			vunit_ind[index1] = v_unit2 - vunit_beg;
 		}
 	}
+   
+    //durable adj list	
+	inline durable_adjlist_t<T>* new_adjlist(write_seg_t* seg,  degree_t count) {
+        degree_t new_count = count*sizeof(T)+sizeof(durable_adjlist_t<T>);
+        //index_t index_log = __sync_fetch_and_add(&seg->log_head, new_count);
+        //assert(index_log  < log_count); 
+        index_t index_log = seg->log_head;
+        seg->log_head += new_count;
+        assert(seg->log_head  < log_count); 
+        return  (durable_adjlist_t<T>*)(seg->log_beg + index_log);
+	}
+	
 	inline vunit_t<T>* new_vunit() {
 		index_t index = __sync_fetch_and_add(&vunit_head, 1L);
 		vid_t index1 = index % vunit_count;
@@ -345,15 +357,6 @@ public:
 		v_unit->reset();
 		return v_unit;
 	}	
-   
-    //durable adj list	
-	inline durable_adjlist_t<T>* new_adjlist(write_seg_t* seg,  degree_t count) {
-        degree_t new_count = count*sizeof(T)+sizeof(durable_adjlist_t<T>);
-        index_t index_log = __sync_fetch_and_add(&seg->log_head, new_count);
-        assert(index_log  < log_count); 
-        return  (durable_adjlist_t<T>*)(seg->log_beg + index_log);
-	}
-	
 	//delta adj list allocation
 	inline delta_adjlist_t<T>* new_delta_adjlist(degree_t count) {
         //It will have issues, in some T sizes, not fixed yet
@@ -371,7 +374,9 @@ public:
 	}
 
 	inline disk_vtable_t* new_dvt(write_seg_t* seg) {
-        index_t j = __sync_fetch_and_add(&seg->dvt_count, 1L);
+        //index_t j = __sync_fetch_and_add(&seg->dvt_count, 1L);
+        index_t j = seg->dvt_count;
+        ++seg->dvt_count;
 		//assert();
 		return seg->dvt + j;
 		
