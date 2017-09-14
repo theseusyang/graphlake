@@ -789,6 +789,17 @@ void onegraph_t<T>::handle_write()
 
             adj_write(seg2);
         }
+
+		//Write new adj list
+		//if (seg2->log_head != 0) {
+		//	index_t size = pwrite(etf, seg2->log_beg, seg2->log_head, log_tail);
+		//	//fwrite (log_beg, sizeof(T), log_head, etf);
+		//	if (size != seg2->log_head) {
+		//		perror("pwrite issue");
+		//		assert(0);
+		//	}
+		//}
+
         if (seg2->log_head != 0) { 
             log_tail += seg2->log_head;
         }
@@ -815,6 +826,8 @@ void onegraph_t<T>::prepare_dvt(write_seg_t* seg, vid_t& last_vid, index_t& offs
             (seg->dvt_count >= dvt_max_count)) {
             last_vid = vid;
             offset += seg->log_head;
+			seg->my_vunit_head = vunit_head;
+			vunit_head += seg->dvt_count;
             return;
 		}
         
@@ -832,9 +845,72 @@ void onegraph_t<T>::prepare_dvt(write_seg_t* seg, vid_t& last_vid, index_t& offs
 
     last_vid = v_count;
     offset += seg->log_head;
+	seg->my_vunit_head = vunit_head;
+	vunit_head += seg->dvt_count;
     return;
 }
+/*
+template <class T>
+void onegraph_t<T>::adj_write(write_seg_t* seg)
+{
+	vid_t vid;
+	disk_vtable_t* dvt1 = 0;
+	vunit_t<T>* v_unit = 0;
+	vunit_t<T>* prev_v_unit = 0;
+	index_t  prev_offset;
+    degree_t total_count = 0;
+    degree_t prev_total_count;
 
+	delta_adjlist_t<T>* delta_adjlist = 0;
+	durable_adjlist_t<T>* durable_adjlist = 0;
+    T* adj_list1 = 0;
+
+    #pragma omp for schedule(dynamic, 256) nowait
+	for (vid_t v = 0; v < seg->dvt_count; ++v) {
+		dvt1 = seg->dvt + v;
+		vid = dvt1->vid;
+		if (0 == nebr_count[vid].adj_list) continue;
+		prev_v_unit       = beg_pos[vid].get_vunit();
+		prev_total_count  = prev_v_unit->count;
+		prev_offset       = prev_v_unit->offset;
+        total_count       = dvt1->count + dvt1->del_count;
+		
+		//Find the allocated durable adj list
+		durable_adjlist = (durable_adjlist_t<T>*)(seg->log_beg + dvt1->file_offset - log_tail);
+        adj_list1 = durable_adjlist->get_adjlist();
+	   
+        //Copy the Old durable adj list
+		if (prev_total_count) {
+			//Read the old adj list from disk
+            index_t sz_to_read = sizeof(durable_adjlist_t<T>) + prev_total_count*sizeof(T);
+			pread(etf, durable_adjlist , sz_to_read, prev_offset);
+			adj_list1 += prev_total_count;
+        }
+        
+        durable_adjlist->set_nebrcount(total_count);
+
+        //Copy the new in-memory adj-list
+		delta_adjlist = prev_v_unit->delta_adjlist;
+        while(delta_adjlist) {
+			memcpy(adj_list1, delta_adjlist->get_adjlist(),
+				   delta_adjlist->get_nebrcount()*sizeof(T));
+			adj_list1 += delta_adjlist->get_nebrcount();
+			delta_adjlist = delta_adjlist->get_next();
+		}
+
+		v_unit = new_vunit();
+		v_unit->count = total_count;
+		v_unit->offset = dvt1->file_offset;// + log_tail;
+		v_unit->delta_adjlist = 0;
+		//beg_pos[vid].set_vunit(v_unit);
+		nebr_count[vid].v_unit = v_unit;
+            
+		nebr_count[vid].add_count = 0;
+        nebr_count[vid].del_count = 0;
+        //nebr_count[vid].adj_list = 0;
+    }
+}
+*/
 template <class T>
 void onegraph_t<T>::adj_write(write_seg_t* seg)
 {
@@ -887,7 +963,9 @@ void onegraph_t<T>::adj_write(write_seg_t* seg)
         index_t sz_to_write = total_count*sizeof(T) + sizeof(durable_adjlist_t<T>);
 		pwrite (etf, durable_adjlist, sz_to_write, dvt1->file_offset);
 
-		v_unit = new_vunit();
+		vid_t index1 = (seg->my_vunit_head + v) % vunit_count;
+		v_unit =   vunit_beg + vunit_ind[index1] ;//new_vunit();
+		v_unit->reset();
 		v_unit->count = total_count;
 		v_unit->offset = dvt1->file_offset;// + log_tail;
 		v_unit->delta_adjlist = 0;
@@ -900,15 +978,15 @@ void onegraph_t<T>::adj_write(write_seg_t* seg)
 		
 	//Write new adj list
     //fwrite (log_beg, sizeof(T), log_head, etf);
-    /*
-    if (seg->log_head != 0) {
-	    index_t size = pwrite(etf, seg->log_beg, seg->log_head*sizeof(T), 
-                              log_tail*sizeof(T));
-        if (size != seg->log_head*sizeof(T)) {
-            perror("pwrite issue");
-            assert(0);
-        }
-    }*/
+    
+    //if (seg->log_head != 0) {
+	//    index_t size = pwrite(etf, seg->log_beg, seg->log_head*sizeof(T), 
+    //                          log_tail*sizeof(T));
+    //    if (size != seg->log_head*sizeof(T)) {
+    //        perror("pwrite issue");
+    //        assert(0);
+    //    }
+    //}
     
 	//Write the dvt log
 	//fwrite(seg->dvt, sizeof(disk_vtable_t), seg->dvt_count, vtf);

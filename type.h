@@ -278,6 +278,7 @@ class write_seg_t {
      index_t        dvt_count;
      char*          log_beg;
      index_t        log_head;
+	 index_t        my_vunit_head;
 
      write_seg_t() {
         dvt = 0;
