@@ -412,7 +412,8 @@ public:
     inline tid_t get_tid() { return TO_TID(super_id);}
 
 
-    void prepare_dvt(write_seg_t* seg, vid_t& last_vid, index_t& file_offset);
+    void prepare_dvt(write_seg_t* seg, vid_t& last_vid);
+	void adj_prep(write_seg_t* seg);
 	void adj_write(write_seg_t* seg);
     void handle_write();
     

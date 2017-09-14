@@ -278,6 +278,9 @@ class write_seg_t {
      index_t        dvt_count;
      char*          log_beg;
      index_t        log_head;
+	 //This is file offset at which to start writing
+	 index_t        log_tail;
+	 //allocated from main vunit
 	 index_t        my_vunit_head;
 
      write_seg_t() {
@@ -285,6 +288,8 @@ class write_seg_t {
         dvt_count = 0;
         log_beg = 0;
         log_head = 0;
+		log_tail = 0;
+		my_vunit_head = 0;
      }
 };
 

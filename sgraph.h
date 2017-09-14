@@ -470,7 +470,7 @@ void onegraph_t<T>::setup(tid_t tid)
         */
         
         //durable vertex log and adj list log
-        dvt_max_count = (v_count);
+        dvt_max_count = (1L << 20);
         log_count = (1L << 22);
         if (posix_memalign((void**) &write_seg[0].dvt, 2097152, 
                            dvt_max_count*sizeof(disk_vtable_t))) {
@@ -765,9 +765,8 @@ void onegraph_t<T>::handle_write()
     vid_t last_vid2 = 0;
     write_seg_t* seg1 = write_seg + 0;
     write_seg_t* seg2 = write_seg + 1; 
-    index_t       offset = log_tail;
-    
-    prepare_dvt(seg1, last_vid1, offset);
+	
+    prepare_dvt(seg1, last_vid1);
     
     do {
         last_vid2 = last_vid1;
@@ -776,47 +775,46 @@ void onegraph_t<T>::handle_write()
         {
             #pragma omp master
             {
-                prepare_dvt(seg1, last_vid1, offset);
+                prepare_dvt(seg1, last_vid1);
             }
             if (1 == omp_get_thread_num())
             {
                 //Write the dvt log
                 if (seg2->dvt_count) {
-                    //fwrite(seg2->dvt, sizeof(disk_vtable_t), seg2->dvt_count, vtf);
                     write(vtf, seg2->dvt, sizeof(disk_vtable_t)*seg2->dvt_count);
                 }
             }
 
-            adj_write(seg2);
+            adj_prep(seg2);
         }
 
 		//Write new adj list
-		//if (seg2->log_head != 0) {
-		//	index_t size = pwrite(etf, seg2->log_beg, seg2->log_head, log_tail);
-		//	//fwrite (log_beg, sizeof(T), log_head, etf);
-		//	if (size != seg2->log_head) {
-		//		perror("pwrite issue");
-		//		assert(0);
-		//	}
-		//}
-
-        if (seg2->log_head != 0) { 
-            log_tail += seg2->log_head;
-        }
+		if (seg2->log_head != 0) {
+			index_t size = pwrite(etf, seg2->log_beg, seg2->log_head, seg2->log_tail);
+			if (size != seg2->log_head) {
+				perror("pwrite issue");
+				assert(0);
+			}
+		}
+		#pragma omp parallel
+		adj_write(seg2);
         seg2->log_head = 0;
         seg2->dvt_count = 0;
+		cout << "YEs " << endl;
         
     } while(last_vid2 < v_count);
     adjlog_head = 0;
 }
 
 template <class T>
-void onegraph_t<T>::prepare_dvt(write_seg_t* seg, vid_t& last_vid, index_t& offset)
+void onegraph_t<T>::prepare_dvt(write_seg_t* seg, vid_t& last_vid)
 {
     vid_t    v_count = TO_VID(super_id);
     durable_adjlist_t<T>* adj_list2 = 0;
     snapT_t<T>* curr = 0;
 	disk_vtable_t* dvt1 = 0;
+	//Note the initial offset
+	seg->log_tail = log_tail;
 	
     for (vid_t vid = last_vid; vid < v_count ; ++vid) {
         if (0 == nebr_count[vid].adj_list) continue;
@@ -825,7 +823,7 @@ void onegraph_t<T>::prepare_dvt(write_seg_t* seg, vid_t& last_vid, index_t& offs
 		if ((seg->log_head + curr->degree*sizeof(T) + sizeof(durable_adjlist_t<T>)  > log_count) ||
             (seg->dvt_count >= dvt_max_count)) {
             last_vid = vid;
-            offset += seg->log_head;
+            log_tail += seg->log_head;
 			seg->my_vunit_head = vunit_head;
 			vunit_head += seg->dvt_count;
             return;
@@ -840,11 +838,11 @@ void onegraph_t<T>::prepare_dvt(write_seg_t* seg, vid_t& last_vid, index_t& offs
 		dvt1->count	     = curr->degree;
         dvt1->del_count  = curr->del_count;
         dvt1->file_offset = ((char*)adj_list2) - seg->log_beg;
-        dvt1->file_offset += offset;
+        dvt1->file_offset += seg->log_tail;
     }
 
     last_vid = v_count;
-    offset += seg->log_head;
+    log_tail += seg->log_head;
 	seg->my_vunit_head = vunit_head;
 	vunit_head += seg->dvt_count;
     return;
@@ -911,8 +909,26 @@ void onegraph_t<T>::adj_write(write_seg_t* seg)
     }
 }
 */
+
 template <class T>
 void onegraph_t<T>::adj_write(write_seg_t* seg)
+{
+	vid_t vid;
+	disk_vtable_t* dvt1 = 0;
+	vunit_t<T>* v_unit = 0;
+
+    #pragma omp for  
+	for (vid_t v = 0; v < seg->dvt_count; ++v) {
+		dvt1 = seg->dvt + v;
+		vid = dvt1->vid;
+		vid_t index1 = (seg->my_vunit_head + v) % vunit_count;
+		v_unit =   vunit_beg + vunit_ind[index1] ;//new_vunit();
+		beg_pos[vid].set_vunit(v_unit);
+	}
+
+}
+template <class T>
+void onegraph_t<T>::adj_prep(write_seg_t* seg)
 {
 	vid_t vid;
 	disk_vtable_t* dvt1 = 0;
@@ -937,7 +953,8 @@ void onegraph_t<T>::adj_write(write_seg_t* seg)
         total_count       = dvt1->count + dvt1->del_count;
 		
 		//Find the allocated durable adj list
-		durable_adjlist = (durable_adjlist_t<T>*)(seg->log_beg + dvt1->file_offset - log_tail);
+		durable_adjlist = (durable_adjlist_t<T>*)(seg->log_beg + dvt1->file_offset 
+												  - seg->log_tail);
         adj_list1 = durable_adjlist->get_adjlist();
 	   
         //Copy the Old durable adj list
@@ -960,8 +977,8 @@ void onegraph_t<T>::adj_write(write_seg_t* seg)
 		}
 
 		//Write new adj list
-        index_t sz_to_write = total_count*sizeof(T) + sizeof(durable_adjlist_t<T>);
-		pwrite (etf, durable_adjlist, sz_to_write, dvt1->file_offset);
+        //index_t sz_to_write = total_count*sizeof(T) + sizeof(durable_adjlist_t<T>);
+		//pwrite (etf, durable_adjlist, sz_to_write, dvt1->file_offset);
 
 		vid_t index1 = (seg->my_vunit_head + v) % vunit_count;
 		v_unit =   vunit_beg + vunit_ind[index1] ;//new_vunit();
@@ -969,7 +986,7 @@ void onegraph_t<T>::adj_write(write_seg_t* seg)
 		v_unit->count = total_count;
 		v_unit->offset = dvt1->file_offset;// + log_tail;
 		v_unit->delta_adjlist = 0;
-		beg_pos[vid].set_vunit(v_unit);
+		//beg_pos[vid].set_vunit(v_unit);
             
 		nebr_count[vid].add_count = 0;
         nebr_count[vid].del_count = 0;
@@ -991,6 +1008,8 @@ void onegraph_t<T>::adj_write(write_seg_t* seg)
 	//Write the dvt log
 	//fwrite(seg->dvt, sizeof(disk_vtable_t), seg->dvt_count, vtf);
 }
+
+
 
 template <class T>
 void onegraph_t<T>::read_vtable()
