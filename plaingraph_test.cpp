@@ -446,11 +446,17 @@ void paper_test_chain_bfs(const string& idir, const string& odir)
     }
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
-
+    
+	
+	ext_bfs<sid_t>(ugraph->sgraph[0], degree_array, ugraph->sgraph[0], degree_array, 
+                   snapshot, marker, blog->blog_beg,
+                   v_count, level_array, 1);
+	
+	/*
     mem_bfs<sid_t>(graph, degree_array, graph, degree_array, 
                    snapshot, marker, blog->blog_beg,
                    v_count, level_array, 1);
-    
+    */
 }
 void paper_test_pr_chain(const string& idir, const string& odir)
 {

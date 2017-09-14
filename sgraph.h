@@ -438,7 +438,7 @@ void onegraph_t<T>::setup(tid_t tid)
         nebr_count = (nebrcount_t<T>*)calloc(sizeof(nebrcount_t<T>), max_vcount);
         
         //dela adj list
-        adjlog_count = (1L << 28); //8GB
+        adjlog_count = (1L << 30); //8GB
         adjlog_beg = (char*)mmap(NULL, adjlog_count, PROT_READ|PROT_WRITE,
                             MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0);
         if (MAP_FAILED == adjlog_beg) {
@@ -500,7 +500,7 @@ void onegraph_t<T>::setup(tid_t tid)
         }*/
 
 		//v_unit log
-		vunit_count = (v_count << 1L);
+		vunit_count = (v_count << 3L);
         if (posix_memalign((void**)&vunit_beg, 2097152, vunit_count*sizeof(vunit_t<T>))) {
             perror("posix memalign vunit_beg");
         }
@@ -581,10 +581,10 @@ void onegraph_t<T>::setup_adjlist()
 {
     vid_t    v_count = TO_VID(super_id);
     degree_t count, del_count, total_count;
-	delta_adjlist_t<T>* prev_delta = 0;
-    index_t vunit_count = 0;
-    index_t dsnap_count = 0;
-    index_t delta_size = 0;
+	vunit_t<T>* v_unit = 0;
+    index_t my_vunit_count = 0;
+    index_t my_dsnap_count = 0;
+    index_t my_delta_size = 0;
 
     #pragma omp for schedule(static) nowait
     for (vid_t vid = 0; vid < v_count; ++vid) {
@@ -593,31 +593,30 @@ void onegraph_t<T>::setup_adjlist()
         
         if (0 != count || 0 != del_count) {// new nebrs added/deleted
 
-            prev_delta = nebr_count[vid].adj_list;
-            /*
-            if (prev_delta) {
-                count = nebr_count[vid].add_count - prev_delta->get_nebrcount();
-			}*/	
             total_count = count + del_count;
         
             if (0 == total_count) {
                 continue;
             }
-            vunit_count += (prev_delta == 0);
-            ++dsnap_count;
-            delta_size += total_count;
+            v_unit = beg_pos[vid].get_vunit();
+            my_vunit_count += (v_unit == 0);
+            ++my_dsnap_count;
+            my_delta_size += total_count;
         }            
     }
 
     vunit_t<T>* my_vunit_beg = vunit_beg + __sync_fetch_and_add(&vunit_head,
-                                                                 vunit_count); 
-    snapT_t<T>* my_dlog_beg = dlog_beg +__sync_fetch_and_add(&dlog_head, dsnap_count);
-    index_t new_count = delta_size*sizeof(T) + dsnap_count*sizeof(delta_adjlist_t<T>);
+                                                             my_vunit_count); 
+    snapT_t<T>* my_dlog_beg = dlog_beg 
+							  +__sync_fetch_and_add(&dlog_head, my_dsnap_count);
+
+	index_t new_count = my_delta_size*sizeof(T) 
+						+ my_dsnap_count*sizeof(delta_adjlist_t<T>);
     char*  my_adjlog_beg = adjlog_beg +__sync_fetch_and_add(&adjlog_head, new_count);
 
     snapid_t snap_id = g->get_snapid() + 1;
     snapT_t<T>* curr;
-	vunit_t<T>* v_unit = 0;
+	delta_adjlist_t<T>* prev_delta = 0;
 	delta_adjlist_t<T>* delta_adjlist = 0;
     index_t delta_metasize = sizeof(delta_adjlist_t<T>);
 
@@ -628,11 +627,6 @@ void onegraph_t<T>::setup_adjlist()
         
         if (0 != count || 0 != del_count) {// new nebrs added/deleted
 
-            prev_delta = nebr_count[vid].adj_list;
-            /*
-            if (prev_delta) {
-                count = nebr_count[vid].add_count - prev_delta->get_nebrcount();
-			}*/	
             total_count = count + del_count;
         
             if (0 == total_count) {
@@ -647,9 +641,13 @@ void onegraph_t<T>::setup_adjlist()
             delta_adjlist->add_next(0);
 			
 			//If prev_delta exist, v_unit exists
-            if(prev_delta) {
+            prev_delta = nebr_count[vid].adj_list;
+            v_unit = beg_pos[vid].get_vunit();
+			if (prev_delta) {
                 prev_delta->add_next(delta_adjlist);
-            } else {
+            } else if(v_unit) {
+			    v_unit->delta_adjlist = delta_adjlist;
+			} else {
 				v_unit = my_vunit_beg;
                 my_vunit_beg += 1;
 			    v_unit->delta_adjlist = delta_adjlist;
@@ -768,11 +766,14 @@ void onegraph_t<T>::handle_write()
     vid_t   v_count = TO_VID(super_id);
     vid_t last_vid1 = 0;
     vid_t last_vid2 = 0;
-    write_seg_t* seg1 = write_seg + 0;
-    write_seg_t* seg2 = write_seg + 1; 
-    write_seg_t* seg3 = write_seg + 2; 
+    write_seg_t* seg1 = new write_seg_t(write_seg[0]);
 	
-    prepare_dvt(seg1, last_vid1);
+    write_seg_t* seg2 = new write_seg_t(write_seg[1]); 
+    write_seg_t* seg3 = new write_seg_t(write_seg[2]); 
+    
+	//seg3->log_head = 0;	
+    //seg3->dvt_count = 0;
+	prepare_dvt(seg1, last_vid1);
     
     do {
         last_vid2 = last_vid1;
@@ -818,16 +819,24 @@ void onegraph_t<T>::handle_write()
 		seg2->log_beg = seg3->log_beg;
 		
     } while(last_vid2 < v_count);
-	
-	//Write new adj list
-	if (seg3->log_head != 0) {
-		off_t size = seg3->log_head;
-		if (size != pwrite(etf, seg3->log_beg, seg3->log_head, seg3->log_tail)) {
-			perror("pwrite issue");
-			assert(0);
+
+	//The last write and adj update	
+	#pragma omp parallel 
+	{
+		//Write new adj list
+		#pragma omp master
+		{
+		if (seg3->log_head != 0) {
+			off_t size = seg3->log_head;
+			if (size != pwrite(etf, seg3->log_beg, seg3->log_head, seg3->log_tail)) {
+				perror("pwrite issue");
+				assert(0);
+			}
 		}
+		}
+	adj_update(seg3);
 	}
-    adjlog_head = 0;
+	adjlog_head = 0;
 }
 
 template <class T>
@@ -839,6 +848,8 @@ void onegraph_t<T>::prepare_dvt(write_seg_t* seg, vid_t& last_vid)
 	disk_vtable_t* dvt1 = 0;
 	//Note the initial offset
 	seg->log_tail = log_tail;
+	seg->log_head = 0;
+	seg->dvt_count = 0;
 	
     for (vid_t vid = last_vid; vid < v_count ; ++vid) {
         if (0 == nebr_count[vid].adj_list) continue;
