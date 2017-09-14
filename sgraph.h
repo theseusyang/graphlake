@@ -589,9 +589,10 @@ void onegraph_t<T>::setup_adjlist()
         if (0 != count || 0 != del_count) {// new nebrs added/deleted
 
             prev_delta = nebr_count[vid].adj_list;
+            /*
             if (prev_delta) {
                 count = nebr_count[vid].add_count - prev_delta->get_nebrcount();
-			}	
+			}*/	
             total_count = count + del_count;
         
             if (0 == total_count) {
@@ -623,9 +624,10 @@ void onegraph_t<T>::setup_adjlist()
         if (0 != count || 0 != del_count) {// new nebrs added/deleted
 
             prev_delta = nebr_count[vid].adj_list;
+            /*
             if (prev_delta) {
                 count = nebr_count[vid].add_count - prev_delta->get_nebrcount();
-			}	
+			}*/	
             total_count = count + del_count;
         
             if (0 == total_count) {
@@ -635,7 +637,8 @@ void onegraph_t<T>::setup_adjlist()
             //delta adj list allocation
             delta_adjlist = (delta_adjlist_t<T>*)(my_adjlog_beg); 
 			my_adjlog_beg += total_count*sizeof(T) + delta_metasize;
-            delta_adjlist->set_nebrcount(total_count);
+            //delta_adjlist->set_nebrcount(total_count);
+            delta_adjlist->set_nebrcount(0);
             delta_adjlist->add_next(0);
 			
 			//If prev_delta exist, v_unit exists

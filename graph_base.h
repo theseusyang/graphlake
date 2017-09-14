@@ -149,13 +149,29 @@ class nebrcount_t {
     delta_adjlist_t<T>* adj_list;
     
  public:
+    /*
     inline void add_nebr(vid_t index, sid_t sid) { 
         T* adj_list1 = adj_list->get_adjlist();
+        adj_list->incr_nebrcount_atomically();
         add_nebr1(adj_list1, index, sid);
         //adj_list1[index] = sid;
     }
 
     inline void add_nebr_lite(vid_t index, sid_t sid, univ_t value) {
+        adj_list->incr_nebrcount_atomically();
+        add_nebr2(adj_list->get_adjlist(), index, sid, value);
+    }
+    */
+
+    inline void add_nebr(sid_t sid) { 
+        T* adj_list1 = adj_list->get_adjlist();
+        degree_t index = adj_list->incr_nebrcount_atomically();
+        add_nebr1(adj_list1, index, sid);
+        //adj_list1[index] = sid;
+    }
+
+    inline void add_nebr_lite(sid_t sid, univ_t value) {
+        degree_t index = adj_list->incr_nebrcount_atomically();
         add_nebr2(adj_list->get_adjlist(), index, sid, value);
     }
 };
@@ -233,8 +249,9 @@ private:
         sid_t actual_sid = TO_SID(sid); 
         degree_t location = find_nebr(vid, actual_sid);
         if (INVALID_DEGREE != location) {
-            degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
-            nebr_count[vid].add_nebr(index, sid);
+            //degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
+            //nebr_count[vid].add_nebr(index, sid);
+            nebr_count[vid].add_nebr(sid);
         }
     }
 
@@ -242,8 +259,9 @@ private:
         sid_t actual_sid = TO_SID(sid); 
         degree_t location = find_nebr(vid, actual_sid);
         if (INVALID_DEGREE != location) {
-            degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
-            nebr_count[vid].add_nebr_lite(index, sid, value);
+            //degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
+            //nebr_count[vid].add_nebr_lite(index, sid, value);
+            nebr_count[vid].add_nebr_lite(sid, value);
         }
     }
 
@@ -315,16 +333,18 @@ public:
         if (IS_DEL(sid)) { 
             return del_nebr(vid, sid);
         }
-        degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
-        nebr_count[vid].add_nebr(index, sid);
+        //degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
+        //nebr_count[vid].add_nebr(index, sid);
+        nebr_count[vid].add_nebr(sid);
     }
     
     inline void add_nebr_lite(vid_t vid, sid_t sid, univ_t value) { 
         if (IS_DEL(sid)) { 
             return del_nebr_lite(vid, sid, value);
         }
-        degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
-        nebr_count[vid].add_nebr_lite(index, sid, value);
+        //degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
+        //nebr_count[vid].add_nebr_lite(index, sid, value);
+        nebr_count[vid].add_nebr_lite(sid, value);
     }
 
     degree_t find_nebr(vid_t vid, sid_t sid); 

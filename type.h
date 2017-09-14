@@ -178,6 +178,9 @@ class delta_adjlist_t {
 	inline delta_adjlist_t<T>() {next = 0; count = 0;}
 	inline degree_t get_nebrcount() { return count;}
 	void set_nebrcount(degree_t degree) {count = degree;}
+	degree_t incr_nebrcount_atomically() {
+        return  __sync_fetch_and_add(&count, 1);
+    }
 	inline T* get_adjlist() { return (T*)(&count + 1); }
 	inline void add_next(delta_adjlist_t<T>* ptr) {next = ptr; }
 	inline delta_adjlist_t<T>* get_next() { return next; }
