@@ -1,0 +1,2983 @@
+make: Nothing to be done for `all'.
+----------------Iteration  0 -----------------
+Shell passed r = 0
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 0 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 0
+v_count = 268435456
+store graph time = 0.236242
+Reading 1 file time = 12.0168
+End marker = 4294967296make graph marker = 4294967296
+Marker queued. position = 0 4294967296
+Marker dequeue. Position = 0 4294967296
+calc edge time = 16.9735
+prep_internal time = 1.18635
+fill adj list time = 48.3152
+Make graph time = 66.4754
+old marker = 4294967296 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.143321
+----------------Iteration  1 -----------------
+Shell passed r = 0
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 0 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 0
+v_count = 268435456
+store graph time = 0.220924
+Reading 1 file time = 12.0462
+End marker = 4294967296make graph marker = 4294967296
+Marker queued. position = 0 4294967296
+Marker dequeue. Position = 0 4294967296
+calc edge time = 16.9188
+prep_internal time = 1.18874
+fill adj list time = 48.289
+Make graph time = 66.3967
+old marker = 4294967296 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.130187
+----------------Iteration  2 -----------------
+Shell passed r = 0
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 0 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 0
+v_count = 268435456
+store graph time = 0.220872
+Reading 1 file time = 11.993
+End marker = 4294967296make graph marker = 4294967296
+Marker queued. position = 0 4294967296
+Marker dequeue. Position = 0 4294967296
+calc edge time = 16.9472
+prep_internal time = 1.18853
+fill adj list time = 48.3957
+Make graph time = 66.5316
+old marker = 4294967296 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.128311
+----------------Iteration  3 -----------------
+Shell passed r = 0
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 0 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 0
+v_count = 268435456
+store graph time = 0.221666
+Reading 1 file time = 12.0613
+End marker = 4294967296make graph marker = 4294967296
+Marker queued. position = 0 4294967296
+Marker dequeue. Position = 0 4294967296
+calc edge time = 16.9523
+prep_internal time = 1.18561
+fill adj list time = 48.1848
+Make graph time = 66.3229
+old marker = 4294967296 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.129433
+----------------Iteration  4 -----------------
+Shell passed r = 0
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 0 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 0
+v_count = 268435456
+store graph time = 0.220805
+Reading 1 file time = 11.9558
+End marker = 4294967296make graph marker = 4294967296
+Marker queued. position = 0 4294967296
+Marker dequeue. Position = 0 4294967296
+calc edge time = 16.921
+prep_internal time = 1.18689
+fill adj list time = 48.2053
+Make graph time = 66.3134
+old marker = 4294967296 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.126162
+----------------Iteration  5 -----------------
+Shell passed r = 0
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 0 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 0
+v_count = 268435456
+store graph time = 0.234694
+Reading 1 file time = 12.0235
+End marker = 4294967296make graph marker = 4294967296
+Marker queued. position = 0 4294967296
+Marker dequeue. Position = 0 4294967296
+calc edge time = 16.9268
+prep_internal time = 1.18945
+fill adj list time = 48.276
+Make graph time = 66.3924
+old marker = 4294967296 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.130487
+----------------Iteration  6 -----------------
+Shell passed r = 0
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 0 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 0
+v_count = 268435456
+store graph time = 0.222641
+Reading 1 file time = 12.0462
+End marker = 4294967296make graph marker = 4294967296
+Marker queued. position = 0 4294967296
+Marker dequeue. Position = 0 4294967296
+calc edge time = 16.9665
+prep_internal time = 1.18826
+fill adj list time = 48.1907
+Make graph time = 66.3457
+old marker = 4294967296 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.131233
+----------------Iteration  0 -----------------
+Shell passed r = 1024
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 1024 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 1024
+v_count = 268435456
+store graph time = 0.236264
+Reading 1 file time = 12.0095
+End marker = 4294967296make graph marker = 4294966272
+Marker queued. position = 0 4294966272
+Marker dequeue. Position = 0 4294966272
+calc edge time = 16.9499
+prep_internal time = 1.19182
+fill adj list time = 48.3161
+Make graph time = 66.4581
+old marker = 4294966272 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.130103
+----------------Iteration  1 -----------------
+Shell passed r = 1024
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 1024 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 1024
+v_count = 268435456
+store graph time = 0.221455
+Reading 1 file time = 12.0433
+End marker = 4294967296make graph marker = 4294966272
+Marker queued. position = 0 4294966272
+Marker dequeue. Position = 0 4294966272
+calc edge time = 16.962
+prep_internal time = 1.19044
+fill adj list time = 48.3419
+Make graph time = 66.4947
+old marker = 4294966272 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.133944
+----------------Iteration  2 -----------------
+Shell passed r = 1024
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 1024 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 1024
+v_count = 268435456
+store graph time = 0.236314
+Reading 1 file time = 12.0007
+End marker = 4294967296make graph marker = 4294966272
+Marker queued. position = 0 4294966272
+Marker dequeue. Position = 0 4294966272
+calc edge time = 16.897
+prep_internal time = 1.17937
+fill adj list time = 48.3003
+Make graph time = 66.377
+old marker = 4294966272 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.131193
+----------------Iteration  3 -----------------
+Shell passed r = 1024
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 1024 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 1024
+v_count = 268435456
+store graph time = 0.221239
+Reading 1 file time = 12.0172
+End marker = 4294967296make graph marker = 4294966272
+Marker queued. position = 0 4294966272
+Marker dequeue. Position = 0 4294966272
+calc edge time = 16.8992
+prep_internal time = 1.19059
+fill adj list time = 48.2519
+Make graph time = 66.3419
+old marker = 4294966272 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.133056
+----------------Iteration  4 -----------------
+Shell passed r = 1024
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 1024 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 1024
+v_count = 268435456
+store graph time = 0.221748
+Reading 1 file time = 12.0249
+End marker = 4294967296make graph marker = 4294966272
+Marker queued. position = 0 4294966272
+Marker dequeue. Position = 0 4294966272
+calc edge time = 16.9377
+prep_internal time = 1.18851
+fill adj list time = 48.2643
+Make graph time = 66.3907
+old marker = 4294966272 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.13106
+----------------Iteration  5 -----------------
+Shell passed r = 1024
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 1024 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 1024
+v_count = 268435456
+store graph time = 0.222009
+Reading 1 file time = 12.0228
+End marker = 4294967296make graph marker = 4294966272
+Marker queued. position = 0 4294966272
+Marker dequeue. Position = 0 4294966272
+calc edge time = 16.8889
+prep_internal time = 1.18955
+fill adj list time = 48.2555
+Make graph time = 66.3342
+old marker = 4294966272 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.131753
+----------------Iteration  6 -----------------
+Shell passed r = 1024
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 1024 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 1024
+v_count = 268435456
+store graph time = 0.221989
+Reading 1 file time = 11.9791
+End marker = 4294967296make graph marker = 4294966272
+Marker queued. position = 0 4294966272
+Marker dequeue. Position = 0 4294966272
+calc edge time = 16.9141
+prep_internal time = 1.18581
+fill adj list time = 48.1833
+Make graph time = 66.2835
+old marker = 4294966272 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.131926
+----------------Iteration  0 -----------------
+Shell passed r = 2048
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 2048 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 2048
+v_count = 268435456
+store graph time = 0.23613
+Reading 1 file time = 12.0377
+End marker = 4294967296make graph marker = 4294965248
+Marker queued. position = 0 4294965248
+Marker dequeue. Position = 0 4294965248
+calc edge time = 16.86
+prep_internal time = 1.19118
+fill adj list time = 48.1577
+Make graph time = 66.2091
+old marker = 4294965248 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.135331
+----------------Iteration  1 -----------------
+Shell passed r = 2048
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 2048 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 2048
+v_count = 268435456
+store graph time = 0.227159
+Reading 1 file time = 12.0156
+End marker = 4294967296make graph marker = 4294965248
+Marker queued. position = 0 4294965248
+Marker dequeue. Position = 0 4294965248
+calc edge time = 16.9481
+prep_internal time = 1.18187
+fill adj list time = 48.2285
+Make graph time = 66.3587
+old marker = 4294965248 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.13427
+----------------Iteration  2 -----------------
+Shell passed r = 2048
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 2048 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 2048
+v_count = 268435456
+store graph time = 0.221921
+Reading 1 file time = 12.042
+End marker = 4294967296make graph marker = 4294965248
+Marker queued. position = 0 4294965248
+Marker dequeue. Position = 0 4294965248
+calc edge time = 16.8925
+prep_internal time = 1.18976
+fill adj list time = 48.3691
+Make graph time = 66.4516
+old marker = 4294965248 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.133633
+----------------Iteration  3 -----------------
+Shell passed r = 2048
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 2048 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 2048
+v_count = 268435456
+store graph time = 0.222006
+Reading 1 file time = 12.0598
+End marker = 4294967296make graph marker = 4294965248
+Marker queued. position = 0 4294965248
+Marker dequeue. Position = 0 4294965248
+calc edge time = 17.0095
+prep_internal time = 1.19232
+fill adj list time = 48.4417
+Make graph time = 66.6438
+old marker = 4294965248 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.133531
+----------------Iteration  4 -----------------
+Shell passed r = 2048
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 2048 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 2048
+v_count = 268435456
+store graph time = 0.221983
+Reading 1 file time = 12.0831
+End marker = 4294967296make graph marker = 4294965248
+Marker queued. position = 0 4294965248
+Marker dequeue. Position = 0 4294965248
+calc edge time = 16.9204
+prep_internal time = 1.19005
+fill adj list time = 48.2511
+Make graph time = 66.3618
+old marker = 4294965248 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.132364
+----------------Iteration  5 -----------------
+Shell passed r = 2048
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 2048 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 2048
+v_count = 268435456
+store graph time = 0.221867
+Reading 1 file time = 12.0487
+End marker = 4294967296make graph marker = 4294965248
+Marker queued. position = 0 4294965248
+Marker dequeue. Position = 0 4294965248
+calc edge time = 16.9
+prep_internal time = 1.19811
+fill adj list time = 48.3669
+Make graph time = 66.4651
+old marker = 4294965248 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.133408
+----------------Iteration  6 -----------------
+Shell passed r = 2048
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 2048 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 2048
+v_count = 268435456
+store graph time = 0.221919
+Reading 1 file time = 12.0728
+End marker = 4294967296make graph marker = 4294965248
+Marker queued. position = 0 4294965248
+Marker dequeue. Position = 0 4294965248
+calc edge time = 16.8991
+prep_internal time = 1.18558
+fill adj list time = 48.2368
+Make graph time = 66.3217
+old marker = 4294965248 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.134334
+----------------Iteration  0 -----------------
+Shell passed r = 4096
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 4096 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 4096
+v_count = 268435456
+store graph time = 0.225368
+Reading 1 file time = 12.0372
+End marker = 4294967296make graph marker = 4294963200
+Marker queued. position = 0 4294963200
+Marker dequeue. Position = 0 4294963200
+calc edge time = 16.9768
+prep_internal time = 1.188
+fill adj list time = 48.2473
+Make graph time = 66.4123
+old marker = 4294963200 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.136041
+----------------Iteration  1 -----------------
+Shell passed r = 4096
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 4096 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 4096
+v_count = 268435456
+store graph time = 0.221566
+Reading 1 file time = 12.0402
+End marker = 4294967296make graph marker = 4294963200
+Marker queued. position = 0 4294963200
+Marker dequeue. Position = 0 4294963200
+calc edge time = 16.8972
+prep_internal time = 1.19374
+fill adj list time = 48.2439
+Make graph time = 66.3351
+old marker = 4294963200 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.135622
+----------------Iteration  2 -----------------
+Shell passed r = 4096
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 4096 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 4096
+v_count = 268435456
+store graph time = 0.235913
+Reading 1 file time = 12.0523
+End marker = 4294967296make graph marker = 4294963200
+Marker queued. position = 0 4294963200
+Marker dequeue. Position = 0 4294963200
+calc edge time = 16.916
+prep_internal time = 1.18945
+fill adj list time = 48.3646
+Make graph time = 66.4703
+old marker = 4294963200 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.135401
+----------------Iteration  3 -----------------
+Shell passed r = 4096
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 4096 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 4096
+v_count = 268435456
+store graph time = 0.221634
+Reading 1 file time = 12.0533
+End marker = 4294967296make graph marker = 4294963200
+Marker queued. position = 0 4294963200
+Marker dequeue. Position = 0 4294963200
+calc edge time = 16.888
+prep_internal time = 1.18691
+fill adj list time = 48.2299
+Make graph time = 66.305
+old marker = 4294963200 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.138464
+----------------Iteration  4 -----------------
+Shell passed r = 4096
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 4096 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 4096
+v_count = 268435456
+store graph time = 0.236477
+Reading 1 file time = 12.0113
+End marker = 4294967296make graph marker = 4294963200
+Marker queued. position = 0 4294963200
+Marker dequeue. Position = 0 4294963200
+calc edge time = 16.9153
+prep_internal time = 1.19185
+fill adj list time = 48.2164
+Make graph time = 66.3238
+old marker = 4294963200 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.136387
+----------------Iteration  5 -----------------
+Shell passed r = 4096
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 4096 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 4096
+v_count = 268435456
+store graph time = 0.222055
+Reading 1 file time = 11.9794
+End marker = 4294967296make graph marker = 4294963200
+Marker queued. position = 0 4294963200
+Marker dequeue. Position = 0 4294963200
+calc edge time = 17.0953
+prep_internal time = 1.1873
+fill adj list time = 48.2958
+Make graph time = 66.5786
+old marker = 4294963200 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.134748
+----------------Iteration  6 -----------------
+Shell passed r = 4096
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 4096 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 4096
+v_count = 268435456
+store graph time = 0.221805
+Reading 1 file time = 12.0545
+End marker = 4294967296make graph marker = 4294963200
+Marker queued. position = 0 4294963200
+Marker dequeue. Position = 0 4294963200
+calc edge time = 16.9467
+prep_internal time = 1.18925
+fill adj list time = 48.4481
+Make graph time = 66.5842
+old marker = 4294963200 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.138006
+----------------Iteration  0 -----------------
+Shell passed r = 8192
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 8192 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 8192
+v_count = 268435456
+store graph time = 0.221944
+Reading 1 file time = 12.0498
+End marker = 4294967296make graph marker = 4294959104
+Marker queued. position = 0 4294959104
+Marker dequeue. Position = 0 4294959104
+calc edge time = 16.9051
+prep_internal time = 1.18878
+fill adj list time = 48.3581
+Make graph time = 66.4522
+old marker = 4294959104 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.141758
+----------------Iteration  1 -----------------
+Shell passed r = 8192
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 8192 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 8192
+v_count = 268435456
+store graph time = 0.22193
+Reading 1 file time = 12.0506
+End marker = 4294967296make graph marker = 4294959104
+Marker queued. position = 0 4294959104
+Marker dequeue. Position = 0 4294959104
+calc edge time = 16.9148
+prep_internal time = 1.19224
+fill adj list time = 48.2234
+Make graph time = 66.3306
+old marker = 4294959104 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.143562
+----------------Iteration  2 -----------------
+Shell passed r = 8192
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 8192 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 8192
+v_count = 268435456
+store graph time = 0.221562
+Reading 1 file time = 12.003
+End marker = 4294967296make graph marker = 4294959104
+Marker queued. position = 0 4294959104
+Marker dequeue. Position = 0 4294959104
+calc edge time = 16.9542
+prep_internal time = 1.19093
+fill adj list time = 48.4009
+Make graph time = 66.5463
+old marker = 4294959104 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.142022
+----------------Iteration  3 -----------------
+Shell passed r = 8192
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 8192 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 8192
+v_count = 268435456
+store graph time = 0.22354
+Reading 1 file time = 12.0269
+End marker = 4294967296make graph marker = 4294959104
+Marker queued. position = 0 4294959104
+Marker dequeue. Position = 0 4294959104
+calc edge time = 16.9209
+prep_internal time = 1.18678
+fill adj list time = 48.2467
+Make graph time = 66.3546
+old marker = 4294959104 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.143624
+----------------Iteration  4 -----------------
+Shell passed r = 8192
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 8192 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 8192
+v_count = 268435456
+store graph time = 0.235838
+Reading 1 file time = 12.0275
+End marker = 4294967296make graph marker = 4294959104
+Marker queued. position = 0 4294959104
+Marker dequeue. Position = 0 4294959104
+calc edge time = 16.9132
+prep_internal time = 1.19076
+fill adj list time = 48.422
+Make graph time = 66.5261
+old marker = 4294959104 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.143712
+----------------Iteration  5 -----------------
+Shell passed r = 8192
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 8192 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 8192
+v_count = 268435456
+store graph time = 0.221916
+Reading 1 file time = 12.012
+End marker = 4294967296make graph marker = 4294959104
+Marker queued. position = 0 4294959104
+Marker dequeue. Position = 0 4294959104
+calc edge time = 16.8316
+prep_internal time = 1.18395
+fill adj list time = 48.5446
+Make graph time = 66.5603
+old marker = 4294959104 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.143604
+----------------Iteration  6 -----------------
+Shell passed r = 8192
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 8192 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 8192
+v_count = 268435456
+store graph time = 0.236227
+Reading 1 file time = 12.0279
+End marker = 4294967296make graph marker = 4294959104
+Marker queued. position = 0 4294959104
+Marker dequeue. Position = 0 4294959104
+calc edge time = 16.8973
+prep_internal time = 1.18878
+fill adj list time = 48.2215
+Make graph time = 66.3078
+old marker = 4294959104 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.143438
+----------------Iteration  0 -----------------
+Shell passed r = 16384
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 16384 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 16384
+v_count = 268435456
+store graph time = 0.221927
+Reading 1 file time = 12.029
+End marker = 4294967296make graph marker = 4294950912
+Marker queued. position = 0 4294950912
+Marker dequeue. Position = 0 4294950912
+calc edge time = 16.9424
+prep_internal time = 1.19484
+fill adj list time = 48.2686
+Make graph time = 66.406
+old marker = 4294950912 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.156126
+----------------Iteration  1 -----------------
+Shell passed r = 16384
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 16384 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 16384
+v_count = 268435456
+store graph time = 0.236556
+Reading 1 file time = 12.0146
+End marker = 4294967296make graph marker = 4294950912
+Marker queued. position = 0 4294950912
+Marker dequeue. Position = 0 4294950912
+calc edge time = 16.9694
+prep_internal time = 1.19199
+fill adj list time = 48.3243
+Make graph time = 66.486
+old marker = 4294950912 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.15643
+----------------Iteration  2 -----------------
+Shell passed r = 16384
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 16384 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 16384
+v_count = 268435456
+store graph time = 0.227333
+Reading 1 file time = 12.0318
+End marker = 4294967296make graph marker = 4294950912
+Marker queued. position = 0 4294950912
+Marker dequeue. Position = 0 4294950912
+calc edge time = 16.91
+prep_internal time = 1.18067
+fill adj list time = 48.2017
+Make graph time = 66.2927
+old marker = 4294950912 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.155052
+----------------Iteration  3 -----------------
+Shell passed r = 16384
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 16384 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 16384
+v_count = 268435456
+store graph time = 0.22291
+Reading 1 file time = 12.0075
+End marker = 4294967296make graph marker = 4294950912
+Marker queued. position = 0 4294950912
+Marker dequeue. Position = 0 4294950912
+calc edge time = 16.956
+prep_internal time = 1.19116
+fill adj list time = 48.2253
+Make graph time = 66.3727
+old marker = 4294950912 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.152674
+----------------Iteration  4 -----------------
+Shell passed r = 16384
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 16384 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 16384
+v_count = 268435456
+store graph time = 0.221174
+Reading 1 file time = 12.0582
+End marker = 4294967296make graph marker = 4294950912
+Marker queued. position = 0 4294950912
+Marker dequeue. Position = 0 4294950912
+calc edge time = 16.9077
+prep_internal time = 1.18936
+fill adj list time = 48.4775
+Make graph time = 66.5747
+old marker = 4294950912 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.153533
+----------------Iteration  5 -----------------
+Shell passed r = 16384
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 16384 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 16384
+v_count = 268435456
+store graph time = 0.22144
+Reading 1 file time = 12.0691
+End marker = 4294967296make graph marker = 4294950912
+Marker queued. position = 0 4294950912
+Marker dequeue. Position = 0 4294950912
+calc edge time = 16.9367
+prep_internal time = 1.18618
+fill adj list time = 48.283
+Make graph time = 66.4062
+old marker = 4294950912 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.155004
+----------------Iteration  6 -----------------
+Shell passed r = 16384
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 16384 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 16384
+v_count = 268435456
+store graph time = 0.221547
+Reading 1 file time = 12.0642
+End marker = 4294967296make graph marker = 4294950912
+Marker queued. position = 0 4294950912
+Marker dequeue. Position = 0 4294950912
+calc edge time = 16.9399
+prep_internal time = 1.1893
+fill adj list time = 48.3013
+Make graph time = 66.4307
+old marker = 4294950912 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.154215
+----------------Iteration  0 -----------------
+Shell passed r = 32768
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 32768 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 32768
+v_count = 268435456
+store graph time = 0.221718
+Reading 1 file time = 12.014
+End marker = 4294967296make graph marker = 4294934528
+Marker queued. position = 0 4294934528
+Marker dequeue. Position = 0 4294934528
+calc edge time = 16.9811
+prep_internal time = 1.19195
+fill adj list time = 48.4072
+Make graph time = 66.5804
+old marker = 4294934528 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.178933
+----------------Iteration  1 -----------------
+Shell passed r = 32768
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 32768 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 32768
+v_count = 268435456
+store graph time = 0.223537
+Reading 1 file time = 12.0458
+End marker = 4294967296make graph marker = 4294934528
+Marker queued. position = 0 4294934528
+Marker dequeue. Position = 0 4294934528
+calc edge time = 16.9718
+prep_internal time = 1.18972
+fill adj list time = 48.2991
+Make graph time = 66.4609
+old marker = 4294934528 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.180353
+----------------Iteration  2 -----------------
+Shell passed r = 32768
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 32768 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 32768
+v_count = 268435456
+store graph time = 0.226574
+Reading 1 file time = 12.0585
+End marker = 4294967296make graph marker = 4294934528
+Marker queued. position = 0 4294934528
+Marker dequeue. Position = 0 4294934528
+calc edge time = 16.9518
+prep_internal time = 1.194
+fill adj list time = 48.3001
+Make graph time = 66.4462
+old marker = 4294934528 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.1814
+----------------Iteration  3 -----------------
+Shell passed r = 32768
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 32768 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 32768
+v_count = 268435456
+store graph time = 0.233145
+Reading 1 file time = 12.0406
+End marker = 4294967296make graph marker = 4294934528
+Marker queued. position = 0 4294934528
+Marker dequeue. Position = 0 4294934528
+calc edge time = 16.8959
+prep_internal time = 1.18902
+fill adj list time = 48.2064
+Make graph time = 66.2916
+old marker = 4294934528 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.179518
+----------------Iteration  4 -----------------
+Shell passed r = 32768
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 32768 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 32768
+v_count = 268435456
+store graph time = 0.221743
+Reading 1 file time = 12.0466
+End marker = 4294967296make graph marker = 4294934528
+Marker queued. position = 0 4294934528
+Marker dequeue. Position = 0 4294934528
+calc edge time = 17.0068
+prep_internal time = 1.19818
+fill adj list time = 48.2219
+Make graph time = 66.4271
+old marker = 4294934528 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.178792
+----------------Iteration  5 -----------------
+Shell passed r = 32768
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 32768 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 32768
+v_count = 268435456
+store graph time = 0.236454
+Reading 1 file time = 12.0346
+End marker = 4294967296make graph marker = 4294934528
+Marker queued. position = 0 4294934528
+Marker dequeue. Position = 0 4294934528
+calc edge time = 16.8798
+prep_internal time = 1.1879
+fill adj list time = 48.0312
+Make graph time = 66.0992
+old marker = 4294934528 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.186623
+----------------Iteration  6 -----------------
+Shell passed r = 32768
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 32768 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 32768
+v_count = 268435456
+store graph time = 0.227557
+Reading 1 file time = 12.0544
+End marker = 4294967296make graph marker = 4294934528
+Marker queued. position = 0 4294934528
+Marker dequeue. Position = 0 4294934528
+calc edge time = 17.0397
+prep_internal time = 1.19383
+fill adj list time = 48.4217
+Make graph time = 66.6555
+old marker = 4294934528 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.177958
+----------------Iteration  0 -----------------
+Shell passed r = 65536
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 65536 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 65536
+v_count = 268435456
+store graph time = 0.236022
+Reading 1 file time = 12.0491
+End marker = 4294967296make graph marker = 4294901760
+Marker queued. position = 0 4294901760
+Marker dequeue. Position = 0 4294901760
+calc edge time = 17.025
+prep_internal time = 1.19297
+fill adj list time = 48.3324
+Make graph time = 66.5506
+old marker = 4294901760 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.231203
+----------------Iteration  1 -----------------
+Shell passed r = 65536
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 65536 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 65536
+v_count = 268435456
+store graph time = 0.22185
+Reading 1 file time = 11.9991
+End marker = 4294967296make graph marker = 4294901760
+Marker queued. position = 0 4294901760
+Marker dequeue. Position = 0 4294901760
+calc edge time = 16.9879
+prep_internal time = 1.18953
+fill adj list time = 48.2453
+Make graph time = 66.423
+old marker = 4294901760 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.251292
+----------------Iteration  2 -----------------
+Shell passed r = 65536
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 65536 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 65536
+v_count = 268435456
+store graph time = 0.236583
+Reading 1 file time = 12.0547
+End marker = 4294967296make graph marker = 4294901760
+Marker queued. position = 0 4294901760
+Marker dequeue. Position = 0 4294901760
+calc edge time = 16.9251
+prep_internal time = 1.18856
+fill adj list time = 48.2325
+Make graph time = 66.3464
+old marker = 4294901760 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.252763
+----------------Iteration  3 -----------------
+Shell passed r = 65536
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 65536 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 65536
+v_count = 268435456
+store graph time = 0.222174
+Reading 1 file time = 12.045
+End marker = 4294967296make graph marker = 4294901760
+Marker queued. position = 0 4294901760
+Marker dequeue. Position = 0 4294901760
+calc edge time = 16.9877
+prep_internal time = 1.19279
+fill adj list time = 48.3254
+Make graph time = 66.5061
+old marker = 4294901760 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.248989
+----------------Iteration  4 -----------------
+Shell passed r = 65536
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 65536 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 65536
+v_count = 268435456
+store graph time = 0.236464
+Reading 1 file time = 12.0566
+End marker = 4294967296make graph marker = 4294901760
+Marker queued. position = 0 4294901760
+Marker dequeue. Position = 0 4294901760
+calc edge time = 16.9651
+prep_internal time = 1.18663
+fill adj list time = 48.3098
+Make graph time = 66.4617
+old marker = 4294901760 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.251171
+----------------Iteration  5 -----------------
+Shell passed r = 65536
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 65536 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 65536
+v_count = 268435456
+store graph time = 0.221589
+Reading 1 file time = 12.0725
+End marker = 4294967296make graph marker = 4294901760
+Marker queued. position = 0 4294901760
+Marker dequeue. Position = 0 4294901760
+calc edge time = 16.9048
+prep_internal time = 1.18771
+fill adj list time = 48.2733
+Make graph time = 66.366
+old marker = 4294901760 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.234612
+----------------Iteration  6 -----------------
+Shell passed r = 65536
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 65536 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 65536
+v_count = 268435456
+store graph time = 0.221143
+Reading 1 file time = 12.0287
+End marker = 4294967296make graph marker = 4294901760
+Marker queued. position = 0 4294901760
+Marker dequeue. Position = 0 4294901760
+calc edge time = 16.9734
+prep_internal time = 1.19005
+fill adj list time = 48.3111
+Make graph time = 66.4748
+old marker = 4294901760 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.233493
+----------------Iteration  0 -----------------
+Shell passed r = 131072
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 131072 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 131072
+v_count = 268435456
+store graph time = 0.221785
+Reading 1 file time = 12.0655
+End marker = 4294967296make graph marker = 4294836224
+Marker queued. position = 0 4294836224
+Marker dequeue. Position = 0 4294836224
+calc edge time = 16.9781
+prep_internal time = 1.18914
+fill adj list time = 48.2187
+Make graph time = 66.3861
+old marker = 4294836224 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.343259
+----------------Iteration  1 -----------------
+Shell passed r = 131072
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 131072 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 131072
+v_count = 268435456
+store graph time = 0.221609
+Reading 1 file time = 12.0373
+End marker = 4294967296make graph marker = 4294836224
+Marker queued. position = 0 4294836224
+Marker dequeue. Position = 0 4294836224
+calc edge time = 16.9637
+prep_internal time = 1.17403
+fill adj list time = 48.1811
+Make graph time = 66.319
+old marker = 4294836224 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.342477
+----------------Iteration  2 -----------------
+Shell passed r = 131072
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 131072 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 131072
+v_count = 268435456
+store graph time = 0.222967
+Reading 1 file time = 12.1069
+End marker = 4294967296make graph marker = 4294836224
+Marker queued. position = 0 4294836224
+Marker dequeue. Position = 0 4294836224
+calc edge time = 16.9632
+prep_internal time = 1.19394
+fill adj list time = 48.2843
+Make graph time = 66.4416
+old marker = 4294836224 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.344063
+----------------Iteration  3 -----------------
+Shell passed r = 131072
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 131072 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 131072
+v_count = 268435456
+store graph time = 0.222875
+Reading 1 file time = 12.0447
+End marker = 4294967296make graph marker = 4294836224
+Marker queued. position = 0 4294836224
+Marker dequeue. Position = 0 4294836224
+calc edge time = 16.8829
+prep_internal time = 1.18896
+fill adj list time = 48.2557
+Make graph time = 66.3277
+old marker = 4294836224 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.342896
+----------------Iteration  4 -----------------
+Shell passed r = 131072
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 131072 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 131072
+v_count = 268435456
+store graph time = 0.221745
+Reading 1 file time = 12.0575
+End marker = 4294967296make graph marker = 4294836224
+Marker queued. position = 0 4294836224
+Marker dequeue. Position = 0 4294836224
+calc edge time = 17.0141
+prep_internal time = 1.19169
+fill adj list time = 48.3521
+Make graph time = 66.5581
+old marker = 4294836224 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.342463
+----------------Iteration  5 -----------------
+Shell passed r = 131072
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 131072 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 131072
+v_count = 268435456
+store graph time = 0.222049
+Reading 1 file time = 12.0493
+End marker = 4294967296make graph marker = 4294836224
+Marker queued. position = 0 4294836224
+Marker dequeue. Position = 0 4294836224
+calc edge time = 16.9496
+prep_internal time = 1.19318
+fill adj list time = 48.3241
+Make graph time = 66.4672
+old marker = 4294836224 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.356437
+----------------Iteration  6 -----------------
+Shell passed r = 131072
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 131072 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 131072
+v_count = 268435456
+store graph time = 0.223146
+Reading 1 file time = 12.0599
+End marker = 4294967296make graph marker = 4294836224
+Marker queued. position = 0 4294836224
+Marker dequeue. Position = 0 4294836224
+calc edge time = 16.9503
+prep_internal time = 1.17817
+fill adj list time = 48.2163
+Make graph time = 66.345
+old marker = 4294836224 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.358578
+----------------Iteration  0 -----------------
+Shell passed r = 262144
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 262144 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 262144
+v_count = 268435456
+store graph time = 0.221893
+Reading 1 file time = 12.0554
+End marker = 4294967296make graph marker = 4294705152
+Marker queued. position = 0 4294705152
+Marker dequeue. Position = 0 4294705152
+calc edge time = 16.8809
+prep_internal time = 1.18809
+fill adj list time = 48.1178
+Make graph time = 66.187
+old marker = 4294705152 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.569259
+----------------Iteration  1 -----------------
+Shell passed r = 262144
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 262144 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 262144
+v_count = 268435456
+store graph time = 0.220973
+Reading 1 file time = 12.0859
+End marker = 4294967296make graph marker = 4294705152
+Marker queued. position = 0 4294705152
+Marker dequeue. Position = 0 4294705152
+calc edge time = 16.9482
+prep_internal time = 1.1924
+fill adj list time = 48.2615
+Make graph time = 66.4023
+old marker = 4294705152 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.565559
+----------------Iteration  2 -----------------
+Shell passed r = 262144
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 262144 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 262144
+v_count = 268435456
+store graph time = 0.236419
+Reading 1 file time = 12.0626
+End marker = 4294967296make graph marker = 4294705152
+Marker queued. position = 0 4294705152
+Marker dequeue. Position = 0 4294705152
+calc edge time = 16.8406
+prep_internal time = 1.18073
+fill adj list time = 48.1538
+Make graph time = 66.1754
+old marker = 4294705152 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.563605
+----------------Iteration  3 -----------------
+Shell passed r = 262144
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 262144 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 262144
+v_count = 268435456
+store graph time = 0.223692
+Reading 1 file time = 12.0859
+End marker = 4294967296make graph marker = 4294705152
+Marker queued. position = 0 4294705152
+Marker dequeue. Position = 0 4294705152
+calc edge time = 17.0461
+prep_internal time = 1.20602
+fill adj list time = 48.231
+Make graph time = 66.4834
+old marker = 4294705152 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.545446
+----------------Iteration  4 -----------------
+Shell passed r = 262144
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 262144 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 262144
+v_count = 268435456
+store graph time = 0.237048
+Reading 1 file time = 12.059
+End marker = 4294967296make graph marker = 4294705152
+Marker queued. position = 0 4294705152
+Marker dequeue. Position = 0 4294705152
+calc edge time = 16.9173
+prep_internal time = 1.19157
+fill adj list time = 48.226
+Make graph time = 66.3351
+old marker = 4294705152 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.553098
+----------------Iteration  5 -----------------
+Shell passed r = 262144
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 262144 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 262144
+v_count = 268435456
+store graph time = 0.221617
+Reading 1 file time = 12.0358
+End marker = 4294967296make graph marker = 4294705152
+Marker queued. position = 0 4294705152
+Marker dequeue. Position = 0 4294705152
+calc edge time = 16.9367
+prep_internal time = 1.18006
+fill adj list time = 48.1904
+Make graph time = 66.3074
+old marker = 4294705152 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.548578
+----------------Iteration  6 -----------------
+Shell passed r = 262144
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 262144 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 262144
+v_count = 268435456
+store graph time = 0.236369
+Reading 1 file time = 12.0265
+End marker = 4294967296make graph marker = 4294705152
+Marker queued. position = 0 4294705152
+Marker dequeue. Position = 0 4294705152
+calc edge time = 16.8882
+prep_internal time = 1.18874
+fill adj list time = 48.1487
+Make graph time = 66.226
+old marker = 4294705152 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.555563
+----------------Iteration  0 -----------------
+Shell passed r = 524288
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 524288 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 524288
+v_count = 268435456
+store graph time = 0.221976
+Reading 1 file time = 12.053
+End marker = 4294967296make graph marker = 4294443008
+Marker queued. position = 0 4294443008
+Marker dequeue. Position = 0 4294443008
+calc edge time = 16.9835
+prep_internal time = 1.19148
+fill adj list time = 48.371
+Make graph time = 66.5461
+old marker = 4294443008 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.925985
+----------------Iteration  1 -----------------
+Shell passed r = 524288
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 524288 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 524288
+v_count = 268435456
+store graph time = 0.221801
+Reading 1 file time = 12.0429
+End marker = 4294967296make graph marker = 4294443008
+Marker queued. position = 0 4294443008
+Marker dequeue. Position = 0 4294443008
+calc edge time = 16.9826
+prep_internal time = 1.19141
+fill adj list time = 48.2908
+Make graph time = 66.465
+old marker = 4294443008 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.929857
+----------------Iteration  2 -----------------
+Shell passed r = 524288
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 524288 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 524288
+v_count = 268435456
+store graph time = 0.236873
+Reading 1 file time = 11.9993
+End marker = 4294967296make graph marker = 4294443008
+Marker queued. position = 0 4294443008
+Marker dequeue. Position = 0 4294443008
+calc edge time = 16.9178
+prep_internal time = 1.18798
+fill adj list time = 48.4826
+Make graph time = 66.5886
+old marker = 4294443008 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.939034
+----------------Iteration  3 -----------------
+Shell passed r = 524288
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 524288 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 524288
+v_count = 268435456
+store graph time = 0.220823
+Reading 1 file time = 12.039
+End marker = 4294967296make graph marker = 4294443008
+Marker queued. position = 0 4294443008
+Marker dequeue. Position = 0 4294443008
+calc edge time = 16.9583
+prep_internal time = 1.19411
+fill adj list time = 48.423
+Make graph time = 66.5756
+old marker = 4294443008 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.935307
+----------------Iteration  4 -----------------
+Shell passed r = 524288
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 524288 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 524288
+v_count = 268435456
+store graph time = 0.222081
+Reading 1 file time = 12.0417
+End marker = 4294967296make graph marker = 4294443008
+Marker queued. position = 0 4294443008
+Marker dequeue. Position = 0 4294443008
+calc edge time = 16.9612
+prep_internal time = 1.19009
+fill adj list time = 48.2621
+Make graph time = 66.4137
+old marker = 4294443008 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.92735
+----------------Iteration  5 -----------------
+Shell passed r = 524288
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 524288 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 524288
+v_count = 268435456
+store graph time = 0.235948
+Reading 1 file time = 12.039
+End marker = 4294967296make graph marker = 4294443008
+Marker queued. position = 0 4294443008
+Marker dequeue. Position = 0 4294443008
+calc edge time = 16.9052
+prep_internal time = 1.18814
+fill adj list time = 48.2848
+Make graph time = 66.3783
+old marker = 4294443008 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.923025
+----------------Iteration  6 -----------------
+Shell passed r = 524288
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 524288 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 524288
+v_count = 268435456
+store graph time = 0.222619
+Reading 1 file time = 12.0306
+End marker = 4294967296make graph marker = 4294443008
+Marker queued. position = 0 4294443008
+Marker dequeue. Position = 0 4294443008
+calc edge time = 16.924
+prep_internal time = 1.18459
+fill adj list time = 48.3087
+Make graph time = 66.4174
+old marker = 4294443008 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 0.940244
+----------------Iteration  0 -----------------
+Shell passed r = 1048576
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 1048576 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 1048576
+v_count = 268435456
+store graph time = 0.221726
+Reading 1 file time = 12.0242
+End marker = 4294967296make graph marker = 4293918720
+Marker queued. position = 0 4293918720
+Marker dequeue. Position = 0 4293918720
+calc edge time = 16.9072
+prep_internal time = 1.1884
+fill adj list time = 48.1378
+Make graph time = 66.2337
+old marker = 4293918720 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 1.70135
+----------------Iteration  1 -----------------
+Shell passed r = 1048576
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 1048576 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 1048576
+v_count = 268435456
+store graph time = 0.236362
+Reading 1 file time = 12.0523
+End marker = 4294967296make graph marker = 4293918720
+Marker queued. position = 0 4293918720
+Marker dequeue. Position = 0 4293918720
+calc edge time = 16.9087
+prep_internal time = 1.19284
+fill adj list time = 48.3343
+Make graph time = 66.436
+old marker = 4293918720 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 1.66745
+----------------Iteration  2 -----------------
+Shell passed r = 1048576
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 1048576 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 1048576
+v_count = 268435456
+store graph time = 0.222538
+Reading 1 file time = 12.0585
+End marker = 4294967296make graph marker = 4293918720
+Marker queued. position = 0 4293918720
+Marker dequeue. Position = 0 4293918720
+calc edge time = 17.0158
+prep_internal time = 1.18162
+fill adj list time = 48.3419
+Make graph time = 66.5396
+old marker = 4293918720 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 1.67336
+----------------Iteration  3 -----------------
+Shell passed r = 1048576
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 1048576 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 1048576
+v_count = 268435456
+store graph time = 0.221364
+Reading 1 file time = 12.0492
+End marker = 4294967296make graph marker = 4293918720
+Marker queued. position = 0 4293918720
+Marker dequeue. Position = 0 4293918720
+calc edge time = 16.8694
+prep_internal time = 1.18774
+fill adj list time = 48.1404
+Make graph time = 66.1978
+old marker = 4293918720 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 1.68464
+----------------Iteration  4 -----------------
+Shell passed r = 1048576
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 1048576 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 1048576
+v_count = 268435456
+store graph time = 0.221504
+Reading 1 file time = 11.9978
+End marker = 4294967296make graph marker = 4293918720
+Marker queued. position = 0 4293918720
+Marker dequeue. Position = 0 4293918720
+calc edge time = 16.9745
+prep_internal time = 1.1908
+fill adj list time = 48.348
+Make graph time = 66.5135
+old marker = 4293918720 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 1.67448
+----------------Iteration  5 -----------------
+Shell passed r = 1048576
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 1048576 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 1048576
+v_count = 268435456
+store graph time = 0.22154
+Reading 1 file time = 11.9972
+End marker = 4294967296make graph marker = 4293918720
+Marker queued. position = 0 4293918720
+Marker dequeue. Position = 0 4293918720
+calc edge time = 16.9395
+prep_internal time = 1.18676
+fill adj list time = 48.2006
+Make graph time = 66.327
+old marker = 4293918720 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 1.67627
+----------------Iteration  6 -----------------
+Shell passed r = 1048576
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 1048576 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 1048576
+v_count = 268435456
+store graph time = 0.231973
+Reading 1 file time = 12.108
+End marker = 4294967296make graph marker = 4293918720
+Marker queued. position = 0 4293918720
+Marker dequeue. Position = 0 4293918720
+calc edge time = 16.8773
+prep_internal time = 1.1867
+fill adj list time = 48.2573
+Make graph time = 66.3215
+old marker = 4293918720 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 1.67378
+----------------Iteration  0 -----------------
+Shell passed r = 2097152
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 2097152 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 2097152
+v_count = 268435456
+store graph time = 0.236608
+Reading 1 file time = 12.0323
+End marker = 4294967296make graph marker = 4292870144
+Marker queued. position = 0 4292870144
+Marker dequeue. Position = 0 4292870144
+calc edge time = 16.9888
+prep_internal time = 1.19176
+fill adj list time = 48.1878
+Make graph time = 66.3686
+old marker = 4292870144 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 3.13606
+----------------Iteration  1 -----------------
+Shell passed r = 2097152
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 2097152 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 2097152
+v_count = 268435456
+store graph time = 0.230217
+Reading 1 file time = 12.0131
+End marker = 4294967296make graph marker = 4292870144
+Marker queued. position = 0 4292870144
+Marker dequeue. Position = 0 4292870144
+calc edge time = 16.947
+prep_internal time = 1.19108
+fill adj list time = 48.306
+Make graph time = 66.4442
+old marker = 4292870144 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 3.11529
+----------------Iteration  2 -----------------
+Shell passed r = 2097152
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 2097152 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 2097152
+v_count = 268435456
+store graph time = 0.22229
+Reading 1 file time = 12.0419
+End marker = 4294967296make graph marker = 4292870144
+Marker queued. position = 0 4292870144
+Marker dequeue. Position = 0 4292870144
+calc edge time = 16.9474
+prep_internal time = 1.18845
+fill adj list time = 48.2646
+Make graph time = 66.4007
+old marker = 4292870144 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 3.12522
+----------------Iteration  3 -----------------
+Shell passed r = 2097152
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 2097152 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 2097152
+v_count = 268435456
+store graph time = 0.22174
+Reading 1 file time = 12.0245
+End marker = 4294967296make graph marker = 4292870144
+Marker queued. position = 0 4292870144
+Marker dequeue. Position = 0 4292870144
+calc edge time = 16.9033
+prep_internal time = 1.18636
+fill adj list time = 48.1972
+Make graph time = 66.2871
+old marker = 4292870144 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 3.13431
+----------------Iteration  4 -----------------
+Shell passed r = 2097152
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 2097152 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 2097152
+v_count = 268435456
+store graph time = 0.222954
+Reading 1 file time = 12.0074
+End marker = 4294967296make graph marker = 4292870144
+Marker queued. position = 0 4292870144
+Marker dequeue. Position = 0 4292870144
+calc edge time = 16.9571
+prep_internal time = 1.18919
+fill adj list time = 48.2309
+Make graph time = 66.3775
+old marker = 4292870144 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 3.15107
+----------------Iteration  5 -----------------
+Shell passed r = 2097152
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 2097152 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 2097152
+v_count = 268435456
+store graph time = 0.222082
+Reading 1 file time = 12.0733
+End marker = 4294967296make graph marker = 4292870144
+Marker queued. position = 0 4292870144
+Marker dequeue. Position = 0 4292870144
+calc edge time = 16.9046
+prep_internal time = 1.1826
+fill adj list time = 48.2442
+Make graph time = 66.3316
+old marker = 4292870144 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 3.1383
+----------------Iteration  6 -----------------
+Shell passed r = 2097152
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 2097152 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 2097152
+v_count = 268435456
+store graph time = 0.236713
+Reading 1 file time = 12.039
+End marker = 4294967296make graph marker = 4292870144
+Marker queued. position = 0 4292870144
+Marker dequeue. Position = 0 4292870144
+calc edge time = 16.8899
+prep_internal time = 1.18879
+fill adj list time = 48.2411
+Make graph time = 66.3199
+old marker = 4292870144 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 3.12108
+----------------Iteration  0 -----------------
+Shell passed r = 4194304
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 4194304 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 4194304
+v_count = 268435456
+store graph time = 0.221191
+Reading 1 file time = 12.0622
+End marker = 4294967296make graph marker = 4290772992
+Marker queued. position = 0 4290772992
+Marker dequeue. Position = 0 4290772992
+calc edge time = 16.9324
+prep_internal time = 1.1885
+fill adj list time = 48.2162
+Make graph time = 66.3374
+old marker = 4290772992 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 5.99401
+----------------Iteration  1 -----------------
+Shell passed r = 4194304
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 4194304 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 4194304
+v_count = 268435456
+store graph time = 0.239008
+Reading 1 file time = 11.9991
+End marker = 4294967296make graph marker = 4290772992
+Marker queued. position = 0 4290772992
+Marker dequeue. Position = 0 4290772992
+calc edge time = 16.9382
+prep_internal time = 1.18908
+fill adj list time = 48.2842
+Make graph time = 66.4118
+old marker = 4290772992 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 6.00344
+----------------Iteration  2 -----------------
+Shell passed r = 4194304
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 4194304 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 4194304
+v_count = 268435456
+store graph time = 0.236911
+Reading 1 file time = 12.0715
+End marker = 4294967296make graph marker = 4290772992
+Marker queued. position = 0 4290772992
+Marker dequeue. Position = 0 4290772992
+calc edge time = 16.9715
+prep_internal time = 1.18625
+fill adj list time = 48.3177
+Make graph time = 66.4757
+old marker = 4290772992 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 5.99535
+----------------Iteration  3 -----------------
+Shell passed r = 4194304
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 4194304 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 4194304
+v_count = 268435456
+store graph time = 0.236634
+Reading 1 file time = 12.0687
+End marker = 4294967296make graph marker = 4290772992
+Marker queued. position = 0 4290772992
+Marker dequeue. Position = 0 4290772992
+calc edge time = 16.991
+prep_internal time = 1.18662
+fill adj list time = 48.2658
+Make graph time = 66.4437
+old marker = 4290772992 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 6.00494
+----------------Iteration  4 -----------------
+Shell passed r = 4194304
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 4194304 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 4194304
+v_count = 268435456
+store graph time = 0.221423
+Reading 1 file time = 12.0478
+End marker = 4294967296make graph marker = 4290772992
+Marker queued. position = 0 4290772992
+Marker dequeue. Position = 0 4290772992
+calc edge time = 16.956
+prep_internal time = 1.19073
+fill adj list time = 48.3011
+Make graph time = 66.448
+old marker = 4290772992 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 5.98904
+----------------Iteration  5 -----------------
+Shell passed r = 4194304
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 4194304 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 4194304
+v_count = 268435456
+store graph time = 0.22203
+Reading 1 file time = 12.0578
+End marker = 4294967296make graph marker = 4290772992
+Marker queued. position = 0 4290772992
+Marker dequeue. Position = 0 4290772992
+calc edge time = 16.8969
+prep_internal time = 1.18904
+fill adj list time = 48.0902
+Make graph time = 66.1764
+old marker = 4290772992 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 5.99462
+----------------Iteration  6 -----------------
+Shell passed r = 4194304
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 4194304 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 4194304
+v_count = 268435456
+store graph time = 0.222823
+Reading 1 file time = 12.0795
+End marker = 4294967296make graph marker = 4290772992
+Marker queued. position = 0 4290772992
+Marker dequeue. Position = 0 4290772992
+calc edge time = 16.9251
+prep_internal time = 1.18887
+fill adj list time = 48.2216
+Make graph time = 66.3358
+old marker = 4290772992 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 5.99931
+----------------Iteration  0 -----------------
+Shell passed r = 8388608
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 8388608 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 8388608
+v_count = 268435456
+store graph time = 0.22104
+Reading 1 file time = 12.0366
+End marker = 4294967296make graph marker = 4286578688
+Marker queued. position = 0 4286578688
+Marker dequeue. Position = 0 4286578688
+calc edge time = 16.9717
+prep_internal time = 1.19343
+fill adj list time = 48.2458
+Make graph time = 66.4112
+old marker = 4286578688 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 11.8042
+----------------Iteration  1 -----------------
+Shell passed r = 8388608
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 8388608 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 8388608
+v_count = 268435456
+store graph time = 0.241677
+Reading 1 file time = 12.0623
+End marker = 4294967296make graph marker = 4286578688
+Marker queued. position = 0 4286578688
+Marker dequeue. Position = 0 4286578688
+calc edge time = 16.8959
+prep_internal time = 1.19215
+fill adj list time = 48.3012
+Make graph time = 66.3895
+old marker = 4286578688 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 11.8356
+----------------Iteration  2 -----------------
+Shell passed r = 8388608
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 8388608 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 8388608
+v_count = 268435456
+store graph time = 0.221289
+Reading 1 file time = 12.0413
+End marker = 4294967296make graph marker = 4286578688
+Marker queued. position = 0 4286578688
+Marker dequeue. Position = 0 4286578688
+calc edge time = 16.9309
+prep_internal time = 1.18957
+fill adj list time = 48.2542
+Make graph time = 66.3749
+old marker = 4286578688 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 12.0446
+----------------Iteration  3 -----------------
+Shell passed r = 8388608
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 8388608 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 8388608
+v_count = 268435456
+store graph time = 0.221081
+Reading 1 file time = 12.0552
+End marker = 4294967296make graph marker = 4286578688
+Marker queued. position = 0 4286578688
+Marker dequeue. Position = 0 4286578688
+calc edge time = 16.9552
+prep_internal time = 1.19451
+fill adj list time = 48.2511
+Make graph time = 66.401
+old marker = 4286578688 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 11.7965
+----------------Iteration  4 -----------------
+Shell passed r = 8388608
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 8388608 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 8388608
+v_count = 268435456
+store graph time = 0.236156
+Reading 1 file time = 12.0281
+End marker = 4294967296make graph marker = 4286578688
+Marker queued. position = 0 4286578688
+Marker dequeue. Position = 0 4286578688
+calc edge time = 16.8777
+prep_internal time = 1.18806
+fill adj list time = 48.1086
+Make graph time = 66.1746
+old marker = 4286578688 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 11.816
+----------------Iteration  5 -----------------
+Shell passed r = 8388608
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 8388608 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 8388608
+v_count = 268435456
+store graph time = 0.221455
+Reading 1 file time = 12.0668
+End marker = 4294967296make graph marker = 4286578688
+Marker queued. position = 0 4286578688
+Marker dequeue. Position = 0 4286578688
+calc edge time = 16.8975
+prep_internal time = 1.18905
+fill adj list time = 48.1809
+Make graph time = 66.2678
+old marker = 4286578688 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 11.8363
+----------------Iteration  6 -----------------
+Shell passed r = 8388608
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 8388608 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 8388608
+v_count = 268435456
+store graph time = 0.221918
+Reading 1 file time = 12.064
+End marker = 4294967296make graph marker = 4286578688
+Marker queued. position = 0 4286578688
+Marker dequeue. Position = 0 4286578688
+calc edge time = 16.8761
+prep_internal time = 1.1869
+fill adj list time = 48.1257
+Make graph time = 66.189
+old marker = 4286578688 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 12.0637
+----------------Iteration  0 -----------------
+Shell passed r = 16777216
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 16777216 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 16777216
+v_count = 268435456
+store graph time = 0.235986
+Reading 1 file time = 12.0525
+End marker = 4294967296make graph marker = 4278190080
+Marker queued. position = 0 4278190080
+Marker dequeue. Position = 0 4278190080
+calc edge time = 16.8422
+prep_internal time = 1.18791
+fill adj list time = 48.1271
+Make graph time = 66.1575
+old marker = 4278190080 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 25.5344
+----------------Iteration  1 -----------------
+Shell passed r = 16777216
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 16777216 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 16777216
+v_count = 268435456
+store graph time = 0.221864
+Reading 1 file time = 12.0716
+End marker = 4294967296make graph marker = 4278190080
+Marker queued. position = 0 4278190080
+Marker dequeue. Position = 0 4278190080
+calc edge time = 16.8723
+prep_internal time = 1.18728
+fill adj list time = 48.0045
+Make graph time = 66.0644
+old marker = 4278190080 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 25.5489
+----------------Iteration  2 -----------------
+Shell passed r = 16777216
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 16777216 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 16777216
+v_count = 268435456
+store graph time = 0.220837
+Reading 1 file time = 12.0468
+End marker = 4294967296make graph marker = 4278190080
+Marker queued. position = 0 4278190080
+Marker dequeue. Position = 0 4278190080
+calc edge time = 16.8697
+prep_internal time = 1.18891
+fill adj list time = 48.1702
+Make graph time = 66.229
+old marker = 4278190080 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 25.5144
+----------------Iteration  3 -----------------
+Shell passed r = 16777216
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 16777216 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 16777216
+v_count = 268435456
+store graph time = 0.222071
+Reading 1 file time = 11.9944
+End marker = 4294967296make graph marker = 4278190080
+Marker queued. position = 0 4278190080
+Marker dequeue. Position = 0 4278190080
+calc edge time = 16.9001
+prep_internal time = 1.18748
+fill adj list time = 48.1269
+Make graph time = 66.2147
+old marker = 4278190080 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 25.5027
+----------------Iteration  4 -----------------
+Shell passed r = 16777216
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 16777216 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 16777216
+v_count = 268435456
+store graph time = 0.221642
+Reading 1 file time = 12.0026
+End marker = 4294967296make graph marker = 4278190080
+Marker queued. position = 0 4278190080
+Marker dequeue. Position = 0 4278190080
+calc edge time = 16.9252
+prep_internal time = 1.18859
+fill adj list time = 48.225
+Make graph time = 66.339
+old marker = 4278190080 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 25.8311
+----------------Iteration  5 -----------------
+Shell passed r = 16777216
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 16777216 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 16777216
+v_count = 268435456
+store graph time = 0.235991
+Reading 1 file time = 12.0608
+End marker = 4294967296make graph marker = 4278190080
+Marker queued. position = 0 4278190080
+Marker dequeue. Position = 0 4278190080
+calc edge time = 16.8601
+prep_internal time = 1.19199
+fill adj list time = 48.1558
+Make graph time = 66.2081
+old marker = 4278190080 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 25.5184
+----------------Iteration  6 -----------------
+Shell passed r = 16777216
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 16777216 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 16777216
+v_count = 268435456
+store graph time = 0.221868
+Reading 1 file time = 12.0024
+End marker = 4294967296make graph marker = 4278190080
+Marker queued. position = 0 4278190080
+Marker dequeue. Position = 0 4278190080
+calc edge time = 16.9127
+prep_internal time = 1.18865
+fill adj list time = 48.1605
+Make graph time = 66.2621
+old marker = 4278190080 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 25.5659
+----------------Iteration  0 -----------------
+Shell passed r = 33554432
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 33554432 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 33554432
+v_count = 268435456
+store graph time = 0.222245
+Reading 1 file time = 12.0299
+End marker = 4294967296make graph marker = 4261412864
+Marker queued. position = 0 4261412864
+Marker dequeue. Position = 0 4261412864
+calc edge time = 16.8123
+prep_internal time = 1.18346
+fill adj list time = 47.9401
+Make graph time = 65.9361
+old marker = 4261412864 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 50.9744
+----------------Iteration  1 -----------------
+Shell passed r = 33554432
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 33554432 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 33554432
+v_count = 268435456
+store graph time = 0.221787
+Reading 1 file time = 12.0393
+End marker = 4294967296make graph marker = 4261412864
+Marker queued. position = 0 4261412864
+Marker dequeue. Position = 0 4261412864
+calc edge time = 16.7223
+prep_internal time = 1.18592
+fill adj list time = 47.8741
+Make graph time = 65.7825
+old marker = 4261412864 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 50.9265
+----------------Iteration  2 -----------------
+Shell passed r = 33554432
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 33554432 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 33554432
+v_count = 268435456
+store graph time = 0.221487
+Reading 1 file time = 12.0178
+End marker = 4294967296make graph marker = 4261412864
+Marker queued. position = 0 4261412864
+Marker dequeue. Position = 0 4261412864
+calc edge time = 16.8128
+prep_internal time = 1.18428
+fill adj list time = 47.9263
+Make graph time = 65.9236
+old marker = 4261412864 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 51.1633
+----------------Iteration  3 -----------------
+Shell passed r = 33554432
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 33554432 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 33554432
+v_count = 268435456
+store graph time = 0.223594
+Reading 1 file time = 12.0469
+End marker = 4294967296make graph marker = 4261412864
+Marker queued. position = 0 4261412864
+Marker dequeue. Position = 0 4261412864
+calc edge time = 16.819
+prep_internal time = 1.18954
+fill adj list time = 47.9361
+Make graph time = 65.9449
+old marker = 4261412864 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 51.0027
+----------------Iteration  4 -----------------
+Shell passed r = 33554432
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 33554432 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 33554432
+v_count = 268435456
+store graph time = 0.221955
+Reading 1 file time = 12.027
+End marker = 4294967296make graph marker = 4261412864
+Marker queued. position = 0 4261412864
+Marker dequeue. Position = 0 4261412864
+calc edge time = 16.8333
+prep_internal time = 1.18834
+fill adj list time = 48.0297
+Make graph time = 66.0516
+old marker = 4261412864 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 51.0009
+----------------Iteration  5 -----------------
+Shell passed r = 33554432
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 33554432 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 33554432
+v_count = 268435456
+store graph time = 0.221704
+Reading 1 file time = 12.036
+End marker = 4294967296make graph marker = 4261412864
+Marker queued. position = 0 4261412864
+Marker dequeue. Position = 0 4261412864
+calc edge time = 16.7639
+prep_internal time = 1.19466
+fill adj list time = 47.9077
+Make graph time = 65.8665
+old marker = 4261412864 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 50.9736
+----------------Iteration  6 -----------------
+Shell passed r = 33554432
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 33554432 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 33554432
+v_count = 268435456
+store graph time = 0.236131
+Reading 1 file time = 11.9976
+End marker = 4294967296make graph marker = 4261412864
+Marker queued. position = 0 4261412864
+Marker dequeue. Position = 0 4261412864
+calc edge time = 16.8433
+prep_internal time = 1.18326
+fill adj list time = 47.8678
+Make graph time = 65.8946
+old marker = 4261412864 New marker = 4294967296
+Sum = 100726079350662084 2 Hop Time = 51.776
+----------------Iteration  0 -----------------
+Shell passed r = 67108864
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 67108864 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 67108864
+v_count = 268435456
+store graph time = 0.224185
+Reading 1 file time = 12.0552
+End marker = 4294967296make graph marker = 4227858432
+Marker queued. position = 0 4227858432
+Marker dequeue. Position = 0 4227858432
+calc edge time = 16.6825
+prep_internal time = 1.17623
+fill adj list time = 47.4662
+Make graph time = 65.3252
+old marker = 4227858432 New marker = 4294967296
+Sum = 100725905936810627 2 Hop Time = 101.545
+----------------Iteration  1 -----------------
+Shell passed r = 67108864
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 67108864 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 67108864
+v_count = 268435456
+store graph time = 0.222054
+Reading 1 file time = 12.0607
+End marker = 4294967296make graph marker = 4227858432
+Marker queued. position = 0 4227858432
+Marker dequeue. Position = 0 4227858432
+calc edge time = 16.6737
+prep_internal time = 1.1801
+fill adj list time = 47.4584
+Make graph time = 65.3124
+old marker = 4227858432 New marker = 4294967296
+Sum = 100725905936810627 2 Hop Time = 101.56
+----------------Iteration  2 -----------------
+Shell passed r = 67108864
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 67108864 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 67108864
+v_count = 268435456
+store graph time = 0.221856
+Reading 1 file time = 12.0458
+End marker = 4294967296make graph marker = 4227858432
+Marker queued. position = 0 4227858432
+Marker dequeue. Position = 0 4227858432
+calc edge time = 16.7041
+prep_internal time = 1.178
+fill adj list time = 47.6025
+Make graph time = 65.4849
+old marker = 4227858432 New marker = 4294967296
+Sum = 100725905936810627 2 Hop Time = 101.786
+----------------Iteration  3 -----------------
+Shell passed r = 67108864
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 67108864 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 67108864
+v_count = 268435456
+store graph time = 0.236082
+Reading 1 file time = 12.0222
+End marker = 4294967296make graph marker = 4227858432
+Marker queued. position = 0 4227858432
+Marker dequeue. Position = 0 4227858432
+calc edge time = 16.6856
+prep_internal time = 1.18264
+fill adj list time = 47.581
+Make graph time = 65.4495
+old marker = 4227858432 New marker = 4294967296
+Sum = 100725905936810627 2 Hop Time = 101.58
+----------------Iteration  4 -----------------
+Shell passed r = 67108864
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 67108864 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 67108864
+v_count = 268435456
+store graph time = 0.223641
+Reading 1 file time = 12.0583
+End marker = 4294967296make graph marker = 4227858432
+Marker queued. position = 0 4227858432
+Marker dequeue. Position = 0 4227858432
+calc edge time = 16.6629
+prep_internal time = 1.17541
+fill adj list time = 47.478
+Make graph time = 65.3166
+old marker = 4227858432 New marker = 4294967296
+Sum = 100725905936810627 2 Hop Time = 101.466
+----------------Iteration  5 -----------------
+Shell passed r = 67108864
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 67108864 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 67108864
+v_count = 268435456
+store graph time = 0.222108
+Reading 1 file time = 11.9518
+End marker = 4294967296make graph marker = 4227858432
+Marker queued. position = 0 4227858432
+Marker dequeue. Position = 0 4227858432
+calc edge time = 16.694
+prep_internal time = 1.18319
+fill adj list time = 47.4745
+Make graph time = 65.3519
+old marker = 4227858432 New marker = 4294967296
+Sum = 100725905936810627 2 Hop Time = 101.595
+----------------Iteration  6 -----------------
+Shell passed r = 67108864
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 67108864 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 67108864
+v_count = 268435456
+store graph time = 0.221012
+Reading 1 file time = 12.0706
+End marker = 4294967296make graph marker = 4227858432
+Marker queued. position = 0 4227858432
+Marker dequeue. Position = 0 4227858432
+calc edge time = 16.7489
+prep_internal time = 1.18044
+fill adj list time = 47.5324
+Make graph time = 65.462
+old marker = 4227858432 New marker = 4294967296
+Sum = 100725905936810627 2 Hop Time = 101.537
+----------------Iteration  0 -----------------
+Shell passed r = 134217728
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 134217728 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 134217728
+v_count = 268435456
+store graph time = 0.221832
+Reading 1 file time = 12.1182
+End marker = 4294967296make graph marker = 4160749568
+Marker queued. position = 0 4160749568
+Marker dequeue. Position = 0 4160749568
+calc edge time = 16.3835
+prep_internal time = 1.17518
+fill adj list time = 46.9203
+Make graph time = 64.4791
+old marker = 4160749568 New marker = 4294967296
+Sum = 100725388724215929 2 Hop Time = 202.558
+----------------Iteration  1 -----------------
+Shell passed r = 134217728
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 134217728 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 134217728
+v_count = 268435456
+store graph time = 0.2257
+Reading 1 file time = 12.0696
+End marker = 4294967296make graph marker = 4160749568
+Marker queued. position = 0 4160749568
+Marker dequeue. Position = 0 4160749568
+calc edge time = 16.3502
+prep_internal time = 1.16899
+fill adj list time = 46.6143
+Make graph time = 64.1337
+old marker = 4160749568 New marker = 4294967296
+Sum = 100725388724215929 2 Hop Time = 202.752
+----------------Iteration  2 -----------------
+Shell passed r = 134217728
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 134217728 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 134217728
+v_count = 268435456
+store graph time = 0.221348
+Reading 1 file time = 12.0615
+End marker = 4294967296make graph marker = 4160749568
+Marker queued. position = 0 4160749568
+Marker dequeue. Position = 0 4160749568
+calc edge time = 16.4133
+prep_internal time = 1.1706
+fill adj list time = 46.7152
+Make graph time = 64.2994
+old marker = 4160749568 New marker = 4294967296
+Sum = 100725388724215929 2 Hop Time = 202.361
+----------------Iteration  3 -----------------
+Shell passed r = 134217728
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 134217728 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 134217728
+v_count = 268435456
+store graph time = 0.22092
+Reading 1 file time = 12.0599
+End marker = 4294967296make graph marker = 4160749568
+Marker queued. position = 0 4160749568
+Marker dequeue. Position = 0 4160749568
+calc edge time = 16.3994
+prep_internal time = 1.17321
+fill adj list time = 46.7398
+Make graph time = 64.3126
+old marker = 4160749568 New marker = 4294967296
+Sum = 100725388724215929 2 Hop Time = 202.965
+----------------Iteration  4 -----------------
+Shell passed r = 134217728
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 134217728 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 134217728
+v_count = 268435456
+store graph time = 0.223888
+Reading 1 file time = 12.0636
+End marker = 4294967296make graph marker = 4160749568
+Marker queued. position = 0 4160749568
+Marker dequeue. Position = 0 4160749568
+calc edge time = 16.3948
+prep_internal time = 1.17043
+fill adj list time = 46.7534
+Make graph time = 64.3189
+old marker = 4160749568 New marker = 4294967296
+Sum = 100725388724215929 2 Hop Time = 202.531
+----------------Iteration  5 -----------------
+Shell passed r = 134217728
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 134217728 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 134217728
+v_count = 268435456
+store graph time = 0.221994
+Reading 1 file time = 12.0542
+End marker = 4294967296make graph marker = 4160749568
+Marker queued. position = 0 4160749568
+Marker dequeue. Position = 0 4160749568
+calc edge time = 16.426
+prep_internal time = 1.17216
+fill adj list time = 46.7677
+Make graph time = 64.3661
+old marker = 4160749568 New marker = 4294967296
+Sum = 100725388724215929 2 Hop Time = 202.756
+----------------Iteration  6 -----------------
+Shell passed r = 134217728
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 134217728 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 134217728
+v_count = 268435456
+store graph time = 0.220718
+Reading 1 file time = 12.0287
+End marker = 4294967296make graph marker = 4160749568
+Marker queued. position = 0 4160749568
+Marker dequeue. Position = 0 4160749568
+calc edge time = 16.424
+prep_internal time = 1.17372
+fill adj list time = 46.7974
+Make graph time = 64.3953
+old marker = 4160749568 New marker = 4294967296
+Sum = 100725388724215929 2 Hop Time = 202.451
+----------------Iteration  0 -----------------
+Shell passed r = 268435456
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 268435456 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 268435456
+v_count = 268435456
+store graph time = 0.222343
+Reading 1 file time = 12.0953
+End marker = 4294967296make graph marker = 4026531840
+Marker queued. position = 0 4026531840
+Marker dequeue. Position = 0 4026531840
+calc edge time = 15.8425
+prep_internal time = 1.15744
+fill adj list time = 45.0905
+Make graph time = 62.0906
+old marker = 4026531840 New marker = 4294967296
+Sum = 100714602378280317 2 Hop Time = 426.647
+----------------Iteration  1 -----------------
+Shell passed r = 268435456
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 268435456 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 268435456
+v_count = 268435456
+store graph time = 0.222698
+Reading 1 file time = 12.068
+End marker = 4294967296make graph marker = 4026531840
+Marker queued. position = 0 4026531840
+Marker dequeue. Position = 0 4026531840
+calc edge time = 15.8035
+prep_internal time = 1.1554
+fill adj list time = 45.1911
+Make graph time = 62.1502
+old marker = 4026531840 New marker = 4294967296
+Sum = 100714602378280317 2 Hop Time = 426.73
+----------------Iteration  2 -----------------
+Shell passed r = 268435456
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 268435456 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 268435456
+v_count = 268435456
+store graph time = 0.221557
+Reading 1 file time = 12.0071
+End marker = 4294967296make graph marker = 4026531840
+Marker queued. position = 0 4026531840
+Marker dequeue. Position = 0 4026531840
+calc edge time = 15.8732
+prep_internal time = 1.16011
+fill adj list time = 45.2492
+Make graph time = 62.2827
+old marker = 4026531840 New marker = 4294967296
+Sum = 100714602378280317 2 Hop Time = 426.292
+----------------Iteration  3 -----------------
+Shell passed r = 268435456
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 268435456 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 268435456
+v_count = 268435456
+store graph time = 0.23605
+Reading 1 file time = 12.0532
+End marker = 4294967296make graph marker = 4026531840
+Marker queued. position = 0 4026531840
+Marker dequeue. Position = 0 4026531840
+calc edge time = 15.8792
+prep_internal time = 1.1579
+fill adj list time = 45.3474
+Make graph time = 62.3848
+old marker = 4026531840 New marker = 4294967296
+Sum = 100714602378280317 2 Hop Time = 426.341
+----------------Iteration  4 -----------------
+Shell passed r = 268435456
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 268435456 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 268435456
+v_count = 268435456
+store graph time = 0.222029
+Reading 1 file time = 12.0394
+End marker = 4294967296make graph marker = 4026531840
+Marker queued. position = 0 4026531840
+Marker dequeue. Position = 0 4026531840
+calc edge time = 15.8957
+prep_internal time = 1.15894
+fill adj list time = 45.1843
+Make graph time = 62.2392
+old marker = 4026531840 New marker = 4294967296
+Sum = 100714602378280317 2 Hop Time = 426.267
+----------------Iteration  5 -----------------
+Shell passed r = 268435456
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 268435456 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 268435456
+v_count = 268435456
+store graph time = 0.221767
+Reading 1 file time = 11.987
+End marker = 4294967296make graph marker = 4026531840
+Marker queued. position = 0 4026531840
+Marker dequeue. Position = 0 4026531840
+calc edge time = 16.0592
+prep_internal time = 1.15402
+fill adj list time = 45.2517
+Make graph time = 62.4651
+old marker = 4026531840 New marker = 4294967296
+Sum = 100714602378280317 2 Hop Time = 426.61
+----------------Iteration  6 -----------------
+Shell passed r = 268435456
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 268435456 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 268435456
+v_count = 268435456
+store graph time = 0.222264
+Reading 1 file time = 12.0224
+End marker = 4294967296make graph marker = 4026531840
+Marker queued. position = 0 4026531840
+Marker dequeue. Position = 0 4026531840
+calc edge time = 15.909
+prep_internal time = 1.1554
+fill adj list time = 45.1957
+Make graph time = 62.2603
+old marker = 4026531840 New marker = 4294967296
+Sum = 100714602378280317 2 Hop Time = 426.2
+----------------Iteration  0 -----------------
+Shell passed r = 536870912
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 536870912 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 536870912
+v_count = 268435456
+store graph time = 0.236191
+Reading 1 file time = 12.0668
+End marker = 4294967296make graph marker = 3758096384
+Marker queued. position = 0 3758096384
+Marker dequeue. Position = 0 3758096384
+calc edge time = 14.8784
+prep_internal time = 1.12209
+fill adj list time = 42.1059
+Make graph time = 58.1066
+old marker = 3758096384 New marker = 4294967296
+Sum = 100695737721147693 2 Hop Time = 829.695
+----------------Iteration  1 -----------------
+Shell passed r = 536870912
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 536870912 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 536870912
+v_count = 268435456
+store graph time = 0.22315
+Reading 1 file time = 12.0497
+End marker = 4294967296make graph marker = 3758096384
+Marker queued. position = 0 3758096384
+Marker dequeue. Position = 0 3758096384
+calc edge time = 14.8421
+prep_internal time = 1.1233
+fill adj list time = 42.0519
+Make graph time = 58.0176
+old marker = 3758096384 New marker = 4294967296
+Sum = 100695737721147693 2 Hop Time = 829.198
+----------------Iteration  2 -----------------
+Shell passed r = 536870912
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 536870912 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 536870912
+v_count = 268435456
+store graph time = 0.220914
+Reading 1 file time = 12.0532
+End marker = 4294967296make graph marker = 3758096384
+Marker queued. position = 0 3758096384
+Marker dequeue. Position = 0 3758096384
+calc edge time = 14.8411
+prep_internal time = 1.12525
+fill adj list time = 42.1951
+Make graph time = 58.1617
+old marker = 3758096384 New marker = 4294967296
+Sum = 100695737721147693 2 Hop Time = 830.201
+----------------Iteration  3 -----------------
+Shell passed r = 536870912
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 536870912 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 536870912
+v_count = 268435456
+store graph time = 0.221943
+Reading 1 file time = 12.0768
+End marker = 4294967296make graph marker = 3758096384
+Marker queued. position = 0 3758096384
+Marker dequeue. Position = 0 3758096384
+calc edge time = 14.9274
+prep_internal time = 1.12308
+fill adj list time = 42.2689
+Make graph time = 58.3197
+old marker = 3758096384 New marker = 4294967296
+Sum = 100695737721147693 2 Hop Time = 829.63
+----------------Iteration  4 -----------------
+Shell passed r = 536870912
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 536870912 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 536870912
+v_count = 268435456
+store graph time = 0.236564
+Reading 1 file time = 12.0728
+End marker = 4294967296make graph marker = 3758096384
+Marker queued. position = 0 3758096384
+Marker dequeue. Position = 0 3758096384
+calc edge time = 14.9109
+prep_internal time = 1.12683
+fill adj list time = 42.153
+Make graph time = 58.191
+old marker = 3758096384 New marker = 4294967296
+Sum = 100695737721147693 2 Hop Time = 829.557
+----------------Iteration  5 -----------------
+Shell passed r = 536870912
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 536870912 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 536870912
+v_count = 268435456
+store graph time = 0.221346
+Reading 1 file time = 12.0212
+End marker = 4294967296make graph marker = 3758096384
+Marker queued. position = 0 3758096384
+Marker dequeue. Position = 0 3758096384
+calc edge time = 14.8548
+prep_internal time = 1.12122
+fill adj list time = 42.1329
+Make graph time = 58.1091
+old marker = 3758096384 New marker = 4294967296
+Sum = 100695737721147693 2 Hop Time = 829.286
+----------------Iteration  6 -----------------
+Shell passed r = 536870912
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 536870912 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 536870912
+v_count = 268435456
+store graph time = 0.221747
+Reading 1 file time = 12.0258
+End marker = 4294967296make graph marker = 3758096384
+Marker queued. position = 0 3758096384
+Marker dequeue. Position = 0 3758096384
+calc edge time = 14.8407
+prep_internal time = 1.12252
+fill adj list time = 42.0989
+Make graph time = 58.0624
+old marker = 3758096384 New marker = 4294967296
+Sum = 100695737721147693 2 Hop Time = 829.597
+----------------Iteration  0 -----------------
+Shell passed r = 1073741824
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 1073741824 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 1073741824
+v_count = 268435456
+store graph time = 0.221966
+Reading 1 file time = 11.996
+End marker = 4294967296make graph marker = 3221225472
+Marker queued. position = 0 3221225472
+Marker dequeue. Position = 0 3221225472
+calc edge time = 12.775
+prep_internal time = 1.05266
+fill adj list time = 36.0655
+Make graph time = 49.8934
+old marker = 3221225472 New marker = 4294967296
+Sum = 100528308019373767 2 Hop Time = 1623.05
+----------------Iteration  1 -----------------
+Shell passed r = 1073741824
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 1073741824 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 1073741824
+v_count = 268435456
+store graph time = 0.220975
+Reading 1 file time = 12.0535
+End marker = 4294967296make graph marker = 3221225472
+Marker queued. position = 0 3221225472
+Marker dequeue. Position = 0 3221225472
+calc edge time = 12.7345
+prep_internal time = 1.04655
+fill adj list time = 36.0017
+Make graph time = 49.783
+old marker = 3221225472 New marker = 4294967296
+Sum = 100528308019373767 2 Hop Time = 1623.92
+----------------Iteration  2 -----------------
+Shell passed r = 1073741824
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 1073741824 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 1073741824
+v_count = 268435456
+store graph time = 0.236387
+Reading 1 file time = 12.0374
+End marker = 4294967296make graph marker = 3221225472
+Marker queued. position = 0 3221225472
+Marker dequeue. Position = 0 3221225472
+calc edge time = 12.7695
+prep_internal time = 1.06006
+fill adj list time = 36.3428
+Make graph time = 50.1726
+old marker = 3221225472 New marker = 4294967296
+Sum = 100528308019373767 2 Hop Time = 1624.92
+----------------Iteration  3 -----------------
+Shell passed r = 1073741824
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 1073741824 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 1073741824
+v_count = 268435456
+store graph time = 0.225155
+Reading 1 file time = 12.0646
+End marker = 4294967296make graph marker = 3221225472
+Marker queued. position = 0 3221225472
+Marker dequeue. Position = 0 3221225472
+calc edge time = 12.7537
+prep_internal time = 1.03887
+fill adj list time = 35.9867
+Make graph time = 49.7795
+old marker = 3221225472 New marker = 4294967296
+Sum = 100528308019373767 2 Hop Time = 1624.3
+----------------Iteration  4 -----------------
+Shell passed r = 1073741824
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 1073741824 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 1073741824
+v_count = 268435456
+store graph time = 0.23624
+Reading 1 file time = 12.0647
+End marker = 4294967296make graph marker = 3221225472
+Marker queued. position = 0 3221225472
+Marker dequeue. Position = 0 3221225472
+calc edge time = 12.7538
+prep_internal time = 1.05239
+fill adj list time = 36.0698
+Make graph time = 49.8762
+old marker = 3221225472 New marker = 4294967296
+Sum = 100528308019373767 2 Hop Time = 1624.7
+----------------Iteration  5 -----------------
+Shell passed r = 1073741824
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 1073741824 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 1073741824
+v_count = 268435456
+store graph time = 0.222616
+Reading 1 file time = 12.0448
+End marker = 4294967296make graph marker = 3221225472
+Marker queued. position = 0 3221225472
+Marker dequeue. Position = 0 3221225472
+calc edge time = 12.7641
+prep_internal time = 1.05367
+fill adj list time = 35.9987
+Make graph time = 49.8167
+old marker = 3221225472 New marker = 4294967296
+Sum = 100528308019373767 2 Hop Time = 1624.05
+----------------Iteration  6 -----------------
+Shell passed r = 1073741824
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 1073741824 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 1073741824
+v_count = 268435456
+store graph time = 0.22165
+Reading 1 file time = 12.0585
+End marker = 4294967296make graph marker = 3221225472
+Marker queued. position = 0 3221225472
+Marker dequeue. Position = 0 3221225472
+calc edge time = 12.7214
+prep_internal time = 1.04928
+fill adj list time = 36.1582
+Make graph time = 49.9291
+old marker = 3221225472 New marker = 4294967296
+Sum = 100528308019373767 2 Hop Time = 1624.53
+----------------Iteration  0 -----------------
+Shell passed r = 2147483648
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 2147483648 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 2147483648
+v_count = 268435456
+store graph time = 0.222052
+Reading 1 file time = 12.0333
+End marker = 4294967296make graph marker = 2147483648
+Marker queued. position = 0 2147483648
+Marker dequeue. Position = 0 2147483648
+calc edge time = 8.48056
+prep_internal time = 0.893055
+fill adj list time = 23.7846
+Make graph time = 33.1585
+old marker = 2147483648 New marker = 4294967296
+Sum = 100034697556356392 2 Hop Time = 3164.13
+----------------Iteration  1 -----------------
+Shell passed r = 2147483648
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 2147483648 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 2147483648
+v_count = 268435456
+store graph time = 0.221996
+Reading 1 file time = 12.0577
+End marker = 4294967296make graph marker = 2147483648
+Marker queued. position = 0 2147483648
+Marker dequeue. Position = 0 2147483648
+calc edge time = 8.46306
+prep_internal time = 0.891888
+fill adj list time = 23.7341
+Make graph time = 33.0893
+old marker = 2147483648 New marker = 4294967296
+Sum = 100034697556356392 2 Hop Time = 3161.3
+----------------Iteration  2 -----------------
+Shell passed r = 2147483648
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 2147483648 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 2147483648
+v_count = 268435456
+store graph time = 0.221145
+Reading 1 file time = 12.0593
+End marker = 4294967296make graph marker = 2147483648
+Marker queued. position = 0 2147483648
+Marker dequeue. Position = 0 2147483648
+calc edge time = 8.48608
+prep_internal time = 0.886363
+fill adj list time = 23.8977
+Make graph time = 33.2703
+old marker = 2147483648 New marker = 4294967296
+Sum = 100034697556356392 2 Hop Time = 3162.54
+----------------Iteration  3 -----------------
+Shell passed r = 2147483648
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 2147483648 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 2147483648
+v_count = 268435456
+store graph time = 0.221584
+Reading 1 file time = 11.9636
+End marker = 4294967296make graph marker = 2147483648
+Marker queued. position = 0 2147483648
+Marker dequeue. Position = 0 2147483648
+calc edge time = 8.47143
+prep_internal time = 0.881063
+fill adj list time = 23.7385
+Make graph time = 33.0913
+old marker = 2147483648 New marker = 4294967296
+Sum = 100034697556356392 2 Hop Time = 3160.79
+----------------Iteration  4 -----------------
+Shell passed r = 2147483648
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 2147483648 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 2147483648
+v_count = 268435456
+store graph time = 0.221457
+Reading 1 file time = 11.9944
+End marker = 4294967296make graph marker = 2147483648
+Marker queued. position = 0 2147483648
+Marker dequeue. Position = 0 2147483648
+calc edge time = 8.43853
+prep_internal time = 0.893859
+fill adj list time = 23.7455
+Make graph time = 33.0781
+old marker = 2147483648 New marker = 4294967296
+Sum = 100034697556356392 2 Hop Time = 3161.64
+----------------Iteration  5 -----------------
+Shell passed r = 2147483648
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 2147483648 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 2147483648
+v_count = 268435456
+store graph time = 0.22129
+Reading 1 file time = 12.057
+End marker = 4294967296make graph marker = 2147483648
+Marker queued. position = 0 2147483648
+Marker dequeue. Position = 0 2147483648
+calc edge time = 8.45787
+prep_internal time = 0.893247
+fill adj list time = 23.8377
+Make graph time = 33.1891
+old marker = 2147483648 New marker = 4294967296
+Sum = 100034697556356392 2 Hop Time = 3160.39
+----------------Iteration  6 -----------------
+Shell passed r = 2147483648
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 2147483648 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 2147483648
+v_count = 268435456
+store graph time = 0.221918
+Reading 1 file time = 12.0114
+End marker = 4294967296make graph marker = 2147483648
+Marker queued. position = 0 2147483648
+Marker dequeue. Position = 0 2147483648
+calc edge time = 8.45476
+prep_internal time = 0.887788
+fill adj list time = 23.762
+Make graph time = 33.1048
+old marker = 2147483648 New marker = 4294967296
+Sum = 100034697556356392 2 Hop Time = 3165.5
+----------------Iteration  0 -----------------
+Shell passed r = 4294967296
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 4294967296 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 4294967296
+v_count = 268435456
+store graph time = 0.23626
+Reading 1 file time = 12.0767
+End marker = 4294967296make graph marker = 0
+old marker = 0 New marker = 4294967296
+Sum = 0 2 Hop Time = 0.000336885
+----------------Iteration  1 -----------------
+Shell passed r = 4294967296
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 4294967296 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 4294967296
+v_count = 268435456
+store graph time = 0.236162
+Reading 1 file time = 12.0026
+End marker = 4294967296make graph marker = 0
+old marker = 0 New marker = 4294967296
+Sum = 0 2 Hop Time = 0.00023818
+----------------Iteration  2 -----------------
+Shell passed r = 4294967296
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 4294967296 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 4294967296
+v_count = 268435456
+store graph time = 0.222218
+Reading 1 file time = 12.0642
+End marker = 4294967296make graph marker = 0
+old marker = 0 New marker = 4294967296
+Sum = 0 2 Hop Time = 0.00029397
+----------------Iteration  3 -----------------
+Shell passed r = 4294967296
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 4294967296 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 4294967296
+v_count = 268435456
+store graph time = 0.230917
+Reading 1 file time = 12.0652
+End marker = 4294967296make graph marker = 0
+old marker = 0 New marker = 4294967296
+Sum = 0 2 Hop Time = 0.000342131
+----------------Iteration  4 -----------------
+Shell passed r = 4294967296
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 4294967296 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 4294967296
+v_count = 268435456
+store graph time = 0.220981
+Reading 1 file time = 12.0193
+End marker = 4294967296make graph marker = 0
+old marker = 0 New marker = 4294967296
+Sum = 0 2 Hop Time = 0.000236034
+----------------Iteration  5 -----------------
+Shell passed r = 4294967296
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 4294967296 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 4294967296
+v_count = 268435456
+store graph time = 0.23332
+Reading 1 file time = 12.0503
+End marker = 4294967296make graph marker = 0
+old marker = 0 New marker = 4294967296
+Sum = 0 2 Hop Time = 0.000289202
+----------------Iteration  6 -----------------
+Shell passed r = 4294967296
+./graphone32 -i /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/ -c 3 -j 13 -o ./del1/ -r 4294967296 -v 268435456
+input dir = /mnt/disk_huge_1/pradeepk/pradeep_graph/kron_28_16/
+output dir = ./del1/
+residue edge log = 4294967296
+v_count = 268435456
+store graph time = 0.221551
+Reading 1 file time = 12.0149
+End marker = 4294967296make graph marker = 0
+old marker = 0 New marker = 4294967296
+Sum = 0 2 Hop Time = 0.000236988
