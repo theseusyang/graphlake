@@ -1,5 +1,6 @@
 #include <getopt.h>
 #include <iostream>
+#include <dirent.h>
 
 #include "all.h"
 #include "csv_to_edge.h"
@@ -10,7 +11,77 @@
 
 using namespace std;
     
+extern index_t residue;
 vid_t v_count = 0;
+
+void split_graph(const string& idirname, const string& odirname)
+{
+    plaingraph_manager::schema_plaingraph();
+    
+    struct dirent *ptr;
+    DIR *dir;
+    int file_count = 0;
+    string filename;
+    propid_t cf_id = g->get_cfid("friend");
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+        
+    FILE* file = 0;
+    index_t size =  0;
+    index_t edge_count = 0;
+    blog_t<sid_t>* blog = ugraph->blog;
+    
+    //Read graph files
+    double start = mywtime();
+    dir = opendir(idirname.c_str());
+    edge_t* edge = blog->blog_beg;
+    while (NULL != (ptr = readdir(dir))) {
+        if (ptr->d_name[0] == '.') continue;
+        filename = idirname + "/" + string(ptr->d_name);
+        file_count++;
+        
+        file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
+        assert(file != 0);
+        size = fsize(filename);
+        edge_count = size/sizeof(edge_t);
+        edge = blog->blog_beg + blog->blog_head;
+        if (edge_count != fread(edge, sizeof(edge_t), edge_count, file)) {
+            assert(0);
+        }
+        blog->blog_head += edge_count;
+        fclose(file);
+    }
+    closedir(dir);
+    double end = mywtime();
+    cout << "Reading "  << file_count  << " file time = " << end - start << endl;
+    cout << "Creating " << residue << " graphs of equal size" << endl;
+
+    start = mywtime();
+
+    index_t marker = blog->blog_head/residue;
+    index_t old_marker = 0;
+    index_t new_marker = 0;
+    char  suffix[8];
+    for (index_t i = 1; i <= residue; ++i) {
+        sprintf(suffix, "%ld",i);
+          
+        new_marker = marker*i;
+        cout << "graph marker = " << new_marker << endl;
+        filename = odirname + "part" + suffix + ".dat";
+        cout << "Filename = " << filename << endl;
+        file = fopen(filename.c_str(), "wb");
+        assert(file  != 0);
+        edge_count = new_marker - old_marker;
+        if (edge_count != fwrite(blog->blog_beg + old_marker, 
+                                 sizeof(edge_t), edge_count, file)) {
+            assert(0);
+        }
+        fclose(file);
+        old_marker = new_marker;
+    }
+
+    end = mywtime ();
+    cout << "Make graph time = " << end - start << endl;
+}
 
 void plain_test0(const string& idir, const string& odir)
 {
@@ -646,7 +717,7 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             plain_test2(odir);
             break;
         case 3:
-            plain_test3(idir, odir);
+            split_graph(idir, odir);
             break;
         case 4:
             plain_test4(idir, odir);

@@ -188,7 +188,102 @@ mem_hop1(vert_table_t<T>* graph_out, degree_t* degree_out,
     }
     
     srand(0);
-    int query_count = 512;
+    int query_count = 2048;
+    vid_t* query = (vid_t*)calloc(sizeof(vid_t), query_count);
+    int i1 = 0;
+    while (i1 < query_count) {
+        query[i1] = rand()% v_count;
+        if (degree_out[query[i1]] != 0) { ++i1; };
+    }
+
+    index_t          sum = 0;
+    index_t         sum1 = 0;
+    index_t         sum2 = 0;
+    cout << "starting 1 HOP" << endl;
+	double start = mywtime();
+    
+    //#pragma omp parallel
+    {
+    degree_t      delta_degree = 0;
+    degree_t    durable_degree = 0;
+    degree_t        nebr_count = 0;
+    degree_t      local_degree = 0;
+
+    sid_t sid = 0;
+    vid_t v   = 0;
+    vert_table_t<T>* graph  = graph_out;
+    delta_adjlist_t<T>* delta_adjlist;
+    vunit_t<T>* v_unit = 0;
+    T* local_adjlist = 0;
+
+    //#pragma omp for reduction(+:sum) schedule (static) nowait
+    for (int i = 0; i < query_count; i++) {
+        
+        v = query[i];
+        v_unit = graph[v].get_vunit();
+        
+        if (0 != v_unit) {
+            durable_degree = v_unit->count;
+            delta_adjlist = v_unit->delta_adjlist;
+            nebr_count = degree_out[v];
+            
+            //traverse the delta adj list
+            delta_degree = nebr_count - durable_degree;
+            
+            while (delta_adjlist != 0 && delta_degree > 0) {
+                local_adjlist = delta_adjlist->get_adjlist();
+                local_degree = delta_adjlist->get_nebrcount();
+                degree_t i_count = min(local_degree, delta_degree);
+                for (degree_t i = 0; i < i_count; ++i) {
+                    sid = get_nebr(local_adjlist, i);
+                    sum += sid;
+                }
+                delta_adjlist = delta_adjlist->get_next();
+                delta_degree -= local_degree;
+            }
+        }
+
+        if (old_marker == marker) continue;
+        //on-the-fly snapshots should process this
+        vid_t src, dst; 
+        v = query[i];
+        #pragma omp parallel for reduction(+:sum1) schedule(static)
+        for (index_t j = old_marker; j < marker; ++j) {
+            src = edges[j].src_id;
+            dst = edges[j].dst_id;
+            if (src == v) {
+                sum1 += dst;
+            }
+
+            if (dst == v) {
+                sum1 += src;
+            }
+        }
+    }
+    }
+    
+    sum += sum1;
+    sum2 += sum;
+    double end = mywtime();
+
+    cout << "Sum = " << sum << " 1 Hop Time = " << end - start << endl;
+}
+
+/*
+template<class T>
+void
+mem_hop1(vert_table_t<T>* graph_out, degree_t* degree_out, 
+        snapshot_t* snapshot, index_t marker, edgeT_t<T>* edges,
+        vid_t v_count)
+{
+    index_t         old_marker = 0;
+
+    if (snapshot) { 
+        old_marker = snapshot->marker;
+    }
+    
+    srand(0);
+    int query_count = 2048;
     vid_t* query = (vid_t*)calloc(sizeof(vid_t), query_count);
     int i1 = 0;
     while (i1 < query_count) {
@@ -246,7 +341,7 @@ mem_hop1(vert_table_t<T>* graph_out, degree_t* degree_out,
 
     //on-the-fly snapshots should process this
     vid_t src, dst; 
-    #pragma omp for reduction(+:sum1) nowait
+    #pragma omp for reduction(+:sum1) nowait schedule(static)
     for (index_t j = old_marker; j < marker; ++j) {
         for (int i = 0; i < query_count; i++) {
             v = query[i];
@@ -268,7 +363,7 @@ mem_hop1(vert_table_t<T>* graph_out, degree_t* degree_out,
 
     cout << "Sum = " << sum << " 1 Hop Time = " << end - start << endl;
 }
-
+*/
 class hop2_t {
  public:
      vid_t vid;
@@ -276,6 +371,7 @@ class hop2_t {
      vid_t* vlist;
 };
 
+/*
 template<class T>
 void
 mem_hop2(vert_table_t<T>* graph_out, degree_t* degree_out, 
@@ -351,7 +447,7 @@ mem_hop2(vert_table_t<T>* graph_out, degree_t* degree_out,
 
     vid_t src, dst;
     degree_t d1 = 0;
-    #pragma omp for schedule(static) 
+    #pragma omp for schedule(static) nowait 
     for (index_t i = old_marker; i < marker; ++i) {
         src = edges[i].src_id;
         dst = edges[i].dst_id;
@@ -425,7 +521,7 @@ mem_hop2(vert_table_t<T>* graph_out, degree_t* degree_out,
 
     //on-the-fly snapshots should process this
     vid_t src, dst;
-    #pragma omp for reduction(+:sum1)
+    #pragma omp for reduction(+:sum1) schedule(static) nowait
     for (index_t i = old_marker; i < marker; ++i) {
         src = edges[i].src_id;
         dst = edges[i].dst_id;
@@ -450,6 +546,179 @@ mem_hop2(vert_table_t<T>* graph_out, degree_t* degree_out,
     //vlist = 0;
     sum2 += sum1;
     sum2 += sum; 
+
+    double end = mywtime();
+    free(query);
+    cout << "Sum = " << sum2 << " 2 Hop Time = " << end - start << endl;
+}
+*/
+
+template<class T>
+void
+mem_hop2(vert_table_t<T>* graph_out, degree_t* degree_out, 
+        snapshot_t* snapshot, index_t marker, edgeT_t<T>* edges,
+        vid_t v_count)
+{
+    index_t         old_marker = 0;
+    if (snapshot) { 
+        old_marker = snapshot->marker;
+    }
+    
+    srand(0);
+    int query_count = 512;
+    hop2_t* query = (hop2_t*)calloc(sizeof(hop2_t), query_count); 
+    int i1 = 0;
+    while (i1 < query_count) {
+        query[i1].vid = rand()% v_count;
+        if (degree_out[query[i1].vid] != 0) { ++i1; };
+    }
+
+	double start = mywtime();
+    index_t     sum = 0;
+    index_t    sum1 = 0;
+    index_t    sum2 = 0;
+
+        
+    degree_t      delta_degree = 0;
+    degree_t    durable_degree = 0;
+    degree_t        nebr_count = 0;
+    degree_t      local_degree = 0;
+
+    sid_t sid = 0;
+    vid_t v   = 0;
+    vert_table_t<T>* graph  = graph_out;
+    T* local_adjlist = 0;
+    delta_adjlist_t<T>* delta_adjlist;
+    vunit_t<T>* v_unit = 0;
+    degree_t d = 0;
+    vid_t* vlist = 0;
+    
+    //first hop------------------
+    for (int q = 0; q < query_count; q++) {
+        d = 0; 
+        v = query[q].vid;
+        nebr_count = degree_out[v];
+        vlist = (vid_t*)calloc(sizeof(vid_t), nebr_count);
+        query[q].vlist = vlist;
+        v_unit = graph[v].get_vunit();
+        if (0 == v_unit) continue;
+
+        durable_degree = v_unit->count;
+        delta_adjlist = v_unit->delta_adjlist;
+        
+        //traverse the delta adj list
+        delta_degree = nebr_count - durable_degree;
+        
+        while (delta_adjlist != 0 && delta_degree > 0) {
+            local_adjlist = delta_adjlist->get_adjlist();
+            local_degree = delta_adjlist->get_nebrcount();
+            degree_t i_count = min(local_degree, delta_degree);
+            for (degree_t i = 0; i < i_count; ++i) {
+                sid = get_nebr(local_adjlist, i);
+                vlist[d] = sid;
+                ++d;
+            }
+            delta_adjlist = delta_adjlist->get_next();
+            delta_degree -= local_degree;
+        }
+        query[q].d += d;
+
+        //on-the-fly snapshots should process this
+        #pragma omp parallel
+        {
+            vid_t src, dst;
+            degree_t d1 = 0;
+            vid_t v = query[q].vid;
+            vid_t* vlist = query[q].vlist;
+            #pragma omp for schedule(static) nowait 
+            for (index_t i = old_marker; i < marker; ++i) {
+                src = edges[i].src_id;
+                dst = edges[i].dst_id;
+                if (src == v) {
+                    d1 = __sync_fetch_and_add(&query[q].d, 1);
+                    vlist[d1] = dst;
+                }
+
+                if (dst == v) {
+                    d1 = __sync_fetch_and_add(&query[q].d, 1);
+                    vlist[d1] = src;
+                }
+            }
+        }
+    
+    
+        //Second hop------------------
+        sum = 0;
+        sum1 = 0;
+        #pragma omp parallel
+        {
+        degree_t      delta_degree = 0;
+        degree_t    durable_degree = 0;
+        degree_t        nebr_count = 0;
+        degree_t      local_degree = 0;
+        sid_t sid = 0;
+        vid_t v = 0;
+        vert_table_t<T>* graph  = graph_out;
+        T* local_adjlist = 0;
+        delta_adjlist_t<T>* delta_adjlist;
+        vunit_t<T>* v_unit = 0;
+        vid_t* vlist = 0;
+        degree_t d = 0;
+        
+         vlist = query[q].vlist;
+         d = query[q].d;
+
+        #pragma omp for schedule (static) reduction(+:sum) nowait
+        for (vid_t j = 0; j < d; ++j) {
+            v = vlist[j];
+            v_unit = graph[v].get_vunit();
+            if (0 == v_unit) continue;
+
+            durable_degree = v_unit->count;
+            delta_adjlist = v_unit->delta_adjlist;
+            nebr_count = degree_out[v];
+            
+            //traverse the delta adj list
+            delta_degree = nebr_count - durable_degree;
+            
+            while (delta_adjlist != 0 && delta_degree > 0) {
+                local_adjlist = delta_adjlist->get_adjlist();
+                local_degree = delta_adjlist->get_nebrcount();
+                degree_t i_count = min(local_degree, delta_degree);
+                for (degree_t i = 0; i < i_count; ++i) {
+                    sid = get_nebr(local_adjlist, i);
+                    sum += sid;
+                }
+                delta_adjlist = delta_adjlist->get_next();
+                delta_degree -= local_degree;
+            }
+            assert(durable_degree == 0);
+        }
+
+        //on-the-fly snapshots should process this
+        vid_t src, dst;
+        #pragma omp for reduction(+:sum1) schedule(static) nowait
+        for (index_t i = old_marker; i < marker; ++i) {
+            src = edges[i].src_id;
+            dst = edges[i].dst_id;
+            for (degree_t j = 0; j < d; ++j) {
+                v = vlist[j];
+                if (src == v) {
+                    sum1 += dst;
+                }
+
+                if (dst == v) {
+                    sum1 += src;
+                }
+            }
+        }
+        }
+        sum2 += sum1;
+        sum2 += sum; 
+    }
+        
+    //if(vlist) free(vlist);
+    //vlist = 0;
 
     double end = mywtime();
     free(query);
@@ -528,6 +797,7 @@ mem_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
 				}
 			} else {//bottom up
 				graph = graph_in;
+                int done = 0;
 				
 				#pragma omp for nowait
 				for (vid_t v = 0; v < v_count; v++) {
@@ -539,7 +809,8 @@ mem_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
                     delta_adjlist = v_unit->delta_adjlist;
 					
 					nebr_count = degree_in[v];
-                    
+                    done = 0;
+
                     //traverse the delta adj list
                     delta_degree = nebr_count - durable_degree;
                     while (delta_adjlist != 0 && delta_degree > 0) {
@@ -551,22 +822,21 @@ mem_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
                             if (status[sid] == level) {
                                 status[v] = level + 1;
                                 ++frontier;
+                                done = 1;
                                 break;
                             }
                         }
+                        if (done == 1) break;
                         delta_adjlist = delta_adjlist->get_next();
                         delta_degree -= local_degree;
                     }
-					
-                    if (status[v] == level + 1) continue;
-                    assert(durable_degree == 0);
 				}
 		    }
 
             //on-the-fly snapshots should process this
             //cout << "On the Fly" << endl;
             vid_t src, dst;
-            #pragma omp for 
+            #pragma omp for schedule (static)
             for (index_t i = old_marker; i < marker; ++i) {
                 src = edges[i].src_id;
                 dst = edges[i].dst_id;
