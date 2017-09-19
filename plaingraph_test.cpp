@@ -109,12 +109,12 @@ void plain_test0(const string& idir, const string& odir)
     index_t marker = blog->blog_head;
     index_t old_marker = 0;
     degree_t* degree_array = 0;
+        
+    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
 
     if (snapshot) {
         old_marker = snapshot->marker;
-        degree_array = create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg);
-    } else {
-        degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
+        create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
     }
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
@@ -172,15 +172,227 @@ void plaind_test0(const string& idir, const string& odir)
 void weighted_dtest0(const string& idir, const string& odir)
 {
     
-    plaingraph_manager::schema_weightedgraphd();
+    plaingraph_manager::schema_weightedgraphu();
     
     //Is called from below function
     //plaingraph_manager::setup_weightedgraph(v_count);    
     
-    string graph_file = idir + "g.10.8.bin";
-    string action_file = idir + "a.10.8.100000.bin"; 
-    plaingraph_manager::prep_weighted_rmat(graph_file, action_file);
+    string graph_file = idir + "g.bin";
+    string action_file = idir + "a.bin"; 
+    //plaingraph_manager::prep_weighted_rmat(graph_file, action_file);
     
+    int fd = open(graph_file.c_str(), O_RDONLY);
+    assert(fd != -1);
+    index_t size = fsize(fd);
+    int64_t* buf = (int64_t*)malloc(size);
+    pread(fd, buf, size, 0);
+    int64_t little_endian = buf[0];
+    assert(little_endian == 0x1234ABCD);
+
+    int64_t nv = buf[1]; 
+    int64_t ne = buf[2];
+    int64_t* v_offset = buf + 3;
+    int64_t* index = v_offset + nv + 1; //+1 for offset in CSR 
+    int64_t* weight = index + ne;
+    lite_edge_t* nebrs = (lite_edge_t*)malloc(ne*sizeof(lite_edge_t));
+
+    for (int64_t i = 0; i < ne; i++) {
+        nebrs[i].first = index[i];
+        nebrs[i].second.value_64b = weight[i];  
+    }
+
+    //Create number of vertex
+    v_count = nv;
+    plaingraph_manager::setup_weightedgraph(v_count);
+    
+    //Do ingestion
+    /*
+     * We are doing something to be compliant with stinger test
+     * 1. the graph file is CSR file, we don't expect that
+     * 2. The graph already stores the reverse edge, we don't expect that
+     * 3. Stinger does something directly with the memory that is allocated 
+     *      for graph read, for initial graph building.
+     */
+    propid_t cf_id = g->get_cfid("friend");
+    pgraph_t<lite_edge_t>*    graph = (pgraph_t<lite_edge_t>*)g->cf_info[cf_id];
+    blog_t<lite_edge_t>*       blog = graph->blog;
+    onegraph_t<lite_edge_t>* sgraph = graph->sgraph[0];
+    nebrcount_t<lite_edge_t>* degree_array = sgraph->nebr_count;
+    
+    double start = mywtime();
+    
+    #pragma omp parallel
+    {
+        index_t   nebr_count = 0;
+        
+        #pragma omp for
+        for (int64_t v = 0; v < nv; ++v) {
+            nebr_count = v_offset[v+1] - v_offset[v];
+            degree_array[v].add_count = nebr_count;
+        }
+        sgraph->setup_adjlist();
+        
+        #pragma omp for
+        for (int64_t v = 0; v < nv; ++v) {
+            nebr_count = v_offset[v+1] - v_offset[v];
+            sgraph->add_nebr_bulk(v, nebrs + v_offset[v], nebr_count);
+        }
+    }
+    
+    double end = mywtime();
+    
+    blog->blog_head += ne;
+    index_t marker = blog->blog_head;
+    index_t snap_marker = 0;
+    if (marker == 0) return;
+
+    graph->create_marker(marker);
+    if (eOK == graph->move_marker(snap_marker)) {
+        blog->blog_tail = marker;
+        //graph->make_graph_baseline();
+        //graph->store_graph_baseline();
+        g->incr_snapid(snap_marker, snap_marker);
+    }
+    cout << "Batch time = " << end - start << endl;
+    end = mywtime();
+    cout << "make graph marker = " << marker << endl;
+    cout << "Make graph time = " << end - start << endl;
+
+    free(buf);
+    free(nebrs);
+
+    //-------Run bfs and PR------
+    uint8_t* level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, 
+                            PROT_READ|PROT_WRITE,
+                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
+    
+    if (MAP_FAILED == level_array) {
+        cout << "Huge page alloc failed for level array" << endl;
+        level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
+    }
+    
+    
+    vert_table_t<lite_edge_t>* beg_pos = sgraph->get_begpos();
+    degree_t* degree_snap = 0;
+    degree_snap = (degree_t*) calloc(v_count, sizeof(degree_t));
+
+    index_t old_marker = 0;
+    snapshot_t* snapshot = g->get_snapshot();
+    marker = blog->blog_head;
+    if (snapshot) {
+        old_marker = snapshot->marker;
+        create_degreesnap(beg_pos, v_count, snapshot, marker, blog->blog_beg, degree_snap);
+    }
+
+    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
+    
+    mem_bfs<lite_edge_t>(beg_pos, degree_snap, beg_pos, degree_snap, 
+                   snapshot, marker, blog->blog_beg,
+                   v_count, level_array, 0);
+    
+    mem_pagerank_epsilon<lite_edge_t>(beg_pos, degree_snap, degree_snap, 
+                   snapshot, marker, blog->blog_beg,
+                   v_count, 1e-8);
+
+    free(degree_snap);
+    free(level_array);
+    
+
+
+    //-------Graph Updates-------
+    g->create_snapthread();
+    int fd1 = open(action_file.c_str(), O_RDONLY);
+    assert(fd1 != -1);
+    index_t size1 = fsize(fd1);
+    int64_t* buf1 = (int64_t*)malloc(size1);
+    pread(fd1, buf1, size1, 0);
+    int64_t little_endian1 = buf1[0];
+    assert(little_endian1 == 0x1234ABCD);
+
+    int64_t na = buf1[1];
+    edge_t* edges = (edge_t*)(buf1 + 2);
+
+    //Do ingestion
+    start = mywtime();
+    int64_t del_count = 0;
+    
+    //#pragma omp parallel 
+    { 
+    int64_t src, dst;
+    edgeT_t<lite_edge_t> edge;
+
+    //#pragma omp for reduction(+:del_count)
+    for (int64_t i = 0; i < na; i++) {
+        src = edges[i].src_id;
+        edge.dst_id.second.value_64b = 1;
+        dst = edges[i].dst_id;
+        if (src >= 0) {
+            edge.src_id = src;
+            edge.dst_id.first = dst;
+            graph->batch_edge(edge);
+        } else {
+            edge.src_id = DEL_SID(-src);
+            edge.dst_id.first = DEL_SID(-dst);
+            graph->batch_edge(edge);
+            ++del_count;
+        }
+    }
+    }
+    
+    end = mywtime();
+    
+    marker = blog->blog_head;
+    if (marker != blog->blog_marker) {
+        graph->create_marker(marker);
+    }
+    
+    //if (eOK == graph->move_marker(snap_marker)) {
+        //graph->make_graph_baseline();
+        //graph->store_graph_baseline();
+        //g->incr_snapid(snap_marker, snap_marker);
+    //}
+    cout << "batch Edge time = " << end - start << endl;
+    cout << "no of actions " << na << endl;
+    cout << "del_count "<<del_count << endl;
+    while (blog->blog_tail != blog->blog_head) {
+        usleep(10);
+    }
+    end = mywtime();
+    cout << "Make graph time = " << end - start << endl;
+    
+
+    //-------Run bfs and PR------
+    level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, 
+                            PROT_READ|PROT_WRITE,
+                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
+    
+    if (MAP_FAILED == level_array) {
+        cout << "Huge page alloc failed for level array" << endl;
+        level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
+    }
+    
+    degree_snap = (degree_t*) calloc(v_count, sizeof(degree_t));
+
+    snapshot = g->get_snapshot();
+    marker = blog->blog_head;
+    if (snapshot) {
+        old_marker = snapshot->marker;
+        create_degreesnap(beg_pos, v_count, snapshot, marker, blog->blog_beg, degree_snap);
+    }
+
+    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
+    
+    mem_bfs<lite_edge_t>(beg_pos, degree_snap, beg_pos, degree_snap, 
+                   snapshot, marker, blog->blog_beg,
+                   v_count, level_array, 0);
+    
+    mem_pagerank_epsilon<lite_edge_t>(beg_pos, degree_snap, degree_snap, 
+                   snapshot, marker, blog->blog_beg,
+                   v_count, 1e-8);
+
+    free(degree_snap);
+
+
     return ;
 }
 
@@ -225,7 +437,9 @@ void plain_test1(const string& idir, const string& odir)
     index_t marker = snapshot->marker;
     
     snap_id = old_snapshot->snap_id;
-    degree_t* degree_array = create_degreesnap(graph, v_count, old_snapshot, old_snapshot->marker, blog->blog_beg);
+    degree_t* degree_array = 0; 
+    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
+    create_degreesnap(graph, v_count, old_snapshot, old_snapshot->marker, blog->blog_beg, degree_array);
     
     cout << "BFS on snap id = " << snap_id << endl; 
     cout << "old marker = " << old_snapshot->marker << " New marker = " << marker << endl;
@@ -343,12 +557,11 @@ void plain_test2(const string& odir)
     index_t marker = blog->blog_head;
     index_t old_marker = 0;
     degree_t* degree_array = 0;
+    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
 
     if (snapshot) {
         old_marker = snapshot->marker;
-        degree_array = create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg);
-    } else {
-        degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
+        create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
     }
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
@@ -470,12 +683,11 @@ void paper_test0(vid_t v_count, const string& idir, const string& odir)
     index_t marker = blog->blog_head;
     index_t old_marker = 0;
     degree_t* degree_array = 0;
+    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
 
     if (snapshot) {
         old_marker = snapshot->marker;
-        degree_array = create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg);
-    } else {
-        degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
+        create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
     }
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
@@ -508,12 +720,11 @@ void paper_test_chain_bfs(const string& idir, const string& odir)
     index_t marker = blog->blog_head;
     index_t old_marker = 0;
     degree_t* degree_array = 0;
+    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
 
     if (snapshot) {
         old_marker = snapshot->marker;
-        degree_array = create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg);
-    } else {
-        degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
+        create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
     }
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
@@ -545,11 +756,10 @@ void paper_test_pr_chain(const string& idir, const string& odir)
     index_t marker = blog->blog_head;
     index_t old_marker = 0;
     degree_t* degree_array = 0;
+    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
     if (snapshot) {
         old_marker = snapshot->marker;
-        degree_array = create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg);
-    } else {
-        degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
+        create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
     }
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
@@ -576,11 +786,10 @@ void paper_test_pr(const string& idir, const string& odir)
     index_t marker = blog->blog_head;
     index_t old_marker = 0;
     degree_t* degree_array = 0;
+    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
     if (snapshot) {
         old_marker = snapshot->marker;
-        degree_array = create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg);
-    } else {
-        degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
+        create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
     }
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
@@ -607,11 +816,11 @@ void paper_test_hop1_chain(const string& idir, const string& odir)
     index_t marker = blog->blog_head;
     index_t old_marker = 0;
     degree_t* degree_array = 0;
+    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t)); 
     if (snapshot) {
         old_marker = snapshot->marker;
     }
-    degree_array = create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg);
-    //else { degree_array = (degree_t*) calloc(v_count, sizeof(degree_t)); }
+    create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
 
@@ -635,11 +844,11 @@ void paper_test_hop1(const string& idir, const string& odir)
     index_t marker = blog->blog_head;
     index_t old_marker = 0;
     degree_t* degree_array = 0;
+    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
     if (snapshot) {
         old_marker = snapshot->marker;
     }
-    degree_array = create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg);
-    //else { degree_array = (degree_t*) calloc(v_count, sizeof(degree_t)); }
+    create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
 
@@ -663,11 +872,11 @@ void paper_test_hop2_chain(const string& idir, const string& odir)
     index_t marker = blog->blog_head;
     index_t old_marker = 0;
     degree_t* degree_array = 0;
+    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t)); 
     if (snapshot) {
         old_marker = snapshot->marker;
     }
-    degree_array = create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg);
-    //} else { degree_array = (degree_t*) calloc(v_count, sizeof(degree_t)); }
+    degree_array = create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
 
@@ -691,11 +900,11 @@ void paper_test_hop2(const string& idir, const string& odir)
     index_t marker = blog->blog_head;
     index_t old_marker = 0;
     degree_t* degree_array = 0;
+    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t)); 
     if (snapshot) {
         old_marker = snapshot->marker;
     }
-    degree_array = create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg);
-    //} else { degree_array = (degree_t*) calloc(v_count, sizeof(degree_t)); }
+    create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg,degree_array);
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
 

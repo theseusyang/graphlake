@@ -34,8 +34,30 @@ rank_t qthread_dincr(rank_t *operand, rank_t incr)
     return oldval.d;
 }
 
+rank_t qthread_doubleincr(rank_t *operand, double incr)
+{
+    //*operand = *operand + incr;
+    //return incr;
+    
+    union {
+       double   d;
+       uint64_t i;
+    } oldval, newval, retval;
+    do {
+         oldval.d = *(volatile double *)operand;
+         newval.d = oldval.d + incr;
+         //__asm__ __volatile__ ("lock; cmpxchgq %1, (%2)"
+         __asm__ __volatile__ ("lock; cmpxchg %1, (%2)"
+                                : "=a" (retval.i)
+                                : "r" (newval.i), "r" (operand),
+                                 "0" (oldval.i)
+                                : "memory");
+    } while (retval.i != oldval.i);
+    return oldval.d;
+}
+
 template <class T>
-degree_t* create_degreesnap (vert_table_t<T>* graph, vid_t v_count, snapshot_t* snapshot, index_t marker, edgeT_t<T>* edges)
+degree_t* create_degreesnap (vert_table_t<T>* graph, vid_t v_count, snapshot_t* snapshot, index_t marker, edgeT_t<T>* edges, degree_t* degree_array)
 {
     snapid_t snap_id = 0;
     index_t old_marker = 0;
@@ -44,6 +66,7 @@ degree_t* create_degreesnap (vert_table_t<T>* graph, vid_t v_count, snapshot_t* 
         old_marker = snapshot->marker;
     }
 
+    /*
     degree_t* degree_array  = (degree_t*)mmap(NULL, sizeof(degree_t)*v_count, PROT_READ|PROT_WRITE,
                             MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
     
@@ -51,6 +74,7 @@ degree_t* create_degreesnap (vert_table_t<T>* graph, vid_t v_count, snapshot_t* 
         cout << "Huge page alloc failed for degree array" << endl;
         degree_array = (degree_t*)calloc(v_count, sizeof(degree_t));
     }
+    */
     #pragma omp parallel
     {
         snapT_t<T>*   snap_blob = 0;
@@ -80,7 +104,7 @@ degree_t* create_degreesnap (vert_table_t<T>* graph, vid_t v_count, snapshot_t* 
         #pragma omp for
         for (index_t i = old_marker; i < marker; ++i) {
             __sync_fetch_and_add(degree_array + edges[i].src_id, 1);
-            __sync_fetch_and_add(degree_array + edges[i].dst_id, 1);
+            __sync_fetch_and_add(degree_array + get_dst(edges + i), 1);
         }
     }
 
@@ -746,7 +770,7 @@ mem_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
     
 	do {
 		frontier = 0;
-		double start = mywtime();
+		//double start = mywtime();
 		#pragma omp parallel reduction(+:frontier)
 		{
             sid_t sid;
@@ -839,7 +863,7 @@ mem_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
             #pragma omp for schedule (static)
             for (index_t i = old_marker; i < marker; ++i) {
                 src = edges[i].src_id;
-                dst = edges[i].dst_id;
+                dst = get_dst(edges+i);
                 if (status[src] == 0 && status[dst] == level) {
                     status[src] = level + 1;
                     ++frontier;
@@ -853,13 +877,13 @@ mem_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
             }
         }
 
-		double end = mywtime();
+		//double end = mywtime();
 	
-		cout << "Top down = " << top_down
-		     << " Level = " << level
-             << " Frontier Count = " << frontier
-		     << " Time = " << end - start
-		     << endl;
+		//cout << "Top down = " << top_down
+		//     << " Level = " << level
+        //     << " Frontier Count = " << frontier
+		//     << " Time = " << end - start
+		//     << endl;
 	
         //Point is to simulate bottom up bfs, and measure the trade-off    
 		if ((frontier >= 0.002*v_count) || (level == 2)) {
@@ -997,7 +1021,7 @@ mem_pagerank(vert_table_t<T>* graph_in, degree_t* degree_in, degree_t* degree_ou
             #pragma omp for 
             for (index_t i = old_marker; i < marker; ++i) {
                 src = edges[i].src_id;
-                dst = edges[i].dst_id;
+                dst = get_dst(edges+i);
                 qthread_dincr(rank_array + src, prior_rank_array[dst]);
                 qthread_dincr(rank_array + dst, prior_rank_array[src]);
             }
@@ -1027,3 +1051,130 @@ mem_pagerank(vert_table_t<T>* graph_in, degree_t* degree_in, degree_t* degree_ou
 }
 
 
+template<class T>
+void 
+mem_pagerank_epsilon(vert_table_t<T>* graph_in, degree_t* degree_in, degree_t* degree_out,
+        snapshot_t* snapshot, index_t marker, edgeT_t<T>* edges,
+        vid_t v_count, double epsilon)
+{
+
+	double* rank_array = 0;
+	double* prior_rank_array = 0;
+    double* dset = 0;
+	
+    double start = mywtime();
+    
+    rank_array = (double*)calloc(v_count, sizeof(double));
+    prior_rank_array = (double*)calloc(v_count, sizeof(double));
+    dset = (double*)calloc(v_count, sizeof(double));
+	
+	//initialize the rank, and get the degree information
+    
+    double	inv_count = 1.0/v_count;
+
+    #pragma omp parallel 
+    { 
+    degree_t degree = 0;
+    double   inv_degree = 0;
+    #pragma omp for
+    for (vid_t v = 0; v < v_count; ++v) {
+        degree = degree_out[v];
+        if (degree != 0) {
+            inv_degree = 1.0/degree;
+            dset[v] = inv_degree;
+            prior_rank_array[v] = inv_count*inv_degree;
+        } else {
+            dset[v] = 0;
+            prior_rank_array[v] = 0;
+        }
+    }
+    }
+
+    double  delta = 1.0;
+    double	inv_v_count = 0.15/v_count;
+    int iter = 0;
+
+	//let's run the pagerank
+	while(delta > epsilon) {
+        //double start1 = mywtime();
+        #pragma omp parallel 
+        {
+            sid_t sid;
+            degree_t      delta_degree = 0;
+            degree_t durable_degree = 0;
+            degree_t nebr_count = 0;
+            degree_t local_degree = 0;
+
+            vert_table_t<T>* graph  = 0;
+            delta_adjlist_t<T>* delta_adjlist;
+            T* local_adjlist = 0;
+
+            vunit_t<T>* v_unit = 0;
+            graph = graph_in;
+            double rank = 0.0; 
+            
+            #pragma omp for 
+            for (vid_t v = 0; v < v_count; v++) {
+                v_unit = graph[v].get_vunit();
+                if (0 == v_unit) continue;
+
+                durable_degree = v_unit->count;
+                delta_adjlist = v_unit->delta_adjlist;
+                
+                nebr_count = degree_in[v];
+                rank = 0.0;
+                
+                //traverse the delta adj list
+                delta_degree = nebr_count - durable_degree;
+                while (delta_adjlist != 0 && delta_degree > 0) {
+                    local_adjlist = delta_adjlist->get_adjlist();
+                    local_degree = delta_adjlist->get_nebrcount();
+                    degree_t i_count = min(local_degree, delta_degree);
+                    for (degree_t i = 0; i < i_count; ++i) {
+                        sid = get_nebr(local_adjlist, i);
+                        rank += prior_rank_array[sid];
+                    }
+                    delta_adjlist = delta_adjlist->get_next();
+                    delta_degree -= local_degree;
+                }
+                rank_array[v] = rank;
+            }
+        
+            
+            double mydelta = 0;
+            double new_rank = 0;
+            delta = 0;
+            
+            #pragma omp for reduction(+:delta)
+            for (vid_t v = 0; v < v_count; v++ ) {
+                if (degree_out[v] == 0) continue;
+                new_rank = inv_v_count + 0.85*rank_array[v];
+                mydelta = new_rank - prior_rank_array[v]*degree_out[v];
+                if (mydelta < 0) mydelta = -mydelta;
+                delta += mydelta;
+
+                rank_array[v] = new_rank*dset[v];
+                prior_rank_array[v] = 0;
+            } 
+        }
+        swap(prior_rank_array, rank_array);
+        ++iter;
+        //double end1 = mywtime();
+        //cout << "Delta = " << delta << "Iteration Time = " << end1 - start1 << endl;
+    }	
+
+    #pragma omp for
+    for (vid_t v = 0; v < v_count; v++ ) {
+        rank_array[v] = rank_array[v]*degree_out[v];
+    }
+
+    double end = mywtime();
+
+	cout << "Iteration count" << iter << endl;
+    cout << "PR Time = " << end - start << endl;
+
+    free(rank_array);
+    free(prior_rank_array);
+    free(dset);
+	cout << endl;
+}

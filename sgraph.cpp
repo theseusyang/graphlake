@@ -177,7 +177,6 @@ void pgraph_t<sid_t>::fill_adj_list(onegraph_t<sid_t>** sgraph_out, onegraph_t<s
         sgraph_out[src_index]->add_nebr(vert1_id, dst);
         sgraph_in[dst_index]->add_nebr(vert2_id, src);
     }
-    blog->blog_tail = blog->blog_marker;  
 }
 
 template <>
@@ -202,7 +201,6 @@ void pgraph_t<sid_t>::fill_adj_list_in(onekv_t<sid_t>** skv_out, onegraph_t<sid_
         skv_out[src_index]->set_value(vert1_id, dst);
         sgraph_in[dst_index]->add_nebr(vert2_id, src);
     }
-    blog->blog_tail = blog->blog_marker;  
 }
 
 template <>
@@ -226,7 +224,6 @@ void pgraph_t<sid_t>::fill_adj_list_out(onegraph_t<sid_t>** sgraph_out, onekv_t<
         sgraph_out[src_index]->add_nebr(vert1_id, dst);
         skv_in[dst_index]->set_value(vert2_id, src); 
     }
-    blog->blog_tail = blog->blog_marker;  
 }
 
 template <>
@@ -251,7 +248,6 @@ void pgraph_t<sid_t>::fill_skv(onekv_t<sid_t>** skv_out, onekv_t<sid_t>** skv_in
         skv_out[src_index]->set_value(vert1_id, dst); 
         skv_in[dst_index]->set_value(vert2_id, src); 
     }
-    blog->blog_tail = blog->blog_marker;  
 }
 
 /*

@@ -174,6 +174,16 @@ class nebrcount_t {
         degree_t index = adj_list->incr_nebrcount_atomically();
         add_nebr2(adj_list->get_adjlist(), index, sid, value);
     }
+    
+    // XXX Should be used for testing purpose, be careful to use it,
+    // as it avoids atomic instructions.
+    inline void add_nebr_bulk(T* adj_list2, degree_t count) {
+        if(count != 0) {
+            T* adj_list1 = adj_list->get_adjlist();
+            degree_t old_count = adj_list->incr_nebrcount_bulk(count);
+            memcpy(adj_list1+old_count, adj_list2, count*sizeof(T));
+        }
+    }
 };
 
 //one type's graph
@@ -187,7 +197,6 @@ private:
     vert_table_t<T>* beg_pos;
 
     //count in adj list. Used for book-keeping purpose during setup and update.
-    nebrcount_t<T>*   nebr_count;
 
     vid_t    max_vcount;
     
@@ -243,6 +252,7 @@ private:
     FILE*    stf;   //snapshot table file
 public:
     int    etf;   //edge table file
+    nebrcount_t<T>*   nebr_count;
 
 private:    
     inline void del_nebr(vid_t vid, sid_t sid) {
@@ -339,6 +349,10 @@ public:
         //degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
         //nebr_count[vid].add_nebr_lite(index, sid, value);
         nebr_count[vid].add_nebr_lite(sid, value);
+    }
+
+    inline void add_nebr_bulk(vid_t vid, T* adj_list1, degree_t count) {
+        nebr_count[vid].add_nebr_bulk(adj_list1, count);
     }
 
     degree_t find_nebr(vid_t vid, sid_t sid); 

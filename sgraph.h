@@ -51,7 +51,7 @@ class pgraph_t: public cfinfo_t {
             }
         }
         
-        q_count = 256;
+        q_count = 512;
         q_beg = (index_t*)calloc(q_count, sizeof(index_t));
         if (0 == q_beg) {
             perror("posix memalign batch edge log");
@@ -130,7 +130,7 @@ class pgraph_t: public cfinfo_t {
         q_beg[m_index % q_count] = marker;
         pthread_cond_signal(&g->snap_condition);
         pthread_mutex_unlock(&g->snap_mutex);
-        cout << "Marker queued. position = " << m_index % q_count << " " << marker << endl;
+        //cout << "Marker queued. position = " << m_index % q_count << " " << marker << endl;
     } 
     
     //called from snap thread 
@@ -140,25 +140,28 @@ class pgraph_t: public cfinfo_t {
         //Need to read marker and set the blog_marker;
         if (q_tail == head) {
             pthread_mutex_unlock(&g->snap_mutex);
-            cout << "Marker NO dequeue. Position = " << head <<  endl;
+            //cout << "Marker NO dequeue. Position = " << head <<  endl;
             return eNoWork;
         }
         
-        /*
+        
         index_t m_index = head - 1;
         index_t marker = q_beg[m_index % q_count];
         q_tail = head;
-        blog_marker = marker;
-        snap_marker = blog_marker;
-        */
+        blog->blog_marker = marker;
+        snap_marker = blog->blog_marker;
         
+        
+        /*
         index_t m_index = __sync_fetch_and_add(&q_tail, 1L);
         index_t marker = q_beg[m_index % q_count];
         blog->blog_marker = marker;
         snap_marker = blog->blog_marker;
+        */
+
         pthread_mutex_unlock(&g->snap_mutex);
         //cout << "working on snapshot" << endl;
-        cout << "Marker dequeue. Position = " << m_index % q_count << " " << marker << endl;
+        //cout << "Marker dequeue. Position = " << m_index % q_count << " " << marker << endl;
         return eOK;
     }
 
@@ -438,7 +441,7 @@ void onegraph_t<T>::setup(tid_t tid)
         nebr_count = (nebrcount_t<T>*)calloc(sizeof(nebrcount_t<T>), max_vcount);
         
         //dela adj list
-        adjlog_count = (1L << 30); //8GB
+        adjlog_count = (1L << 33); //8GB
         adjlog_beg = (char*)mmap(NULL, adjlog_count, PROT_READ|PROT_WRITE,
                             MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0);
         if (MAP_FAILED == adjlog_beg) {
@@ -449,7 +452,7 @@ void onegraph_t<T>::setup(tid_t tid)
         }
         
         //degree aray realted log, in-memory
-        dlog_count = (((index_t)v_count) << 2L);//256 MB
+        dlog_count = (((index_t)v_count) << 4L);//256 MB
         /*
          * dlog_beg = (snapT_t<T>*)mmap(NULL, sizeof(snapT_t<T>)*dlog_count, PROT_READ|PROT_WRITE,
                             MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
@@ -606,13 +609,17 @@ void onegraph_t<T>::setup_adjlist()
     }
 
     vunit_t<T>* my_vunit_beg = vunit_beg + __sync_fetch_and_add(&vunit_head,
-                                                             my_vunit_count); 
+                                                             my_vunit_count);
     snapT_t<T>* my_dlog_beg = dlog_beg 
 							  +__sync_fetch_and_add(&dlog_head, my_dsnap_count);
+
+    assert(dlog_head <= dlog_count);
 
 	index_t new_count = my_delta_size*sizeof(T) 
 						+ my_dsnap_count*sizeof(delta_adjlist_t<T>);
     char*  my_adjlog_beg = adjlog_beg +__sync_fetch_and_add(&adjlog_head, new_count);
+
+    assert(adjlog_head <=adjlog_count);
 
     snapid_t snap_id = g->get_snapid() + 1;
     snapT_t<T>* curr;
@@ -1629,6 +1636,7 @@ void dgraph<T>::make_graph_baseline()
     //populate and get the original count back
     fill_adj_list(sgraph_out, sgraph_in);
     }
+    blog->blog_tail = blog->blog_marker;  
 }
 
 template <class T> 
@@ -1696,33 +1704,37 @@ template <class T>
 void ugraph<T>::make_graph_baseline()
 {
     if (blog->blog_tail >= blog->blog_marker) return;
-    
-    double start = mywtime(); 
+   
+    double start, end;
+    start = mywtime(); 
     
     #pragma omp parallel     
     {
     calc_edge_count(sgraph, sgraph);
-    }
-    double end = mywtime();
-    cout << "calc edge time = " << end - start << endl;
-    
-    start = mywtime(); 
-    //prefix sum then reset the count
-    #pragma omp parallel     
-    {
     prep_sgraph_internal(sgraph);
-    }
-    end = mywtime();
-    cout << "prep_internal time = " << end - start << endl;
-
-    //populate and get the original count back
-    start = mywtime(); 
-    #pragma omp parallel     
-    {
     fill_adj_list(sgraph, sgraph);
     }
+    //end = mywtime();
+    //cout << "calc edge time = " << end - start << endl;
+    //
+    //start = mywtime(); 
+    //prefix sum then reset the count
+    //#pragma omp parallel     
+    //{
+    //prep_sgraph_internal(sgraph);
+    //}
+    //end = mywtime();
+    //cout << "prep_internal time = " << end - start << endl;
+
+    ////populate and get the original count back
+    //start = mywtime(); 
+    //#pragma omp parallel     
+    //{
+    //fill_adj_list(sgraph, sgraph);
+    //}
     end = mywtime();
     cout << "fill adj list time = " << end - start << endl;
+    blog->blog_tail = blog->blog_marker;  
 }
 
 template <class T> 
@@ -1803,6 +1815,7 @@ void many2one<T>::make_graph_baseline()
     //handle kv_out as well.
     fill_adj_list_in(skv_out, sgraph_in);
     //update_count(sgraph_in);
+    blog->blog_tail = blog->blog_marker;  
 }
 
 template <class T> 
@@ -1880,6 +1893,7 @@ void one2many<T>::make_graph_baseline()
     //handle kv_in as well.
     fill_adj_list_out(sgraph_out, skv_in);
     //update_count(sgraph_out);
+    blog->blog_tail = blog->blog_marker;  
     
 }
 

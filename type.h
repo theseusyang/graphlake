@@ -152,6 +152,14 @@ class lite_edge_t {
 typedef edgeT_t<sid_t> edge_t;
 typedef edgeT_t<lite_edge_t> ledge_t;
 
+inline sid_t get_dst(edge_t* edge) { 
+    return edge->dst_id;
+}
+
+inline sid_t get_dst(ledge_t* edge) { 
+    return edge->dst_id.first;
+}
+
 
 class snapshot_t {
  public:
@@ -177,9 +185,14 @@ class delta_adjlist_t {
  public:
 	inline delta_adjlist_t<T>() {next = 0; count = 0;}
 	inline degree_t get_nebrcount() { return count;}
-	void set_nebrcount(degree_t degree) {count = degree;}
-	degree_t incr_nebrcount_atomically() {
+	inline void set_nebrcount(degree_t degree) {count = degree;}
+	inline degree_t incr_nebrcount_atomically() {
         return  __sync_fetch_and_add(&count, 1);
+    }
+    inline degree_t incr_nebrcount_bulk(degree_t count1) {
+        degree_t old_count = count;
+        count += count1;
+        return old_count;
     }
 	inline T* get_adjlist() { return (T*)(&count + 1); }
 	inline void add_next(delta_adjlist_t<T>* ptr) {next = ptr; }
