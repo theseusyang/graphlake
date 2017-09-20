@@ -255,6 +255,14 @@ class disk_vtable_t {
     //uint64_t old_offset;//for cleaning
 };
 
+//used for offline processing
+class ext_vunit_t {
+    public:
+    degree_t  count;
+    degree_t  del_count;
+    index_t   offset;
+};
+
 //property name value pair
 struct prop_pair_t {
     string name;

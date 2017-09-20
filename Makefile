@@ -28,6 +28,7 @@ SRC=main.cpp \
 	ldbc_test.cpp\
 	darshan_test.cpp\
 	plaingraph_test.cpp\
+	llama_test.cpp\
 	
 #lite_sgraph.cpp\
 #p_sgraph.cpp\
