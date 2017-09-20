@@ -351,8 +351,8 @@ ext_bfs(onegraph_t<T>* sgraph_out, degree_t* degree_out,
             index_t         offset  = 0;
             
             delta_adjlist_t<T>*   delta_adjlist;;
-            durable_adjlist_t<T>* durable_adjlist;;
-            
+            durable_adjlist_t<T>* durable_adjlist =  (durable_adjlist_t<T>*)malloc(4096);
+            index_t buf_sz = 4096; 
             vert_table_t<T>* graph  = 0;
 		    
             if (top_down) {
@@ -390,7 +390,11 @@ ext_bfs(onegraph_t<T>* sgraph_out, degree_t* degree_out,
                     if (k_count == 0) continue;
                     offset = v_unit->offset;
                     index_t sz_to_read = (k_count)*sizeof(T) + sizeof(durable_adjlist_t<T>);
-                    durable_adjlist = (durable_adjlist_t<T>*)malloc(sz_to_read);
+                    if (sz_to_read > buf_sz) {
+                        free(durable_adjlist);
+                        durable_adjlist =  (durable_adjlist_t<T>*)malloc(sz_to_read);
+                        buf_sz = sz_to_read;
+                    }
                     adj_list = durable_adjlist->get_adjlist();
                     pread(etf_out, durable_adjlist, sz_to_read, offset);
                     
@@ -444,7 +448,12 @@ ext_bfs(onegraph_t<T>* sgraph_out, degree_t* degree_out,
                     if (k_count == 0) continue;
                     offset = v_unit->offset;
                     index_t sz_to_read = (k_count)*sizeof(T) + sizeof(durable_adjlist_t<T>);
-                    durable_adjlist = (durable_adjlist_t<T>*)malloc(sz_to_read);
+                    
+                    if (sz_to_read > buf_sz) {
+                        free(durable_adjlist);
+                        durable_adjlist =  (durable_adjlist_t<T>*)malloc(sz_to_read);
+                        buf_sz = sz_to_read;
+                    }
                     adj_list = durable_adjlist->get_adjlist();
                     pread(etf_in, durable_adjlist, sz_to_read, offset);
 					

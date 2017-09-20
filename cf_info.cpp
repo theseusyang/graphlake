@@ -4,16 +4,16 @@
 
 
 double bu_factor = 0.07;
-int32_t MAX_BCOUNT = 256;
-uint64_t MAX_ECOUNT = (1<<24);
+int32_t MAX_BCOUNT = 1;
+uint64_t MAX_ECOUNT = (1<<9);
 uint64_t MAX_PECOUNT = (MAX_ECOUNT << 1)/3;
 index_t  BATCH_SIZE = (1L << 17);//edge batching in edge log
 
 //In-memory data structure size
 index_t  BLOG_SIZE = (1L << 32); //size of edge log
 index_t  DELTA_SIZE = (1L << 35);  //sizeo of delta adj-list
-index_t  DEGREE_SIZE = (1); //(1<<x)*v_count
-index_t  VUNIT_SIZE  = (1); // (1L << x)*v_count
+index_t  DEGREE_SIZE = (2); //(1<<x)*v_count
+index_t  VUNIT_SIZE  = (2); // (1L << x)*v_count
 
 //durable data structure buffer size
 index_t  W_SIZE = (1L << 20); //Edges to write
@@ -60,6 +60,7 @@ void cfinfo_t::add_edge_property(const char* longname, prop_encoder_t* prop_enco
 
 cfinfo_t::cfinfo_t()
 {
+    /*
     batch_info = (batchinfo_t*)calloc(sizeof(batchinfo_t), MAX_BCOUNT);
     batch_count = 0;
     batch_info1 = (batchinfo_t*)calloc(sizeof(batchinfo_t), MAX_BCOUNT);
@@ -72,7 +73,7 @@ cfinfo_t::cfinfo_t()
         batch_info1[i].buf = calloc(sizeof(edge_t), MAX_ECOUNT);
         batch_info1[i].count = 0; 
     }
-
+    */
     flag1 = 0;
     flag2 = 0;
     flag1_count = 0;

@@ -433,12 +433,16 @@ typedef one2one<lite_edge_t> p_one2one_t;
 template <class T>
 void onegraph_t<T>::setup(tid_t tid)
 {
+    index_t total_memory = 0;
     if(0 == super_id) {
         super_id = g->get_type_scount(tid);
         vid_t v_count = TO_VID(super_id);
         max_vcount = v_count;// (v_count << 1);
         beg_pos = (vert_table_t<T>*)calloc(sizeof(vert_table_t<T>), max_vcount);
         nebr_count = (nebrcount_t<T>*)calloc(sizeof(nebrcount_t<T>), max_vcount);
+
+        total_memory += max_vcount*(sizeof(vert_table_t<T>) + sizeof(nebrcount_t<T>));
+        cout << "Total Memory 1 = " << total_memory << endl;
         
         //dela adj list
         adjlog_count = DELTA_SIZE + (v_count*sizeof(delta_adjlist_t<T>)); //8GB
@@ -446,13 +450,16 @@ void onegraph_t<T>::setup(tid_t tid)
                             MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0);
         if (MAP_FAILED == adjlog_beg) {
             cout << "Huge page allocation failed for delta adj list" << endl;
-            if (posix_memalign((void**)&adjlog_beg, 2097152, adjlog_count*sizeof(T))) {
+            if (posix_memalign((void**)&adjlog_beg, 2097152, adjlog_count)) {
                 perror("posix memalign delta adj list");
             }
         }
         
+        total_memory += adjlog_count;
+        cout << "Total Memory 2 = " << total_memory << endl;
+        
         //degree aray realted log, in-memory
-        dlog_count = (((index_t)v_count) << DEGREE_SIZE);//256 MB
+        dlog_count = (((index_t)v_count)*DEGREE_SIZE);//256 MB
         /*
          * dlog_beg = (snapT_t<T>*)mmap(NULL, sizeof(snapT_t<T>)*dlog_count, PROT_READ|PROT_WRITE,
                             MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
@@ -471,6 +478,9 @@ void onegraph_t<T>::setup(tid_t tid)
             perror("posix memalign snap disk log");
         }
         */
+        
+        total_memory += dlog_count*sizeof(snapT_t<T>);
+        cout << "Total Memory 2 = " << total_memory << endl;
         
         //durable vertex log and adj list log
         dvt_max_count = DVT_SIZE;
@@ -496,6 +506,9 @@ void onegraph_t<T>::setup(tid_t tid)
             perror("posix memalign edge log");
         }
 
+        total_memory += dvt_max_count*sizeof(disk_vtable_t)*3 + log_count*2;
+        cout << "Total Memory 2 = " << total_memory << endl;
+        
         /*
         if (posix_memalign((void**)&log_beg, 2097152, log_count*sizeof(T))) {
             //log_beg = (index_t*)calloc(sizeof(index_t), log_count);
@@ -503,13 +516,16 @@ void onegraph_t<T>::setup(tid_t tid)
         }*/
 
 		//v_unit log
-		vunit_count = (v_count << VUNIT_SIZE);
+		vunit_count = (v_count*VUNIT_SIZE);
         if (posix_memalign((void**)&vunit_beg, 2097152, vunit_count*sizeof(vunit_t<T>))) {
             perror("posix memalign vunit_beg");
         }
 		if (posix_memalign((void**)&vunit_ind, 2097152, vunit_count*sizeof(vid_t))) {
             perror("posix memalign vunit_ind");
         }
+        
+        total_memory += vunit_count*(sizeof(vunit_t<T>) + sizeof(vid_t));
+        cout << "Total Memory 2 = " << total_memory << endl;
 		
 		for (vid_t i = 0; i < vunit_count; ++i) {
 			vunit_ind[i] = i; 
