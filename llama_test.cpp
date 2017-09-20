@@ -46,15 +46,13 @@ llama_bfs(ext_vunit_t* v_units, int etf, vid_t v_count, uint8_t* status, sid_t r
             for (vid_t v = 0; v < v_count; v++) {
                 if (status[v] != level) continue;
                 v_unit = v_units+v;
-                if (0 == v_unit) continue;
-
                 durable_degree = v_unit->count;
                 offset = v_unit->offset;
                 durable_adjlist = (durable_adjlist_t<T>*)(edges + offset);
                 adj_list = durable_adjlist->get_adjlist();
                 
                 //traverse the adj list
-                for (vid_t k = 0; k < durable_degree; ++k) {
+                for (degree_t k = 0; k < durable_degree; ++k) {
                     sid = get_nebr(adj_list, k);
                     if (status[sid] == 0) {
                         status[sid] = level + 1;
