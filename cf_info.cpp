@@ -7,10 +7,19 @@ double bu_factor = 0.07;
 int32_t MAX_BCOUNT = 256;
 uint64_t MAX_ECOUNT = (1<<24);
 uint64_t MAX_PECOUNT = (MAX_ECOUNT << 1)/3;
-index_t  BATCH_SIZE = (1L << 17);
-index_t  BLOG_SIZE = (1L << 32);
-index_t  DELTA_ESIZE = (1L<<24);
-index_t  W_SIZE = (1L << 20);
+index_t  BATCH_SIZE = (1L << 17);//edge batching in edge log
+
+//In-memory data structure size
+index_t  BLOG_SIZE = (1L << 32); //size of edge log
+index_t  DELTA_SIZE = (1L << 35);  //sizeo of delta adj-list
+index_t  DEGREE_SIZE = (1); //(1<<x)*v_count
+index_t  VUNIT_SIZE  = (1); // (1L << x)*v_count
+
+//durable data structure buffer size
+index_t  W_SIZE = (1L << 20); //Edges to write
+index_t  DVT_SIZE = (1L <<24);//durable v-unit 
+index_t  DURABLE_SIZE = (1L << 30);//Durable adj-list
+
 
 
 using std::swap;

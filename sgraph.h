@@ -441,7 +441,7 @@ void onegraph_t<T>::setup(tid_t tid)
         nebr_count = (nebrcount_t<T>*)calloc(sizeof(nebrcount_t<T>), max_vcount);
         
         //dela adj list
-        adjlog_count = (1L << 33); //8GB
+        adjlog_count = DELTA_SIZE + (v_count*sizeof(delta_adjlist_t<T>)); //8GB
         adjlog_beg = (char*)mmap(NULL, adjlog_count, PROT_READ|PROT_WRITE,
                             MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0);
         if (MAP_FAILED == adjlog_beg) {
@@ -452,7 +452,7 @@ void onegraph_t<T>::setup(tid_t tid)
         }
         
         //degree aray realted log, in-memory
-        dlog_count = (((index_t)v_count) << 4L);//256 MB
+        dlog_count = (((index_t)v_count) << DEGREE_SIZE);//256 MB
         /*
          * dlog_beg = (snapT_t<T>*)mmap(NULL, sizeof(snapT_t<T>)*dlog_count, PROT_READ|PROT_WRITE,
                             MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
@@ -473,8 +473,8 @@ void onegraph_t<T>::setup(tid_t tid)
         */
         
         //durable vertex log and adj list log
-        dvt_max_count = (1L << 20);
-        log_count = (1L << 22);
+        dvt_max_count = DVT_SIZE;
+        log_count = DURABLE_SIZE;
         if (posix_memalign((void**) &write_seg[0].dvt, 2097152, 
                            dvt_max_count*sizeof(disk_vtable_t))) {
             perror("posix memalign vertex log");    
@@ -503,7 +503,7 @@ void onegraph_t<T>::setup(tid_t tid)
         }*/
 
 		//v_unit log
-		vunit_count = (v_count << 3L);
+		vunit_count = (v_count << VUNIT_SIZE);
         if (posix_memalign((void**)&vunit_beg, 2097152, vunit_count*sizeof(vunit_t<T>))) {
             perror("posix memalign vunit_beg");
         }

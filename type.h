@@ -93,9 +93,17 @@ extern double  bu_factor;
 extern int32_t MAX_BCOUNT; //256
 extern uint64_t MAX_ECOUNT; //1000000
 extern uint64_t MAX_PECOUNT;//670000
+
 extern index_t  BATCH_SIZE;//
 extern index_t  BLOG_SIZE;//
+extern index_t  DELTA_SIZE;
+extern index_t  DEGREE_SIZE;
+extern index_t  VUNIT_SIZE;
+
 extern index_t  W_SIZE;//Durable edge log offset
+extern index_t  DVT_SIZE;
+extern index_t  DURABLE_SIZE;//
+
 
 void free_buf(void* buf);
 void* alloc_buf();
