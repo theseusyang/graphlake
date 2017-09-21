@@ -24,29 +24,29 @@ llama_pagerank(ext_vunit_t* v_units, degree_t* degree_out,
         assert(0);
     }
 	
-    double* rank_array = 0;
-	double* prior_rank_array = 0;
-    double* dset = 0;
+    float* rank_array = 0;
+	float* prior_rank_array = 0;
+    float* dset = 0;
 	
     double start = mywtime();
     
-    rank_array = (double*)calloc(v_count, sizeof(double));
-    prior_rank_array = (double*)calloc(v_count, sizeof(double));
-    dset = (double*)calloc(v_count, sizeof(double));
+    rank_array = (float*)calloc(v_count, sizeof(float));
+    prior_rank_array = (float*)calloc(v_count, sizeof(float));
+    dset = (float*)calloc(v_count, sizeof(float));
 	
 	//initialize the rank, and get the degree information
     
-    double	inv_count = 1.0/v_count;
+    float	inv_count = 1.0f/v_count;
 
     #pragma omp parallel 
     { 
     degree_t degree = 0;
-    double   inv_degree = 0;
+    float   inv_degree = 0;
     #pragma omp for
     for (vid_t v = 0; v < v_count; ++v) {
         degree = degree_out[v];
         if (degree != 0) {
-            inv_degree = 1.0/degree;
+            inv_degree = 1.0f/degree;
             dset[v] = inv_degree;
             prior_rank_array[v] = inv_count*inv_degree;
         } else {
@@ -56,7 +56,7 @@ llama_pagerank(ext_vunit_t* v_units, degree_t* degree_out,
     }
     }
 
-    double	inv_v_count = 0.15/v_count;
+    float	inv_v_count = 0.15f/v_count;
 
 	//let's run the pagerank
 	for (int iter = 0; iter < iteration_count; ++iter) {
@@ -70,7 +70,7 @@ llama_pagerank(ext_vunit_t* v_units, degree_t* degree_out,
             index_t         offset  = 0;
 
             ext_vunit_t* v_unit = 0;
-            double rank = 0.0; 
+            float rank = 0.0f; 
             
             #pragma omp for  
             for (vid_t v = 0; v < v_count; v++) {
@@ -81,7 +81,7 @@ llama_pagerank(ext_vunit_t* v_units, degree_t* degree_out,
                 durable_adjlist = (durable_adjlist_t<T>*)(edges + offset);
                 adj_list = durable_adjlist->get_adjlist();
 
-                rank = 0.0;
+                rank = 0.0f;
                 
                 //traverse the delta adj list
                 for (degree_t i = 0; i < durable_degree; ++i) {
@@ -92,7 +92,7 @@ llama_pagerank(ext_vunit_t* v_units, degree_t* degree_out,
             }
             
             
-            double new_rank = 0;
+            float new_rank = 0.0f;
             
             #pragma omp for
             for (vid_t v = 0; v < v_count; v++ ) {
