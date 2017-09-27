@@ -328,6 +328,7 @@ public:
 
     inline void increment_count(vid_t vid) { 
         __sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
+        //++nebr_count[vid].add_count;
     }
     inline void decrement_count(vid_t vid) { 
         __sync_fetch_and_add(&nebr_count[vid].del_count, 1L);
@@ -385,7 +386,14 @@ public:
 		v_unit->reset();
 		return v_unit;
 	}	
-	//delta adj list allocation
+
+    //don't reset    
+    inline vunit_t<T>* new_vunit(write_seg_t* seg, vid_t v) {
+		vid_t index1 = (seg->my_vunit_head + v) % vunit_count;
+		return  (vunit_beg + vunit_ind[index1]);//new_vunit();
+	}	
+	
+    //delta adj list allocation
 	inline delta_adjlist_t<T>* new_delta_adjlist(degree_t count) {
         //It will have issues, in some T sizes, not fixed yet
         degree_t new_count = count*sizeof(T) + sizeof(delta_adjlist_t<T>);
@@ -393,7 +401,7 @@ public:
 		assert(index_adjlog  < adjlog_count); 
 		return (delta_adjlist_t<T>*)(adjlog_beg + index_adjlog);
 	}
-
+    
 	//in-memory snap degree
 	inline snapT_t<T>* new_snapdegree() {
 		index_t index_dlog  = __sync_fetch_and_add(&dlog_head, 1L);
@@ -407,8 +415,36 @@ public:
         ++seg->dvt_count;
 		//assert();
 		return seg->dvt + j;
-		
 	}
+    
+    // -------------------- BULK ------------------    
+	inline index_t new_vunit_bulk2(vid_t count) {
+		index_t index = vunit_head;
+        vunit_head += count; 
+		return index;
+	}
+
+	inline char* new_delta_adjlist_bulk(index_t count) {
+		index_t index_adjlog = __sync_fetch_and_add(&adjlog_head, count);
+		assert(index_adjlog  < adjlog_count); 
+		return (adjlog_beg + index_adjlog);
+    }
+    
+    inline snapT_t<T>* new_snapdegree_bulk(vid_t count) {
+		index_t index_dlog  = __sync_fetch_and_add(&dlog_head, count);
+		assert(index_dlog   < dlog_count);
+		return (dlog_beg + index_dlog);
+	}
+    
+    inline vunit_t<T>* new_vunit_bulk(vid_t count) {
+		index_t index = __sync_fetch_and_add(&vunit_head, count);
+		vid_t index1 = index % vunit_count;
+		vunit_t<T>* v_unit = vunit_beg + vunit_ind[index1];
+		v_unit->reset();
+		return v_unit;
+	}	
+	
+	
 
     inline void reset_count(vid_t vid) {
         nebr_count[vid].add_count = 0;
