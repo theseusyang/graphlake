@@ -191,6 +191,7 @@ llama_bfs(ext_vunit_t* v_units, int etf, vid_t v_count, uint8_t* status, sid_t r
     double end1 = mywtime();
     cout << "BFS Time = " << end1 - start1 << endl;
 
+	/*
     for (int l = 1; l < level; ++l) {
         vid_t vid_count = 0;
         #pragma omp parallel for reduction (+:vid_count) 
@@ -198,7 +199,7 @@ llama_bfs(ext_vunit_t* v_units, int etf, vid_t v_count, uint8_t* status, sid_t r
             if (status[v] == l) ++vid_count;
         }
         cout << " Level = " << l << " count = " << vid_count << endl;
-    }
+    }*/
 }
 
 //Only directed graph
@@ -234,7 +235,7 @@ void llama_test_bfs(const string& odir)
         }
         count -= read_count;
     }
-   
+	close(vtf); 
     free(dvt);
     
     // READ etable
