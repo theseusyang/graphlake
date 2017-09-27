@@ -115,6 +115,37 @@ void plaingraph_manager::schema_weightedgraphu()
     ++p_info;
 }
 
+void plaingraph_manager::schema_weightedgraphd()
+{
+    g->cf_info = new cfinfo_t*[2];
+    g->p_info = new pinfo_t[2];
+    
+    pinfo_t*    p_info    = g->p_info;
+    cfinfo_t*   info      = 0;
+    const char* longname  = 0;
+    const char* shortname = 0;
+    
+    longname = "gtype";
+    shortname = "gtype";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new typekv_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
+    
+    longname = "friend";
+    shortname = "friend";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new p_dgraph_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    ++p_info;
+}
+
 
 void plaingraph_manager::setup_graph(vid_t v_count)
 {
@@ -162,153 +193,8 @@ void plaingraph_manager::setup_weightedgraph_memory(vid_t v_count)
 }
 
 extern vid_t v_count;
-void plaingraph_manager::prep_weighted_rmat(const string& graph_file, const string& action_file)
-{
-    int fd = open(graph_file.c_str(), O_RDONLY);
-    assert(fd != -1);
-    index_t size = fsize(fd);
-    int64_t* buf = (int64_t*)malloc(size);
-    pread(fd, buf, size, 0);
-    int64_t little_endian = buf[0];
-    assert(little_endian == 0x1234ABCD);
 
-    int64_t nv = buf[1]; 
-    int64_t ne = buf[2];
-    int64_t* v_offset = buf + 3;
-    int64_t* index = v_offset + nv + 1; //+1 for offset in CSR 
-    int64_t* weight = index + ne;
-    lite_edge_t* nebrs = (lite_edge_t*)malloc(ne*sizeof(lite_edge_t));
-
-    for (int64_t i = 0; i < ne; i++) {
-        nebrs[i].first = index[i];
-        nebrs[i].second.value_64b = weight[i];  
-    }
-
-    //Create number of vertex
-    v_count = nv;
-    setup_weightedgraph(v_count);
-    
-    //Do ingestion
-    /*
-     * We are doing something to be compliant with stinger test
-     * 1. the graph file is CSR file, we don't expect that
-     * 2. The graph already stores the reverse edge, we don't expect that
-     * 3. Stinger does something directly with the memory that is allocated 
-     *      for graph read, for initial graph building.
-     */
-    propid_t cf_id = g->get_cfid("friend");
-    pgraph_t<lite_edge_t>*    graph = (pgraph_t<lite_edge_t>*)g->cf_info[cf_id];
-    blog_t<lite_edge_t>*       blog = graph->blog;
-    onegraph_t<lite_edge_t>* sgraph = graph->sgraph[0];
-    nebrcount_t<lite_edge_t>* degree_array = sgraph->nebr_count;
-    
-    double start = mywtime();
-    
-    #pragma omp parallel
-    {
-        index_t   nebr_count = 0;
-        
-        #pragma omp for
-        for (int64_t v = 0; v < nv; ++v) {
-            nebr_count = v_offset[v+1] - v_offset[v];
-            degree_array[v].add_count = nebr_count;
-        }
-        sgraph->setup_adjlist();
-        
-        #pragma omp for
-        for (int64_t v = 0; v < nv; ++v) {
-            nebr_count = v_offset[v+1] - v_offset[v];
-            sgraph->add_nebr_bulk(v, nebrs + v_offset[v], nebr_count);
-        }
-    }
-    
-    double end = mywtime();
-    
-    blog->blog_head += ne;
-    index_t marker = blog->blog_head;
-    index_t snap_marker = 0;
-    if (marker == 0) return;
-
-    graph->create_marker(marker);
-    if (eOK == graph->move_marker(snap_marker)) {
-        blog->blog_tail = marker;
-        //graph->make_graph_baseline();
-        //graph->store_graph_baseline();
-        g->incr_snapid(snap_marker, snap_marker);
-    }
-    cout << "Batch time = " << end - start << endl;
-    end = mywtime();
-    cout << "make graph marker = " << marker << endl;
-    cout << "Make graph time = " << end - start << endl;
-
-    free(buf);
-    free(nebrs);
-
-
-
-    //-------Graph Updates-------
-    g->create_snapthread();
-    int fd1 = open(action_file.c_str(), O_RDONLY);
-    assert(fd1 != -1);
-    index_t size1 = fsize(fd1);
-    int64_t* buf1 = (int64_t*)malloc(size1);
-    pread(fd1, buf1, size1, 0);
-    int64_t little_endian1 = buf1[0];
-    assert(little_endian1 == 0x1234ABCD);
-
-    int64_t na = buf1[1];
-    edge_t* edges = (edge_t*)(buf1 + 2);
-
-    //Do ingestion
-    start = mywtime();
-    int64_t del_count = 0;
-    
-    //#pragma omp parallel 
-    { 
-    int64_t src, dst;
-    edgeT_t<lite_edge_t> edge;
-
-    //#pragma omp for reduction(+:del_count)
-    for (int64_t i = 0; i < na; i++) {
-        src = edges[i].src_id;
-        edge.dst_id.second.value_64b = 1;
-        dst = edges[i].dst_id;
-        if (src >= 0) {
-            edge.src_id = src;
-            edge.dst_id.first = dst;
-            graph->batch_edge(edge);
-        } else {
-            edge.src_id = DEL_SID(-src);
-            edge.dst_id.first = DEL_SID(-dst);
-            graph->batch_edge(edge);
-            ++del_count;
-        }
-    }
-    }
-    
-    end = mywtime();
-    
-    marker = blog->blog_head;
-    if (marker != blog->blog_marker) {
-        graph->create_marker(marker);
-    }
-    
-    //if (eOK == graph->move_marker(snap_marker)) {
-        //graph->make_graph_baseline();
-        //graph->store_graph_baseline();
-        //g->incr_snapid(snap_marker, snap_marker);
-    //}
-    cout << "batch Edge time = " << end - start << endl;
-    cout << "no of actions " << na << endl;
-    cout << "del_count "<<del_count << endl;
-    while (blog->blog_tail != blog->blog_head) {
-        usleep(10);
-    }
-    end = mywtime();
-    cout << "Make graph time = " << end - start << endl;
-}
-
-void plaingraph_manager::prep_graph_sync(const string& idirname, const string& odirname)
+void prep_graph_sync(const string& idirname, const string& odirname)
 {
     struct dirent *ptr;
     DIR *dir;

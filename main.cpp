@@ -86,8 +86,10 @@ int main(int argc, char* argv[])
     g->set_odir(odir);
     switch (convert) {
         case 0:
-        lubm_test0(typefile, idir, odir);
+        plain_test(v_count, idir, odir, job);
             break;
+
+#ifdef B64
         case 1:
         lubm_test1(typefile, idir, odir);
             break;
@@ -95,7 +97,7 @@ int main(int argc, char* argv[])
         lubm_test2(odir);
             break;
         case 3:
-            plain_test(v_count, idir, odir, job);
+        lubm_test0(typefile, idir, odir);
             break;
         case 10:
             ldbc_test0(typefile, idir, odir);
@@ -106,6 +108,7 @@ int main(int argc, char* argv[])
         case 20:
             darshan_test0(typefile, idir, odir);
             break;
+#endif
         default:
             break;
     }

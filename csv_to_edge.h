@@ -18,6 +18,7 @@ class plaingraph_manager {
     static void schema_plaingraph();
     static void schema_plaingraphd();
     static void schema_weightedgraphu();
+    static void schema_weightedgraphd();
     
     static void setup_graph(vid_t v_count);
     static void setup_weightedgraph(vid_t v_count);

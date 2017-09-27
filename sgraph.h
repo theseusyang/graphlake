@@ -601,6 +601,7 @@ void onegraph_t<T>::setup_adjlist()
     vid_t    v_count = TO_VID(super_id);
     degree_t count, del_count, total_count;
 	vunit_t<T>* v_unit = 0;
+    snapT_t<T>* curr;
     index_t my_vunit_count = 0;
     index_t my_dsnap_count = 0;
     index_t my_delta_size = 0;
@@ -619,26 +620,23 @@ void onegraph_t<T>::setup_adjlist()
             }
             v_unit = beg_pos[vid].get_vunit();
             my_vunit_count += (v_unit == 0);
-            ++my_dsnap_count;
+            //++my_dsnap_count;
+            curr = beg_pos[vid].get_snapblob();
+            my_dsnap_count += (curr == 0);
             my_delta_size += total_count;
         }            
     }
 
-    vunit_t<T>* my_vunit_beg = vunit_beg + __sync_fetch_and_add(&vunit_head,
-                                                             my_vunit_count);
-    snapT_t<T>* my_dlog_beg = dlog_beg 
-							  +__sync_fetch_and_add(&dlog_head, my_dsnap_count);
+    vunit_t<T>* my_vunit_beg = new_vunit_bulk(my_vunit_count);
+    snapT_t<T>* my_dlog_beg = new_snapdegree_bulk(my_dsnap_count);
 
     assert(dlog_head <= dlog_count);
 
 	index_t new_count = my_delta_size*sizeof(T) 
 						+ my_dsnap_count*sizeof(delta_adjlist_t<T>);
-    char*  my_adjlog_beg = adjlog_beg +__sync_fetch_and_add(&adjlog_head, new_count);
-
-    assert(adjlog_head <=adjlog_count);
+    char*  my_adjlog_beg = new_delta_adjlist_bulk(new_count);
 
     snapid_t snap_id = g->get_snapid() + 1;
-    snapT_t<T>* curr;
 	delta_adjlist_t<T>* prev_delta = 0;
 	delta_adjlist_t<T>* delta_adjlist = 0;
     index_t delta_metasize = sizeof(delta_adjlist_t<T>);
@@ -678,7 +676,7 @@ void onegraph_t<T>::setup_adjlist()
             }
 
 			nebr_count[vid].adj_list = delta_adjlist;
-        
+            /* 
             //allocate new snapshot for degree, and initialize
 			snapT_t<T>* next    = my_dlog_beg; 
             my_dlog_beg        += 1;
@@ -686,14 +684,26 @@ void onegraph_t<T>::setup_adjlist()
             next->snap_id       = snap_id;
             //next->next          = 0;
             next->degree        = count;
-            
+            */ 
             curr = beg_pos[vid].get_snapblob();
             if (curr) {
-                next->degree    += curr->degree;
-                next->del_count += curr->del_count;
+                curr->degree += count;
+                curr->del_count += del_count;
+            } else {
+                //allocate new snapshot for degree, and initialize
+                snapT_t<T>* next    = my_dlog_beg; 
+                my_dlog_beg        += 1;
+                next->del_count     = del_count;
+                next->snap_id       = snap_id;
+                //next->next          = 0;
+                next->degree        = count;
+                
+                if (curr) {
+                    next->degree    += curr->degree;
+                    next->del_count += curr->del_count;
+                }
+                beg_pos[vid].set_snapblob1(next);
             }
-
-            beg_pos[vid].set_snapblob1(next);
         }
         reset_count(vid);
     }
@@ -882,8 +892,7 @@ void onegraph_t<T>::prepare_dvt(write_seg_t* seg, vid_t& last_vid)
             (seg->dvt_count >= dvt_max_count)) {
             last_vid = vid;
             log_tail += seg->log_head;
-			seg->my_vunit_head = vunit_head;
-			vunit_head += seg->dvt_count;
+			seg->my_vunit_head = new_vunit_bulk2(seg->dvt_count);
             return;
 		}
         
@@ -901,8 +910,7 @@ void onegraph_t<T>::prepare_dvt(write_seg_t* seg, vid_t& last_vid)
 
     last_vid = v_count;
     log_tail += seg->log_head;
-	seg->my_vunit_head = vunit_head;
-	vunit_head += seg->dvt_count;
+	seg->my_vunit_head = new_vunit_bulk2(seg->dvt_count);
     return;
 }
 /*
@@ -979,8 +987,7 @@ void onegraph_t<T>::adj_update(write_seg_t* seg)
 	for (vid_t v = 0; v < seg->dvt_count; ++v) {
 		dvt1 = seg->dvt + v;
 		vid = dvt1->vid;
-		vid_t index1 = (seg->my_vunit_head + v) % vunit_count;
-		v_unit =   vunit_beg + vunit_ind[index1] ;//new_vunit();
+		v_unit =   new_vunit(seg, v);
 		beg_pos[vid].set_vunit(v_unit);
 	}
 
@@ -1038,8 +1045,7 @@ void onegraph_t<T>::adj_prep(write_seg_t* seg)
         //index_t sz_to_write = total_count*sizeof(T) + sizeof(durable_adjlist_t<T>);
 		//pwrite (etf, durable_adjlist, sz_to_write, dvt1->file_offset);
 
-		vid_t index1 = (seg->my_vunit_head + v) % vunit_count;
-		v_unit =   vunit_beg + vunit_ind[index1] ;//new_vunit();
+		v_unit =   new_vunit(seg, v);
 		v_unit->reset();
 		v_unit->count = total_count;
 		v_unit->offset = dvt1->file_offset;// + log_tail;
@@ -1731,7 +1737,7 @@ void ugraph<T>::make_graph_baseline()
     fill_adj_list(sgraph, sgraph);
     }
     //end = mywtime();
-    //cout << "calc edge time = " << end - start << endl;
+    //cout << "calc degree time = " << end - start << endl;
     //
     //start = mywtime(); 
     //prefix sum then reset the count
@@ -2828,3 +2834,43 @@ pgraph_t::extend_kv_td(skv_t** skv, srset_t* iset, srset_t* oset)
     return eOK;
 }
 */
+
+//estimate edge count
+//template <class T>
+//class local_edgelog_t {
+// public:
+//     local_edgelog_t<T>* next;
+//     edgeT_t<T>* edges;
+//}
+//
+//template <class T>
+//void pgraph_t<T>::edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in) 
+//{
+//    sid_t     src, dst;
+//    vid_t     vert1_id, vert2_id;
+//    tid_t     src_index, dst_index;
+//    edgeT_t<T>* edges = blog->blog_beg;
+//    index_t index = 0;
+//
+//    edgeT_t<T>* 
+//   
+//    #pragma omp for
+//    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
+//        index = (i % blog->blog_count);
+//        src = edges[index].src_id;
+//        dst = get_sid(edges[index].dst_id);
+//        
+//        src_index = TO_TID(src);
+//        dst_index = TO_TID(dst);
+//        vert1_id = TO_VID(src);
+//        vert2_id = TO_VID(dst);
+//
+//        if (!IS_DEL(src)) { 
+//            sgraph_out[src_index]->increment_count(vert1_id);
+//            sgraph_in[dst_index]->increment_count(vert2_id);
+//        } else { 
+//            sgraph_out[src_index]->decrement_count(vert1_id);
+//            sgraph_in[dst_index]->decrement_count(vert2_id);
+//        }
+//    }
+//}

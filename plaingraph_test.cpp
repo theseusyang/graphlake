@@ -10,30 +10,34 @@
 #include "snap_iterative_analytics.h"
 
 using namespace std;
+
+void prep_graph_sync(const string& idirname, const string& odirname);
     
 extern index_t residue;
 vid_t v_count = 0;
 
+template <class T>
 void split_graph(const string& idirname, const string& odirname)
 {
-    plaingraph_manager::schema_plaingraph();
     
     struct dirent *ptr;
     DIR *dir;
     int file_count = 0;
     string filename;
-    propid_t cf_id = g->get_cfid("friend");
-    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
         
     FILE* file = 0;
     index_t size =  0;
     index_t edge_count = 0;
-    blog_t<sid_t>* blog = ugraph->blog;
+
+    blog_t<T> my_blog; 
+    blog_t<T>* blog = &my_blog;
+    memset(blog, sizeof(my_blog), 0);
+    blog->blog_beg = (edgeT_t<T>*) calloc((1L<<33), sizeof(edgeT_t<T>)); 
     
     //Read graph files
     double start = mywtime();
     dir = opendir(idirname.c_str());
-    edge_t* edge = blog->blog_beg;
+    edgeT_t<T>* edge = blog->blog_beg;
     while (NULL != (ptr = readdir(dir))) {
         if (ptr->d_name[0] == '.') continue;
         filename = idirname + "/" + string(ptr->d_name);
@@ -42,9 +46,9 @@ void split_graph(const string& idirname, const string& odirname)
         file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
         assert(file != 0);
         size = fsize(filename);
-        edge_count = size/sizeof(edge_t);
+        edge_count = size/sizeof(edgeT_t<T>);
         edge = blog->blog_beg + blog->blog_head;
-        if (edge_count != fread(edge, sizeof(edge_t), edge_count, file)) {
+        if (edge_count != fread(edge, sizeof(edgeT_t<T>), edge_count, file)) {
             assert(0);
         }
         blog->blog_head += edge_count;
@@ -72,7 +76,7 @@ void split_graph(const string& idirname, const string& odirname)
         assert(file  != 0);
         edge_count = new_marker - old_marker;
         if (edge_count != fwrite(blog->blog_beg + old_marker, 
-                                 sizeof(edge_t), edge_count, file)) {
+                                 sizeof(edgeT_t<T>), edge_count, file)) {
             assert(0);
         }
         fclose(file);
@@ -88,7 +92,7 @@ void plain_test0(const string& idir, const string& odir)
     plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_sync(idir, odir);
+    prep_graph_sync(idir, odir);
     
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
@@ -131,7 +135,7 @@ void plaind_test0(const string& idir, const string& odir)
     plaingraph_manager::schema_plaingraphd();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_sync(idir, odir);
+    prep_graph_sync(idir, odir);
     
     propid_t cf_id = g->get_cfid("friend");
     pgraph_t<sid_t>* pgraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
@@ -168,7 +172,20 @@ void plaind_test0(const string& idir, const string& odir)
                    v_count, level_array, 1);
     return ;
 }
+            
+void weight_dtest0(const string& idir, const string& odir)
+{
+    plaingraph_manager::schema_weightedgraphd();
+    plaingraph_manager::setup_weightedgraph(v_count);    
+}
 
+void weight_dtest1(const string& odir)
+{
+    plaingraph_manager::schema_weightedgraphu();
+    plaingraph_manager::setup_weightedgraph(v_count);    
+}
+
+//template <class T>
 void weighted_dtest0(const string& idir, const string& odir)
 {
     
@@ -198,7 +215,7 @@ void weighted_dtest0(const string& idir, const string& odir)
 
     for (int64_t i = 0; i < ne; i++) {
         nebrs[i].first = index[i];
-        nebrs[i].second.value_64b = weight[i];  
+        nebrs[i].second.value = weight[i];  
     }
 
     //Create number of vertex
@@ -324,7 +341,7 @@ void weighted_dtest0(const string& idir, const string& odir)
     //#pragma omp for reduction(+:del_count)
     for (int64_t i = 0; i < na; i++) {
         src = edges[i].src_id;
-        edge.dst_id.second.value_64b = 1;
+        edge.dst_id.second.value = 1;
         dst = edges[i].dst_id;
         if (src >= 0) {
             edge.src_id = src;
@@ -929,16 +946,16 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             plain_test2(odir);
             break;
         case 3:
-            split_graph(idir, odir);
+            split_graph<sid_t>(idir, odir);
             break;
         case 4:
-            plain_test4(idir, odir);
+            split_graph<lite_edge_t>(idir, odir);
             break;
         case 5:
-            plain_test5(odir);
+            weight_dtest0(idir, odir);
             break;
         case 6:
-            plain_test6(odir);
+            weight_dtest1(odir);
             break;
         case 7:
             plaind_test0(idir, odir);
@@ -947,6 +964,7 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             plaind_test1(odir);
             break;
         case 9:
+            //stinger test
             weighted_dtest0(idir, odir);
             break;
         case 10:
@@ -979,6 +997,11 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
         case 19:
             llama_test_pr(odir);
             break;
+        
+        case 100:
+            //plain_test4(idir, odir);
+            //plain_test5(odir);
+            plain_test6(odir);
         default:
             break;
     }
