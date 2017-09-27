@@ -10,28 +10,30 @@ SRC=main.cpp \
 	cf_info.cpp\
 	graph.cpp\
 	sgraph.cpp\
-	mlabel.cpp\
 	stringkv.cpp\
 	typekv.cpp\
     vgraph.cpp\
 	nt_to_edge.cpp\
 	csv_to_edge.cpp\
-	darshan_to_edge.cpp\
 	plain_to_edge.cpp\
 	query_triple.cpp\
 	graph_query.cpp\
 	graph_base.cpp\
 	rset.cpp\
-	prop_encoder.cpp\
 	propkv.cpp\
-	lubm_test1.cpp\
-	ldbc_test.cpp\
-	darshan_test.cpp\
 	plaingraph_test.cpp\
 	llama_test.cpp\
 	
 #lite_sgraph.cpp\
 #p_sgraph.cpp\
+
+
+SRC64=mlabel.cpp\
+	prop_encoder.cpp\
+	lubm_test1.cpp\
+	darshan_to_edge.cpp\
+	darshan_test.cpp\
+	ldbc_test.cpp\
 
 HEADER=graph.h\
 	cf_info.h\
@@ -71,7 +73,7 @@ ${EXE1}: $(DEPS)
 	$(CC) $(CFLAGS) -DB32 -DPLAIN_GRAPH $(INCLUDES) $(LIBDIRS) $(SRC)  -o ${EXE1}
 
 ${EXE2}: $(DEPS)
-	$(CC) $(CFLAGS) -DB64 -DPLAIN_GRAPH $(INCLUDES) $(LIBDIRS) $(SRC)  -o ${EXE2}
+	$(CC) $(CFLAGS) -DB64 -DPLAIN_GRAPH $(INCLUDES) $(LIBDIRS) $(SRC) ${SRC64} -o ${EXE2}
 
 clean:
 	rm ${EXE1} ${EXE2} 

@@ -9,6 +9,8 @@
 #include "typekv.h"
 #include "propkv.h"
 #include "stringkv.h"
+#ifdef B64
 #include "mlabel.h"
+#endif
 
 

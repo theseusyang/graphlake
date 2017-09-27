@@ -77,11 +77,14 @@ void graph::register_instances()
     graph_instance.insert(pair<string,get_graph_instance>("p_one2one_t", p_one2one_t::create_instance));
     graph_instance.insert(pair<string,get_graph_instance>("p_one2many_t", p_one2many_t::create_instance));
     graph_instance.insert(pair<string,get_graph_instance>("p_many2one_t", p_many2one_t::create_instance));
-    
+   
+#ifdef B64 
     encoder_instance.insert(pair<string,get_encoder_instance>("time_encoder_t", time_encoder_t::create_instance));
     encoder_instance.insert(pair<string,get_encoder_instance>("int64_encoder_t", int64_encoder_t::create_instance));
     encoder_instance.insert(pair<string,get_encoder_instance>("double_encoder_t", double_encoder_t::create_instance));
     encoder_instance.insert(pair<string,get_encoder_instance>("embedstr_encoder_t", embedstr_encoder_t::create_instance));
+#endif
+
 }
 
 void graph::create_schema(propid_t count, const string& conf_file)

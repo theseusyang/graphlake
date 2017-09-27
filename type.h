@@ -129,17 +129,25 @@ enum status_t {
 };
 
 typedef union __univeral_type {
-    char*    value_charp;
-    char     value_string[8];
-    double   value_double;
-    int64_t value_64b;
     uint8_t  value_8b;
     uint16_t value16b;
     tid_t    value_tid;
     vid_t    value_vid;
     sid_t    value_sid;
+    sid_t    value;
+    float    value_float;
+
+#ifdef B32   
+    char     value_string[4];
+    sid_t    value_charp;
+#else     
+    char     value_string[8];
+    int64_t  value_64b;
     eid_t    value_eid;
     time_t   value_time;
+    char*    value_charp;
+    double   value_double;
+#endif
 }univ_t;
 
 
