@@ -931,6 +931,7 @@ void paper_test_hop2(const string& idir, const string& odir)
 
 void llama_test_bfs(const string& odir);
 void llama_test_pr(const string& odir);
+void llama_test_pr_push(const string& odir);
 
 void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
 {
@@ -996,6 +997,9 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             break;
         case 19:
             llama_test_pr(odir);
+            break;
+        case 20:
+            llama_test_pr_push(odir);
             break;
         
         case 100:
