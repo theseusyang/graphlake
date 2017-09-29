@@ -152,26 +152,33 @@ class nebrcount_t {
     /*
     inline void add_nebr(vid_t index, sid_t sid) { 
         T* adj_list1 = adj_list->get_adjlist();
-        adj_list->incr_nebrcount_atomically();
+        adj_list->incr_nebrcount();
         add_nebr1(adj_list1, index, sid);
         //adj_list1[index] = sid;
     }
 
     inline void add_nebr_lite(vid_t index, sid_t sid, univ_t value) {
-        adj_list->incr_nebrcount_atomically();
+        adj_list->incr_nebrcount();
         add_nebr2(adj_list->get_adjlist(), index, sid, value);
     }
     */
 
     inline void add_nebr(sid_t sid) { 
         T* adj_list1 = adj_list->get_adjlist();
-        degree_t index = adj_list->incr_nebrcount_atomically();
+        degree_t index = adj_list->incr_nebrcount();
+        add_nebr1(adj_list1, index, sid);
+        //adj_list1[index] = sid;
+    }
+    
+    inline void add_nebr_noatomic(sid_t sid) { 
+        T* adj_list1 = adj_list->get_adjlist();
+        degree_t index = adj_list->incr_nebrcount_noatomic();
         add_nebr1(adj_list1, index, sid);
         //adj_list1[index] = sid;
     }
 
     inline void add_nebr_lite(sid_t sid, univ_t value) {
-        degree_t index = adj_list->incr_nebrcount_atomically();
+        degree_t index = adj_list->incr_nebrcount();
         add_nebr2(adj_list->get_adjlist(), index, sid, value);
     }
     
@@ -328,10 +335,16 @@ public:
 
     inline void increment_count(vid_t vid) { 
         __sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
-        //++nebr_count[vid].add_count;
     }
+    inline void increment_count_noatomic(vid_t vid) { 
+        ++nebr_count[vid].add_count;
+    }
+
     inline void decrement_count(vid_t vid) { 
         __sync_fetch_and_add(&nebr_count[vid].del_count, 1L);
+    }
+    inline void decrement_count_noatomic(vid_t vid) { 
+        ++nebr_count[vid].del_count;
     }
     
     inline void add_nebr(vid_t vid, sid_t sid) {
@@ -341,6 +354,15 @@ public:
         //degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
         //nebr_count[vid].add_nebr(index, sid);
         nebr_count[vid].add_nebr(sid);
+    }
+    
+    inline void add_nebr_noatomic(vid_t vid, sid_t sid) {
+        if (IS_DEL(sid)) { 
+            return del_nebr(vid, sid);
+        }
+        //degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
+        //nebr_count[vid].add_nebr(index, sid);
+        nebr_count[vid].add_nebr_noatomic(sid);
     }
     
     inline void add_nebr_lite(vid_t vid, sid_t sid, univ_t value) { 
