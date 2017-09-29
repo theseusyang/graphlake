@@ -4,8 +4,8 @@ EXE2=graphone64
 EXE3=graphlake32
 EXE4=graphlake64
 #CFLAGS=-g -Wall -std=gnu++11  -march=native -DB64 -fopenmp
-CFLAGS=-g -Wall -std=gnu++11 -march=native -fopenmp -lpthread
-#CFLAGS=-O3 -Wall -std=gnu++11  -march=native -fopenmp -lpthread
+#CFLAGS=-g -Wall -std=gnu++11 -march=native -fopenmp -lpthread
+CFLAGS=-O3 -Wall -std=gnu++11  -march=native -fopenmp -lpthread
 SRC=main.cpp \
 	cf_info.cpp\
 	graph.cpp\
@@ -38,6 +38,7 @@ SRC64=mlabel.cpp\
 HEADER=graph.h\
 	cf_info.h\
 	sgraph.h\
+	sgraph2.h\
 	prop_encoder.h\
 	propkv.h\
 	stringkv.h\

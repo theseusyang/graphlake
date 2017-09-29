@@ -1391,6 +1391,127 @@ void pgraph_t<T>::read_sgraph(onegraph_t<T>** sgraph)
         //sgraph[i]->read_etable(etfile);
     }
 }
+
+
+template <class T>
+void pgraph_t<T>::fill_adj_list(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in)
+{
+    sid_t     src, dst2; 
+    T         src2, dst;
+    vid_t     vert1_id, vert2_id;
+    tid_t     src_index, dst_index;
+    
+    edgeT_t<T>*   edges = blog->blog_beg;
+
+    index_t index = 0;
+    #pragma omp for
+    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
+        index = (i % blog->blog_count);
+        src = edges[index].src_id;
+        dst = edges[index].dst_id;
+        
+        src_index = TO_TID(src);
+        vert1_id = TO_VID(src);
+        sgraph_out[src_index]->add_nebr(vert1_id, dst);
+        
+        dst2 = get_sid(dst);
+        set_sid(src2, src);
+        set_weight(src2, dst);
+
+        dst_index = TO_TID(dst2);
+        vert2_id = TO_VID(dst2);
+        sgraph_in[dst_index]->add_nebr(vert2_id, src2);
+    }
+}
+
+template <class T>
+void pgraph_t<T>::fill_adj_list_in(onekv_t<T>** skv_out, onegraph_t<T>** sgraph_in) 
+{
+    sid_t src, dst2;
+    T     src2, dst;
+    vid_t     vert1_id, vert2_id;
+    tid_t     src_index, dst_index;
+    edgeT_t<T>*   edges = blog->blog_beg;
+    
+    index_t index = 0;
+    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
+        index = (i % blog->blog_count);
+        src = edges[index].src_id;
+        dst = edges[index].dst_id;
+        
+        src_index = TO_TID(src);
+        vert1_id = TO_VID(src);
+        skv_out[src_index]->set_value(vert1_id, dst);
+        
+        dst2 = get_sid(dst);
+        set_sid(src2, src);
+        set_weight(src2, dst);
+        
+        dst_index = TO_TID(dst2);
+        vert2_id = TO_VID(dst2);
+        sgraph_in[dst_index]->add_nebr(vert2_id, src2);
+    }
+}
+
+template <class T>
+void pgraph_t<T>::fill_adj_list_out(onegraph_t<T>** sgraph_out, onekv_t<T>** skv_in) 
+{
+    sid_t   src, dst2;
+    T       src2, dst;
+    vid_t   vert1_id, vert2_id;
+    tid_t   src_index, dst_index; 
+    edgeT_t<T>*   edges = blog->blog_beg;
+    
+    index_t index = 0;
+    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
+        index = (i % blog->blog_count);
+        src = edges[index].src_id;
+        dst = edges[index].dst_id;
+        
+        src_index = TO_TID(src);
+        vert1_id = TO_VID(src);
+        sgraph_out[src_index]->add_nebr(vert1_id, dst);
+        
+        dst2 = get_sid(dst);
+        set_sid(src2, src);
+        set_weight(src2, dst);
+        
+        dst_index = TO_TID(dst2);
+        vert2_id = TO_VID(dst2);
+        skv_in[dst_index]->set_value(vert2_id, src2); 
+    }
+}
+
+template <class T>
+void pgraph_t<T>::fill_skv(onekv_t<T>** skv_out, onekv_t<T>** skv_in)
+{
+    sid_t src, dst2;
+    T     src2, dst;
+    vid_t     vert1_id, vert2_id;
+    tid_t     src_index, dst_index;
+    edge_t*   edges = blog->blog_beg;
+    
+    index_t index = 0;
+    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
+        index = (i % blog->blog_count);
+        src = edges[index].src_id;
+        dst = edges[index].dst_id;
+        
+        src_index = TO_TID(src);
+        vert1_id = TO_VID(src);
+        skv_out[src_index]->set_value(vert1_id, dst); 
+        
+        dst2 = get_sid(dst);
+        set_sid(src2, src);
+        set_weight(src2, dst);
+        
+        dst_index = TO_TID(dst2);
+        vert2_id = TO_VID(dst2);
+        skv_in[dst_index]->set_value(vert2_id, src2); 
+    }
+}
+
+
 /******************** super kv *************************/
 template <class T>
 void pgraph_t<T>::read_skv(onekv_t<T>** skv)
@@ -1775,6 +1896,8 @@ void ugraph<T>::calc_degree()
 template <class T> 
 void ugraph<T>::make_graph_baseline()
 {
+    this->make_graph_u();
+    /*
     if (blog->blog_tail >= blog->blog_marker) return;
    
     double start, end;
@@ -1807,6 +1930,7 @@ void ugraph<T>::make_graph_baseline()
     end = mywtime();
     cout << "fill adj list time = " << end - start << endl;
     blog->blog_tail = blog->blog_marker;  
+    */  
 }
 
 template <class T> 

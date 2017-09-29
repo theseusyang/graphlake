@@ -65,26 +65,28 @@ void pgraph_t<T>::work_division(global_range_t<T>* global_range, thd_local_t* th
     vid_t j = 0;
     
     for (vid_t i = 1; i < range_count && j < thd_count; ++i) {
-            value = global_range[i].count;
-            if (my_portion + value > equal_work && my_portion != 0) {
-                cout << j << " " << my_portion << endl;
-                thd_local[j++].range_end = i;
-                my_portion = 0;
-            }
-            my_portion += value;
+        value = global_range[i].count;
+        if (my_portion + value > equal_work && my_portion != 0) {
+            //cout << j << " " << my_portion << endl;
+            thd_local[j++].range_end = i;
+            my_portion = 0;
+        }
+        my_portion += value;
     }
+
     if (j == thd_count)
         thd_local[j -1].range_end = range_count;
     else 
         thd_local[j++].range_end = range_count;
-    //cout << thd_local[thd_count - 1].range_end << endl;
-
+    
+    /*
     my_portion = 0;
     vid_t i1 = thd_local[j - 2].range_end;
     for (vid_t i = i1; i < range_count; i++) {
         my_portion += global_range[i1].count;
     }
     cout << j - 1 << " " << my_portion << endl;
+    */
 }
 
 
@@ -154,7 +156,8 @@ void pgraph_t<T>::fill_adjlist_noatomic(onegraph_t<T>** sgraph, global_range_t<T
     index_t total = 0;
     edgeT_t<T>* edges = 0;
     tid_t src_index;
-    sid_t src, dst;
+    sid_t src;
+    T dst;
     vid_t vert1_id;
 
     for (vid_t j = j_start; j < j_end; ++j) {
@@ -163,7 +166,7 @@ void pgraph_t<T>::fill_adjlist_noatomic(onegraph_t<T>** sgraph, global_range_t<T
         
         for (index_t i = 0; i < total; ++ i) {
             src = edges[i].src_id;
-            dst = get_sid(edges[i].dst_id);
+            dst = edges[i].dst_id;
             src_index = TO_TID(src);
             vert1_id = TO_VID(src);
 
@@ -424,6 +427,7 @@ void pgraph_t<T>::make_graph_d()
     
     free(global_range_in);
     free(thd_local_in);
+    blog->blog_tail = blog->blog_marker;  
 }
 
 template <class T>
@@ -524,4 +528,5 @@ void pgraph_t<T>::make_graph_u()
 
     free(global_range);
     free(thd_local);
+    blog->blog_tail = blog->blog_marker;  
 }

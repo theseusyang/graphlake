@@ -44,16 +44,6 @@ inline sid_t get_nebr(lite_edge_t* adj, vid_t k) {
     return adj[k].first;
 }
 
-////
-inline sid_t get_sid(lite_edge_t lite_edge)
-{
-    return lite_edge.first;
-}
-
-inline sid_t get_sid(sid_t sid)
-{
-    return sid;
-}
 
 ////
 inline void set_value1(sid_t* kv, vid_t vid, sid_t value) {
@@ -163,18 +153,18 @@ class nebrcount_t {
     }
     */
 
-    inline void add_nebr(sid_t sid) { 
+    inline void add_nebr(T sid) { 
         T* adj_list1 = adj_list->get_adjlist();
         degree_t index = adj_list->incr_nebrcount();
-        add_nebr1(adj_list1, index, sid);
-        //adj_list1[index] = sid;
+        //add_nebr1(adj_list1, index, sid);
+        adj_list1[index] = sid;
     }
     
-    inline void add_nebr_noatomic(sid_t sid) { 
+    inline void add_nebr_noatomic(T sid) { 
         T* adj_list1 = adj_list->get_adjlist();
         degree_t index = adj_list->incr_nebrcount_noatomic();
-        add_nebr1(adj_list1, index, sid);
-        //adj_list1[index] = sid;
+        //add_nebr1(adj_list1, index, sid);
+        adj_list1[index] = sid;
     }
 
     inline void add_nebr_lite(sid_t sid, univ_t value) {
@@ -262,8 +252,8 @@ public:
     nebrcount_t<T>*   nebr_count;
 
 private:    
-    inline void del_nebr(vid_t vid, sid_t sid) {
-        sid_t actual_sid = TO_SID(sid); 
+    inline void del_nebr(vid_t vid, T sid) {
+        sid_t actual_sid = TO_SID(get_sid(sid)); 
         degree_t location = find_nebr(vid, actual_sid);
         if (INVALID_DEGREE != location) {
             //degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
@@ -271,14 +261,14 @@ private:
             nebr_count[vid].add_nebr(sid);
         }
     }
-
-    inline void del_nebr_lite(vid_t vid, sid_t sid, univ_t value) {
-        sid_t actual_sid = TO_SID(sid); 
+    
+    inline void del_nebr_noatomic(vid_t vid, T sid) {
+        sid_t actual_sid = TO_SID(get_sid(sid)); 
         degree_t location = find_nebr(vid, actual_sid);
         if (INVALID_DEGREE != location) {
             //degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
-            //nebr_count[vid].add_nebr_lite(index, sid, value);
-            nebr_count[vid].add_nebr_lite(sid, value);
+            //nebr_count[vid].add_nebr(index, sid);
+            nebr_count[vid].add_nebr_noatomic(sid);
         }
     }
 
@@ -348,8 +338,8 @@ public:
         ++nebr_count[vid].del_count;
     }
     
-    inline void add_nebr(vid_t vid, sid_t sid) {
-        if (IS_DEL(sid)) { 
+    inline void add_nebr(vid_t vid, T sid) {
+        if (IS_DEL(get_sid(sid))) { 
             return del_nebr(vid, sid);
         }
         //degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
@@ -357,24 +347,13 @@ public:
         nebr_count[vid].add_nebr(sid);
     }
     
-    inline void add_nebr_noatomic(vid_t vid, sid_t sid) {
-        if (IS_DEL(sid)) { 
-            return del_nebr(vid, sid);
+    inline void add_nebr_noatomic(vid_t vid, T sid) {
+        if (IS_DEL(get_sid(sid))) { 
+            return del_nebr_noatomic(vid, sid);
         }
-        //degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
-        //nebr_count[vid].add_nebr(index, sid);
         nebr_count[vid].add_nebr_noatomic(sid);
     }
     
-    inline void add_nebr_lite(vid_t vid, sid_t sid, univ_t value) { 
-        if (IS_DEL(sid)) { 
-            return del_nebr_lite(vid, sid, value);
-        }
-        //degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
-        //nebr_count[vid].add_nebr_lite(index, sid, value);
-        nebr_count[vid].add_nebr_lite(sid, value);
-    }
-
     inline void add_nebr_bulk(vid_t vid, T* adj_list1, degree_t count) {
         nebr_count[vid].add_nebr_bulk(adj_list1, count);
     }
@@ -619,24 +598,6 @@ class onekv_t {
         kv[vert1_id] = dst;
         dvt[dvt_count].vid = vert1_id;
         dvt[dvt_count].dst = dst; 
-        ++dvt_count;
-    }
-    
-    inline void set_value_lite(vid_t vert1_id, sid_t dst, univ_t value) {
-        kv[vert1_id].first = dst;
-        kv[vert1_id].second = value;
-        dvt[dvt_count].vid = vert1_id;
-        dvt[dvt_count].dst.first = dst;
-        dvt[dvt_count].dst.second = value;
-        ++dvt_count;
-    }
-    
-    inline void del_value_lite(vid_t vert1_id, sid_t dst, univ_t value) {
-        kv[vert1_id].first = dst;
-        kv[vert1_id].second = value;
-        dvt[dvt_count].vid = vert1_id;
-        dvt[dvt_count].dst.first = dst;
-        dvt[dvt_count].dst.second = value;
         ++dvt_count;
     }
     

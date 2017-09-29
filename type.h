@@ -187,6 +187,37 @@ inline void set_weight(ledge_t* edge, lite_edge_t dst_id) {
     edge->dst_id.second = dst_id.second;
 }
 
+////
+inline sid_t get_sid(lite_edge_t lite_edge)
+{
+    return lite_edge.first;
+}
+
+inline sid_t get_sid(sid_t sid)
+{
+    return sid;
+}
+
+inline void set_sid(lite_edge_t& lite_edge, sid_t sid1)
+{
+    lite_edge.first = sid1;
+}
+
+inline void set_sid(sid_t& sid , sid_t sid1)
+{
+    sid = sid1;
+}
+
+inline void set_weight(lite_edge_t& lite_edge, lite_edge_t dst)
+{
+    lite_edge.second = dst.second;
+}
+
+inline void set_weight(sid_t& sid , sid_t dst)
+{
+    return;
+}
+
 class snapshot_t {
  public:
     snapid_t snap_id;
