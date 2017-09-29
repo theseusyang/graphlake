@@ -11,6 +11,14 @@
 #include "graph.h"
 #include "wtime.h"
 
+//for each range
+template <class T>
+class global_range_t {
+  public:
+      index_t count;
+      edgeT_t<T>* edges;
+};
+
 template <class T>
 class pgraph_t: public cfinfo_t {
     public:
@@ -170,6 +178,13 @@ class pgraph_t: public cfinfo_t {
     onekv_t<T>** prep_skv(sflag_t ori_flag, onekv_t<T>** a_skv);
 
     void make_memory(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in);
+    void calc_degree(onegraph_t<T>** sgraph, global_range_t<T>* global_range, 
+                      vid_t j_start, vid_t j_end);
+    void fill_adjlist(onegraph_t<T>** sgraph, global_range_t<T>* global_range, 
+                      vid_t j_start, vid_t j_end);
+    void estimate_classify(vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift);
+    void classify(vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift, 
+            global_range_t<T>* global_range, global_range_t<T>* global_range_in);
 
     void calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in); 
     void calc_edge_count_out(onegraph_t<T>** p_sgraph_out);
@@ -1643,14 +1658,16 @@ void dgraph<T>::calc_degree()
     calc_edge_count(sgraph_out, sgraph_in);
 }
 
+#include "sgraph2.h"
+
 //We assume that no new vertex type is defined
 template <class T> 
 void dgraph<T>::make_graph_baseline()
 {
     if (blog->blog_tail >= blog->blog_marker) return;
-    //this->make_memory(sgraph_out, sgraph_in);
+    this->make_memory(sgraph_out, sgraph_in);
     
-    
+    /*
     double start, end;
     start = mywtime(); 
     #pragma omp parallel
@@ -1678,7 +1695,7 @@ void dgraph<T>::make_graph_baseline()
     }
     end = mywtime();
     cout << "fill  time = " << end-start << endl;
-    
+    */
     blog->blog_tail = blog->blog_marker;  
 }
 
@@ -2856,13 +2873,6 @@ pgraph_t::extend_kv_td(skv_t** skv, srset_t* iset, srset_t* oset)
 }
 */
 
-//for each range
-template <class T>
-class global_range_t {
-  public:
-      index_t count;
-      edgeT_t<T>* edges;
-};
 
 //for each thread 
 class thd_local_t {
@@ -2872,13 +2882,13 @@ class thd_local_t {
       vid_t  range_end;
 };
 
-#define CLEAN_THDS 32
+#define CLEAN_THDS 56
 
 template <class T>
 void pgraph_t<T>::make_memory(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in) 
 {
     vid_t v_count = sgraph_out[0]->get_vcount();
-    vid_t range_count = 512;
+    vid_t range_count = 1024;
     vid_t thd_count = CLEAN_THDS;
     vid_t  base_vid = ((v_count -1)/range_count);
     
@@ -2905,41 +2915,17 @@ void pgraph_t<T>::make_memory(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph
 
     #pragma omp parallel num_threads(CLEAN_THDS)
     {
-        //thread specific
         int tid = omp_get_thread_num();
         vid_t* vid_range = (vid_t*)calloc(sizeof(vid_t), range_count); 
         vid_t* vid_range_in = (vid_t*)calloc(sizeof(vid_t), range_count); 
         thd_local[tid].vid_range = vid_range;
         thd_local_in[tid].vid_range = vid_range_in;
 
-        sid_t     src, dst;
-        vid_t     vert1_id, vert2_id;
-        edgeT_t<T>* edges = blog->blog_beg;
-        index_t index = 0;
-        
-        vid_t range = 0;
-
         double start = mywtime();
         double end;
 
         //Get the count for classification
-        #pragma omp for
-        for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
-            index = (i % blog->blog_count);
-            src = edges[index].src_id;
-            dst = get_sid(edges[index].dst_id);
-            
-            vert1_id = TO_VID(src);
-            vert2_id = TO_VID(dst);
-
-            //gather high level info for 1
-            range = (vert1_id >> bit_shift);
-            vid_range[range]++;
-            
-            //gather high level info for 2
-            range = (vert2_id >> bit_shift);
-            vid_range_in[range]++;
-        }
+        estimate_classify(vid_range, vid_range_in, bit_shift);
         #pragma omp master 
         {
             end = mywtime();
@@ -2951,6 +2937,7 @@ void pgraph_t<T>::make_memory(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph
         index_t total_in = 0;
         index_t value = 0;
         index_t value_in = 0;
+
         #pragma omp for schedule(static)
         for (vid_t i = 0; i < range_count; ++i) {
             total = 0;
@@ -3011,38 +2998,17 @@ void pgraph_t<T>::make_memory(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph
             cout << thd_local_in[thd_count - 1].range_end << endl;
         }
         #pragma omp barrier 
-
+        
         //Classify
-        #pragma omp for
-        for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
-            index = (i % blog->blog_count);
-            src = edges[index].src_id;
-            dst = get_sid(edges[index].dst_id);
-            
-            vert1_id = TO_VID(src);
-            vert2_id = TO_VID(dst);
-            
-            range = (vert1_id >> bit_shift);
-            edgeT_t<T>* edge = global_range[range].edges + vid_range[range]++;
-            edge->src_id = src;
-            edge->dst_id = edges[index].dst_id;
-            
-            range = (vert2_id >> bit_shift);
-            edge = global_range_in[range].edges + vid_range_in[range]++;
-            edge->src_id = dst;
-            set_dst(edge, src);
-            set_weight(edge, edges[index].dst_id);
-        }
+        classify(vid_range, vid_range_in, bit_shift, global_range, global_range_in);
         #pragma omp master 
         {
             end = mywtime();
             cout << "classification 3 " << end - start << endl;
         } 
         
-        tid_t     src_index;
         vid_t     j_start, j_start_in;
         vid_t     j_end, j_end_in;
-        
         
         if (tid == 0) { j_start = 0; j_start_in = 0;}
         else { 
@@ -3054,54 +3020,20 @@ void pgraph_t<T>::make_memory(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph
         
 
         //degree count
-        for (vid_t j = j_start; j < j_end; ++j) {
-            total = global_range[j].count;
-            edges = global_range[j].edges;
-            for (index_t i = 0; i < total; ++ i) {
-                src = edges[i].src_id;
-                dst = get_sid(edges[i].dst_id);
-                
-                src_index = TO_TID(src);
-                vert1_id = TO_VID(src);
-                vert2_id = TO_VID(dst);
-
-                if (!IS_DEL(src)) { 
-                    sgraph_out[src_index]->increment_count_noatomic(vert1_id);
-                } else { 
-                    sgraph_out[src_index]->decrement_count_noatomic(vert1_id);
-                }
-            }
-        }
+        calc_degree(sgraph_out, global_range, j_start, j_end);
         #pragma omp master 
         {   
             end = mywtime();
             cout << "classification 4 " << end -start << endl;
         } 
         
-        for (vid_t j = j_start_in; j < j_end_in; ++j) {
-            total = global_range_in[j].count;
-            edges = global_range_in[j].edges;
-            
-            for (index_t i = 0; i < total; ++ i) {
-                src = edges[i].src_id;
-                dst = get_sid(edges[i].dst_id);
-                
-                src_index = TO_TID(src);
-                vert1_id = TO_VID(src);
-                vert2_id = TO_VID(dst);
-
-                if (!IS_DEL(src)) { 
-                    sgraph_in[src_index]->increment_count_noatomic(vert1_id);
-                } else { 
-                    sgraph_in[src_index]->decrement_count_noatomic(vert1_id);
-                }
-            }
-        }
+        calc_degree(sgraph_in, global_range_in, j_start_in, j_end_in);
         #pragma omp master 
         {
             end = mywtime();
             cout << "classification 5 " << end -start << endl;
-        } 
+        }
+
         #pragma omp barrier 
         prep_sgraph_internal(sgraph_out);
         prep_sgraph_internal(sgraph_in);
@@ -3112,49 +3044,20 @@ void pgraph_t<T>::make_memory(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph
         #pragma omp barrier 
         
         //fill adj-list
-        for (vid_t j = j_start; j < j_end; ++j) {
-            total = global_range[j].count;
-            edges = global_range[j].edges;
-            
-            for (index_t i = 0; i < total; ++ i) {
-                src = edges[i].src_id;
-                dst = get_sid(edges[i].dst_id);
-                
-                src_index = TO_TID(src);
-                vert1_id = TO_VID(src);
-                vert2_id = TO_VID(dst);
-
-                sgraph_out[src_index]->add_nebr_noatomic(vert1_id, dst);
-            }
-        }
+        fill_adjlist(sgraph, global_range, j_start, j_end);
         #pragma omp master 
         {
             end = mywtime();
             cout << "classification 7 " << end - start << endl;
         } 
-        
-        for (vid_t j = j_start_in; j < j_end_in; ++j) {
-            total = global_range_in[j].count;
-            edges = global_range_in[j].edges;
-
-            for (index_t i = 0; i < total; ++ i) {
-                src = edges[i].src_id;
-                dst = get_sid(edges[i].dst_id);
-                
-                src_index = TO_TID(src);
-                vert1_id = TO_VID(src);
-                vert2_id = TO_VID(dst);
-
-                sgraph_in[src_index]->add_nebr_noatomic(vert1_id, dst);
-            }
-        }
+        fill_adjlist(sgraph_in, global_range_in, j_start_in, j_end_in);
         #pragma omp master 
         {
             end = mywtime();
             cout << "classification 8 " << end - start << endl;
         }
-
         #pragma omp barrier 
+        
         //free the memory
         #pragma omp for
         for (vid_t i = 0; i < range_count; ++i) {
