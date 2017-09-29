@@ -332,6 +332,7 @@ public:
     
     void setup(tid_t tid);
     void setup_adjlist();
+    void setup_adjlist(vid_t j_start, vid_t j_end, vid_t bit_shift);
 
     inline void increment_count(vid_t vid) { 
         __sync_fetch_and_add(&nebr_count[vid].add_count, 1L);

@@ -19,6 +19,14 @@ class global_range_t {
       edgeT_t<T>* edges;
 };
 
+//for each thread 
+class thd_local_t {
+  public:
+      //For each thread
+      vid_t* vid_range;
+      vid_t  range_end;
+};
+
 template <class T>
 class pgraph_t: public cfinfo_t {
     public:
@@ -176,15 +184,20 @@ class pgraph_t: public cfinfo_t {
  public:
     onegraph_t<T>** prep_sgraph(sflag_t ori_flag, onegraph_t<T>** a_sgraph);
     onekv_t<T>** prep_skv(sflag_t ori_flag, onekv_t<T>** a_skv);
+    void make_graph_d(); 
+    void make_graph_u();
 
-    void make_memory(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in);
-    void calc_degree(onegraph_t<T>** sgraph, global_range_t<T>* global_range, 
-                      vid_t j_start, vid_t j_end);
-    void fill_adjlist(onegraph_t<T>** sgraph, global_range_t<T>* global_range, 
-                      vid_t j_start, vid_t j_end);
     void estimate_classify(vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift);
+    void prefix_sum(global_range_t<T>* global_range, thd_local_t* thd_local,
+                    vid_t range_count, vid_t thd_count);
+    void work_division(global_range_t<T>* global_range, thd_local_t* thd_local,
+                    vid_t range_count, vid_t thd_count, index_t equal_work);
     void classify(vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift, 
             global_range_t<T>* global_range, global_range_t<T>* global_range_in);
+    void calc_degree_noatomic(onegraph_t<T>** sgraph, global_range_t<T>* global_range, 
+                      vid_t j_start, vid_t j_end);
+    void fill_adjlist_noatomic(onegraph_t<T>** sgraph, global_range_t<T>* global_range, 
+                      vid_t j_start, vid_t j_end);
 
     void calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in); 
     void calc_edge_count_out(onegraph_t<T>** p_sgraph_out);
@@ -658,7 +671,7 @@ void onegraph_t<T>::setup_adjlist()
 	delta_adjlist_t<T>* delta_adjlist = 0;
     index_t delta_metasize = sizeof(delta_adjlist_t<T>);
 
-    #pragma omp for schedule(static) nowait
+    #pragma omp for schedule(static) 
     for (vid_t vid = 0; vid < v_count; ++vid) {
         del_count = nebr_count[vid].del_count;
         count = nebr_count[vid].add_count;
@@ -1658,16 +1671,14 @@ void dgraph<T>::calc_degree()
     calc_edge_count(sgraph_out, sgraph_in);
 }
 
-#include "sgraph2.h"
-
 //We assume that no new vertex type is defined
 template <class T> 
 void dgraph<T>::make_graph_baseline()
 {
-    if (blog->blog_tail >= blog->blog_marker) return;
-    this->make_memory(sgraph_out, sgraph_in);
+    this->make_graph_d();
     
     /*
+    if (blog->blog_tail >= blog->blog_marker) return;
     double start, end;
     start = mywtime(); 
     #pragma omp parallel
@@ -1695,8 +1706,9 @@ void dgraph<T>::make_graph_baseline()
     }
     end = mywtime();
     cout << "fill  time = " << end-start << endl;
+    
+    blog->blog_tail = blog->blog_marker;
     */
-    blog->blog_tail = blog->blog_marker;  
 }
 
 template <class T> 
@@ -2872,208 +2884,4 @@ pgraph_t::extend_kv_td(skv_t** skv, srset_t* iset, srset_t* oset)
     return eOK;
 }
 */
-
-
-//for each thread 
-class thd_local_t {
-  public:
-      //For each thread
-      vid_t* vid_range;
-      vid_t  range_end;
-};
-
-#define CLEAN_THDS 56
-
-template <class T>
-void pgraph_t<T>::make_memory(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in) 
-{
-    vid_t v_count = sgraph_out[0]->get_vcount();
-    vid_t range_count = 1024;
-    vid_t thd_count = CLEAN_THDS;
-    vid_t  base_vid = ((v_count -1)/range_count);
-    
-    //find the number of bits to do shift to find the range
-#if B32    
-    vid_t bit_shift = __builtin_clz(base_vid);
-    bit_shift = 32 - bit_shift; 
-#else
-    vid_t bit_shift = __builtin_clzl(base_vid);
-    bit_shift = 64 - bit_shift; 
-#endif
-
-    global_range_t<T>* global_range = (global_range_t<T>*)calloc(
-                            sizeof(global_range_t<T>), range_count);
-    
-    global_range_t<T>* global_range_in = (global_range_t<T>*)calloc(
-                            sizeof(global_range_t<T>), range_count);
-    
-    thd_local_t* thd_local = (thd_local_t*) calloc(sizeof(thd_local_t), thd_count);  
-    thd_local_t* thd_local_in = (thd_local_t*) calloc(sizeof(thd_local_t), thd_count);  
-   
-    index_t edge_count = (blog->blog_marker - blog->blog_tail)/(thd_count - 1);
-    
-
-    #pragma omp parallel num_threads(CLEAN_THDS)
-    {
-        int tid = omp_get_thread_num();
-        vid_t* vid_range = (vid_t*)calloc(sizeof(vid_t), range_count); 
-        vid_t* vid_range_in = (vid_t*)calloc(sizeof(vid_t), range_count); 
-        thd_local[tid].vid_range = vid_range;
-        thd_local_in[tid].vid_range = vid_range_in;
-
-        double start = mywtime();
-        double end;
-
-        //Get the count for classification
-        estimate_classify(vid_range, vid_range_in, bit_shift);
-        #pragma omp master 
-        {
-            end = mywtime();
-            cout << "classification 1 " << end - start << endl;
-        } 
-        
-        //Prefix Scan 
-        index_t total = 0;
-        index_t total_in = 0;
-        index_t value = 0;
-        index_t value_in = 0;
-
-        #pragma omp for schedule(static)
-        for (vid_t i = 0; i < range_count; ++i) {
-            total = 0;
-            total_in = 0;
-            for (vid_t j = 0; j < thd_count; ++j) {
-                value = thd_local[j].vid_range[i];
-                thd_local[j].vid_range[i] = total;
-                total += value;
-                
-                value_in = thd_local_in[j].vid_range[i];
-                thd_local_in[j].vid_range[i] = total_in;
-                total_in += value_in;
-
-            }
-            global_range[i].count = total;
-            if (total != 0)
-                global_range[i].edges = (edgeT_t<T>*)malloc(sizeof(edgeT_t<T>)*total);
-            
-            global_range_in[i].count = total_in;
-            if (total_in != 0)
-                global_range_in[i].edges = (edgeT_t<T>*)malloc(sizeof(edgeT_t<T>)*total_in);
-        }
-        #pragma omp master 
-        {
-            index_t my_portion = global_range[0].count;
-            vid_t j = 0;
-            
-            for (vid_t i = 1; i < range_count && j < thd_count; ++i) {
-                    value = global_range[i].count;
-                    if (my_portion + value > edge_count && my_portion != 0) {
-                        thd_local[j++].range_end = i;
-                        my_portion = 0;
-                        cout << j-1 << " " << i << endl;
-                    }
-                    my_portion += value;
-            }
-            thd_local[thd_count -1].range_end = range_count;
-            cout << thd_local[thd_count - 1].range_end << endl;
-
-            end = mywtime();
-            cout << "classification 2 " << end - start << endl;
-        }
-
-        if (tid == 1) {
-            index_t my_portion = global_range_in[0].count;
-            vid_t j = 0;
-            
-            for (vid_t i = 1; i < range_count && j < thd_count; ++i) {
-                    value = global_range_in[i].count;
-                    if (my_portion + value > edge_count && my_portion != 0) {
-                        thd_local_in[j++].range_end = i;
-                        my_portion = 0;
-                        cout << j-1 << " " << i << endl;
-                    }
-                    my_portion += value;
-            }
-            thd_local_in[thd_count -1].range_end = range_count;
-            cout << thd_local_in[thd_count - 1].range_end << endl;
-        }
-        #pragma omp barrier 
-        
-        //Classify
-        classify(vid_range, vid_range_in, bit_shift, global_range, global_range_in);
-        #pragma omp master 
-        {
-            end = mywtime();
-            cout << "classification 3 " << end - start << endl;
-        } 
-        
-        vid_t     j_start, j_start_in;
-        vid_t     j_end, j_end_in;
-        
-        if (tid == 0) { j_start = 0; j_start_in = 0;}
-        else { 
-            j_start = thd_local[tid - 1].range_end;
-            j_start_in = thd_local_in[tid - 1].range_end;
-        }
-        j_end = thd_local[tid].range_end;
-        j_end_in= thd_local_in[tid].range_end;
-        
-
-        //degree count
-        calc_degree(sgraph_out, global_range, j_start, j_end);
-        #pragma omp master 
-        {   
-            end = mywtime();
-            cout << "classification 4 " << end -start << endl;
-        } 
-        
-        calc_degree(sgraph_in, global_range_in, j_start_in, j_end_in);
-        #pragma omp master 
-        {
-            end = mywtime();
-            cout << "classification 5 " << end -start << endl;
-        }
-
-        #pragma omp barrier 
-        prep_sgraph_internal(sgraph_out);
-        prep_sgraph_internal(sgraph_in);
-        #pragma omp master 
-        {
-            cout << "classification 6 " << endl;
-        } 
-        #pragma omp barrier 
-        
-        //fill adj-list
-        fill_adjlist(sgraph, global_range, j_start, j_end);
-        #pragma omp master 
-        {
-            end = mywtime();
-            cout << "classification 7 " << end - start << endl;
-        } 
-        fill_adjlist(sgraph_in, global_range_in, j_start_in, j_end_in);
-        #pragma omp master 
-        {
-            end = mywtime();
-            cout << "classification 8 " << end - start << endl;
-        }
-        #pragma omp barrier 
-        
-        //free the memory
-        #pragma omp for
-        for (vid_t i = 0; i < range_count; ++i) {
-            if (global_range[i].edges)
-                free(global_range[i].edges);
-            
-            if (global_range_in[i].edges)
-                free(global_range_in[i].edges);
-        }
-        free(vid_range);
-        free(vid_range_in);
-    }
-
-    free(global_range);
-    free(thd_local);
-    
-    free(global_range_in);
-    free(thd_local_in);
-}
+#include "sgraph2.h"

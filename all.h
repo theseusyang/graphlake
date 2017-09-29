@@ -2,6 +2,7 @@
 #include "graph.h"
 
 #include "sgraph.h"
+#include "sgraph2.h"
 //#include "p_sgraph.h"
 //#include "lite_sgraph.h"
 /*----------- labels ------------------ */
