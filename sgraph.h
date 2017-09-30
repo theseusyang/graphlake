@@ -546,19 +546,20 @@ void onegraph_t<T>::setup(tid_t tid)
         }*/
 
 		//v_unit log
-		vunit_count = (v_count*VUNIT_SIZE);
-        if (posix_memalign((void**)&vunit_beg, 2097152, vunit_count*sizeof(vunit_t<T>))) {
+		vunit_count = (v_count << 1L);
+        if (posix_memalign((void**)&vunit_beg, 2097152, 3L*v_count*sizeof(vunit_t<T>))) {
             perror("posix memalign vunit_beg");
         }
-		if (posix_memalign((void**)&vunit_ind, 2097152, vunit_count*sizeof(vid_t))) {
+		if (posix_memalign((void**)&vunit_ind, 2097152, 2L*v_count*sizeof(vid_t))) {
             perror("posix memalign vunit_ind");
         }
         
-        total_memory += vunit_count*(sizeof(vunit_t<T>) + sizeof(vid_t));
+        total_memory += 3L*vunit_count*sizeof(vunit_t<T>) + 2L*sizeof(vid_t);
         cout << "Total Memory 2 = " << total_memory << endl;
 		
-		for (vid_t i = 0; i < vunit_count; ++i) {
-			vunit_ind[i] = i; 
+        vid_t i_end = 3L*v_count; 
+		for (vid_t i = v_count; i < i_end; ++i) {
+			vunit_ind[i-v_count] = i; 
 		}
 
     } else {
@@ -1013,13 +1014,15 @@ void onegraph_t<T>::adj_update(write_seg_t* seg)
 	vid_t vid;
 	disk_vtable_t* dvt1 = 0;
 	vunit_t<T>* v_unit = 0;
+	vunit_t<T>* v_unit1 = 0;
 
     #pragma omp for nowait 
 	for (vid_t v = 0; v < seg->dvt_count; ++v) {
 		dvt1 = seg->dvt + v;
 		vid = dvt1->vid;
 		v_unit =   new_vunit(seg, v);
-		beg_pos[vid].set_vunit(v_unit);
+		v_unit1 = beg_pos[vid].set_vunit(v_unit);
+        vunit_ind[(seg->my_vunit_head + v) % vunit_count] = v_unit1 - vunit_beg;
 	}
 
 }
@@ -1899,6 +1902,7 @@ template <class T>
 void ugraph<T>::make_graph_baseline()
 {
     this->make_graph_u();
+    
     /*
     if (blog->blog_tail >= blog->blog_marker) return;
    

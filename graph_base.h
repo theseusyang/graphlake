@@ -188,6 +188,7 @@ private:
 	//v_unit log, in-memory, fixed size log
 	//indirection will help better cleaning
 	vunit_t<T>* vunit_beg;
+    index_t     vunit_head1;
 	vid_t*		vunit_ind; //The indirection table
 	index_t     vunit_count;
 	index_t     vunit_head;
@@ -234,6 +235,7 @@ public:
 	    vunit_beg	= 0;
 		vunit_count = 0;
 		vunit_ind	= 0;
+		vunit_head1  = 0;
 		vunit_head  = 0;
 		vunit_tail  = 0;
 		vunit_wtail = 0;
@@ -310,15 +312,16 @@ public:
 
     degree_t find_nebr(vid_t vid, sid_t sid); 
     
+    /* don't use. free yourself
 	inline void set_vunit(vid_t vid, vunit_t<T>* v_unit1) {
         //prev value will be cleaned later
-		vunit_t<T>* v_unit2 = beg_pos[vid].set_vunit();
+		vunit_t<T>* v_unit2 = beg_pos[vid].set_vunit(v_unit1);
 		if (0 != v_unit2) {
 			index_t index  = __sync_fetch_and_add(&vunit_tail, 1L);
 			vid_t index1 = index % vunit_count;
 			vunit_ind[index1] = v_unit2 - vunit_beg;
 		}
-	}
+	}*/
    
     //durable adj list	
 	inline durable_adjlist_t<T>* new_adjlist(write_seg_t* seg,  degree_t count) {
@@ -330,20 +333,6 @@ public:
         assert(seg->log_head  <= log_count); 
         return  (durable_adjlist_t<T>*)(seg->log_beg + index_log);
 	}
-	
-	inline vunit_t<T>* new_vunit() {
-		index_t index = __sync_fetch_and_add(&vunit_head, 1L);
-		vid_t index1 = index % vunit_count;
-		vunit_t<T>* v_unit = vunit_beg + vunit_ind[index1];
-		v_unit->reset();
-		return v_unit;
-	}	
-
-    //don't reset    
-    inline vunit_t<T>* new_vunit(write_seg_t* seg, vid_t v) {
-		vid_t index1 = (seg->my_vunit_head + v) % vunit_count;
-		return  (vunit_beg + vunit_ind[index1]);//new_vunit();
-	}	
 	
     //delta adj list allocation
 	inline delta_adjlist_t<T>* new_delta_adjlist(degree_t count) {
@@ -368,8 +357,30 @@ public:
 		//assert();
 		return seg->dvt + j;
 	}
+	
+    //Used during read from disk
+	inline vunit_t<T>* new_vunit() {
+		index_t index = __sync_fetch_and_add(&vunit_head1, 1L);
+        assert(index < get_vcount());
+		vunit_t<T>* v_unit = vunit_beg + index;
+		v_unit->reset();
+		return v_unit;
+	}	
+
+    //don't reset    
+    inline vunit_t<T>* new_vunit(write_seg_t* seg, vid_t v) {
+		vid_t index1 = (seg->my_vunit_head + v) % vunit_count;
+		return  (vunit_beg + vunit_ind[index1]);
+	}	
     
     // -------------------- BULK ------------------    
+    inline vunit_t<T>* new_vunit_bulk(vid_t count) {
+		index_t index = __sync_fetch_and_add(&vunit_head1, count);
+		assert(index < get_vcount());
+		vunit_t<T>* v_unit = vunit_beg + index;
+		return v_unit;
+	}	
+
 	inline index_t new_vunit_bulk2(vid_t count) {
 		index_t index = vunit_head;
         vunit_head += count; 
@@ -387,17 +398,7 @@ public:
 		assert(index_dlog   < dlog_count);
 		return (dlog_beg + index_dlog);
 	}
-    
-    inline vunit_t<T>* new_vunit_bulk(vid_t count) {
-		index_t index = __sync_fetch_and_add(&vunit_head, count);
-		vid_t index1 = index % vunit_count;
-		vunit_t<T>* v_unit = vunit_beg + vunit_ind[index1];
-		v_unit->reset();
-		return v_unit;
-	}	
 	
-	
-
     inline void reset_count(vid_t vid) {
         nebr_count[vid].add_count = 0;
         nebr_count[vid].del_count = 0;
