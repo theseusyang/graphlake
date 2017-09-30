@@ -83,7 +83,7 @@ class pgraph_t: public cfinfo_t {
     }
     status_t batch_edge(edgeT_t<T> edge) {
         index_t index = __sync_fetch_and_add(&blog->blog_head, 1L);
-        index_t index1 = (index % blog->blog_count);
+        index_t index1 = (index & BLOG_MASK);
         index_t size = (index - blog->blog_marker) % BATCH_SIZE;
         if ((0 == size) && (index != blog->blog_marker)) {
             blog->blog_beg[index1] = edge;
@@ -1252,7 +1252,7 @@ void pgraph_t<T>::calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sg
    
     #pragma omp for
     for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
-        index = (i % blog->blog_count);
+        index = (i & BLOG_MASK);
         src = edges[index].src_id;
         dst = get_sid(edges[index].dst_id);
         
@@ -1282,7 +1282,7 @@ void pgraph_t<T>::calc_edge_count_out(onegraph_t<T>** sgraph_out)
     
     index_t index = 0;
     for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
-        index = (i % blog->blog_count);
+        index = (i & BLOG_MASK);
         src = edges[index].src_id;
         src_index = TO_TID(src);
         vert1_id = TO_VID(src);
@@ -1312,7 +1312,7 @@ void pgraph_t<T>::calc_edge_count_in(onegraph_t<T>** sgraph_in)
     
     index_t index = 0;
     for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
-        index = (i % blog->blog_count);
+        index = (i & BLOG_MASK);
         src = edges[index].src_id;
         dst = get_sid(edges[index].dst_id);
         dst_index = TO_TID(dst);
@@ -1408,7 +1408,7 @@ void pgraph_t<T>::fill_adj_list(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgra
     index_t index = 0;
     #pragma omp for
     for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
-        index = (i % blog->blog_count);
+        index = (i & BLOG_MASK);
         src = edges[index].src_id;
         dst = edges[index].dst_id;
         
@@ -1437,7 +1437,7 @@ void pgraph_t<T>::fill_adj_list_in(onekv_t<T>** skv_out, onegraph_t<T>** sgraph_
     
     index_t index = 0;
     for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
-        index = (i % blog->blog_count);
+        index = (i & BLOG_MASK);
         src = edges[index].src_id;
         dst = edges[index].dst_id;
         
@@ -1466,7 +1466,7 @@ void pgraph_t<T>::fill_adj_list_out(onegraph_t<T>** sgraph_out, onekv_t<T>** skv
     
     index_t index = 0;
     for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
-        index = (i % blog->blog_count);
+        index = (i & BLOG_MASK);
         src = edges[index].src_id;
         dst = edges[index].dst_id;
         
@@ -1495,7 +1495,7 @@ void pgraph_t<T>::fill_skv(onekv_t<T>** skv_out, onekv_t<T>** skv_in)
     
     index_t index = 0;
     for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
-        index = (i % blog->blog_count);
+        index = (i & BLOG_MASK);
         src = edges[index].src_id;
         dst = edges[index].dst_id;
         
