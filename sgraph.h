@@ -650,9 +650,9 @@ void onegraph_t<T>::setup_adjlist()
             }
             v_unit = beg_pos[vid].get_vunit();
             my_vunit_count += (v_unit == 0);
-            //++my_dsnap_count;
             curr = beg_pos[vid].get_snapblob();
-            my_dsnap_count += (curr == 0);
+            ++my_dsnap_count;
+            //my_dsnap_count += (curr == 0);
             my_delta_size += total_count;
         }            
     }
@@ -691,13 +691,14 @@ void onegraph_t<T>::setup_adjlist()
             delta_adjlist->set_nebrcount(0);
             delta_adjlist->add_next(0);
 			
-			//If prev_delta exist, v_unit exists
-            prev_delta = nebr_count[vid].adj_list;
             v_unit = beg_pos[vid].get_vunit();
-			if (prev_delta) {
-                prev_delta->add_next(delta_adjlist);
-            } else if(v_unit) {
-			    v_unit->delta_adjlist = delta_adjlist;
+            if (v_unit) {
+                prev_delta = v_unit->adj_list;
+			    if (prev_delta) {
+                    prev_delta->add_next(delta_adjlist);
+                } else {
+			        v_unit->delta_adjlist = delta_adjlist;
+                }
 			} else {
 				v_unit = my_vunit_beg;
                 my_vunit_beg += 1;
@@ -705,7 +706,7 @@ void onegraph_t<T>::setup_adjlist()
 				beg_pos[vid].set_vunit(v_unit);
             }
 
-			nebr_count[vid].adj_list = delta_adjlist;
+			v_unit->adj_list = delta_adjlist;
             /* 
             //allocate new snapshot for degree, and initialize
 			snapT_t<T>* next    = my_dlog_beg; 
@@ -915,7 +916,7 @@ void onegraph_t<T>::prepare_dvt(write_seg_t* seg, vid_t& last_vid)
 	seg->dvt_count = 0;
 	
     for (vid_t vid = last_vid; vid < v_count ; ++vid) {
-        if (0 == nebr_count[vid].adj_list) continue;
+        if (0 == beg_pos[vid].v_unit || 0 == beg_pos[vid].v_unit->adj_list) continue;
 		
         curr		= beg_pos[vid].get_snapblob();
 		if ((seg->log_head + curr->degree*sizeof(T) + sizeof(durable_adjlist_t<T>)  > log_count) ||
@@ -1041,7 +1042,7 @@ void onegraph_t<T>::adj_prep(write_seg_t* seg)
 	for (vid_t v = 0; v < seg->dvt_count; ++v) {
 		dvt1 = seg->dvt + v;
 		vid = dvt1->vid;
-		if (0 == nebr_count[vid].adj_list) continue;
+		if (0 == beg_pos[vid].v_unit->adj_list) continue;
 		prev_v_unit       = beg_pos[vid].get_vunit();
 		prev_total_count  = prev_v_unit->count;
 		prev_offset       = prev_v_unit->offset;
@@ -1080,11 +1081,12 @@ void onegraph_t<T>::adj_prep(write_seg_t* seg)
 		v_unit->count = total_count;
 		v_unit->offset = dvt1->file_offset;// + log_tail;
 		v_unit->delta_adjlist = 0;
+        v_unit->adj_list = 0;
 		//beg_pos[vid].set_vunit(v_unit);
             
 		nebr_count[vid].add_count = 0;
         nebr_count[vid].del_count = 0;
-        nebr_count[vid].adj_list = 0;
+        //nebr_count[vid].adj_list = 0;
     }
 		
 	//Write new adj list

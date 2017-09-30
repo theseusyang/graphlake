@@ -12,8 +12,8 @@ index_t  BATCH_SIZE = (1L << 17);//edge batching in edge log
 //In-memory data structure size
 index_t  BLOG_SIZE = (1L << 32); //size of edge log
 index_t  DELTA_SIZE = (1L << 36) ;//(32 + sizeof(T));  //sizeo of delta adj-list
-index_t  DEGREE_SIZE = (1); //(x)*v_count
-index_t  VUNIT_SIZE  = (2); // (x)*v_count
+index_t  DEGREE_SIZE = (8); //(x)*v_count
+index_t  VUNIT_SIZE  = (4); // (x)*v_count
 
 //durable data structure buffer size
 index_t  W_SIZE = (1L << 20); //Edges to write

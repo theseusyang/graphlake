@@ -201,9 +201,9 @@ void onegraph_t<T>::setup_adjlist(vid_t j_start, vid_t j_end, vid_t bit_shift)
             }
             v_unit = beg_pos[vid].get_vunit();
             my_vunit_count += (v_unit == 0);
-            //++my_dsnap_count;
             curr = beg_pos[vid].get_snapblob();
-            my_dsnap_count += (curr == 0);
+            ++my_dsnap_count;
+            //my_dsnap_count += (curr == 0);
             my_delta_size += total_count;
         }            
     }
@@ -241,13 +241,14 @@ void onegraph_t<T>::setup_adjlist(vid_t j_start, vid_t j_end, vid_t bit_shift)
             delta_adjlist->set_nebrcount(0);
             delta_adjlist->add_next(0);
 			
-			//If prev_delta exist, v_unit exists
-            prev_delta = nebr_count[vid].adj_list;
             v_unit = beg_pos[vid].get_vunit();
-			if (prev_delta) {
-                prev_delta->add_next(delta_adjlist);
-            } else if(v_unit) {
-			    v_unit->delta_adjlist = delta_adjlist;
+            if (v_unit) {
+                prev_delta = v_unit->adj_list;
+			    if (prev_delta) {
+                    prev_delta->add_next(delta_adjlist);
+                } else {
+			        v_unit->delta_adjlist = delta_adjlist;
+                }
 			} else {
 				v_unit = my_vunit_beg;
                 my_vunit_beg += 1;
@@ -255,7 +256,7 @@ void onegraph_t<T>::setup_adjlist(vid_t j_start, vid_t j_end, vid_t bit_shift)
 				beg_pos[vid].set_vunit(v_unit);
             }
 
-			nebr_count[vid].adj_list = delta_adjlist;
+			v_unit->adj_list = delta_adjlist;
             /* 
             //allocate new snapshot for degree, and initialize
 			snapT_t<T>* next    = my_dlog_beg; 

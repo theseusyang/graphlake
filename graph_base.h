@@ -63,8 +63,8 @@ class vert_table_t {
     //count, flag for snapshot, XXX: smart pointer count
     snapT_t<T>*   snap_blob;
 
-	vunit_t<T>*   v_unit;
  public:
+	vunit_t<T>*   v_unit;
     inline vert_table_t() { snap_blob = 0; v_unit = 0;}
 
     inline vid_t get_nebrcount() {
@@ -136,51 +136,7 @@ class nebrcount_t {
  public:
     degree_t    add_count;
     degree_t    del_count;
-	delta_adjlist_t<T>* adj_list;
-    
- public:
-    /*
-    inline void add_nebr(vid_t index, sid_t sid) { 
-        T* adj_list1 = adj_list->get_adjlist();
-        adj_list->incr_nebrcount();
-        add_nebr1(adj_list1, index, sid);
-        //adj_list1[index] = sid;
-    }
-
-    inline void add_nebr_lite(vid_t index, sid_t sid, univ_t value) {
-        adj_list->incr_nebrcount();
-        add_nebr2(adj_list->get_adjlist(), index, sid, value);
-    }
-    */
-
-    inline void add_nebr(T sid) { 
-        T* adj_list1 = adj_list->get_adjlist();
-        degree_t index = adj_list->incr_nebrcount();
-        //add_nebr1(adj_list1, index, sid);
-        adj_list1[index] = sid;
-    }
-    
-    inline void add_nebr_noatomic(T sid) { 
-        T* adj_list1 = adj_list->get_adjlist();
-        degree_t index = adj_list->incr_nebrcount_noatomic();
-        //add_nebr1(adj_list1, index, sid);
-        adj_list1[index] = sid;
-    }
-
-    inline void add_nebr_lite(sid_t sid, univ_t value) {
-        degree_t index = adj_list->incr_nebrcount();
-        add_nebr2(adj_list->get_adjlist(), index, sid, value);
-    }
-    
-    // XXX Should be used for testing purpose, be careful to use it,
-    // as it avoids atomic instructions.
-    inline void add_nebr_bulk(T* adj_list2, degree_t count) {
-        if(count != 0) {
-            T* adj_list1 = adj_list->get_adjlist();
-            degree_t old_count = adj_list->incr_nebrcount_bulk(count);
-            memcpy(adj_list1+old_count, adj_list2, count*sizeof(T));
-        }
-    }
+	//delta_adjlist_t<T>* adj_list;
 };
 
 //one type's graph
@@ -256,9 +212,7 @@ private:
         sid_t actual_sid = TO_SID(get_sid(sid)); 
         degree_t location = find_nebr(vid, actual_sid);
         if (INVALID_DEGREE != location) {
-            //degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
-            //nebr_count[vid].add_nebr(index, sid);
-            nebr_count[vid].add_nebr(sid);
+            beg_pos[vid].v_unit->adj_list->add_nebr(sid);
         }
     }
     
@@ -266,9 +220,7 @@ private:
         sid_t actual_sid = TO_SID(get_sid(sid)); 
         degree_t location = find_nebr(vid, actual_sid);
         if (INVALID_DEGREE != location) {
-            //degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
-            //nebr_count[vid].add_nebr(index, sid);
-            nebr_count[vid].add_nebr_noatomic(sid);
+            beg_pos[vid].v_unit->adj_list->add_nebr_noatomic(sid);
         }
     }
 
@@ -342,20 +294,18 @@ public:
         if (IS_DEL(get_sid(sid))) { 
             return del_nebr(vid, sid);
         }
-        //degree_t index =__sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
-        //nebr_count[vid].add_nebr(index, sid);
-        nebr_count[vid].add_nebr(sid);
+        beg_pos[vid].v_unit->adj_list->add_nebr(sid);
     }
     
     inline void add_nebr_noatomic(vid_t vid, T sid) {
         if (IS_DEL(get_sid(sid))) { 
             return del_nebr_noatomic(vid, sid);
         }
-        nebr_count[vid].add_nebr_noatomic(sid);
+        beg_pos[vid].v_unit->adj_list->add_nebr_noatomic(sid);
     }
     
     inline void add_nebr_bulk(vid_t vid, T* adj_list1, degree_t count) {
-        nebr_count[vid].add_nebr_bulk(adj_list1, count);
+        beg_pos[vid].v_unit->adj_list->add_nebr_bulk(adj_list1, count);
     }
 
     degree_t find_nebr(vid_t vid, sid_t sid); 

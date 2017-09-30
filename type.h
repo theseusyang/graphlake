@@ -258,6 +258,29 @@ class delta_adjlist_t {
 	inline T* get_adjlist() { return (T*)(&count + 1); }
 	inline void add_next(delta_adjlist_t<T>* ptr) {next = ptr; }
 	inline delta_adjlist_t<T>* get_next() { return next; }
+    
+    inline void add_nebr(T sid) { 
+        T* adj_list1 = get_adjlist();
+        degree_t index = incr_nebrcount();
+        adj_list1[index] = sid;
+    }
+    
+    inline void add_nebr_noatomic(T sid) { 
+        T* adj_list1 = get_adjlist();
+        degree_t index = incr_nebrcount_noatomic();
+        adj_list1[index] = sid;
+    }
+    
+    // XXX Should be used for testing purpose, be careful to use it,
+    // as it avoids atomic instructions.
+    inline void add_nebr_bulk(T* adj_list2, degree_t count) {
+        if(count != 0) {
+            T* adj_list1 = get_adjlist();
+            degree_t old_count = incr_nebrcount_bulk(count);
+            memcpy(adj_list1+old_count, adj_list2, count*sizeof(T));
+        }
+    }
+    
 };
 
 template <class T>
@@ -281,12 +304,14 @@ class vunit_t {
 	degree_t      count;
     index_t       offset;
 	delta_adjlist_t<T>* delta_adjlist;
+	delta_adjlist_t<T>* adj_list;//Last chain
 
 	inline void reset() {
 		vflag = 0;
 		count = 0;
 		offset = -1L;
 		delta_adjlist = 0;
+        adj_list = 0;
 	}
 };
 
