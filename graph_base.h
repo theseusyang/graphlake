@@ -124,7 +124,7 @@ class vert_table_t {
         snap_blob = snap_blob1; 
     } 
     
-    inline snapT_t<T>* recycle_snapblob() { 
+    inline snapT_t<T>* recycle_snapblob(snapid_t snap_id) { 
         if (0 == snap_blob || 0 == snap_blob->prev) return 0;
         
         int snap_count = 2;
@@ -141,6 +141,10 @@ class vert_table_t {
         }
 
         snap_blob1->prev = 0;
+        snap_blob2->snap_id = snap_id;
+        snap_blob2->del_count = snap_blob->del_count;
+        snap_blob2->degree = snap_blob->degree;
+        set_snapblob1(snap_blob2);
         return snap_blob2;
     } 
     
@@ -298,17 +302,19 @@ public:
     void setup_adjlist(vid_t vid_start, vid_t vid_end);
     void setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end);
 
-    void increment_count_noatomic(vid_t vid);
-    void decrement_count_noatomic(vid_t vid);
+    void increment_count_noatomic(vid_t vid) {
+        ++nebr_count[vid].add_count;
+    }
+    void decrement_count_noatomic(vid_t vid) {
+        ++nebr_count[vid].del_count;
+    }
 
     inline void increment_count(vid_t vid) { 
         __sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
-        //++nebr_count[vid].add_count;
     }
 
     inline void decrement_count(vid_t vid) { 
         __sync_fetch_and_add(&nebr_count[vid].del_count, 1L);
-        //++nebr_count[vid].del_count;
     }
     
     inline void add_nebr(vid_t vid, T sid) {

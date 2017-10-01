@@ -661,7 +661,6 @@ void onegraph_t<T>::setup_adjlist(vid_t vid_start, vid_t vid_end)
     //Allocate bulk memory
     vunit_t<T>* my_vunit_beg = new_vunit_bulk(my_vunit_count);
     snapT_t<T>* my_dlog_beg = new_snapdegree_bulk(my_dsnap_count);
-
     assert(dlog_head <= dlog_count);
 
     index_t new_count = my_delta_size*sizeof(T) 
@@ -682,9 +681,7 @@ void onegraph_t<T>::setup_adjlist(vid_t vid_start, vid_t vid_end)
         count = nebr_count[vid].add_count;
         
         if (0 != count || 0 != del_count) {// new nebrs added/deleted
-
             total_count = count + del_count;
-        
             if (0 == total_count) {
                 continue;
             }

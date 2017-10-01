@@ -3,56 +3,6 @@
 #include "sgraph.h"
 
 template <class T>
-void onegraph_t<T>::increment_count_noatomic(vid_t vid) 
-{ 
-    snapT_t<T>* snap_blob = beg_pos[vid].get_snapblob();
-    snapid_t    snap_id = g->get_snapid() + 1; 
-    if (0 != snap_blob && snap_blob->snap_id == snap_id) {
-        snap_blob->degree++;
-        return;
-    }
-    //Get a recycled degree node, if avaialable
-    snapT_t<T>* snap_blob1 = beg_pos[vid].recycle_snapblob();
-    if (snap_blob1 == 0) {
-        snap_blob1 = new_snapdegree();
-    }
-
-    snap_blob1->snap_id = snap_id;
-    snap_blob1->del_count = 0;
-    snap_blob1->degree = 1;
-    if (snap_blob) {
-        snap_blob1->del_count += snap_blob->del_count;
-        snap_blob1->degree += snap_blob->degree;
-    }
-    beg_pos[vid].set_snapblob1(snap_blob1);
-}
-
-template <class T>
-void onegraph_t<T>::decrement_count_noatomic(vid_t vid) 
-{
-    snapT_t<T>* snap_blob = beg_pos[vid].get_snapblob();
-    snapid_t    snap_id = g->get_snapid() + 1; 
-    if (0 != snap_blob && snap_blob->snap_id == snap_id) {
-        snap_blob->del_count++;
-        return;
-    }
-    //Get a recycled degree node, if avaialable
-    snapT_t<T>* snap_blob1 = beg_pos[vid].recycle_snapblob();
-    if (snap_blob1 == 0) {
-        snap_blob1 = new_snapdegree();
-    }
-
-    snap_blob1->snap_id = snap_id;
-    snap_blob1->del_count = 1;
-    snap_blob1->degree = 0;
-    if (snap_blob) {
-        snap_blob1->del_count += snap_blob->del_count;
-        snap_blob1->degree += snap_blob->degree;
-    }
-    beg_pos[vid].set_snapblob1(snap_blob1);
-}
-
-template <class T>
 void pgraph_t<T>::estimate_classify(vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift) 
 {
     sid_t src, dst;
@@ -229,32 +179,37 @@ void onegraph_t<T>::setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end)
     degree_t count, del_count, total_count;
 	vunit_t<T>* v_unit = 0;
     snapT_t<T>* curr;
+	snapT_t<T>* next;
     snapid_t snap_id = g->get_snapid() + 1;
 
     index_t my_vunit_count = 0;
     index_t my_dsnap_count = 0;
+    index_t my_degree_count = 0;
     index_t my_delta_size = 0;
     
     for (vid_t vid = vid_start; vid < vid_end; ++vid) {
-        curr = beg_pos[vid].get_snapblob();
-        if (curr == 0 || curr->snap_id < snap_id)
-            continue;
-
-        del_count = curr->del_count;
-        count = curr->degree;
+        del_count = nebr_count[vid].del_count;
+        count = nebr_count[vid].add_count;
         total_count = count + del_count;
+        
+        if (0 == total_count) { continue; }
+        
+        next = beg_pos[vid].recycle_snapblob(snap_id);
+        if (next != 0) {
+            next->del_count += del_count;
+            next->degree    += count;
+        }
+        my_degree_count += (0 == next);
+        ++my_dsnap_count;
     
         v_unit = beg_pos[vid].get_vunit();
         my_vunit_count += (v_unit == 0);
-        ++my_dsnap_count;
-        //curr = beg_pos[vid].get_snapblob();
-        //my_dsnap_count += (curr == 0);
         my_delta_size += total_count;
     }
 
     vunit_t<T>* my_vunit_beg = new_vunit_bulk(my_vunit_count);
-    //snapT_t<T>* my_dlog_beg = new_snapdegree_bulk(my_dsnap_count);
-    //assert(dlog_head <= dlog_count);
+    snapT_t<T>* my_dlog_beg = new_snapdegree_bulk(my_degree_count);
+    assert(dlog_head <= dlog_count);
 
 	index_t new_count = my_delta_size*sizeof(T) 
 						+ my_dsnap_count*sizeof(delta_adjlist_t<T>);
@@ -266,14 +221,12 @@ void onegraph_t<T>::setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end)
     index_t delta_metasize = sizeof(delta_adjlist_t<T>);
 
     for (vid_t vid = vid_start; vid < vid_end; ++vid) {
-        curr = beg_pos[vid].get_snapblob();
-        if (curr == 0 || curr->snap_id < snap_id)
-            continue;
-
-        del_count = curr->del_count;
-        count = curr->degree;
+        del_count = nebr_count[vid].del_count;
+        count = nebr_count[vid].add_count;
         total_count = count + del_count;
         
+        if (0 == total_count) { continue; }
+
         //delta adj list allocation
         delta_adjlist = (delta_adjlist_t<T>*)(my_adjlog_beg); 
         delta_size = total_count*sizeof(T) + delta_metasize;
@@ -286,9 +239,22 @@ void onegraph_t<T>::setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end)
             delta_adjlist = (delta_adjlist_t<T>*)new_delta_adjlist_bulk(delta_size);
         }
         
-        //delta_adjlist->set_nebrcount(total_count);
         delta_adjlist->set_nebrcount(0);
         delta_adjlist->add_next(0);
+        
+        curr = beg_pos[vid].get_snapblob();
+        if (0 == curr || curr->snap_id < snap_id) {
+			next                = my_dlog_beg; 
+            my_dlog_beg        += 1;
+            next->del_count     = del_count;
+            next->snap_id       = snap_id;
+            next->degree        = count;
+            if (curr) {
+                next->degree += curr->degree;
+                next->del_count += curr->del_count;
+            }
+            beg_pos[vid].set_snapblob1(next);
+        }
         
         v_unit = beg_pos[vid].get_vunit();
         if (v_unit) {
@@ -310,7 +276,6 @@ void onegraph_t<T>::setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end)
 }
 
 #define CLEAN_THDS 56
-
 
 template <class T>
 void pgraph_t<T>::make_graph_d() 
