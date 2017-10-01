@@ -247,7 +247,17 @@ void weighted_dtest0(const string& idir, const string& odir)
             nebr_count = v_offset[v+1] - v_offset[v];
             degree_array[v].add_count = nebr_count;
         }
-        sgraph->setup_adjlist();
+        vid_t  total_thds  = omp_get_num_threads();
+        vid_t         tid  = omp_get_thread_num();  
+        
+        vid_t portion = nv/total_thds;
+        vid_t vid_start = portion*tid;
+        vid_t vid_end   = portion*(tid + 1);
+        if (tid == total_thds - 1) {
+            vid_end = v_count;
+        }
+        
+        sgraph->setup_adjlist(vid_start, vid_end);
         
         #pragma omp for
         for (int64_t v = 0; v < nv; ++v) {

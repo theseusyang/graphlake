@@ -119,10 +119,29 @@ class vert_table_t {
         } else {
             snap_blob1->prev = snap_blob;
             //snap_blob1->next = 0;
-            
             //snap_blob->next = snap_blob1;
         }
         snap_blob = snap_blob1; 
+    } 
+    
+    inline snapT_t<T>* recycle_snapblob() { 
+        if (0 == snap_blob || 0 == snap_blob->prev) return 0;
+        
+        int snap_count = 2;
+        snapT_t<T>* snap_blob1 = snap_blob;
+        snapT_t<T>* snap_blob2 = snap_blob->prev;
+
+        while (snap_blob2->prev != 0) {
+            snap_blob1 = snap_blob2;
+            snap_blob2 = snap_blob2->prev;
+            ++snap_count;
+        }
+        if (snap_count < SNAP_COUNT) {
+            return 0;
+        }
+
+        snap_blob1->prev = 0;
+        return snap_blob2;
     } 
     
     //Will go away soon.
@@ -276,21 +295,20 @@ public:
     }
     
     void setup(tid_t tid);
-    void setup_adjlist();
     void setup_adjlist(vid_t vid_start, vid_t vid_end);
+    void setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end);
+
+    void increment_count_noatomic(vid_t vid);
+    void decrement_count_noatomic(vid_t vid);
 
     inline void increment_count(vid_t vid) { 
         __sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
-    }
-    inline void increment_count_noatomic(vid_t vid) { 
-        ++nebr_count[vid].add_count;
+        //++nebr_count[vid].add_count;
     }
 
     inline void decrement_count(vid_t vid) { 
         __sync_fetch_and_add(&nebr_count[vid].del_count, 1L);
-    }
-    inline void decrement_count_noatomic(vid_t vid) { 
-        ++nebr_count[vid].del_count;
+        //++nebr_count[vid].del_count;
     }
     
     inline void add_nebr(vid_t vid, T sid) {

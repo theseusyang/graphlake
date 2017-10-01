@@ -1,8 +1,56 @@
 #pragma once
 
-
 #include "sgraph.h"
 
+template <class T>
+void onegraph_t<T>::increment_count_noatomic(vid_t vid) 
+{ 
+    snapT_t<T>* snap_blob = beg_pos[vid].get_snapblob();
+    snapid_t    snap_id = g->get_snapid() + 1; 
+    if (0 != snap_blob && snap_blob->snap_id == snap_id) {
+        snap_blob->degree++;
+        return;
+    }
+    //Get a recycled degree node, if avaialable
+    snapT_t<T>* snap_blob1 = beg_pos[vid].recycle_snapblob();
+    if (snap_blob1 == 0) {
+        snap_blob1 = new_snapdegree();
+    }
+
+    snap_blob1->snap_id = snap_id;
+    snap_blob1->del_count = 0;
+    snap_blob1->degree = 1;
+    if (snap_blob) {
+        snap_blob1->del_count += snap_blob->del_count;
+        snap_blob1->degree += snap_blob->degree;
+    }
+    beg_pos[vid].set_snapblob1(snap_blob1);
+}
+
+template <class T>
+void onegraph_t<T>::decrement_count_noatomic(vid_t vid) 
+{
+    snapT_t<T>* snap_blob = beg_pos[vid].get_snapblob();
+    snapid_t    snap_id = g->get_snapid() + 1; 
+    if (0 != snap_blob && snap_blob->snap_id == snap_id) {
+        snap_blob->del_count++;
+        return;
+    }
+    //Get a recycled degree node, if avaialable
+    snapT_t<T>* snap_blob1 = beg_pos[vid].recycle_snapblob();
+    if (snap_blob1 == 0) {
+        snap_blob1 = new_snapdegree();
+    }
+
+    snap_blob1->snap_id = snap_id;
+    snap_blob1->del_count = 1;
+    snap_blob1->degree = 0;
+    if (snap_blob) {
+        snap_blob1->del_count += snap_blob->del_count;
+        snap_blob1->degree += snap_blob->degree;
+    }
+    beg_pos[vid].set_snapblob1(snap_blob1);
+}
 
 template <class T>
 void pgraph_t<T>::estimate_classify(vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift) 
@@ -176,125 +224,88 @@ void pgraph_t<T>::fill_adjlist_noatomic(onegraph_t<T>** sgraph, global_range_t<T
 }
 
 template <class T>
-void onegraph_t<T>::setup_adjlist(vid_t vid_start, vid_t vid_end)
+void onegraph_t<T>::setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end)
 {
     degree_t count, del_count, total_count;
 	vunit_t<T>* v_unit = 0;
     snapT_t<T>* curr;
+    snapid_t snap_id = g->get_snapid() + 1;
+
     index_t my_vunit_count = 0;
     index_t my_dsnap_count = 0;
     index_t my_delta_size = 0;
     
     for (vid_t vid = vid_start; vid < vid_end; ++vid) {
-        del_count = nebr_count[vid].del_count;
-        count = nebr_count[vid].add_count;
-        
-        if (0 != count || 0 != del_count) {// new nebrs added/deleted
+        curr = beg_pos[vid].get_snapblob();
+        if (curr == 0 || curr->snap_id < snap_id)
+            continue;
 
-            total_count = count + del_count;
-        
-            if (0 == total_count) {
-                continue;
-            }
-            v_unit = beg_pos[vid].get_vunit();
-            my_vunit_count += (v_unit == 0);
-            curr = beg_pos[vid].get_snapblob();
-            ++my_dsnap_count;
-            //my_dsnap_count += (curr == 0);
-            my_delta_size += total_count;
-        }            
+        del_count = curr->del_count;
+        count = curr->degree;
+        total_count = count + del_count;
+    
+        v_unit = beg_pos[vid].get_vunit();
+        my_vunit_count += (v_unit == 0);
+        ++my_dsnap_count;
+        //curr = beg_pos[vid].get_snapblob();
+        //my_dsnap_count += (curr == 0);
+        my_delta_size += total_count;
     }
 
     vunit_t<T>* my_vunit_beg = new_vunit_bulk(my_vunit_count);
-    snapT_t<T>* my_dlog_beg = new_snapdegree_bulk(my_dsnap_count);
-
-    assert(dlog_head <= dlog_count);
+    //snapT_t<T>* my_dlog_beg = new_snapdegree_bulk(my_dsnap_count);
+    //assert(dlog_head <= dlog_count);
 
 	index_t new_count = my_delta_size*sizeof(T) 
 						+ my_dsnap_count*sizeof(delta_adjlist_t<T>);
     char*  my_adjlog_beg = new_delta_adjlist_bulk(new_count);
 
-    snapid_t snap_id = g->get_snapid() + 1;
 	delta_adjlist_t<T>* prev_delta = 0;
 	delta_adjlist_t<T>* delta_adjlist = 0;
     index_t delta_size = 0;
     index_t delta_metasize = sizeof(delta_adjlist_t<T>);
 
     for (vid_t vid = vid_start; vid < vid_end; ++vid) {
-        del_count = nebr_count[vid].del_count;
-        count = nebr_count[vid].add_count;
-        
-        if (0 != count || 0 != del_count) {// new nebrs added/deleted
+        curr = beg_pos[vid].get_snapblob();
+        if (curr == 0 || curr->snap_id < snap_id)
+            continue;
 
-            total_count = count + del_count;
+        del_count = curr->del_count;
+        count = curr->degree;
+        total_count = count + del_count;
         
-            if (0 == total_count) {
-                continue;
-            }
+        //delta adj list allocation
+        delta_adjlist = (delta_adjlist_t<T>*)(my_adjlog_beg); 
+        delta_size = total_count*sizeof(T) + delta_metasize;
+        my_adjlog_beg += delta_size;
+        
+        if (my_adjlog_beg > adjlog_beg + adjlog_count) { //rewind happened
+            my_adjlog_beg -=  adjlog_count;
             
-            //delta adj list allocation
-            delta_adjlist = (delta_adjlist_t<T>*)(my_adjlog_beg); 
-            delta_size = total_count*sizeof(T) + delta_metasize;
-			my_adjlog_beg += delta_size;
-            
-            if (my_adjlog_beg > adjlog_beg + adjlog_count) { //rewind happened
-                my_adjlog_beg -=  adjlog_count;
-                
-                //Last allocation is wasted due to rewind
-                delta_adjlist = (delta_adjlist_t<T>*)new_delta_adjlist_bulk(delta_size);
-            }
-            
-            
-            //delta_adjlist->set_nebrcount(total_count);
-            delta_adjlist->set_nebrcount(0);
-            delta_adjlist->add_next(0);
-			
-            v_unit = beg_pos[vid].get_vunit();
-            if (v_unit) {
-                prev_delta = v_unit->adj_list;
-			    if (prev_delta) {
-                    prev_delta->add_next(delta_adjlist);
-                } else {
-			        v_unit->delta_adjlist = delta_adjlist;
-                }
-			} else {
-				v_unit = my_vunit_beg;
-                my_vunit_beg += 1;
-			    v_unit->delta_adjlist = delta_adjlist;
-				beg_pos[vid].set_vunit(v_unit);
-            }
-
-			v_unit->adj_list = delta_adjlist;
-            /* 
-            //allocate new snapshot for degree, and initialize
-			snapT_t<T>* next    = my_dlog_beg; 
-            my_dlog_beg        += 1;
-            next->del_count     = del_count;
-            next->snap_id       = snap_id;
-            //next->next          = 0;
-            next->degree        = count;
-            */ 
-            curr = beg_pos[vid].get_snapblob();
-            if (curr) {
-                curr->degree += count;
-                curr->del_count += del_count;
-            } else {
-                //allocate new snapshot for degree, and initialize
-                snapT_t<T>* next    = my_dlog_beg; 
-                my_dlog_beg        += 1;
-                next->del_count     = del_count;
-                next->snap_id       = snap_id;
-                //next->next          = 0;
-                next->degree        = count;
-                
-                if (curr) {
-                    next->degree    += curr->degree;
-                    next->del_count += curr->del_count;
-                }
-                beg_pos[vid].set_snapblob1(next);
-            }
+            //Last allocation is wasted due to rewind
+            delta_adjlist = (delta_adjlist_t<T>*)new_delta_adjlist_bulk(delta_size);
         }
-        reset_count(vid);
+        
+        //delta_adjlist->set_nebrcount(total_count);
+        delta_adjlist->set_nebrcount(0);
+        delta_adjlist->add_next(0);
+        
+        v_unit = beg_pos[vid].get_vunit();
+        if (v_unit) {
+            prev_delta = v_unit->adj_list;
+            if (prev_delta) {
+                prev_delta->add_next(delta_adjlist);
+            } else {
+                v_unit->delta_adjlist = delta_adjlist;
+            }
+        } else {
+            v_unit = my_vunit_beg;
+            my_vunit_beg += 1;
+            v_unit->delta_adjlist = delta_adjlist;
+            beg_pos[vid].set_vunit(v_unit);
+        }
+
+        v_unit->adj_list = delta_adjlist;
     }
 }
 
@@ -397,11 +408,11 @@ void pgraph_t<T>::make_graph_d()
 
         vid_t vid_start = (j_start << bit_shift);
         vid_t vid_end = (j_end << bit_shift);
-        sgraph_out[0]->setup_adjlist(vid_start, vid_end);
+        sgraph_out[0]->setup_adjlist_noatomic(vid_start, vid_end);
 
         vid_t vid_start_in = (j_start_in << bit_shift);
         vid_t vid_end_in = (j_end_in << bit_shift);
-        sgraph_in[0]->setup_adjlist(vid_start_in, vid_end_in);
+        sgraph_in[0]->setup_adjlist_noatomic(vid_start_in, vid_end_in);
         #pragma omp master 
         {
             end = mywtime();
@@ -467,9 +478,7 @@ void pgraph_t<T>::make_graph_u()
                             sizeof(global_range_t<T>), range_count);
     
     thd_local_t* thd_local = (thd_local_t*) calloc(sizeof(thd_local_t), thd_count);  
-   
     index_t edge_count = ((blog->blog_marker - blog->blog_tail)*1.15)/(thd_count);
-    
 
     #pragma omp parallel num_threads(CLEAN_THDS)
     {
@@ -515,9 +524,10 @@ void pgraph_t<T>::make_graph_u()
             cout << " Degree = " << end -start << endl;
         } 
 
+        //Adj list
         vid_t vid_start = (j_start << bit_shift);
         vid_t vid_end = (j_end << bit_shift);
-        sgraph[0]->setup_adjlist(vid_start, vid_end);
+        sgraph[0]->setup_adjlist_noatomic(vid_start, vid_end);
         #pragma omp master 
         {
             end = mywtime();

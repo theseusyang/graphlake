@@ -98,8 +98,7 @@ extern index_t  BATCH_SIZE;//
 extern index_t  BLOG_SIZE;//
 extern index_t  BLOG_MASK;//
 extern index_t  DELTA_SIZE;
-extern index_t  DEGREE_SIZE;
-extern index_t  VUNIT_SIZE;
+extern index_t  SNAP_COUNT;
 
 extern index_t  W_SIZE;//Durable edge log offset
 extern index_t  DVT_SIZE;

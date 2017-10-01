@@ -489,7 +489,7 @@ void onegraph_t<T>::setup(tid_t tid)
         cout << "Total Memory 2 = " << total_memory << endl;
         
         //degree aray realted log, in-memory
-        dlog_count = (((index_t)v_count)*DEGREE_SIZE);//256 MB
+        dlog_count = (((index_t)v_count)*SNAP_COUNT);//256 MB
         /*
          * dlog_beg = (snapT_t<T>*)mmap(NULL, sizeof(snapT_t<T>)*dlog_count, PROT_READ|PROT_WRITE,
                             MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
@@ -627,7 +627,7 @@ degree_t onegraph_t<T>::find_nebr(vid_t vid, sid_t sid)
 }
 
 template <class T>
-void onegraph_t<T>::setup_adjlist()
+void onegraph_t<T>::setup_adjlist(vid_t vid_start, vid_t vid_end)
 {
     vid_t    v_count = TO_VID(super_id);
     degree_t count, del_count, total_count;
@@ -637,8 +637,8 @@ void onegraph_t<T>::setup_adjlist()
     index_t my_dsnap_count = 0;
     index_t my_delta_size = 0;
 
-    #pragma omp for schedule(static) nowait
-    for (vid_t vid = 0; vid < v_count; ++vid) {
+    //#pragma omp for schedule(static) nowait
+    for (vid_t vid = vid_start; vid < vid_end; ++vid) {
         del_count = nebr_count[vid].del_count;
         count = nebr_count[vid].add_count;
         
@@ -1348,6 +1348,7 @@ template <class T>
 void pgraph_t<T>::prep_sgraph_internal(onegraph_t<T>** sgraph)
 {
     tid_t  t_count   = g->get_total_types();
+    
     vid_t  v_count   = 0;
     vid_t  portion   = 0;
     vid_t  vid_start = 0;
@@ -1357,10 +1358,10 @@ void pgraph_t<T>::prep_sgraph_internal(onegraph_t<T>** sgraph)
     
     for(tid_t i = 0; i < t_count; i++) {
         if (0 == sgraph[i]) continue;
+        //sgraph[i]->setup_adjlist();
         
         v_count = sgraph[i]->get_vcount();
         portion = v_count/total_thds;
-
         vid_start = portion*tid;
         vid_end   = portion*(tid + 1);
         if (tid == total_thds - 1) {
@@ -1368,7 +1369,6 @@ void pgraph_t<T>::prep_sgraph_internal(onegraph_t<T>** sgraph)
         }
 
         sgraph[i]->setup_adjlist(vid_start, vid_end);
-        //sgraph[i]->setup_adjlist();
         #pragma omp barrier
     }
 }
