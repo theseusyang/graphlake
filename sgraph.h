@@ -658,18 +658,22 @@ void onegraph_t<T>::setup_adjlist()
         }            
     }
 
+    //Allocate bulk memory
     vunit_t<T>* my_vunit_beg = new_vunit_bulk(my_vunit_count);
     snapT_t<T>* my_dlog_beg = new_snapdegree_bulk(my_dsnap_count);
 
     assert(dlog_head <= dlog_count);
 
-	index_t new_count = my_delta_size*sizeof(T) 
+    index_t new_count = my_delta_size*sizeof(T) 
 						+ my_dsnap_count*sizeof(delta_adjlist_t<T>);
     char*  my_adjlog_beg = new_delta_adjlist_bulk(new_count);
 
+    //Do the smaller allocations without needing any atomic instrcutions
+    // and regular work
     snapid_t snap_id = g->get_snapid() + 1;
 	delta_adjlist_t<T>* prev_delta = 0;
 	delta_adjlist_t<T>* delta_adjlist = 0;
+    index_t delta_size = 0;
     index_t delta_metasize = sizeof(delta_adjlist_t<T>);
 
     #pragma omp for schedule(static) 
@@ -686,8 +690,17 @@ void onegraph_t<T>::setup_adjlist()
             }
             
             //delta adj list allocation
-            delta_adjlist = (delta_adjlist_t<T>*)(my_adjlog_beg); 
-			my_adjlog_beg += total_count*sizeof(T) + delta_metasize;
+            delta_adjlist = (delta_adjlist_t<T>*)(my_adjlog_beg);
+            delta_size = total_count*sizeof(T) + delta_metasize;
+			my_adjlog_beg += delta_size;
+            
+            if (my_adjlog_beg > adjlog_beg + adjlog_count) { //rewind happened
+                my_adjlog_beg -=  adjlog_count;
+                
+                //Last allocation is wasted due to rewind
+                delta_adjlist = (delta_adjlist_t<T>*)new_delta_adjlist_bulk(delta_size);
+            }
+            
             //delta_adjlist->set_nebrcount(total_count);
             delta_adjlist->set_nebrcount(0);
             delta_adjlist->add_next(0);
@@ -901,7 +914,8 @@ void onegraph_t<T>::handle_write()
 		}
 	adj_update(seg3);
 	}
-	adjlog_head = 0;
+    adjlog_tail = adjlog_head;
+	//adjlog_head = 0;
 }
 
 template <class T>
@@ -1333,11 +1347,29 @@ void pgraph_t<T>::calc_edge_count_in(onegraph_t<T>** sgraph_in)
 template <class T>
 void pgraph_t<T>::prep_sgraph_internal(onegraph_t<T>** sgraph)
 {
-    tid_t       t_count = g->get_total_types();
+    tid_t  t_count   = g->get_total_types();
+    vid_t  v_count   = 0;
+    vid_t  portion   = 0;
+    vid_t  vid_start = 0;
+    vid_t  vid_end   = 0;
+    vid_t  total_thds  = omp_get_num_threads();
+    vid_t         tid  = omp_get_thread_num();  
     
     for(tid_t i = 0; i < t_count; i++) {
         if (0 == sgraph[i]) continue;
-        sgraph[i]->setup_adjlist();
+        
+        v_count = sgraph[i]->get_vcount();
+        portion = v_count/total_thds;
+
+        vid_start = portion*tid;
+        vid_end   = portion*(tid + 1);
+        if (tid == total_thds - 1) {
+            vid_end = v_count;
+        }
+
+        sgraph[i]->setup_adjlist(vid_start, vid_end);
+        //sgraph[i]->setup_adjlist();
+        #pragma omp barrier
     }
 }
 
@@ -1936,7 +1968,7 @@ void ugraph<T>::make_graph_baseline()
     end = mywtime();
     cout << "fill adj list time = " << end - start << endl;
     blog->blog_tail = blog->blog_marker;  
-    */  
+    */
 }
 
 template <class T> 

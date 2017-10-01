@@ -176,7 +176,7 @@ void pgraph_t<T>::fill_adjlist_noatomic(onegraph_t<T>** sgraph, global_range_t<T
 }
 
 template <class T>
-void onegraph_t<T>::setup_adjlist(vid_t j_start, vid_t j_end, vid_t bit_shift)
+void onegraph_t<T>::setup_adjlist(vid_t vid_start, vid_t vid_end)
 {
     degree_t count, del_count, total_count;
 	vunit_t<T>* v_unit = 0;
@@ -185,9 +185,6 @@ void onegraph_t<T>::setup_adjlist(vid_t j_start, vid_t j_end, vid_t bit_shift)
     index_t my_dsnap_count = 0;
     index_t my_delta_size = 0;
     
-    vid_t vid_start = (j_start << bit_shift);
-    vid_t vid_end = (j_end << bit_shift);
-
     for (vid_t vid = vid_start; vid < vid_end; ++vid) {
         del_count = nebr_count[vid].del_count;
         count = nebr_count[vid].add_count;
@@ -220,6 +217,7 @@ void onegraph_t<T>::setup_adjlist(vid_t j_start, vid_t j_end, vid_t bit_shift)
     snapid_t snap_id = g->get_snapid() + 1;
 	delta_adjlist_t<T>* prev_delta = 0;
 	delta_adjlist_t<T>* delta_adjlist = 0;
+    index_t delta_size = 0;
     index_t delta_metasize = sizeof(delta_adjlist_t<T>);
 
     for (vid_t vid = vid_start; vid < vid_end; ++vid) {
@@ -236,7 +234,17 @@ void onegraph_t<T>::setup_adjlist(vid_t j_start, vid_t j_end, vid_t bit_shift)
             
             //delta adj list allocation
             delta_adjlist = (delta_adjlist_t<T>*)(my_adjlog_beg); 
-			my_adjlog_beg += total_count*sizeof(T) + delta_metasize;
+            delta_size = total_count*sizeof(T) + delta_metasize;
+			my_adjlog_beg += delta_size;
+            
+            if (my_adjlog_beg > adjlog_beg + adjlog_count) { //rewind happened
+                my_adjlog_beg -=  adjlog_count;
+                
+                //Last allocation is wasted due to rewind
+                delta_adjlist = (delta_adjlist_t<T>*)new_delta_adjlist_bulk(delta_size);
+            }
+            
+            
             //delta_adjlist->set_nebrcount(total_count);
             delta_adjlist->set_nebrcount(0);
             delta_adjlist->add_next(0);
@@ -387,8 +395,13 @@ void pgraph_t<T>::make_graph_d()
             cout << " Degree = " << end -start << endl;
         } 
 
-        sgraph_out[0]->setup_adjlist(j_start, j_end, bit_shift);
-        sgraph_in[0]->setup_adjlist(j_start_in, j_end_in, bit_shift);
+        vid_t vid_start = (j_start << bit_shift);
+        vid_t vid_end = (j_end << bit_shift);
+        sgraph_out[0]->setup_adjlist(vid_start, vid_end);
+
+        vid_t vid_start_in = (j_start_in << bit_shift);
+        vid_t vid_end_in = (j_end_in << bit_shift);
+        sgraph_in[0]->setup_adjlist(vid_start_in, vid_end_in);
         #pragma omp master 
         {
             end = mywtime();
@@ -502,7 +515,9 @@ void pgraph_t<T>::make_graph_u()
             cout << " Degree = " << end -start << endl;
         } 
 
-        sgraph[0]->setup_adjlist(j_start, j_end, bit_shift);
+        vid_t vid_start = (j_start << bit_shift);
+        vid_t vid_end = (j_end << bit_shift);
+        sgraph[0]->setup_adjlist(vid_start, vid_end);
         #pragma omp master 
         {
             end = mywtime();

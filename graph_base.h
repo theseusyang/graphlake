@@ -157,7 +157,7 @@ private:
     char*      adjlog_beg;  //memory log pointer
     index_t    adjlog_count;//size of memory log
     index_t    adjlog_head; // current log write position
-   // index_t    adjlog_tail; //current log cleaning position
+    index_t    adjlog_tail; //current log cleaning position
 
     //durable adj list, for writing to disk
     index_t    log_tail; //current log cleaning position
@@ -243,7 +243,8 @@ public:
 
         adjlog_count = 0;
         adjlog_head  = 0;
-        
+        adjlog_tail = 0;
+
         log_count = 0;
         /*
         log_head  = 0;
@@ -276,7 +277,7 @@ public:
     
     void setup(tid_t tid);
     void setup_adjlist();
-    void setup_adjlist(vid_t j_start, vid_t j_end, vid_t bit_shift);
+    void setup_adjlist(vid_t vid_start, vid_t vid_end);
 
     inline void increment_count(vid_t vid) { 
         __sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
@@ -334,6 +335,7 @@ public:
         return  (durable_adjlist_t<T>*)(seg->log_beg + index_log);
 	}
 	
+    /*
     //delta adj list allocation
 	inline delta_adjlist_t<T>* new_delta_adjlist(degree_t count) {
         //It will have issues, in some T sizes, not fixed yet
@@ -342,6 +344,7 @@ public:
 		assert(index_adjlog  < adjlog_count); 
 		return (delta_adjlist_t<T>*)(adjlog_beg + index_adjlog);
 	}
+    */
     
 	//in-memory snap degree
 	inline snapT_t<T>* new_snapdegree() {
@@ -389,8 +392,9 @@ public:
 
 	inline char* new_delta_adjlist_bulk(index_t count) {
 		index_t index_adjlog = __sync_fetch_and_add(&adjlog_head, count);
-		assert(index_adjlog  < adjlog_count); 
-		return (adjlog_beg + index_adjlog);
+        index_t index = (index_adjlog % adjlog_count);
+		//assert(index_adjlog  < adjlog_count); 
+		return (adjlog_beg + index);
     }
     
     inline snapT_t<T>* new_snapdegree_bulk(vid_t count) {
