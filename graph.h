@@ -133,7 +133,7 @@ class graph {
     void make_graph_baseline();
     void create_snapshot();
     void write_edgelog();
-    void store_graph_baseline();
+    void store_graph_baseline(bool clean = false);
     void read_graph_baseline();
     void file_open(bool trunc);
     

@@ -261,7 +261,7 @@ verification(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, int iteratio
             offset = v_unit->offset;
             adj_list = (T*)malloc((durable_degree+1)*sizeof(T));
             if (0 != durable_degree) {
-                pread(etf, adj_list, (durable_degree+1)*sizeof(T), offset*sizeof(T));
+                pread(etf, adj_list, (durable_degree+1)*sizeof(T), offset);
             }
 
             for (vid_t k = 1; k <= durable_degree; ++k) {

@@ -206,7 +206,7 @@ class pgraph_t: public cfinfo_t {
     void prep_sgraph_internal(onegraph_t<T>** sgraph);
     void update_count(onegraph_t<T>** sgraph);
     
-    void store_sgraph(onegraph_t<T>** sgraph);
+    void store_sgraph(onegraph_t<T>** sgraph, bool clean = false);
     void store_skv(onekv_t<T>** skv);
     
     void read_sgraph(onegraph_t<T>** sgraph);
@@ -260,7 +260,7 @@ class ugraph: public pgraph_t<T> {
     void calc_degree();
     void make_graph_baseline();
     void create_snapshot();
-    void store_graph_baseline();
+    void store_graph_baseline(bool clean = false);
     void read_graph_baseline();
     void file_open(const string& odir,  bool trunc);
     
@@ -302,7 +302,7 @@ class dgraph: public pgraph_t<T> {
     void calc_degree();
     void make_graph_baseline();
     void create_snapshot();
-    void store_graph_baseline();
+    void store_graph_baseline(bool clean = false);
     void read_graph_baseline();
     void file_open(const string& odir,  bool trunc);
     
@@ -350,7 +350,7 @@ class many2one: public pgraph_t<T> {
     void calc_degree();
     void make_graph_baseline();
     void create_snapshot();
-    void store_graph_baseline();
+    void store_graph_baseline(bool clean = false);
     void read_graph_baseline();
     void file_open(const string& odir,  bool trunc);
     
@@ -389,7 +389,7 @@ class one2one: public pgraph_t<T> {
     void calc_degree();
     void make_graph_baseline();
     void create_snapshot();
-    void store_graph_baseline();
+    void store_graph_baseline(bool clean = false);
     void read_graph_baseline();
     void file_open(const string& odir,  bool trunc);
     
@@ -437,7 +437,7 @@ class one2many: public pgraph_t<T> {
     void calc_degree();
     void make_graph_baseline();
     void create_snapshot();
-    void store_graph_baseline();
+    void store_graph_baseline(bool clean = false);
     void read_graph_baseline();
     void file_open(const string& odir,  bool trunc);
     
@@ -836,19 +836,33 @@ void onegraph_t<T>::file_open(const string& filename, bool trunc)
     }
 }
 
+#include <stdio.h>
 template <class T>
-void onegraph_t<T>::handle_write()
+void onegraph_t<T>::handle_write(bool clean /* = false */)
 {
     vid_t   v_count = TO_VID(super_id);
     vid_t last_vid1 = 0;
     vid_t last_vid2 = 0;
     
+    string etfile = file + ".etable";
+    string vtfile = file + ".vtable";
+    string etfile_new = file + ".etable_new";
+    string vtfile_new = file + ".vtable_new";
     
+    int etf_new = etf;
+    int vtf_new = vtf;
+    
+    if (clean) {
+		vtf_new = open(vtfile_new.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
+		etf_new = open(etfile_new.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
+        log_tail = 0;
+    }
+     
     write_seg_t* seg1 = new write_seg_t(write_seg[0]);
     write_seg_t* seg2 = new write_seg_t(write_seg[1]); 
     write_seg_t* seg3 = new write_seg_t(write_seg[2]); 
     
-	prepare_dvt(seg1, last_vid1);
+	prepare_dvt(seg1, last_vid1, clean);
     
     do {
         last_vid2 = last_vid1;
@@ -857,14 +871,14 @@ void onegraph_t<T>::handle_write()
         {
             #pragma omp master
             {
-                prepare_dvt(seg1, last_vid1);
+                prepare_dvt(seg1, last_vid1,clean);
             }
             if (1 == omp_get_thread_num())
             {
                 //Write the dvt log
                 if (seg2->dvt_count) {
                     off_t size = sizeof(disk_vtable_t)*seg2->dvt_count;
-					if (size != write(vtf, seg2->dvt, size)) {
+					if (size != write(vtf_new, seg2->dvt, size)) {
 						perror("write issue in dvt");
 						assert(0);
 					}
@@ -875,7 +889,7 @@ void onegraph_t<T>::handle_write()
 				//Write new adj list
 				if (seg3->log_head != 0) {
 					off_t size = seg3->log_head;
-					if(size != write(etf, seg3->log_beg, size)) {
+					if(size != write(etf_new, seg3->log_beg, size)) {
 						perror("pwrite issue in adj list");
 						assert(0);
 					}
@@ -902,7 +916,7 @@ void onegraph_t<T>::handle_write()
 		{
             if (seg3->log_head != 0) {
                 off_t size = seg3->log_head;
-                if (size != write(etf, seg3->log_beg, seg3->log_head)) {
+                if (size != write(etf_new, seg3->log_beg, seg3->log_head)) {
                     perror("pwrite issue");
                     assert(0);
                 }
@@ -910,12 +924,28 @@ void onegraph_t<T>::handle_write()
 		}
 	    adj_update(seg3);
 	}
+
+    //Rename the files
+    if (clean) {
+        swap(vtf, vtf_new);
+        close(vtf_new);
+        remove(vtfile.c_str());
+        rename(vtfile_new.c_str(), vtfile.c_str());
+        
+        
+        swap(etf, etf_new);
+        //XXX Should be closed only when no one is using it. 
+        close(etf_new);
+        remove(etfile.c_str());
+        rename(etfile_new.c_str(), etfile.c_str());
+    }
+
     adjlog_tail = adjlog_head;
 	//adjlog_head = 0;
 }
 
 template <class T>
-void onegraph_t<T>::prepare_dvt(write_seg_t* seg, vid_t& last_vid)
+void onegraph_t<T>::prepare_dvt (write_seg_t* seg, vid_t& last_vid, bool clean /* = false */)
 {
     vid_t    v_count = TO_VID(super_id);
     durable_adjlist_t<T>* adj_list2 = 0;
@@ -927,7 +957,7 @@ void onegraph_t<T>::prepare_dvt(write_seg_t* seg, vid_t& last_vid)
 	seg->dvt_count = 0;
 	
     for (vid_t vid = last_vid; vid < v_count ; ++vid) {
-        if (0 == beg_pos[vid].v_unit || 0 == beg_pos[vid].v_unit->adj_list) continue;
+        if (0 == beg_pos[vid].v_unit || (0 == beg_pos[vid].v_unit->adj_list  && !clean)) continue;
 		
         curr		= beg_pos[vid].get_snapblob();
 		if ((seg->log_head + curr->degree*sizeof(T) + sizeof(durable_adjlist_t<T>)  > log_count) ||
@@ -1371,7 +1401,7 @@ void pgraph_t<T>::prep_sgraph_internal(onegraph_t<T>** sgraph)
 
 
 template <class T>
-void pgraph_t<T>::store_sgraph(onegraph_t<T>** sgraph)
+void pgraph_t<T>::store_sgraph(onegraph_t<T>** sgraph, bool clean /*= false*/)
 {
     if (sgraph == 0) return;
     
@@ -1380,7 +1410,7 @@ void pgraph_t<T>::store_sgraph(onegraph_t<T>** sgraph)
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
         if (sgraph[i] == 0) continue;
-		sgraph[i]->handle_write();
+		sgraph[i]->handle_write(clean);
         /*
 		sgraph[i]->persist_elog(etfile);
         sgraph[i]->persist_slog(stfile);
@@ -1866,12 +1896,12 @@ void dgraph<T>::make_graph_baseline()
 }
 
 template <class T> 
-void dgraph<T>::store_graph_baseline()
+void dgraph<T>::store_graph_baseline(bool clean)
 {
     //#pragma omp parallel
     {
-    store_sgraph(sgraph_out);
-    store_sgraph(sgraph_in);
+    store_sgraph(sgraph_out, clean);
+    store_sgraph(sgraph_in, clean);
     }
 }
 
@@ -1968,18 +1998,11 @@ void ugraph<T>::make_graph_baseline()
 }
 
 template <class T> 
-void ugraph<T>::store_graph_baseline()
+void ugraph<T>::store_graph_baseline(bool clean)
 {
     double start, end;
-	/*    
-	#pragma omp parallel     
-    {
-    update_count(sgraph);
-    }
-	*/
-    
     start = mywtime(); 
-    store_sgraph(sgraph);
+    store_sgraph(sgraph, clean);
     end = mywtime();
     cout << "store graph time = " << end - start << endl;
 }
@@ -2049,7 +2072,7 @@ void many2one<T>::make_graph_baseline()
 }
 
 template <class T> 
-void many2one<T>::store_graph_baseline()
+void many2one<T>::store_graph_baseline(bool clean)
 {
     store_skv(skv_out);
     store_sgraph(sgraph_in);
@@ -2128,7 +2151,7 @@ void one2many<T>::make_graph_baseline()
 }
 
 template <class T> 
-void one2many<T>::store_graph_baseline()
+void one2many<T>::store_graph_baseline(bool clean)
 {
     store_sgraph(sgraph_out);
     store_skv(skv_in);
@@ -2196,7 +2219,7 @@ void one2one<T>::make_graph_baseline()
 }
 
 template <class T> 
-void one2one<T>::store_graph_baseline()
+void one2one<T>::store_graph_baseline(bool clean)
 {
     store_skv(skv_out);
     store_skv(skv_in);

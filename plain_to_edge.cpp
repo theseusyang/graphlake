@@ -438,6 +438,7 @@ void plaingraph_manager::prep_graph_paper_chain(const string& idirname, const st
 
     index_t marker = blog->blog_head/residue;
     index_t new_marker = 0;
+    bool clean = false;
     for (index_t i = 1; i <= residue; ++i) {
 
         new_marker = marker*i;
@@ -448,7 +449,8 @@ void plaingraph_manager::prep_graph_paper_chain(const string& idirname, const st
         ugraph->create_marker(new_marker);
         if (eOK == ugraph->move_marker(snap_marker)) {
             ugraph->make_graph_baseline();
-			ugraph->store_graph_baseline();
+			clean = (i == residue);
+            ugraph->store_graph_baseline(clean);
             g->incr_snapid(snap_marker, snap_marker);
         }
     }

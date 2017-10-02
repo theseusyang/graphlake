@@ -386,11 +386,11 @@ void graph::create_snapshot()
 //    } while(true);
 //}
 
-void graph::store_graph_baseline()
+void graph::store_graph_baseline(bool clean)
 {
     //Store graph
     for (int i = 0; i < cf_count; i++) {
-        cf_info[i]->store_graph_baseline();
+        cf_info[i]->store_graph_baseline(clean);
     }
 }
 

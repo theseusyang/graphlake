@@ -89,7 +89,7 @@ class typekv_t : public cfinfo_t {
     
     sid_t type_update(const string& src, const string& dst);
     void make_graph_baseline();
-    void store_graph_baseline(); 
+    void store_graph_baseline(bool clean); 
     void read_graph_baseline();
     void file_open(const string& odir, bool trunc); 
 

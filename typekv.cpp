@@ -130,7 +130,7 @@ void typekv_t::file_open(const string& dir, bool trunc)
     }
 }
 
-void typekv_t::store_graph_baseline()
+void typekv_t::store_graph_baseline(bool clean)
 {
     //write down the type info, t_info
     write(vtf, t_info, sizeof(tinfo_t)*t_count);

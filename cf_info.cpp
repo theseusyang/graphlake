@@ -172,7 +172,7 @@ status_t cfinfo_t::write_edgelog()
    return eNoWork;
 }
 
-void cfinfo_t::store_graph_baseline()
+void cfinfo_t::store_graph_baseline(bool clean)
 {
     assert(0);
 }

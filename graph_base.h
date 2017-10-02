@@ -439,10 +439,10 @@ public:
     inline tid_t get_tid() { return TO_TID(super_id);}
 
 
-    void prepare_dvt(write_seg_t* seg, vid_t& last_vid);
+    void prepare_dvt(write_seg_t* seg, vid_t& last_vid, bool clean = false);
 	void adj_prep(write_seg_t* seg);
 	void adj_update(write_seg_t* seg);
-    void handle_write();
+    void handle_write(bool clean = false);
     
     void update_count();
     /*
