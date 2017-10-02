@@ -842,13 +842,12 @@ void onegraph_t<T>::handle_write()
     vid_t   v_count = TO_VID(super_id);
     vid_t last_vid1 = 0;
     vid_t last_vid2 = 0;
+    
+    
     write_seg_t* seg1 = new write_seg_t(write_seg[0]);
-	
     write_seg_t* seg2 = new write_seg_t(write_seg[1]); 
     write_seg_t* seg3 = new write_seg_t(write_seg[2]); 
     
-	//seg3->log_head = 0;	
-    //seg3->dvt_count = 0;
 	prepare_dvt(seg1, last_vid1);
     
     do {
@@ -876,8 +875,7 @@ void onegraph_t<T>::handle_write()
 				//Write new adj list
 				if (seg3->log_head != 0) {
 					off_t size = seg3->log_head;
-					if(size != pwrite(etf, seg3->log_beg, size,
-									  seg3->log_tail)) {
+					if(size != write(etf, seg3->log_beg, size)) {
 						perror("pwrite issue in adj list");
 						assert(0);
 					}
@@ -902,15 +900,15 @@ void onegraph_t<T>::handle_write()
 		//Write new adj list
 		#pragma omp master
 		{
-		if (seg3->log_head != 0) {
-			off_t size = seg3->log_head;
-			if (size != pwrite(etf, seg3->log_beg, seg3->log_head, seg3->log_tail)) {
-				perror("pwrite issue");
-				assert(0);
-			}
+            if (seg3->log_head != 0) {
+                off_t size = seg3->log_head;
+                if (size != write(etf, seg3->log_beg, seg3->log_head)) {
+                    perror("pwrite issue");
+                    assert(0);
+                }
+            }
 		}
-		}
-	adj_update(seg3);
+	    adj_update(seg3);
 	}
     adjlog_tail = adjlog_head;
 	//adjlog_head = 0;
@@ -1057,7 +1055,6 @@ void onegraph_t<T>::adj_prep(write_seg_t* seg)
 	for (vid_t v = 0; v < seg->dvt_count; ++v) {
 		dvt1 = seg->dvt + v;
 		vid = dvt1->vid;
-		if (0 == beg_pos[vid].v_unit->adj_list) continue;
 
 		prev_v_unit       = beg_pos[vid].get_vunit();
 		prev_total_count  = prev_v_unit->count;
