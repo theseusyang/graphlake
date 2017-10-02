@@ -22,6 +22,7 @@ index_t  W_SIZE = (1L << 20); //Edges to write
 index_t  DVT_SIZE = (1L <<24);//durable v-unit 
 index_t  DURABLE_SIZE = (1L << 30);//Durable adj-list
 
+index_t  OFF_COUNT = 100000;
 
 
 using std::swap;

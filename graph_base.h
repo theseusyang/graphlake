@@ -227,6 +227,8 @@ private:
 
     int      vtf;   //vertex table file
     FILE*    stf;   //snapshot table file
+
+    string   file;
 public:
     int    etf;   //edge table file
     nebrcount_t<T>*   nebr_count;

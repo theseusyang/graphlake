@@ -820,6 +820,7 @@ void onegraph_t<T>::setup_adjlist()
 template <class T>
 void onegraph_t<T>::file_open(const string& filename, bool trunc)
 {
+    file = filename; 
     string  vtfile = filename + ".vtable";
     string  etfile = filename + ".etable";
     //string  stfile = filename + ".stable";
@@ -1057,6 +1058,7 @@ void onegraph_t<T>::adj_prep(write_seg_t* seg)
 		dvt1 = seg->dvt + v;
 		vid = dvt1->vid;
 		if (0 == beg_pos[vid].v_unit->adj_list) continue;
+
 		prev_v_unit       = beg_pos[vid].get_vunit();
 		prev_total_count  = prev_v_unit->count;
 		prev_offset       = prev_v_unit->offset;

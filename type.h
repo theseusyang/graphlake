@@ -104,6 +104,7 @@ extern index_t  W_SIZE;//Durable edge log offset
 extern index_t  DVT_SIZE;
 extern index_t  DURABLE_SIZE;//
 
+extern index_t  OFF_COUNT;
 
 void free_buf(void* buf);
 void* alloc_buf();
@@ -296,6 +297,14 @@ class durable_adjlist_t {
 	inline T* get_adjlist() { return (T*)(&count + 1); }
 };
 
+//Special v-unit flags
+//#define VUNIT_NORMAL 0
+//#define VUNIT_SHORT  1
+//#define VUNIT_LONG   2
+//#define TO_VUNIT_FLAG(flag)  (flag & 0x3)
+//#define TO_VUNIT_COUNT(flag) ((flag >> 2 ) & 0x7)
+
+
 template <class T>
 class vunit_t {
  public:
@@ -330,7 +339,6 @@ class disk_vtable_t {
     degree_t count;
     degree_t del_count;
     uint64_t file_offset;
-    //uint64_t old_offset;//for cleaning
 };
 
 //used for offline processing
