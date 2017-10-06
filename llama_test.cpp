@@ -189,7 +189,7 @@ llama_pagerank_push(ext_vunit_t* v_units,
             ext_vunit_t* v_unit = 0;
             float rank = 0.0f; 
             
-            #pragma omp for  
+            #pragma omp for schedule(dynamic,4096) 
             for (vid_t v = 0; v < v_count; v++) {
                 v_unit = v_units + v;
                 durable_degree = v_unit->count;
@@ -198,6 +198,134 @@ llama_pagerank_push(ext_vunit_t* v_units,
                 durable_adjlist = (durable_adjlist_t<T>*)(edges + offset);
                 adj_list = durable_adjlist->get_adjlist();
 
+                rank = 0.0f;
+                
+                //traverse the delta adj list
+                for (degree_t i = 0; i < durable_degree; ++i) {
+                    sid = get_nebr(adj_list, i);
+                    rank = prior_rank_array[sid];
+                    qthread_dincr(rank_array + v, rank);
+                }
+            }
+            
+            
+            float new_rank = 0.0f;
+            
+            #pragma omp for
+            for (vid_t v = 0; v < v_count; v++ ) {
+                if (v_units[v].count == 0) continue;
+                new_rank = inv_v_count + 0.85*rank_array[v];
+                rank_array[v] = new_rank*dset[v];
+                prior_rank_array[v] = 0;
+            } 
+        }
+        swap(prior_rank_array, rank_array);
+        double end1 = mywtime();
+        cout << "Iteration Time = " << end1 - start1 << endl;
+    }	
+
+    #pragma omp for
+    for (vid_t v = 0; v < v_count; v++ ) {
+        rank_array[v] = rank_array[v]*v_units[v].count;
+    }
+
+    double end = mywtime();
+
+    cout << "PR Time = " << end - start << endl;
+
+    free(rank_array);
+    free(prior_rank_array);
+    free(dset);
+	cout << endl;
+}
+
+template<class T>
+void
+buffered_pagerank_push(ext_vunit_t* v_units, 
+               int etf, vid_t v_count, int iteration_count)
+{
+    char*   edges = 0;
+    size_t   size = fsize(etf);
+    
+    if (size == -1L) {
+        assert(0);
+    }
+
+    edges = (char*)mmap(0, size, PROT_READ, MAP_PRIVATE, etf, 0);
+    if (MAP_FAILED == edges) {
+        assert(0);
+    }
+	
+    float* rank_array = 0;
+	float* prior_rank_array = 0;
+    float* dset = 0;
+	
+    double start = mywtime();
+    
+    rank_array = (float*)calloc(v_count, sizeof(float));
+    prior_rank_array = (float*)calloc(v_count, sizeof(float));
+    dset = (float*)calloc(v_count, sizeof(float));
+	
+	//initialize the rank, and get the degree information
+    
+    float	inv_count = 1.0f/v_count;
+
+    #pragma omp parallel 
+    { 
+    degree_t degree = 0;
+    float   inv_degree = 0;
+    #pragma omp for
+    for (vid_t v = 0; v < v_count; ++v) {
+        degree = v_units[v].count;
+        if (degree != 0) {
+            inv_degree = 1.0f/degree;
+            dset[v] = inv_degree;
+            prior_rank_array[v] = inv_count*inv_degree;
+        } else {
+            dset[v] = 0;
+            prior_rank_array[v] = 0;
+        }
+    }
+    }
+
+    float	inv_v_count = 0.15f/v_count;
+
+	//let's run the pagerank
+	for (int iter = 0; iter < iteration_count; ++iter) {
+        double start1 = mywtime();
+        #pragma omp parallel 
+        {
+            sid_t sid;
+			index_t buf_sz = 4096;
+			index_t      sz_to_read = 0;
+            degree_t durable_degree = 0;
+            T* adj_list = 0;
+            index_t         offset  = 0;
+            
+			durable_adjlist_t<T>* durable_adjlist = 0;
+			durable_adjlist = (durable_adjlist_t<T>*)malloc(buf_sz);	
+
+            ext_vunit_t* v_unit = 0;
+            float rank = 0.0f; 
+            
+            #pragma omp for schedule(dynamic,4096) 
+            for (vid_t v = 0; v < v_count; v++) {
+                v_unit = v_units + v;
+                durable_degree = v_unit->count;
+				if (durable_degree == 0) continue;
+
+                offset = v_unit->offset;
+				sz_to_read = durable_degree*sizeof(T) + sizeof(durable_adjlist_t<T>);
+				if (sz_to_read > buf_sz) {
+					free(durable_adjlist);
+					durable_adjlist = (durable_adjlist_t<T>*)malloc(sz_to_read);
+					buf_sz = sz_to_read;
+				
+				}
+				//durable_adjlist = (durable_adjlist_t<T>*)(edges + offset);
+                adj_list = durable_adjlist->get_adjlist();
+				pread(etf, durable_adjlist, sz_to_read, offset);
+                
                 rank = 0.0f;
                 
                 //traverse the delta adj list
@@ -274,7 +402,7 @@ llama_bfs(ext_vunit_t* v_units, int etf, vid_t v_count, uint8_t* status, sid_t r
             
             durable_adjlist_t<T>* durable_adjlist = 0;
 				
-            #pragma omp for nowait
+            #pragma omp for schedule (dynamic, 4096) nowait
             for (vid_t v = 0; v < v_count; v++) {
                 if (status[v] != level) continue;
                 v_unit = v_units+v;
@@ -292,6 +420,99 @@ llama_bfs(ext_vunit_t* v_units, int etf, vid_t v_count, uint8_t* status, sid_t r
                     }
                 }
             }
+        }
+
+		double end = mywtime();
+	
+		cout << " Level = " << level
+             << " Frontier Count = " << frontier
+		     << " Time = " << end - start
+		     << endl;
+	
+		++level;
+	} while (frontier);
+		
+    double end1 = mywtime();
+    cout << "BFS Time = " << end1 - start1 << endl;
+
+	/*
+    for (int l = 1; l < level; ++l) {
+        vid_t vid_count = 0;
+        #pragma omp parallel for reduction (+:vid_count) 
+        for (vid_t v = 0; v < v_count; ++v) {
+            if (status[v] == l) ++vid_count;
+        }
+        cout << " Level = " << l << " count = " << vid_count << endl;
+    }*/
+}
+
+template<class T>
+void
+buffered_bfs(ext_vunit_t* v_units, int etf, vid_t v_count, uint8_t* status, sid_t root)
+{
+	int		level      = 1;
+	sid_t	frontier   = 0;
+    char*   edges = 0;
+    size_t   size = fsize(etf);
+    
+    if (size == -1L) {
+        assert(0);
+    }
+
+	/*
+    edges = (char*)mmap(0, size, PROT_READ, MAP_PRIVATE, etf, 0);
+    if (MAP_FAILED == edges) {
+        assert(0);
+    }
+	*/
+
+	double start1 = mywtime();
+	status[root] = level;
+	do {
+		frontier = 0;
+		double start = mywtime();
+		#pragma omp parallel reduction(+:frontier)
+		{
+            sid_t sid;
+            degree_t durable_degree = 0;
+			index_t buf_sz = 4096;
+			index_t      sz_to_read = 0;
+            T*            adj_list  = 0;
+            index_t         offset  = 0;
+            ext_vunit_t*     v_unit  = 0;
+            
+            durable_adjlist_t<T>* durable_adjlist = 0;
+			durable_adjlist = (durable_adjlist_t<T>*)malloc(buf_sz);	
+
+            #pragma omp for schedule (dynamic, 4096) nowait
+            for (vid_t v = 0; v < v_count; v++) {
+                if (status[v] != level || v_units[v].count == 0) continue;
+                v_unit = v_units+v;
+                durable_degree = v_unit->count;
+                offset = v_unit->offset;
+                
+				
+				sz_to_read = durable_degree*sizeof(T) + sizeof(durable_adjlist_t<T>);
+				if (sz_to_read > buf_sz) {
+					free(durable_adjlist);
+					durable_adjlist = (durable_adjlist_t<T>*)malloc(sz_to_read);
+					buf_sz = sz_to_read;
+				
+				}
+				//durable_adjlist = (durable_adjlist_t<T>*)(edges + offset);
+                adj_list = durable_adjlist->get_adjlist();
+				pread(etf, durable_adjlist, sz_to_read, offset);
+                
+                //traverse the adj list
+                for (degree_t k = 0; k < durable_degree; ++k) {
+                    sid = get_nebr(adj_list, k);
+                    if (status[sid] == 0) {
+                        status[sid] = level + 1;
+                        ++frontier;
+                    }
+                }
+            }
+			free(durable_adjlist);
         }
 
 		double end = mywtime();
@@ -363,6 +584,7 @@ void llama_test_bfs(const string& odir)
     //Run BFS
     uint8_t* level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
     llama_bfs<sid_t>(v_unit, etf, v_count, level_array, 1);
+    //buffered_bfs<sid_t>(v_unit, etf, v_count, level_array, 1);
     
     double end = mywtime();
     cout << "total time = " << end - start << endl;
@@ -405,7 +627,7 @@ void llama_test_pr(const string& odir)
     close(vtf);
 
     //Read out degree
-    vtfile = odir + "friend0out.vtable";
+    vtfile = odir + "friend0.vtable";
     vtf = open(vtfile.c_str(), O_RDONLY);
     assert(-1 != vtf);
 
@@ -488,6 +710,7 @@ void llama_test_pr_push(const string& odir)
 
     //Run PR 
     llama_pagerank_push<sid_t>(v_unit, etf, v_count, 5);
+    //buffered_pagerank_push<sid_t>(v_unit, etf, v_count, 5);
     
     double end = mywtime();
     cout << "total time = " << end - start << endl;
