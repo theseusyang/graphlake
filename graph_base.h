@@ -1,6 +1,10 @@
 #pragma once
-
+#include <iostream>
+#include <libaio.h>
 #include "type.h"
+
+using std::cout;
+using std::endl;
 
 ////
 inline void add_nebr1(sid_t* adj_list, vid_t index, sid_t value) {
@@ -301,7 +305,8 @@ public:
     }
     
     void setup(tid_t tid);
-    void setup_adjlist(vid_t vid_start, vid_t vid_end);
+    //void setup_adjlist(vid_t vid_start, vid_t vid_end);
+    void setup_adjlist();
     void setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end);
 
     void increment_count_noatomic(vid_t vid) {
@@ -361,16 +366,15 @@ public:
         return  (durable_adjlist_t<T>*)(seg->log_beg + index_log);
 	}
 	
-    /*
+    
     //delta adj list allocation
 	inline delta_adjlist_t<T>* new_delta_adjlist(degree_t count) {
-        //It will have issues, in some T sizes, not fixed yet
         degree_t new_count = count*sizeof(T) + sizeof(delta_adjlist_t<T>);
 		index_t index_adjlog = __sync_fetch_and_add(&adjlog_head, new_count);
 		assert(index_adjlog  < adjlog_count); 
 		return (delta_adjlist_t<T>*)(adjlog_beg + index_adjlog);
 	}
-    */
+    
     
 	//in-memory snap degree
 	inline snapT_t<T>* new_snapdegree() {
@@ -589,3 +593,125 @@ class onekv_t {
 
 typedef onekv_t<sid_t> skv_t; 
 typedef onekv_t<lite_edge_t> lite_skv_t;
+
+#define ALIGN_MASK 0xFFFFFFFFFFFE00
+#define TO_RESIDUE(x) (x & 0x1FF)
+#define UPPER_ALIGN(x) (((x) + 511) & ALIGN_MASK)
+#define LOWER_ALIGN(x) ((x) & ALIGN_MASK)
+
+#define IO_THDS 1
+#define AIO_MAXIO 256
+#define BUF_SIZE  (1L<< 25L)
+
+class meta_t {
+    public:
+    vid_t vid;
+    index_t offset;
+};
+
+class segment {
+  public:
+      char* buf;
+      meta_t* meta;
+      int     meta_count;
+      int     ctx_count;
+      int     etf;
+};
+
+typedef struct __aio_meta {
+    struct io_event* events;
+    struct iocb** cb_list;
+    io_context_t  ctx;
+    int busy;
+} aio_meta_t;
+
+class io_driver {
+public:
+    size_t seq_read_aio(segment* seg, ext_vunit_t* ext_vunits);
+    size_t read_random_aio(segment* seg);
+    int wait_aio_completion();
+    template <class T>
+    int prep_random_read_aio(vid_t& last_read, size_t to_read, uint8_t* control_read, 
+                             meta_t* meta, ext_vunit_t* ext_vunit, 
+                             int& iteration_done,  size_t& start_address);
+
+    template <class T>
+    int prep_seq_read_aio(vid_t& last_read, vid_t v_count, size_t to_read,
+                          segment* seg, ext_vunit_t* ext_vunit, vid_t v_count1, vid_t v_count2);
+private:
+    aio_meta_t* aio_meta;
+
+public:
+    io_driver();
+};
+
+template<class T>
+int io_driver::prep_seq_read_aio(vid_t& last_read, vid_t v_count, size_t to_read,
+                             segment* seg, ext_vunit_t* ext_vunit, vid_t v_count1, vid_t v_count2) 
+{
+    meta_t* meta = seg->meta;
+    int k = 0;
+    
+    index_t local_size = 0;
+    index_t total_count = 0;
+    index_t offset;
+    index_t total_size = 0;
+
+    for (vid_t vid = last_read; vid < v_count; ++vid) {
+        total_count = ext_vunit[vid].count + ext_vunit[vid].del_count;
+        if (total_count == 0) continue;
+        
+        offset = ext_vunit[vid].offset;
+        if (k == 0) {
+            total_size = TO_RESIDUE(offset);
+            cout << "Offset 1 = " << offset - total_size << endl;
+        }
+
+        local_size = total_count*sizeof(T) + sizeof(durable_adjlist_t<T>);
+
+        if (total_size + local_size > to_read) {
+            seg->meta_count = k;
+            last_read = vid;
+            //last_read = seg->meta[k - 1].vid;
+            seg->ctx_count = 1;
+            return k;
+        }
+
+        meta[k].vid = vid;
+        meta[k].offset = total_size;
+        total_size += local_size;
+        ++k;
+    }
+    
+    /*
+    for (vid_t vid = v_count1; vid < v_count2; ++vid) {
+        total_count = ext_vunit[vid].count + ext_vunit[vid].del_count;
+        if (total_count == 0) continue;
+        
+        offset = ext_vunit[vid].offset;
+        if (k == 0) {
+            total_size = TO_RESIDUE(offset);
+            cout << "Offset 1 = " << offset - total_size << endl;
+        }
+
+        local_size = total_count*sizeof(T) + sizeof(durable_adjlist_t<T>);
+
+        if (total_size + local_size > to_read) {
+            seg->meta_count = k;
+            last_read = vid;
+            seg->ctx_count = 1;
+            return k;
+        }
+
+        meta[k].vid = vid;
+        meta[k].offset = total_size;
+        total_size += local_size;
+        ++k;
+    }
+    */
+
+    seg->meta_count = k;
+    seg->ctx_count = 1;
+    last_read = v_count;
+    return k;
+}

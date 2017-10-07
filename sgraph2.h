@@ -214,6 +214,7 @@ void onegraph_t<T>::setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end)
 	index_t new_count = my_delta_size*sizeof(T) 
 						+ my_dsnap_count*sizeof(delta_adjlist_t<T>);
     char*  my_adjlog_beg = new_delta_adjlist_bulk(new_count);
+    assert(adjlog_head <= adjlog_count);
 
 	delta_adjlist_t<T>* prev_delta = 0;
 	delta_adjlist_t<T>* delta_adjlist = 0;
@@ -272,6 +273,7 @@ void onegraph_t<T>::setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end)
         }
 
         v_unit->adj_list = delta_adjlist;
+        reset_count(vid);
     }
 }
 
@@ -443,7 +445,9 @@ void pgraph_t<T>::make_graph_u()
                             sizeof(global_range_t<T>), range_count);
     
     thd_local_t* thd_local = (thd_local_t*) calloc(sizeof(thd_local_t), thd_count);  
-    index_t edge_count = ((blog->blog_marker - blog->blog_tail)*1.15)/(thd_count);
+    index_t edge_count = (((blog->blog_marker - blog->blog_tail) << 1)*1.15)/(thd_count);
+        
+    double start = mywtime();
 
     #pragma omp parallel num_threads(CLEAN_THDS)
     {
@@ -451,7 +455,6 @@ void pgraph_t<T>::make_graph_u()
         vid_t* vid_range = (vid_t*)calloc(sizeof(vid_t), range_count); 
         thd_local[tid].vid_range = vid_range;
 
-        double start = mywtime();
         double end;
 
         //Get the count for classification
@@ -501,13 +504,13 @@ void pgraph_t<T>::make_graph_u()
         
         //fill adj-list
         this->fill_adjlist_noatomic(sgraph, global_range, j_start, j_end);
+        free(vid_range);
+        #pragma omp barrier 
         #pragma omp master 
         {
             end = mywtime();
             cout << " adj-list filled " << end - start << endl;
         } 
-        free(vid_range);
-        #pragma omp barrier 
         
         //free the memory
         #pragma omp for schedule (static)

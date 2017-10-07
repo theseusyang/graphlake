@@ -15,7 +15,7 @@ index_t  BLOG_SIZE = (1L << BLOG_SHIFT); //size of edge log
 index_t  BLOG_MASK = (BLOG_SIZE - 1);
 
 index_t  DELTA_SIZE = (1L << 36) ;//(32 + sizeof(T));  //sizeo of delta adj-list
-index_t  SNAP_COUNT  = (4);
+index_t  SNAP_COUNT  = (2);
 
 //durable data structure buffer size
 index_t  W_SIZE = (1L << 20); //Edges to write

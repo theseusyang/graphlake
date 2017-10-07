@@ -10,51 +10,9 @@
 using std::min;
 
 typedef float rank_t; 
-// Credits to :
-// http://www.memoryhole.net/kyle/2012/06/a_use_for_volatile_in_multithr.html
-rank_t qthread_dincr(rank_t *operand, rank_t incr)
-{
-    //*operand = *operand + incr;
-    //return incr;
-    
-    union {
-       rank_t   d;
-       uint32_t i;
-    } oldval, newval, retval;
-    do {
-         oldval.d = *(volatile rank_t *)operand;
-         newval.d = oldval.d + incr;
-         //__asm__ __volatile__ ("lock; cmpxchgq %1, (%2)"
-         __asm__ __volatile__ ("lock; cmpxchg %1, (%2)"
-                                : "=a" (retval.i)
-                                : "r" (newval.i), "r" (operand),
-                                 "0" (oldval.i)
-                                : "memory");
-    } while (retval.i != oldval.i);
-    return oldval.d;
-}
+extern float qthread_dincr(float* sum, float value);
+extern double qthread_doubleincr(double *operand, double incr);
 
-rank_t qthread_doubleincr(rank_t *operand, double incr)
-{
-    //*operand = *operand + incr;
-    //return incr;
-    
-    union {
-       double   d;
-       uint64_t i;
-    } oldval, newval, retval;
-    do {
-         oldval.d = *(volatile double *)operand;
-         newval.d = oldval.d + incr;
-         //__asm__ __volatile__ ("lock; cmpxchgq %1, (%2)"
-         __asm__ __volatile__ ("lock; cmpxchg %1, (%2)"
-                                : "=a" (retval.i)
-                                : "r" (newval.i), "r" (operand),
-                                 "0" (oldval.i)
-                                : "memory");
-    } while (retval.i != oldval.i);
-    return oldval.d;
-}
 
 template <class T>
 degree_t* create_degreesnap (vert_table_t<T>* graph, vid_t v_count, snapshot_t* snapshot, index_t marker, edgeT_t<T>* edges, degree_t* degree_array)

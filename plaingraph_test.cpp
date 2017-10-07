@@ -247,6 +247,7 @@ void weighted_dtest0(const string& idir, const string& odir)
             nebr_count = v_offset[v+1] - v_offset[v];
             degree_array[v].add_count = nebr_count;
         }
+        /*
         vid_t  total_thds  = omp_get_num_threads();
         vid_t         tid  = omp_get_thread_num();  
         
@@ -258,6 +259,8 @@ void weighted_dtest0(const string& idir, const string& odir)
         }
         
         sgraph->setup_adjlist(vid_start, vid_end);
+        */
+        sgraph->setup_adjlist();
         
         #pragma omp for
         for (int64_t v = 0; v < nv; ++v) {
@@ -759,17 +762,19 @@ void paper_test_chain_bfs(const string& idir, const string& odir)
     }
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
+   
+    for (int i = 0; i < 10; i++) {
+        memset(level_array, 0, v_count*sizeof(uint8_t));
+        mem_bfs<sid_t>(graph, degree_array, graph, degree_array, 
+                   snapshot, marker, blog->blog_beg,
+                   v_count, level_array, 1);
+    }
     
-	
+    /*
 	ext_bfs<sid_t>(ugraph->sgraph[0], degree_array, ugraph->sgraph[0], degree_array, 
                    snapshot, marker, blog->blog_beg,
                    v_count, level_array, 1);
-	
-	/*
-    mem_bfs<sid_t>(graph, degree_array, graph, degree_array, 
-                   snapshot, marker, blog->blog_beg,
-                   v_count, level_array, 1);
-    */
+	*/
 }
 void paper_test_pr_chain(const string& idir, const string& odir)
 {
@@ -795,9 +800,11 @@ void paper_test_pr_chain(const string& idir, const string& odir)
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
 
-    mem_pagerank<sid_t>(graph, degree_array, degree_array, 
+    for (int i = 0; i < 10; i++) {
+        mem_pagerank<sid_t>(graph, degree_array, degree_array, 
                    snapshot, marker, blog->blog_beg,
                    v_count, 5);
+    }
 
 }
 
@@ -855,7 +862,9 @@ void paper_test_hop1_chain(const string& idir, const string& odir)
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
 
-    mem_hop1<sid_t>(graph, degree_array, snapshot, marker, blog->blog_beg, v_count);
+    for (int i = 0; i < 10; i++) {
+        mem_hop1<sid_t>(graph, degree_array, snapshot, marker, blog->blog_beg, v_count);
+    }
 
 }
 
@@ -1014,6 +1023,10 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             break;
         case 20:
             llama_test_pr_push(odir);
+            break;
+
+        case 21: 
+            //update_test0(idir, odir);
             break;
         
         case 100:

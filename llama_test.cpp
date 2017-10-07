@@ -4,9 +4,54 @@
 
 #include "all.h"
 #include "csv_to_edge.h"
+#include "ext2_iterative_analytics.h"
 
 extern vid_t v_count;
-extern void qthread_dincr(float* sum, float value);
+// Credits to :
+// http://www.memoryhole.net/kyle/2012/06/a_use_for_volatile_in_multithr.html
+float qthread_dincr(float *operand, float incr)
+{
+    //*operand = *operand + incr;
+    //return incr;
+    
+    union {
+       rank_t   d;
+       uint32_t i;
+    } oldval, newval, retval;
+    do {
+         oldval.d = *(volatile rank_t *)operand;
+         newval.d = oldval.d + incr;
+         //__asm__ __volatile__ ("lock; cmpxchgq %1, (%2)"
+         __asm__ __volatile__ ("lock; cmpxchg %1, (%2)"
+                                : "=a" (retval.i)
+                                : "r" (newval.i), "r" (operand),
+                                 "0" (oldval.i)
+                                : "memory");
+    } while (retval.i != oldval.i);
+    return oldval.d;
+}
+
+double qthread_doubleincr(double *operand, double incr)
+{
+    //*operand = *operand + incr;
+    //return incr;
+    
+    union {
+       double   d;
+       uint64_t i;
+    } oldval, newval, retval;
+    do {
+         oldval.d = *(volatile double *)operand;
+         newval.d = oldval.d + incr;
+         //__asm__ __volatile__ ("lock; cmpxchgq %1, (%2)"
+         __asm__ __volatile__ ("lock; cmpxchg %1, (%2)"
+                                : "=a" (retval.i)
+                                : "r" (newval.i), "r" (operand),
+                                 "0" (oldval.i)
+                                : "memory");
+    } while (retval.i != oldval.i);
+    return oldval.d;
+}
 
 template<class T>
 void
@@ -187,19 +232,17 @@ llama_pagerank_push(ext_vunit_t* v_units,
             index_t         offset  = 0;
 
             ext_vunit_t* v_unit = 0;
-            float rank = 0.0f; 
-            
+            float rank = 0.0f;
+
             #pragma omp for schedule(dynamic,4096) 
             for (vid_t v = 0; v < v_count; v++) {
                 v_unit = v_units + v;
                 durable_degree = v_unit->count;
-
+                if (durable_degree == 0) continue;
                 offset = v_unit->offset;
                 durable_adjlist = (durable_adjlist_t<T>*)(edges + offset);
                 adj_list = durable_adjlist->get_adjlist();
-
-                rank = 0.0f;
-                
+                assert(durable_degree == durable_adjlist->get_nebrcount());
                 //traverse the delta adj list
                 for (degree_t i = 0; i < durable_degree; ++i) {
                     sid = get_nebr(adj_list, i);
@@ -339,23 +382,33 @@ buffered_pagerank_push(ext_vunit_t* v_units,
             
             float new_rank = 0.0f;
             
-            #pragma omp for
-            for (vid_t v = 0; v < v_count; v++ ) {
-                if (v_units[v].count == 0) continue;
-                new_rank = inv_v_count + 0.85*rank_array[v];
-                rank_array[v] = new_rank*dset[v];
-                prior_rank_array[v] = 0;
-            } 
+            if (iter < iteration_count - 1) {
+                #pragma omp for
+                for (vid_t v = 0; v < v_count; v++ ) {
+                    if (v_units[v].count == 0) continue;
+                    new_rank = inv_v_count + 0.85*rank_array[v];
+                    rank_array[v] = new_rank*dset[v];
+                    prior_rank_array[v] = 0;
+                } 
+            } else {
+                #pragma omp for
+                for (vid_t v = 0; v < v_count; v++) {
+                    if (v_units[v].count == 0) continue;
+                    new_rank = inv_v_count + 0.85*rank_array[v];
+                    rank_array[v] = new_rank;
+                    prior_rank_array[v] = 0;
+                } 
+            }
         }
         swap(prior_rank_array, rank_array);
         double end1 = mywtime();
         cout << "Iteration Time = " << end1 - start1 << endl;
     }	
 
-    #pragma omp for
-    for (vid_t v = 0; v < v_count; v++ ) {
-        rank_array[v] = rank_array[v]*v_units[v].count;
-    }
+    //#pragma omp for
+    //for (vid_t v = 0; v < v_count; v++ ) {
+    //    rank_array[v] = rank_array[v]*v_units[v].count;
+    //}
 
     double end = mywtime();
 
@@ -407,11 +460,13 @@ llama_bfs(ext_vunit_t* v_units, int etf, vid_t v_count, uint8_t* status, sid_t r
                 if (status[v] != level) continue;
                 v_unit = v_units+v;
                 durable_degree = v_unit->count;
+                if (durable_degree == 0) continue;
                 offset = v_unit->offset;
                 durable_adjlist = (durable_adjlist_t<T>*)(edges + offset);
                 adj_list = durable_adjlist->get_adjlist();
                 
                 //traverse the adj list
+                assert(durable_degree == durable_adjlist->get_nebrcount());
                 for (degree_t k = 0; k < durable_degree; ++k) {
                     sid = get_nebr(adj_list, k);
                     if (status[sid] == 0) {
@@ -583,8 +638,9 @@ void llama_test_bfs(const string& odir)
 
     //Run BFS
     uint8_t* level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
-    llama_bfs<sid_t>(v_unit, etf, v_count, level_array, 1);
+    //llama_bfs<sid_t>(v_unit, etf, v_count, level_array, 1);
     //buffered_bfs<sid_t>(v_unit, etf, v_count, level_array, 1);
+    fg_bfs<sid_t>(v_unit, etf, v_count, level_array, 1);
     
     double end = mywtime();
     cout << "total time = " << end - start << endl;
@@ -627,7 +683,7 @@ void llama_test_pr(const string& odir)
     close(vtf);
 
     //Read out degree
-    vtfile = odir + "friend0.vtable";
+    vtfile = odir + "friend0out.vtable";
     vtf = open(vtfile.c_str(), O_RDONLY);
     assert(-1 != vtf);
 
@@ -704,13 +760,15 @@ void llama_test_pr_push(const string& odir)
     
     // READ etable
     string etfile = odir + "friend0out.etable";
-    int etf = open(etfile.c_str(), O_RDONLY);
+    int etf = open(etfile.c_str(), O_RDONLY|O_DIRECT);
+    //int etf = open(etfile.c_str(), O_RDONLY);
     assert(-1 != etf);
     
 
     //Run PR 
-    llama_pagerank_push<sid_t>(v_unit, etf, v_count, 5);
+    //llama_pagerank_push<sid_t>(v_unit, etf, v_count, 5);
     //buffered_pagerank_push<sid_t>(v_unit, etf, v_count, 5);
+    fg_pagerank_push<sid_t>(v_unit, etf, v_count, 5);
     
     double end = mywtime();
     cout << "total time = " << end - start << endl;

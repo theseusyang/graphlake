@@ -625,11 +625,11 @@ degree_t onegraph_t<T>::find_nebr(vid_t vid, sid_t sid)
     }
     return INVALID_DEGREE;
 }
-
+/*
 template <class T>
 void onegraph_t<T>::setup_adjlist(vid_t vid_start, vid_t vid_end)
 {
-    vid_t    v_count = TO_VID(super_id);
+    //vid_t    v_count = TO_VID(super_id);
     degree_t count, del_count, total_count;
 	vunit_t<T>* v_unit = 0;
     snapT_t<T>* curr;
@@ -675,8 +675,9 @@ void onegraph_t<T>::setup_adjlist(vid_t vid_start, vid_t vid_end)
     index_t delta_size = 0;
     index_t delta_metasize = sizeof(delta_adjlist_t<T>);
 
-    #pragma omp for schedule(static) 
-    for (vid_t vid = 0; vid < v_count; ++vid) {
+    //#pragma omp for schedule(static) 
+    //for (vid_t vid = 0; vid < v_count; ++vid) 
+    for (vid_t vid = vid_start; vid < vid_end; ++vid) {
         del_count = nebr_count[vid].del_count;
         count = nebr_count[vid].add_count;
         
@@ -718,15 +719,15 @@ void onegraph_t<T>::setup_adjlist(vid_t vid_start, vid_t vid_end)
             }
 
 			v_unit->adj_list = delta_adjlist;
-            /* 
-            //allocate new snapshot for degree, and initialize
-			snapT_t<T>* next    = my_dlog_beg; 
-            my_dlog_beg        += 1;
-            next->del_count     = del_count;
-            next->snap_id       = snap_id;
-            //next->next          = 0;
-            next->degree        = count;
-            */ 
+            
+            ////allocate new snapshot for degree, and initialize
+			//snapT_t<T>* next    = my_dlog_beg; 
+            //my_dlog_beg        += 1;
+            //next->del_count     = del_count;
+            //next->snap_id       = snap_id;
+            ////next->next          = 0;
+            //next->degree        = count;
+
             curr = beg_pos[vid].get_snapblob();
             if (curr) {
                 curr->degree += count;
@@ -750,8 +751,8 @@ void onegraph_t<T>::setup_adjlist(vid_t vid_start, vid_t vid_end)
         reset_count(vid);
     }
 }
+*/
 
-/*
 template <class T>
 void onegraph_t<T>::setup_adjlist()
 {
@@ -768,54 +769,52 @@ void onegraph_t<T>::setup_adjlist()
     for (vid_t vid = 0; vid < v_count; ++vid) {
         del_count = nebr_count[vid].del_count;
         count = nebr_count[vid].add_count;
-        
-        if (0 != count || 0 != del_count) {// new nebrs added/deleted
+        total_count = count + del_count;
+    
+        if (0 == total_count) {
+            continue;
+        }
 
-            prev_delta = nebr_count[vid].adj_list;
-            if (prev_delta) {
-                count = nebr_count[vid].add_count - prev_delta->get_nebrcount();
-			}	
-            total_count = count + del_count;
         
-            if (0 == total_count) {
-                continue;
-            }
-            
-            //delta adj list allocation
-			delta_adjlist = new_delta_adjlist(total_count);
-            delta_adjlist->set_nebrcount(total_count);
-            delta_adjlist->add_next(0);
-			
-			//If prev_delta exist, v_unit exists
-            if(prev_delta) {
+        //delta adj list allocation
+        delta_adjlist = new_delta_adjlist(total_count);
+        delta_adjlist->set_nebrcount(0);
+        delta_adjlist->add_next(0);
+        
+        v_unit = beg_pos[vid].get_vunit();
+        if(v_unit) {
+            prev_delta = v_unit->adj_list;
+            if (prev_delta) {
                 prev_delta->add_next(delta_adjlist);
             } else {
-				v_unit = new_vunit();
-			    v_unit->delta_adjlist = delta_adjlist;
-				beg_pos[vid].set_vunit(v_unit);
+                v_unit->delta_adjlist = delta_adjlist;
             }
-
-			nebr_count[vid].adj_list = delta_adjlist;
-        
-            //allocate new snapshot for degree, and initialize
-			snapT_t<T>* next    = new_snapdegree(); 
-            next->del_count     = del_count;
-            next->snap_id       = snap_id;
-            //next->next          = 0;
-            next->degree        = count;
-            
-            curr = beg_pos[vid].get_snapblob();
-            if (curr) {
-                next->degree    += curr->degree;
-                next->del_count += curr->del_count;
-            }
-
-            beg_pos[vid].set_snapblob1(next);
+        } else {
+            v_unit = new_vunit();
+            v_unit->delta_adjlist = delta_adjlist;
+            beg_pos[vid].set_vunit(v_unit);
         }
+
+        v_unit->adj_list = delta_adjlist;
+    
+        //allocate new snapshot for degree, and initialize
+        snapT_t<T>* next    = new_snapdegree(); 
+        next->del_count     = del_count;
+        next->snap_id       = snap_id;
+        //next->next          = 0;
+        next->degree        = count;
+        
+        curr = beg_pos[vid].get_snapblob();
+        if (curr) {
+            next->degree    += curr->degree;
+            next->del_count += curr->del_count;
+        }
+
+        beg_pos[vid].set_snapblob1(next);
         reset_count(vid);
     }
 }
-*/
+
 
 template <class T>
 void onegraph_t<T>::file_open(const string& filename, bool trunc)
@@ -1394,8 +1393,9 @@ void pgraph_t<T>::prep_sgraph_internal(onegraph_t<T>** sgraph)
             vid_end = v_count;
         }
 
-        sgraph[i]->setup_adjlist(vid_start, vid_end);
+        sgraph[i]->setup_adjlist_noatomic(vid_start, vid_end);
         #pragma omp barrier
+        
     }
 }
 
@@ -1969,32 +1969,29 @@ void ugraph<T>::make_graph_baseline()
     
     #pragma omp parallel     
     {
-    calc_edge_count(sgraph, sgraph);
-    prep_sgraph_internal(sgraph);
-    fill_adj_list(sgraph, sgraph);
+        calc_edge_count(sgraph, sgraph);
+        #pragma omp master 
+        {
+            end = mywtime();
+            cout << " calc degree time = " << end - start << endl;
+        }
+        prep_sgraph_internal(sgraph);
+        #pragma omp master 
+        {
+            end = mywtime();
+            cout << " prep time = " << end - start << endl;
+        }
+        fill_adj_list(sgraph, sgraph);
+        #pragma omp master 
+        {
+            end = mywtime();
+            cout << " fill adj time = " << end - start << endl;
+        }
     }
-    //end = mywtime();
-    //cout << "calc degree time = " << end - start << endl;
-    //
-    //start = mywtime(); 
-    //prefix sum then reset the count
-    //#pragma omp parallel     
-    //{
-    //prep_sgraph_internal(sgraph);
-    //}
-    //end = mywtime();
-    //cout << "prep_internal time = " << end - start << endl;
-
-    ////populate and get the original count back
-    //start = mywtime(); 
-    //#pragma omp parallel     
-    //{
-    //fill_adj_list(sgraph, sgraph);
-    //}
     end = mywtime();
-    cout << "fill adj list time = " << end - start << endl;
+    cout << "Make graph time = " << end - start << endl;
     blog->blog_tail = blog->blog_marker;  
-    */
+   */ 
 }
 
 template <class T> 

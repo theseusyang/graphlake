@@ -400,6 +400,7 @@ ext_bfs(onegraph_t<T>* sgraph_out, degree_t* degree_out,
                     
                     //cout << "Vertex: " << v << " durable degree " << durable_degree << endl;
 					//traverse the adj list
+                    assert(durable_degree == durable_adjlist->get_nebrcount());
 					for (vid_t k = 0; k < k_count; ++k) {
                         sid = get_nebr(adj_list, k);
 						if (status[sid] == 0) {
@@ -457,6 +458,7 @@ ext_bfs(onegraph_t<T>* sgraph_out, degree_t* degree_out,
                     adj_list = durable_adjlist->get_adjlist();
                     pread(etf_in, durable_adjlist, sz_to_read, offset);
 					
+                    assert(durable_degree == durable_adjlist->get_nebrcount());
                     for (vid_t k = 0; k < k_count; ++k) {
                         sid = get_nebr(adj_list, k);
 						if (status[sid] == level) {
