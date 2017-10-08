@@ -600,7 +600,7 @@ typedef onekv_t<lite_edge_t> lite_skv_t;
 #define LOWER_ALIGN(x) ((x) & ALIGN_MASK)
 
 #define IO_THDS 1
-#define AIO_MAXIO 256
+#define AIO_MAXIO 65536 
 #define BUF_SIZE  (1L<< 25L)
 
 class meta_t {
@@ -635,15 +635,15 @@ public:
     size_t read_random_aio(segment* seg);
     int wait_aio_completion(segment* seg);
     template <class T>
-    int prep_random_read_aio(vid_t& last_read, size_t to_read, uint8_t* control_read, 
-                             meta_t* meta, ext_vunit_t* ext_vunit, 
-                             int& iteration_done,  size_t& start_address);
+    int prep_random_read_aio(vid_t& last_read, vid_t v_count, 
+                             uint8_t* status, uint8_t level, size_t to_read, 
+                             segment* seg, ext_vunit_t* ext_vunit);
 
     template <class T>
     int prep_seq_read_aio(vid_t& last_read, vid_t v_count, size_t to_read,
-                          segment* seg, ext_vunit_t* ext_vunit, vid_t v_count1, vid_t v_count2);
+                          segment* seg, ext_vunit_t* ext_vunit);
 private:
-    aio_meta_t* aio_meta;
+    //aio_meta_t* aio_meta;
 
 public:
     io_driver();
@@ -651,7 +651,7 @@ public:
 
 template<class T>
 int io_driver::prep_seq_read_aio(vid_t& last_read, vid_t v_count, size_t to_read,
-                             segment* seg, ext_vunit_t* ext_vunit, vid_t v_count1, vid_t v_count2) 
+                             segment* seg, ext_vunit_t* ext_vunit) 
 {
     index_t disk_offset;
     index_t sz_to_read = BUF_SIZE;
@@ -697,4 +697,90 @@ int io_driver::prep_seq_read_aio(vid_t& last_read, vid_t v_count, size_t to_read
     disk_offset =  ext_vunit[seg->meta[0].vid].offset - (seg->meta[0].offset);
     io_prep_pread(seg->cb_list[0], seg->etf, seg->buf, sz_to_read, disk_offset);
     return k;
+}
+
+template<class T>
+int io_driver::prep_random_read_aio(vid_t& last_read, vid_t v_count, 
+                             uint8_t* status, uint8_t level, size_t to_read, 
+                             segment* seg, ext_vunit_t* ext_vunit)
+{
+    index_t disk_offset;
+    index_t sz_to_read = BUF_SIZE;
+    meta_t* meta = seg->meta;
+    int k = 0;
+    int ctx_count = 0;
+    
+    index_t total_count = 0;
+    index_t offset;
+    index_t super_size = 0;
+    index_t local_size = 0;
+    index_t total_size = 0;
+    bool started = false;
+
+    for (vid_t vid = last_read; vid < v_count; ++vid) {
+        total_count = ext_vunit[vid].count + ext_vunit[vid].del_count;
+        if (total_count == 0) continue;
+        
+        
+        if(status[vid] != level) { 
+            if(started) {
+                started = false;
+                sz_to_read = UPPER_ALIGN(total_size);
+                io_prep_pread(seg->cb_list[ctx_count], seg->etf, seg->buf + super_size, 
+                              sz_to_read, disk_offset);
+            
+                super_size += sz_to_read;
+                total_size = 0;
+                ++ctx_count;
+            }
+            continue;
+        }
+        
+        offset = ext_vunit[vid].offset;
+        if (started == false) {
+            started = true;
+            total_size = TO_RESIDUE(offset);
+            disk_offset = offset - total_size;
+            //super_size += total_size;
+        }
+
+        local_size = total_count*sizeof(T) + sizeof(durable_adjlist_t<T>);
+
+        if ((super_size + total_size + local_size > to_read)
+            || (ctx_count == AIO_MAXIO - 1) ) {
+            sz_to_read = UPPER_ALIGN(total_size);
+            io_prep_pread(seg->cb_list[ctx_count], seg->etf, seg->buf + super_size, 
+                          sz_to_read, disk_offset);
+            
+            super_size += sz_to_read;
+            total_size = 0;
+            ++ctx_count;
+            seg->ctx_count = ctx_count;
+            seg->meta_count = k;
+            last_read = vid;
+            return k;
+        }
+
+        meta[k].vid = vid;
+        meta[k].offset = super_size + total_size;
+        total_size += local_size;
+        ++k;
+    }
+   
+    if (started) { 
+        //disk_offset =  ext_vunit[seg->meta[0].vid].offset - (seg->meta[0].offset);
+        sz_to_read = UPPER_ALIGN(total_size);
+        io_prep_pread(seg->cb_list[ctx_count], seg->etf, seg->buf + super_size, 
+                      sz_to_read, disk_offset);
+        
+        super_size += sz_to_read;
+        total_size = 0;
+        ++ctx_count;
+    }
+
+    seg->ctx_count = ctx_count;
+    seg->meta_count = k;
+    last_read = v_count;
+    return k;
+
 }

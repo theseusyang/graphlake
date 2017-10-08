@@ -325,8 +325,6 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
 
     float	inv_v_count = 0.15f/v_count;
    
-    vid_t v_count2 = v_count;
-    vid_t v_count1 = v_count; 
     vid_t last_read1 = 0;
     vid_t last_read2 = 0;
     vid_t last_read3 = 0;
@@ -334,15 +332,15 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
 
     //prep
     seg1->buf = buf1;
-    io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, seg1, ext_vunits, v_count1, v_count2);
-    cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
+    io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, seg1, ext_vunits);
+    //cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
     
     //Fetch
     swap(seg2, seg1);
     seg2->buf = buf1;
     io_driver.seq_read_aio(seg2, ext_vunits);
     io_driver.wait_aio_completion(seg2);
-    cout << "Fetched " << seg2->meta[0].vid << "-" << seg2->meta[seg2->meta_count - 1].vid << endl;
+    //cout << "Fetched " << seg2->meta[0].vid << "-" << seg2->meta[seg2->meta_count - 1].vid << endl;
 
     swap(seg3, seg2);
     last_read3 = last_read2;
@@ -350,8 +348,8 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
 
     //prep
     seg1->buf = buf2;
-    io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, seg1, ext_vunits, v_count1, v_count2);
-    cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
+    io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, seg1, ext_vunits);
+    //cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
     
     swap(seg2, seg1);
     seg2->buf = buf2;
@@ -360,14 +358,14 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
 
 	//let's run the pagerank
     while (true) {
-        //#pragma omp parallel
+        #pragma omp parallel
         {
             
             //fetch
-            if (0 == omp_get_thread_num() && (last_read2 < v_count)) {
+            if (1 == omp_get_thread_num() && (last_read2 < v_count)) {
                 io_driver.seq_read_aio(seg2, ext_vunits);
                 io_driver.wait_aio_completion(seg2);
-                cout << "Fetched " << seg2->meta[0].vid << "-" << seg2->meta[seg2->meta_count - 1].vid << endl;
+                //cout << "Fetched " << seg2->meta[0].vid << "-" << seg2->meta[seg2->meta_count - 1].vid << endl;
             }
             
             //prep
@@ -377,10 +375,10 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
             last_read2 = last_read1;
             if (last_read1 < v_count) {
                 seg1->buf = seg3->buf;
-                io_driver.prep_seq_read_aio<T>(last_read1, v_count1, BUF_SIZE, 
-                                             seg1, ext_vunits, v_count1, v_count2);
-                cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
-            cout << "process " << seg3->meta[0].vid << "-" << seg3->meta[seg3->meta_count - 1].vid << endl;
+                io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, 
+                                             seg1, ext_vunits);
+                //cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
+                //cout << "process " << seg3->meta[0].vid << "-" << seg3->meta[seg3->meta_count - 1].vid << endl;
             }
             }
 
@@ -398,7 +396,7 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
             meta_t* meta = seg3->meta;
             int meta_count = seg3->meta_count;
             
-            //#pragma omp for
+            #pragma omp for
             for (vid_t v = 0; v < meta_count; v++) {
                 vid = meta[v].vid;
                 offset = meta[v].offset;
@@ -447,15 +445,15 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
             //prep
             seg1->buf = buf1;
             io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, 
-                                           seg1, ext_vunits, v_count1, v_count2);
-            cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
+                                           seg1, ext_vunits);
+            //cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
             
             //Fetch
             swap(seg2, seg1);
             seg2->buf = buf1;
             io_driver.seq_read_aio(seg2, ext_vunits);
             io_driver.wait_aio_completion(seg2);
-            cout << "Fetched " << seg2->meta[0].vid << "-" << seg2->meta[seg2->meta_count - 1].vid << endl;
+            //cout << "Fetched " << seg2->meta[0].vid << "-" << seg2->meta[seg2->meta_count - 1].vid << endl;
 
             swap(seg3, seg2);
             last_read3 = last_read2;
@@ -463,8 +461,8 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
 
             //prep
             seg1->buf = buf2;
-            io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, seg1, ext_vunits, v_count1, v_count2);
-            cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
+            io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, seg1, ext_vunits);
+            //cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
             
             swap(seg2, seg1);
             seg2->buf = buf2;
@@ -494,7 +492,6 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
     free(rank_array);
     free(prior_rank_array);
     free(dset);
-	cout << endl;
 }
 
 template<class T>
@@ -518,14 +515,14 @@ fg_bfs(ext_vunit_t* ext_vunits, int etf, vid_t v_count, uint8_t* status, vid_t r
     vid_t last_read2 = 0;
     vid_t last_read3 = 0;
     char* buf = 0;
-    vid_t v_count1 = v_count;
-    vid_t v_count2 = v_count;
 	
     status[root] = level;
 
     //prep
     seg1->buf = buf1;
-    io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, seg1, ext_vunits, v_count1, v_count2);
+    //io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, seg1, ext_vunits);
+    io_driver.prep_random_read_aio<T>(last_read1, v_count, status, level,
+                                    BUF_SIZE, seg1, ext_vunits);
     //cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
     
     //Fetch
@@ -541,7 +538,9 @@ fg_bfs(ext_vunit_t* ext_vunits, int etf, vid_t v_count, uint8_t* status, vid_t r
 
     //prep
     seg1->buf = buf2;
-    io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, seg1, ext_vunits, v_count1, v_count2);
+    //io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, seg1, ext_vunits);
+    io_driver.prep_random_read_aio<T>(last_read1, v_count, status, level,
+                                    BUF_SIZE, seg1, ext_vunits);
     //cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
     
     swap(seg2, seg1);
@@ -550,7 +549,7 @@ fg_bfs(ext_vunit_t* ext_vunits, int etf, vid_t v_count, uint8_t* status, vid_t r
     int total_frontier = 0;
 	//let's run BFS
     while (true) {
-        //#pragma omp parallel 
+        #pragma omp parallel 
         {
             
             //fetch
@@ -561,14 +560,15 @@ fg_bfs(ext_vunit_t* ext_vunits, int etf, vid_t v_count, uint8_t* status, vid_t r
             }
             
             //prep
-            #pragma omp master
-            {
+            if (0 == omp_get_thread_num()) {
             last_read3 = last_read2;
             last_read2 = last_read1;
             if (last_read1 < v_count) {
                 seg1->buf =  seg3->buf;
-                io_driver.prep_seq_read_aio<T>(last_read1, v_count1, BUF_SIZE, 
-                                             seg1, ext_vunits, v_count1, v_count2);
+                //io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, 
+                //                             seg1, ext_vunits);
+                io_driver.prep_random_read_aio<T>(last_read1, v_count, status, level,
+                                    BUF_SIZE, seg1, ext_vunits);
                 //cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
             }
             //cout << "process " << seg3->meta[0].vid << "-" << seg3->meta[seg3->meta_count - 1].vid << endl;
@@ -586,7 +586,7 @@ fg_bfs(ext_vunit_t* ext_vunits, int etf, vid_t v_count, uint8_t* status, vid_t r
             meta_t* meta = seg3->meta;
             int meta_count = seg3->meta_count;
             
-            //#pragma omp for reduction(+:frontier)
+            #pragma omp for reduction(+:frontier)
             for (vid_t v = 0; v < meta_count; v++) {
                 vid = meta[v].vid;
                 if (status[vid] != level) continue;
@@ -633,8 +633,10 @@ fg_bfs(ext_vunit_t* ext_vunits, int etf, vid_t v_count, uint8_t* status, vid_t r
             
             //prep
             seg1->buf = buf1;
-            io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, 
-                                           seg1, ext_vunits, v_count1, v_count2);
+            io_driver.prep_random_read_aio<T>(last_read1, v_count, status, level,
+                                    BUF_SIZE, seg1, ext_vunits);
+            //io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, 
+            //                               seg1, ext_vunits);
             //cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
             
             //Fetch
@@ -650,7 +652,9 @@ fg_bfs(ext_vunit_t* ext_vunits, int etf, vid_t v_count, uint8_t* status, vid_t r
 
             //prep
             seg1->buf = buf2;
-            io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, seg1, ext_vunits, v_count1, v_count2);
+            io_driver.prep_random_read_aio<T>(last_read1, v_count, status, level,
+                                    BUF_SIZE, seg1, ext_vunits);
+            //io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, seg1, ext_vunits);
             //cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
             
             swap(seg2, seg1);

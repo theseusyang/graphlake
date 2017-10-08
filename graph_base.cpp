@@ -24,7 +24,7 @@ degree_t INVALID_DEGREE = 0xFFFFFFFF;
 
 size_t io_driver::seq_read_aio(segment* seg, ext_vunit_t* ext_vunits)
 {
-    index_t ctx_count = seg->ctx_count;
+    int ctx_count = seg->ctx_count;
     if (0 == ctx_count) return 0;
     
     //index_t sz_to_read = BUF_SIZE;
@@ -34,12 +34,12 @@ size_t io_driver::seq_read_aio(segment* seg, ext_vunit_t* ext_vunits)
 
     int ret = io_submit(seg->ctx, seg->ctx_count, seg->cb_list);
 
-    if (ret  != 1) {
+    if (ret != ctx_count) {
         cout << ret << endl;
         perror("io_submit");
         assert(0);
     }
-    seg->busy = 1;
+    seg->busy = seg->ctx_count;
     return 0;
 }
 
@@ -62,6 +62,7 @@ int io_driver::wait_aio_completion(segment* seg)
 
 io_driver::io_driver()
 {
+    /*
     aio_meta = new aio_meta_t[IO_THDS];
     
     for (int j = 0; j < IO_THDS; ++j) {
@@ -78,5 +79,6 @@ io_driver::io_driver()
         }
         aio_meta[j].busy = 0;
     }
+    */
 }
 
