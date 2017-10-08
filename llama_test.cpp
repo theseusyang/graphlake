@@ -600,7 +600,7 @@ void llama_test_bfs(const string& odir)
 {
     double start = mywtime();
     // READ vtable
-    string vtfile = odir + "friend0out.vtable";
+    string vtfile = odir + "friend0.vtable";
     int vtf = open(vtfile.c_str(), O_RDONLY);
     assert(-1 != vtf);
 
@@ -631,7 +631,7 @@ void llama_test_bfs(const string& odir)
     free(dvt);
     
     // READ etable
-    string etfile = odir + "friend0out.etable";
+    string etfile = odir + "friend0.etable";
     int etf = open(etfile.c_str(), O_RDONLY|O_DIRECT);
     assert(-1 != etf);
     

@@ -360,9 +360,10 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
     while (true) {
         #pragma omp parallel
         {
+            vid_t last_read = last_read2;
             
             //fetch
-            if (1 == omp_get_thread_num() && (last_read2 < v_count)) {
+            if (1 == omp_get_thread_num() && (last_read < v_count)) {
                 io_driver.seq_read_aio(seg2, ext_vunits);
                 io_driver.wait_aio_completion(seg2);
                 //cout << "Fetched " << seg2->meta[0].vid << "-" << seg2->meta[seg2->meta_count - 1].vid << endl;
@@ -551,9 +552,10 @@ fg_bfs(ext_vunit_t* ext_vunits, int etf, vid_t v_count, uint8_t* status, vid_t r
     while (true) {
         #pragma omp parallel 
         {
+            vid_t last_read = last_read2;
             
             //fetch
-            if (0 == omp_get_thread_num() && (last_read2 < v_count)) {
+            if (1 == omp_get_thread_num() && (last_read < v_count)) {
                 io_driver.seq_read_aio(seg2, ext_vunits);
                 io_driver.wait_aio_completion(seg2);
                 //cout << "Fetched " << seg2->meta[0].vid << "-" << seg2->meta[seg2->meta_count - 1].vid << endl;
