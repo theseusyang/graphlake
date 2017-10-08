@@ -601,6 +601,8 @@ typedef onekv_t<lite_edge_t> lite_skv_t;
 
 #define IO_THDS 1
 #define AIO_MAXIO 65536 
+#define IO_MAX    16384
+#define AIO_BATCHIO 256
 #define BUF_SIZE  (1L<< 25L)
 
 class meta_t {

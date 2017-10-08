@@ -32,8 +32,8 @@ void init_segment(segment** pseg, int etf)
     for(index_t i = 0; i < AIO_MAXIO; ++i) {	
         seg->cb_list[i] = new struct iocb;
     }
-    if(io_setup(AIO_MAXIO, &seg->ctx) < 0) {
-        cout << AIO_MAXIO << endl;
+    if(io_setup(IO_MAX, &seg->ctx) < 0) {
+        cout << IO_MAX << endl;
         perror("io_setup");
         assert(0);
     }
