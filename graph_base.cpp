@@ -27,39 +27,36 @@ size_t io_driver::seq_read_aio(segment* seg, ext_vunit_t* ext_vunits)
     index_t ctx_count = seg->ctx_count;
     if (0 == ctx_count) return 0;
     
-    uint32_t tid = omp_get_thread_num();
     index_t sz_to_read = BUF_SIZE;
-    
     index_t disk_offset =  ext_vunits[seg->meta[0].vid].offset - (seg->meta[0].offset);
-    cout << "Offset = " << disk_offset << endl;
+    io_prep_pread(seg->cb_list[0], seg->etf, seg->buf, sz_to_read, disk_offset);
+    //cout << "Offset = " << disk_offset << endl;
 
-    io_prep_pread(aio_meta[tid].cb_list[0], seg->etf,seg->buf, sz_to_read, disk_offset);
-    int ret = io_submit(aio_meta[tid].ctx, 1, aio_meta[tid].cb_list);
+    int ret = io_submit(seg->ctx, seg->ctx_count, seg->cb_list);
 
     if (ret  != 1) {
         cout << ret << endl;
         perror("io_submit");
         assert(0);
     }
-    aio_meta[tid].busy += 1;
+    seg->busy = 1;
     return 0;
 }
 
-int io_driver::wait_aio_completion()
+int io_driver::wait_aio_completion(segment* seg)
 {
-    uint32_t tid = omp_get_thread_num();
     int ret = 0;
-    if (aio_meta[tid].busy) {
-        ret = io_getevents(aio_meta[tid].ctx, aio_meta[tid].busy, 
-                           aio_meta[tid].busy, aio_meta[tid].events, 0);
+    if (seg->busy) {
+        ret = io_getevents(seg->ctx, seg->busy, 
+                           seg->busy, seg->events, 0);
 
-        if (ret != aio_meta[tid].busy) {
-            cout << aio_meta[tid].busy << " " << ret << endl;
+        if (ret != seg->busy) {
+            cout << seg->busy << " " << ret << endl;
             perror(" io_getevents");
         }
     }
 
-    aio_meta[tid].busy = 0;
+    seg->busy = 0;
     return 0;
 }
 

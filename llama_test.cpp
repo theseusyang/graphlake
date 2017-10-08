@@ -632,7 +632,7 @@ void llama_test_bfs(const string& odir)
     
     // READ etable
     string etfile = odir + "friend0out.etable";
-    int etf = open(etfile.c_str(), O_RDONLY);
+    int etf = open(etfile.c_str(), O_RDONLY|O_DIRECT);
     assert(-1 != etf);
     
 

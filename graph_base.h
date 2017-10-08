@@ -615,7 +615,11 @@ class segment {
       meta_t* meta;
       int     meta_count;
       int     ctx_count;
+      io_context_t  ctx;
+      struct  io_event* events;
+      struct  iocb** cb_list;
       int     etf;
+      int     busy;
 };
 
 typedef struct __aio_meta {
@@ -629,7 +633,7 @@ class io_driver {
 public:
     size_t seq_read_aio(segment* seg, ext_vunit_t* ext_vunits);
     size_t read_random_aio(segment* seg);
-    int wait_aio_completion();
+    int wait_aio_completion(segment* seg);
     template <class T>
     int prep_random_read_aio(vid_t& last_read, size_t to_read, uint8_t* control_read, 
                              meta_t* meta, ext_vunit_t* ext_vunit, 
@@ -649,6 +653,8 @@ template<class T>
 int io_driver::prep_seq_read_aio(vid_t& last_read, vid_t v_count, size_t to_read,
                              segment* seg, ext_vunit_t* ext_vunit, vid_t v_count1, vid_t v_count2) 
 {
+    //index_t disk_offset;
+    //index_t sz_to_read = BUF_SIZE;
     meta_t* meta = seg->meta;
     int k = 0;
     
@@ -664,7 +670,7 @@ int io_driver::prep_seq_read_aio(vid_t& last_read, vid_t v_count, size_t to_read
         offset = ext_vunit[vid].offset;
         if (k == 0) {
             total_size = TO_RESIDUE(offset);
-            cout << "Offset 1 = " << offset - total_size << endl;
+            //cout << "Offset 1 = " << offset - total_size << endl;
         }
 
         local_size = total_count*sizeof(T) + sizeof(durable_adjlist_t<T>);
@@ -674,6 +680,8 @@ int io_driver::prep_seq_read_aio(vid_t& last_read, vid_t v_count, size_t to_read
             last_read = vid;
             //last_read = seg->meta[k - 1].vid;
             seg->ctx_count = 1;
+            //disk_offset =  ext_vunit[seg->meta[0].vid].offset - (seg->meta[0].offset);
+            //io_prep_pread(seg->cb_list[0], seg->etf, seg->buf, sz_to_read, disk_offset);
             return k;
         }
 
@@ -683,35 +691,10 @@ int io_driver::prep_seq_read_aio(vid_t& last_read, vid_t v_count, size_t to_read
         ++k;
     }
     
-    /*
-    for (vid_t vid = v_count1; vid < v_count2; ++vid) {
-        total_count = ext_vunit[vid].count + ext_vunit[vid].del_count;
-        if (total_count == 0) continue;
-        
-        offset = ext_vunit[vid].offset;
-        if (k == 0) {
-            total_size = TO_RESIDUE(offset);
-            cout << "Offset 1 = " << offset - total_size << endl;
-        }
-
-        local_size = total_count*sizeof(T) + sizeof(durable_adjlist_t<T>);
-
-        if (total_size + local_size > to_read) {
-            seg->meta_count = k;
-            last_read = vid;
-            seg->ctx_count = 1;
-            return k;
-        }
-
-        meta[k].vid = vid;
-        meta[k].offset = total_size;
-        total_size += local_size;
-        ++k;
-    }
-    */
-
     seg->meta_count = k;
     seg->ctx_count = 1;
     last_read = v_count;
+    //disk_offset =  ext_vunit[seg->meta[0].vid].offset - (seg->meta[0].offset);
+    //io_prep_pread(seg->cb_list[0], seg->etf, seg->buf, sz_to_read, disk_offset);
     return k;
 }
