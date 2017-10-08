@@ -653,8 +653,8 @@ template<class T>
 int io_driver::prep_seq_read_aio(vid_t& last_read, vid_t v_count, size_t to_read,
                              segment* seg, ext_vunit_t* ext_vunit, vid_t v_count1, vid_t v_count2) 
 {
-    //index_t disk_offset;
-    //index_t sz_to_read = BUF_SIZE;
+    index_t disk_offset;
+    index_t sz_to_read = BUF_SIZE;
     meta_t* meta = seg->meta;
     int k = 0;
     
@@ -680,8 +680,8 @@ int io_driver::prep_seq_read_aio(vid_t& last_read, vid_t v_count, size_t to_read
             last_read = vid;
             //last_read = seg->meta[k - 1].vid;
             seg->ctx_count = 1;
-            //disk_offset =  ext_vunit[seg->meta[0].vid].offset - (seg->meta[0].offset);
-            //io_prep_pread(seg->cb_list[0], seg->etf, seg->buf, sz_to_read, disk_offset);
+            disk_offset =  ext_vunit[seg->meta[0].vid].offset - (seg->meta[0].offset);
+            io_prep_pread(seg->cb_list[0], seg->etf, seg->buf, sz_to_read, disk_offset);
             return k;
         }
 
@@ -694,7 +694,7 @@ int io_driver::prep_seq_read_aio(vid_t& last_read, vid_t v_count, size_t to_read
     seg->meta_count = k;
     seg->ctx_count = 1;
     last_read = v_count;
-    //disk_offset =  ext_vunit[seg->meta[0].vid].offset - (seg->meta[0].offset);
-    //io_prep_pread(seg->cb_list[0], seg->etf, seg->buf, sz_to_read, disk_offset);
+    disk_offset =  ext_vunit[seg->meta[0].vid].offset - (seg->meta[0].offset);
+    io_prep_pread(seg->cb_list[0], seg->etf, seg->buf, sz_to_read, disk_offset);
     return k;
 }

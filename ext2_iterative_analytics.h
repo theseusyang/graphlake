@@ -376,6 +376,7 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
             last_read3 = last_read2;
             last_read2 = last_read1;
             if (last_read1 < v_count) {
+                seg1->buf = seg3->buf;
                 io_driver.prep_seq_read_aio<T>(last_read1, v_count1, BUF_SIZE, 
                                              seg1, ext_vunits, v_count1, v_count2);
                 cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
@@ -565,6 +566,7 @@ fg_bfs(ext_vunit_t* ext_vunits, int etf, vid_t v_count, uint8_t* status, vid_t r
             last_read3 = last_read2;
             last_read2 = last_read1;
             if (last_read1 < v_count) {
+                seg1->buf =  seg3->buf;
                 io_driver.prep_seq_read_aio<T>(last_read1, v_count1, BUF_SIZE, 
                                              seg1, ext_vunits, v_count1, v_count2);
                 //cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
