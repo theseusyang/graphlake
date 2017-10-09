@@ -131,7 +131,7 @@ class vert_table_t {
     inline snapT_t<T>* recycle_snapblob(snapid_t snap_id) { 
         if (0 == snap_blob || 0 == snap_blob->prev) return 0;
         
-        int snap_count = 2;
+        index_t snap_count = 2;
         snapT_t<T>* snap_blob1 = snap_blob;
         snapT_t<T>* snap_blob2 = snap_blob->prev;
 
@@ -600,10 +600,10 @@ typedef onekv_t<lite_edge_t> lite_skv_t;
 #define LOWER_ALIGN(x) ((x) & ALIGN_MASK)
 
 #define IO_THDS 1
-#define AIO_MAXIO 65536 
-#define IO_MAX    16384
+#define AIO_MAXIO 32768
+#define IO_MAX    32768
 #define AIO_BATCHIO 256
-#define BUF_SIZE  (1L<< 25L)
+#define BUF_SIZE  (1L<< 32L)
 
 class meta_t {
     public:
@@ -634,7 +634,7 @@ typedef struct __aio_meta {
 class io_driver {
 public:
     size_t seq_read_aio(segment* seg, ext_vunit_t* ext_vunits);
-    size_t read_random_aio(segment* seg);
+    size_t random_read_aio(segment* seg, ext_vunit_t* ext_vunits);
     int wait_aio_completion(segment* seg);
     template <class T>
     int prep_random_read_aio(vid_t& last_read, vid_t v_count, 
@@ -659,6 +659,10 @@ int io_driver::prep_seq_read_aio(vid_t& last_read, vid_t v_count, size_t to_read
     index_t sz_to_read = BUF_SIZE;
     meta_t* meta = seg->meta;
     int k = 0;
+	int ctx_count = 0;
+	index_t	size = (1<<20);
+	index_t local_start = 0;
+
     
     index_t local_size = 0;
     index_t total_count = 0;
@@ -672,18 +676,31 @@ int io_driver::prep_seq_read_aio(vid_t& last_read, vid_t v_count, size_t to_read
         offset = ext_vunit[vid].offset;
         if (k == 0) {
             total_size = TO_RESIDUE(offset);
+			disk_offset = offset - total_size;
             //cout << "Offset 1 = " << offset - total_size << endl;
         }
 
         local_size = total_count*sizeof(T) + sizeof(durable_adjlist_t<T>);
 
         if (total_size + local_size > to_read) {
+            //disk_offset =  ext_vunit[seg->meta[0].vid].offset - (seg->meta[0].offset);
+            //io_prep_pread(seg->cb_list[0], seg->etf, seg->buf, sz_to_read, disk_offset);
+			
+			sz_to_read = UPPER_ALIGN(total_size);
+			ctx_count = (sz_to_read >> 20) + (0 != (sz_to_read & 0xFFFFF));
+			for (int i = 0; i < ctx_count; ++i) {
+				local_size = UPPER_ALIGN(std::min(size, sz_to_read));
+
+				io_prep_pread(seg->cb_list[i], seg->etf, seg->buf + local_start,
+							  local_size, disk_offset + local_start);
+				//disk_offset += local_size;
+				local_start += local_size; 
+				sz_to_read  -= local_size;
+			}
+            
+			seg->ctx_count = ctx_count;
             seg->meta_count = k;
             last_read = vid;
-            //last_read = seg->meta[k - 1].vid;
-            seg->ctx_count = 1;
-            disk_offset =  ext_vunit[seg->meta[0].vid].offset - (seg->meta[0].offset);
-            io_prep_pread(seg->cb_list[0], seg->etf, seg->buf, sz_to_read, disk_offset);
             return k;
         }
 
@@ -693,11 +710,22 @@ int io_driver::prep_seq_read_aio(vid_t& last_read, vid_t v_count, size_t to_read
         ++k;
     }
     
+    //disk_offset =  ext_vunit[seg->meta[0].vid].offset - (seg->meta[0].offset);
+    //io_prep_pread(seg->cb_list[0], seg->etf, seg->buf, sz_to_read, disk_offset);
+	sz_to_read = UPPER_ALIGN(total_size);
+	ctx_count = (sz_to_read >> 20) + (0 != (sz_to_read & 0xFFFFF));
+	for (int i = 0; i < ctx_count; ++i) {
+		local_size = UPPER_ALIGN(std::min(size, sz_to_read));
+		io_prep_pread(seg->cb_list[i], seg->etf, seg->buf + local_start,
+					  local_size, disk_offset + local_start);
+		//disk_offset += local_size;
+		local_start += local_size; 
+		sz_to_read  -= local_size;
+	}
+    
+	seg->ctx_count = ctx_count;
     seg->meta_count = k;
-    seg->ctx_count = 1;
     last_read = v_count;
-    disk_offset =  ext_vunit[seg->meta[0].vid].offset - (seg->meta[0].offset);
-    io_prep_pread(seg->cb_list[0], seg->etf, seg->buf, sz_to_read, disk_offset);
     return k;
 }
 

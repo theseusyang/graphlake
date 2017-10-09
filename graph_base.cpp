@@ -20,9 +20,29 @@ sid_t    INVALID_SID  = 0xFFFFFFFF;
 
 degree_t INVALID_DEGREE = 0xFFFFFFFF;
 
-
-
 size_t io_driver::seq_read_aio(segment* seg, ext_vunit_t* ext_vunits)
+{
+    int ctx_count = seg->ctx_count;
+    if (0 == ctx_count) return 0;
+    int ret = 0;
+    //index_t sz_to_read = BUF_SIZE;
+    //index_t disk_offset =  ext_vunits[seg->meta[0].vid].offset - (seg->meta[0].offset);
+    //io_prep_pread(seg->cb_list[0], seg->etf, seg->buf, sz_to_read, disk_offset);
+    //cout << "Offset = " << disk_offset << endl;
+    ret = io_submit(seg->ctx, ctx_count, seg->cb_list);
+
+        if (ret != ctx_count) {
+            cout << ret << endl;
+            perror("io_submit");
+            assert(0);
+        }
+    seg->busy = ctx_count;
+
+    return 0;
+}
+
+
+size_t io_driver::random_read_aio(segment* seg, ext_vunit_t* ext_vunits)
 {
     int ctx_count = seg->ctx_count;
     if (0 == ctx_count) return 0;

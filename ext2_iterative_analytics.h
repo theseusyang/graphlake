@@ -24,7 +24,7 @@ void init_segment(segment** pseg, int etf)
     seg->ctx_count = 0;
     seg->meta_count = 0;
     seg->etf = etf;
-    seg->meta = (meta_t*)calloc(sizeof(meta_t), 1024*1024);
+    seg->meta = (meta_t*)calloc(sizeof(meta_t), 256*1024*1024);
     
     seg->events = new struct io_event [AIO_MAXIO];
     seg->cb_list = new struct iocb*[AIO_MAXIO];
@@ -358,16 +358,18 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
 
 	//let's run the pagerank
     while (true) {
+        vid_t last_read = last_read2;
+		cout << "process " << seg3->meta[0].vid << "-" << seg3->meta[seg3->meta_count - 1].vid << " " << seg3->buf[seg3->meta[0].offset] << endl;
         #pragma omp parallel
         {
-            vid_t last_read = last_read2;
             
             //fetch
-            if (1 == omp_get_thread_num() && (last_read < v_count)) {
+            if (0 == omp_get_thread_num() && (last_read < v_count)) {
                 io_driver.seq_read_aio(seg2, ext_vunits);
                 io_driver.wait_aio_completion(seg2);
-                //cout << "Fetched " << seg2->meta[0].vid << "-" << seg2->meta[seg2->meta_count - 1].vid << endl;
-            }
+                cout << "Fetched " << seg2->meta[0].vid << "-" << seg2->meta[seg2->meta_count - 1].vid << " " <<seg2->buf[seg2->meta[0].offset] << endl;
+				
+			}
             
             //prep
             #pragma omp master
@@ -378,8 +380,7 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
                 seg1->buf = seg3->buf;
                 io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, 
                                              seg1, ext_vunits);
-                //cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
-                //cout << "process " << seg3->meta[0].vid << "-" << seg3->meta[seg3->meta_count - 1].vid << endl;
+                cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
             }
             }
 
@@ -397,8 +398,8 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
             meta_t* meta = seg3->meta;
             int meta_count = seg3->meta_count;
             
-            #pragma omp for
-            for (vid_t v = 0; v < meta_count; v++) {
+            #pragma omp for nowait
+            for (int v = 0; v < meta_count; v++) {
                 vid = meta[v].vid;
                 offset = meta[v].offset;
                 v_unit = ext_vunits + vid;
@@ -447,14 +448,14 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
             seg1->buf = buf1;
             io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, 
                                            seg1, ext_vunits);
-            //cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
+            cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
             
             //Fetch
             swap(seg2, seg1);
             seg2->buf = buf1;
             io_driver.seq_read_aio(seg2, ext_vunits);
             io_driver.wait_aio_completion(seg2);
-            //cout << "Fetched " << seg2->meta[0].vid << "-" << seg2->meta[seg2->meta_count - 1].vid << endl;
+            cout << "Fetched " << seg2->meta[0].vid << "-" << seg2->meta[seg2->meta_count - 1].vid << endl;
 
             swap(seg3, seg2);
             last_read3 = last_read2;
@@ -463,7 +464,7 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
             //prep
             seg1->buf = buf2;
             io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, seg1, ext_vunits);
-            //cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
+            cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
             
             swap(seg2, seg1);
             seg2->buf = buf2;
@@ -529,7 +530,7 @@ fg_bfs(ext_vunit_t* ext_vunits, int etf, vid_t v_count, uint8_t* status, vid_t r
     //Fetch
     swap(seg2, seg1);
     seg2->buf = buf1;
-    io_driver.seq_read_aio(seg2, ext_vunits);
+    io_driver.random_read_aio(seg2, ext_vunits);
     io_driver.wait_aio_completion(seg2);
     //cout << "Fetched " << seg2->meta[0].vid << "-" << seg2->meta[seg2->meta_count - 1].vid << endl;
 
@@ -550,13 +551,12 @@ fg_bfs(ext_vunit_t* ext_vunits, int etf, vid_t v_count, uint8_t* status, vid_t r
     int total_frontier = 0;
 	//let's run BFS
     while (true) {
+        vid_t last_read = last_read2;
         #pragma omp parallel 
         {
-            vid_t last_read = last_read2;
-            
             //fetch
             if (1 == omp_get_thread_num() && (last_read < v_count)) {
-                io_driver.seq_read_aio(seg2, ext_vunits);
+                io_driver.random_read_aio(seg2, ext_vunits);
                 io_driver.wait_aio_completion(seg2);
                 //cout << "Fetched " << seg2->meta[0].vid << "-" << seg2->meta[seg2->meta_count - 1].vid << endl;
             }
@@ -589,7 +589,7 @@ fg_bfs(ext_vunit_t* ext_vunits, int etf, vid_t v_count, uint8_t* status, vid_t r
             int meta_count = seg3->meta_count;
             
             #pragma omp for reduction(+:frontier)
-            for (vid_t v = 0; v < meta_count; v++) {
+            for (int v = 0; v < meta_count; v++) {
                 vid = meta[v].vid;
                 if (status[vid] != level) continue;
                 v_unit = ext_vunits + vid;
@@ -644,7 +644,7 @@ fg_bfs(ext_vunit_t* ext_vunits, int etf, vid_t v_count, uint8_t* status, vid_t r
             //Fetch
             swap(seg2, seg1);
             seg2->buf = buf1;
-            io_driver.seq_read_aio(seg2, ext_vunits);
+            io_driver.random_read_aio(seg2, ext_vunits);
             io_driver.wait_aio_completion(seg2);
             //cout << "Fetched " << seg2->meta[0].vid << "-" << seg2->meta[seg2->meta_count - 1].vid << endl;
 
