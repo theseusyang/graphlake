@@ -375,10 +375,12 @@ void pgraph_t<T>::make_graph_d()
 
         vid_t vid_start = (j_start << bit_shift);
         vid_t vid_end = (j_end << bit_shift);
+        if (vid_end > v_count) vid_end = v_count;
         sgraph_out[0]->setup_adjlist_noatomic(vid_start, vid_end);
 
         vid_t vid_start_in = (j_start_in << bit_shift);
         vid_t vid_end_in = (j_end_in << bit_shift);
+        if (vid_end_in > v_count) vid_end_in = v_count;
         sgraph_in[0]->setup_adjlist_noatomic(vid_start_in, vid_end_in);
         #pragma omp master 
         {
