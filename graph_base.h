@@ -746,35 +746,43 @@ int io_driver::prep_random_read_aio(vid_t& last_read, vid_t v_count,
     index_t local_size = 0;
     index_t total_size = 0;
     bool started = false;
+	index_t cont = 0;
 
     for (vid_t vid = last_read; vid < v_count; ++vid) {
         total_count = ext_vunit[vid].count + ext_vunit[vid].del_count;
         if (total_count == 0) continue;
         
-        
-        if(status[vid] != level) { 
-            if(started) {
-                started = false;
-                sz_to_read = UPPER_ALIGN(total_size);
-                io_prep_pread(seg->cb_list[ctx_count], seg->etf, seg->buf + super_size, 
-                              sz_to_read, disk_offset);
-            
-                super_size += sz_to_read;
-                total_size = 0;
-                ++ctx_count;
-            }
-            continue;
-        }
-        
         offset = ext_vunit[vid].offset;
+		local_size = total_count*sizeof(T) + sizeof(durable_adjlist_t<T>);
+        
+		if(status[vid] != level) { 
+			cont +=  local_size;
+			if (cont > 4096) {
+				if(started)  {
+					started = false;
+					sz_to_read = UPPER_ALIGN(total_size);
+					io_prep_pread(seg->cb_list[ctx_count], seg->etf, seg->buf + super_size, 
+								  sz_to_read, disk_offset);
+				
+					super_size += sz_to_read;
+					total_size = 0;
+					++ctx_count;
+					cont = 0;
+				}
+			}
+			continue;
+        }
+		
         if (started == false) {
             started = true;
             total_size = TO_RESIDUE(offset);
             disk_offset = offset - total_size;
+			cont = 0;
             //super_size += total_size;
-        }
+		}
 
-        local_size = total_count*sizeof(T) + sizeof(durable_adjlist_t<T>);
+        total_size += cont;
+	    cont = 0;	
 
         if ((super_size + total_size + local_size > to_read)
             || (ctx_count == AIO_MAXIO - 1) ) {

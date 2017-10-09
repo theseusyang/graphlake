@@ -359,15 +359,15 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
 	//let's run the pagerank
     while (true) {
         vid_t last_read = last_read2;
-		cout << "process " << seg3->meta[0].vid << "-" << seg3->meta[seg3->meta_count - 1].vid << " " << seg3->buf[seg3->meta[0].offset] << endl;
+		//cout << "process " << seg3->meta[0].vid << "-" << seg3->meta[seg3->meta_count - 1].vid << " " << seg3->buf[seg3->meta[0].offset] << endl;
         #pragma omp parallel
         {
             
             //fetch
-            if (0 == omp_get_thread_num() && (last_read < v_count)) {
+            if (1 == omp_get_thread_num() && (last_read < v_count)) {
                 io_driver.seq_read_aio(seg2, ext_vunits);
-                io_driver.wait_aio_completion(seg2);
-                cout << "Fetched " << seg2->meta[0].vid << "-" << seg2->meta[seg2->meta_count - 1].vid << " " <<seg2->buf[seg2->meta[0].offset] << endl;
+                //io_driver.wait_aio_completion(seg2);
+                //cout << "Fetched " << seg2->meta[0].vid << "-" << seg2->meta[seg2->meta_count - 1].vid << " " <<seg2->buf[seg2->meta[0].offset] << endl;
 				
 			}
             
@@ -380,7 +380,7 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
                 seg1->buf = seg3->buf;
                 io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, 
                                              seg1, ext_vunits);
-                cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
+                //cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
             }
             }
 
@@ -419,20 +419,34 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
                     qthread_dincr(rank_array + sid, rank);
                 }
             }
+            
+			if (1 == omp_get_thread_num() && (last_read < v_count)) {
+                io_driver.wait_aio_completion(seg2);
+			}
         }
 
         if (last_read3 == v_count) {
             float new_rank = 0.0f;
-            
-            #pragma omp for
-            for (vid_t v = 0; v < v_count; v++ ) {
-                if (ext_vunits[v].count == 0) continue;
-                new_rank = inv_v_count + 0.85*rank_array[v];
-                rank_array[v] = new_rank*dset[v];
-                prior_rank_array[v] = 0;
-            }
-
             ++iteration;
+			#pragma omp parallel
+			{	
+			if (iteration != iteration_count) {
+				#pragma omp for schedule (static)
+				for (vid_t v = 0; v < v_count; v++ ) {
+					if (ext_vunits[v].count == 0) continue;
+					new_rank = inv_v_count + 0.85*rank_array[v];
+					rank_array[v] = new_rank*dset[v];
+					prior_rank_array[v] = 0;
+				}
+            } else {
+				#pragma omp for schedule (static)
+				for (vid_t v = 0; v < v_count; v++ ) {
+					if (ext_vunits[v].count == 0) continue;
+					new_rank = inv_v_count + 0.85*rank_array[v];
+				}
+			}
+			}
+
             if (iteration == iteration_count) break;
 
             swap(prior_rank_array, rank_array);
@@ -448,14 +462,14 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
             seg1->buf = buf1;
             io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, 
                                            seg1, ext_vunits);
-            cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
+            //cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
             
             //Fetch
             swap(seg2, seg1);
             seg2->buf = buf1;
             io_driver.seq_read_aio(seg2, ext_vunits);
             io_driver.wait_aio_completion(seg2);
-            cout << "Fetched " << seg2->meta[0].vid << "-" << seg2->meta[seg2->meta_count - 1].vid << endl;
+            //cout << "Fetched " << seg2->meta[0].vid << "-" << seg2->meta[seg2->meta_count - 1].vid << endl;
 
             swap(seg3, seg2);
             last_read3 = last_read2;
@@ -464,7 +478,7 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
             //prep
             seg1->buf = buf2;
             io_driver.prep_seq_read_aio<T>(last_read1, v_count, BUF_SIZE, seg1, ext_vunits);
-            cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
+            //cout << "Prep " << seg1->meta[0].vid << "-" << seg1->meta[seg1->meta_count - 1].vid << endl;
             
             swap(seg2, seg1);
             seg2->buf = buf2;
@@ -482,10 +496,10 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
         }
     }	
 
-    #pragma omp for
-    for (vid_t v = 0; v < v_count; v++ ) {
-        rank_array[v] = rank_array[v]*ext_vunits[v].count;
-    }
+    //#pragma omp for
+    //for (vid_t v = 0; v < v_count; v++ ) {
+    //    rank_array[v] = rank_array[v]*ext_vunits[v].count;
+    //}
 
     double end = mywtime();
 
@@ -557,7 +571,7 @@ fg_bfs(ext_vunit_t* ext_vunits, int etf, vid_t v_count, uint8_t* status, vid_t r
             //fetch
             if (1 == omp_get_thread_num() && (last_read < v_count)) {
                 io_driver.random_read_aio(seg2, ext_vunits);
-                io_driver.wait_aio_completion(seg2);
+                //io_driver.wait_aio_completion(seg2);
                 //cout << "Fetched " << seg2->meta[0].vid << "-" << seg2->meta[seg2->meta_count - 1].vid << endl;
             }
             
@@ -611,6 +625,9 @@ fg_bfs(ext_vunit_t* ext_vunits, int etf, vid_t v_count, uint8_t* status, vid_t r
                 }
             }
             //end process
+            if (1 == omp_get_thread_num() && (last_read < v_count)) {
+                io_driver.wait_aio_completion(seg2);
+			}
         }
         
         total_frontier += frontier; 
