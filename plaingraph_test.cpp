@@ -16,6 +16,252 @@ void prep_graph_sync(const string& idirname, const string& odirname);
 extern index_t residue;
 vid_t v_count = 0;
 
+
+struct estimate_t {
+    degree_t durable_degree;
+    degree_t delta_degree;
+    degree_t degree;
+    degree_t space_left;
+    //index_t  io_read;
+    //index_t  io_write;
+    int      chain_count;
+    //int      type;
+};
+
+#define ALIGN_MASK_32B 0xFFFFFFFFFFFFFFF0
+#define UPPER_ALIGN_32B(x) (((x) + 16) & ALIGN_MASK_32B)
+
+//estimate the IO read and Write amount and number of chains
+template <class T>
+void estimate_IO(const string& idirname, const string& odirname)
+{
+    plaingraph_manager::schema_plaingraph();
+    //do some setup for plain graphs
+    plaingraph_manager::setup_graph(v_count);    
+    
+    struct dirent *ptr;
+    DIR *dir;
+    int file_count = 0;
+    string filename;
+    propid_t cf_id = g->get_cfid("friend");
+    pgraph_t<T>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+        
+    FILE* file = 0;
+    index_t size =  0;
+    index_t edge_count = 0;
+    
+    
+    //Read graph files
+    double start = mywtime();
+    dir = opendir(idirname.c_str());
+    blog_t<T>* blog = ugraph->blog;
+    edgeT_t<T>* edge = blog->blog_beg;
+    while (NULL != (ptr = readdir(dir))) {
+        if (ptr->d_name[0] == '.') continue;
+        filename = idirname + "/" + string(ptr->d_name);
+        file_count++;
+        
+        file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
+        assert(file != 0);
+        size = fsize(filename);
+        edge_count = size/sizeof(edge_t);
+        edge = blog->blog_beg + blog->blog_head;
+        if (edge_count != fread(edge, sizeof(edgeT_t<T>), edge_count, file)) {
+            assert(0);
+        }
+        blog->blog_head += edge_count;
+    }
+    closedir(dir);
+    double end = mywtime();
+    cout << "Reading "  << file_count  << " file time = " << end - start << endl;
+    start = mywtime();
+
+    index_t marker = blog->blog_head ;
+    cout << "End marker = " << blog->blog_head;
+    cout << "make graph marker = " << marker << endl;
+    if (marker == 0) return;
+    
+    edge = blog->blog_beg;
+    estimate_t* est = (estimate_t*)calloc(sizeof(estimate_t), v_count);
+    index_t last = 0;
+    vid_t src = 0;
+    vid_t dst = 0;
+
+    index_t total_memory = (8<<20L);//8GB
+    index_t free_memory = 0;
+    index_t cut_off = (1 << 20); //64MB
+    index_t cut_off2 = (2 << 20); //256MB
+    index_t wbuf_count = (21); //32MB
+    index_t  used_memory = 0;
+    index_t  total_used_memory = 0;
+    
+    index_t total_io_read = 0;
+    index_t total_io_write = 0;
+    index_t total_io_write_count = 0;
+    index_t total_io_read_count = 0;
+    
+    for (index_t i = 0; i < marker; i +=65536) {
+        last = min(i + 65536, marker);
+        //do batching
+        for (index_t j = i; j < last; ++j) {
+            src = edge[j].src_id;
+            dst = edge[j].dst_id;
+            est[src].degree++;
+            est[dst].degree++;
+        }
+
+        //Do memory allocation and cleaning
+        #pragma omp parallel reduction(+:used_memory)
+        {
+        index_t  local_memory = 0;
+        degree_t total_degree = 0;
+        degree_t new_count = 0;
+        #pragma omp for  
+        for (vid_t vid = 0; vid < v_count; ++vid) {
+            if (est[vid].degree == 0) continue;
+
+            total_degree = est[vid].delta_degree + est[vid].degree;
+            //Embedded case only
+            if (est[vid].durable_degree == 0) {
+                if (total_degree <= 7) {
+                    est[vid].delta_degree += est[vid].degree;
+                    est[vid].degree = 0;
+                    continue;
+                } else if (est[vid].delta_degree <= 7) {//total > 7
+                    est[vid].chain_count = 1;
+                    local_memory = UPPER_ALIGN_32B(total_degree + 1);
+                    used_memory += local_memory;
+                    est[vid].space_left = local_memory - total_degree - 1;
+                    est[vid].delta_degree += est[vid].degree;
+                    est[vid].degree = 0;
+                    continue;
+                }
+            }
+
+            //At least 0th chain exists or will be created
+            if (est[vid].degree <= est[vid].space_left) {
+                est[vid].space_left -= est[vid].degree; 
+                est[vid].delta_degree += est[vid].degree;
+                est[vid].degree = 0;
+            } else {
+                est[vid].chain_count++;
+                new_count = est[vid].degree - est[vid].space_left;
+                local_memory = UPPER_ALIGN_32B(new_count + 1) ;
+                used_memory += local_memory;
+                est[vid].space_left = local_memory - new_count - 1;
+                est[vid].delta_degree += est[vid].degree;
+                est[vid].degree = 0;     
+            }
+            //
+        }
+        }
+        total_used_memory += used_memory;
+        free_memory = total_memory - total_used_memory; //edge count not bytes
+        //end = mywtime ();
+        //cout << "Used Memory = " << used_memory << endl;
+        //cout << "Make graph time = " << end - start << endl;
+        used_memory = 0; 
+        if (free_memory > cut_off) {
+            continue;
+        }
+        
+        //Do durable phase
+        index_t free_1 = 0;
+        index_t free_2 = 0;
+        index_t free_3 = 0;
+        index_t free_4 = 0;
+        index_t free_5 = 0;
+
+        #pragma omp parallel for reduction(+:free_1, free_2, free_3, free_4, free_5)
+        for (vid_t vid = 0; vid < v_count; ++vid) {
+            int chain_count = est[vid].chain_count;
+            
+            if (chain_count == 0) continue;
+            else if (chain_count == 1) {
+                free_1 += est[vid].delta_degree + est[vid].space_left + chain_count; 
+            } else if (chain_count == 2) {
+                free_2 += est[vid].delta_degree + est[vid].space_left + chain_count;
+            } else if (chain_count == 3) {
+                free_3 += est[vid].delta_degree + est[vid].space_left + chain_count;
+            } else if (chain_count == 4) {
+                free_4 += est[vid].delta_degree + est[vid].space_left + chain_count;
+            } else if (chain_count >= 5) {
+                free_5 += est[vid].delta_degree + est[vid].space_left + chain_count;
+            }
+        }
+
+        int freed_chain = 0;
+        int freed_memory = 0;
+
+        if (free_5 + free_memory >= cut_off2) {
+            freed_memory = free_5;
+            freed_chain = 5;
+        } else if (free_5 + free_4 + free_memory >= cut_off2) {
+            freed_memory = free_5 + free_4;
+            freed_chain = 4;
+        } else if (free_5 + free_4 + free_3 + free_memory >= cut_off2) {
+            freed_memory = free_5 + free_4 + free_3;
+            freed_chain = 3;
+        } else if (free_5 + free_4 + free_3 + free_2 + free_memory >= cut_off2) {
+            freed_memory = free_5 + free_4 + free_3 + free_2;
+            freed_chain = 2;
+        } else if (free_5 + free_4 + free_3 + free_2 + free_1 + free_memory >= cut_off2) {
+            freed_memory = free_5 + free_4 + free_3 + free_2 + free_1;
+            freed_chain = 1;
+        } else {
+            assert(0);
+        }
+        total_used_memory -= freed_memory;
+        cout << "i = " << i ;
+        cout << " available free = " << free_memory;
+        cout << " freeing memory = " << freed_chain << " " << freed_memory << endl;
+        
+        index_t io_read = 0;
+        index_t io_write = 0;
+        index_t io_write_count = 0;
+        index_t io_read_count = 0;
+
+        #pragma omp parallel for reduction(+:io_read, io_read_count, io_write)
+        for (vid_t vid = 0; vid < v_count; ++vid) {
+            if (est[vid].chain_count < freed_chain) continue;
+            if (est[vid].durable_degree !=0 ) {
+                io_read += est[vid].durable_degree + 2;
+                io_read_count++;
+            }
+            io_write += est[vid].delta_degree + est[vid].durable_degree + 2; 
+
+            est[vid].durable_degree += est[vid].delta_degree;
+            est[vid].space_left = 0;
+            est[vid].delta_degree = 0;
+            est[vid].chain_count = 0;
+        }
+        io_write_count = (io_write >> wbuf_count);
+        if (io_write_count == 0) io_write_count = 1;
+        
+        total_io_read += io_read;
+        total_io_read_count += io_read_count;
+        total_io_write += io_write;
+        total_io_write_count += io_write_count; 
+        
+        end = mywtime ();
+        cout << "total_io_read =" << total_io_read << endl; 
+        cout << "total_io_read_count =" << total_io_read_count << endl; 
+        cout << "total_io_write =" << total_io_write << endl; 
+        cout << "total_io_write_count =" << total_io_write_count << endl; 
+        cout << "Make graph time = " << end - start << endl;
+        
+    }
+
+    end = mywtime ();
+    cout << "Used Memory = " << total_used_memory << endl;
+    cout << "Make graph time = " << end - start << endl;
+    cout << "total_io_read =" << total_io_read << endl; 
+    cout << "total_io_read_count =" << total_io_read_count << endl; 
+    cout << "total_io_write =" << total_io_write << endl; 
+    cout << "total_io_write_count =" << total_io_write_count << endl; 
+}
+
+
 template <class T>
 void split_graph(const string& idirname, const string& odirname)
 {
@@ -1028,7 +1274,9 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
         case 21: 
             //update_test0(idir, odir);
             break;
-        
+        case 99:
+            estimate_IO<sid_t>(idir, odir);
+            break; 
         case 100:
             plain_test3(idir, odir);
             //plain_test4(odir);
