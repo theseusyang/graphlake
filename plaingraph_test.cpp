@@ -92,13 +92,15 @@ void estimate_IO(const string& idirname, const string& odirname)
     index_t cut_off = (1 << 20); //64MB
     index_t cut_off2 = (2 << 20); //256MB
     index_t wbuf_count = (21); //32MB
-    index_t  used_memory = 0;
-    index_t  total_used_memory = 0;
+    index_t used_memory = 0;
+    index_t total_used_memory = 0;
     
     index_t total_io_read = 0;
     index_t total_io_write = 0;
     index_t total_io_write_count = 0;
     index_t total_io_read_count = 0;
+
+    int max_chain = -1;
     
     for (index_t i = 0; i < marker; i +=65536) {
         last = min(i + 65536, marker);
@@ -111,7 +113,7 @@ void estimate_IO(const string& idirname, const string& odirname)
         }
 
         //Do memory allocation and cleaning
-        #pragma omp parallel reduction(+:used_memory)
+        #pragma omp parallel reduction(+:used_memory) reduction (max:max_chain)
         {
         index_t  local_memory = 0;
         degree_t total_degree = 0;
@@ -128,9 +130,11 @@ void estimate_IO(const string& idirname, const string& odirname)
                     est[vid].degree = 0;
                     continue;
                 } else if (est[vid].delta_degree <= 7) {//total > 7
-                    est[vid].chain_count = 1;
                     local_memory = UPPER_ALIGN_32B(total_degree + 1);
                     used_memory += local_memory;
+                    
+                    est[vid].chain_count = 1;
+                    max_chain = std::max(est[vid].chain_count, max_chain);
                     est[vid].space_left = local_memory - total_degree - 1;
                     est[vid].delta_degree += est[vid].degree;
                     est[vid].degree = 0;
@@ -144,15 +148,16 @@ void estimate_IO(const string& idirname, const string& odirname)
                 est[vid].delta_degree += est[vid].degree;
                 est[vid].degree = 0;
             } else {
-                est[vid].chain_count++;
                 new_count = est[vid].degree - est[vid].space_left;
                 local_memory = UPPER_ALIGN_32B(new_count + 1) ;
                 used_memory += local_memory;
+                
+                est[vid].chain_count++;
+                max_chain = std::max(est[vid].chain_count, max_chain);
                 est[vid].space_left = local_memory - new_count - 1;
                 est[vid].delta_degree += est[vid].degree;
                 est[vid].degree = 0;     
             }
-            //
         }
         }
         total_used_memory += used_memory;
@@ -161,60 +166,59 @@ void estimate_IO(const string& idirname, const string& odirname)
         //cout << "Used Memory = " << used_memory << endl;
         //cout << "Make graph time = " << end - start << endl;
         used_memory = 0; 
+        
+        
+        //Do durable phase
         if (free_memory > cut_off) {
             continue;
         }
         
-        //Do durable phase
-        index_t free_1 = 0;
-        index_t free_2 = 0;
-        index_t free_3 = 0;
-        index_t free_4 = 0;
-        index_t free_5 = 0;
-
-        #pragma omp parallel for reduction(+:free_1, free_2, free_3, free_4, free_5)
-        for (vid_t vid = 0; vid < v_count; ++vid) {
-            int chain_count = est[vid].chain_count;
-            
-            if (chain_count == 0) continue;
-            else if (chain_count == 1) {
-                free_1 += est[vid].delta_degree + est[vid].space_left + chain_count; 
-            } else if (chain_count == 2) {
-                free_2 += est[vid].delta_degree + est[vid].space_left + chain_count;
-            } else if (chain_count == 3) {
-                free_3 += est[vid].delta_degree + est[vid].space_left + chain_count;
-            } else if (chain_count == 4) {
-                free_4 += est[vid].delta_degree + est[vid].space_left + chain_count;
-            } else if (chain_count >= 5) {
-                free_5 += est[vid].delta_degree + est[vid].space_left + chain_count;
-            }
-        }
-
         int freed_chain = 0;
         int freed_memory = 0;
+        const int chain = 7; 
+        index_t total_free_i[chain];
+        memset(total_free_i, 0, sizeof(index_t)*chain);
+        
+        #pragma omp parallel 
+        {
+            index_t free_i[chain];
+            int chain_count = 0;
+            memset(free_i, 0, sizeof(index_t)*chain);
 
-        if (free_5 + free_memory >= cut_off2) {
-            freed_memory = free_5;
-            freed_chain = 5;
-        } else if (free_5 + free_4 + free_memory >= cut_off2) {
-            freed_memory = free_5 + free_4;
-            freed_chain = 4;
-        } else if (free_5 + free_4 + free_3 + free_memory >= cut_off2) {
-            freed_memory = free_5 + free_4 + free_3;
-            freed_chain = 3;
-        } else if (free_5 + free_4 + free_3 + free_2 + free_memory >= cut_off2) {
-            freed_memory = free_5 + free_4 + free_3 + free_2;
-            freed_chain = 2;
-        } else if (free_5 + free_4 + free_3 + free_2 + free_1 + free_memory >= cut_off2) {
-            freed_memory = free_5 + free_4 + free_3 + free_2 + free_1;
-            freed_chain = 1;
-        } else {
-            assert(0);
+            #pragma omp for 
+            for (vid_t vid = 0; vid < v_count; ++vid) {
+                chain_count = est[vid].chain_count;
+                if (chain_count < chain) {
+                    free_i[chain_count] += est[vid].delta_degree + est[vid].space_left
+                                         + chain_count;
+                } else {
+                    free_i[chain - 1] += est[vid].delta_degree + est[vid].space_left
+                                         + chain_count;
+                }
+            }
+            for (int i = 0; i < chain; ++i) {
+                __sync_fetch_and_add(total_free_i + i, free_i[i]);
+            }
         }
-        total_used_memory -= freed_memory;
-        cout << "i = " << i ;
+        freed_memory = 0;
+        for (int i = chain - 1; i >= 0; --i) {
+            freed_memory += total_free_i[i];
+            if (freed_memory + free_memory >= cut_off2) {
+                freed_chain = i;
+                break;
+            }
+        }
+        //----------
+        freed_chain = 0;
+        freed_memory= total_used_memory;
+        //----------
+          
+        cout << "i = " << i;
         cout << " available free = " << free_memory;
-        cout << " freeing memory = " << freed_chain << " " << freed_memory << endl;
+        cout << " freeing memory = " << freed_chain << " " << max_chain << " " << freed_memory << endl;
+        
+        total_used_memory -= freed_memory;
+        max_chain = -1; 
         
         index_t io_read = 0;
         index_t io_write = 0;
@@ -224,6 +228,7 @@ void estimate_IO(const string& idirname, const string& odirname)
         #pragma omp parallel for reduction(+:io_read, io_read_count, io_write)
         for (vid_t vid = 0; vid < v_count; ++vid) {
             if (est[vid].chain_count < freed_chain) continue;
+            
             if (est[vid].durable_degree !=0 ) {
                 io_read += est[vid].durable_degree + 2;
                 io_read_count++;
@@ -249,7 +254,6 @@ void estimate_IO(const string& idirname, const string& odirname)
         cout << "total_io_write =" << total_io_write << endl; 
         cout << "total_io_write_count =" << total_io_write_count << endl; 
         cout << "Make graph time = " << end - start << endl;
-        
     }
 
     end = mywtime ();
