@@ -124,7 +124,9 @@ void estimate_IO(const string& idirname, const string& odirname)
 
             total_degree = est[vid].delta_degree + est[vid].degree;
             //Embedded case only
-            if (est[vid].durable_degree == 0) {
+            //if (false)
+            if (est[vid].durable_degree == 0) 
+            {
                 if (total_degree <= 7) {
                     est[vid].delta_degree += est[vid].degree;
                     est[vid].degree = 0;
@@ -201,6 +203,17 @@ void estimate_IO(const string& idirname, const string& odirname)
             }
         }
         freed_memory = 0;
+        //----------
+        //freed_chain = 0;
+        //freed_memory= total_used_memory;
+        //----------
+        /*
+        for (int i = chain - 1; i >= freed_chain; --i) {
+            freed_memory += total_free_i[i];
+        }
+        */
+        //----------
+        
         for (int i = chain - 1; i >= 0; --i) {
             freed_memory += total_free_i[i];
             if (freed_memory + free_memory >= cut_off2) {
@@ -208,10 +221,6 @@ void estimate_IO(const string& idirname, const string& odirname)
                 break;
             }
         }
-        //----------
-        freed_chain = 0;
-        freed_memory= total_used_memory;
-        //----------
           
         cout << "i = " << i;
         cout << " available free = " << free_memory;
