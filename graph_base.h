@@ -655,7 +655,7 @@ template<class T>
 int io_driver::prep_seq_read_aio(vid_t& last_read, vid_t v_count, size_t to_read,
                              segment* seg, ext_vunit_t* ext_vunit) 
 {
-    index_t disk_offset;
+    index_t disk_offset = 0;
     index_t sz_to_read = BUF_SIZE;
     meta_t* meta = seg->meta;
     int k = 0;
