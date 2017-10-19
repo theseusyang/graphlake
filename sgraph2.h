@@ -470,7 +470,7 @@ void pgraph_t<T>::make_graph_u()
         #pragma omp master 
         {
             end = mywtime();
-            cout << " classify " << end - start << endl;
+            //cout << " classify " << end - start << endl;
             this->work_division(global_range, thd_local, range_count, thd_count, edge_count);
         }
         #pragma omp barrier 
@@ -491,7 +491,7 @@ void pgraph_t<T>::make_graph_u()
         #pragma omp master 
         {   
             end = mywtime();
-            cout << " Degree = " << end -start << endl;
+            //cout << " Degree = " << end -start << endl;
         } 
 
         //Adj list
@@ -501,7 +501,7 @@ void pgraph_t<T>::make_graph_u()
         #pragma omp master 
         {
             end = mywtime();
-            cout << " adj-list setup " << end -start << endl;
+            //cout << " adj-list setup " << end -start << endl;
         } 
         
         //fill adj-list
@@ -511,7 +511,7 @@ void pgraph_t<T>::make_graph_u()
         #pragma omp master 
         {
             end = mywtime();
-            cout << " adj-list filled " << end - start << endl;
+            //cout << " adj-list filled " << end - start << endl;
         } 
         
         //free the memory
@@ -525,4 +525,5 @@ void pgraph_t<T>::make_graph_u()
     free(global_range);
     free(thd_local);
     blog->blog_tail = blog->blog_marker;  
+    //cout << "setting the tail to" << blog->blog_tail << endl;
 }

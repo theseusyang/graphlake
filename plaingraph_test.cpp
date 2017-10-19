@@ -494,8 +494,10 @@ void weighted_dtest0(const string& idir, const string& odir)
     //Is called from below function
     //plaingraph_manager::setup_weightedgraph(v_count);    
     
-    string graph_file = idir + "g.bin";
-    string action_file = idir + "a.bin"; 
+    //string graph_file = idir + "g.bin";
+    //string action_file = idir + "a.bin"; 
+    string graph_file = idir + "small_basegraph";
+    string action_file = idir + "small_action"; 
     //plaingraph_manager::prep_weighted_rmat(graph_file, action_file);
     
     int fd = open(graph_file.c_str(), O_RDONLY);
@@ -547,7 +549,8 @@ void weighted_dtest0(const string& idir, const string& odir)
             nebr_count = v_offset[v+1] - v_offset[v];
             degree_array[v].add_count = nebr_count;
         }
-        /*
+        //sgraph->setup_adjlist();
+        //-------------
         vid_t  total_thds  = omp_get_num_threads();
         vid_t         tid  = omp_get_thread_num();  
         
@@ -558,14 +561,16 @@ void weighted_dtest0(const string& idir, const string& odir)
             vid_end = v_count;
         }
         
-        sgraph->setup_adjlist(vid_start, vid_end);
-        */
-        sgraph->setup_adjlist();
+        sgraph->setup_adjlist_noatomic(vid_start, vid_end);
+        #pragma omp barrier
+        //--------------
         
         #pragma omp for
         for (int64_t v = 0; v < nv; ++v) {
             nebr_count = v_offset[v+1] - v_offset[v];
-            sgraph->add_nebr_bulk(v, nebrs + v_offset[v], nebr_count);
+            if (nebr_count) {
+                sgraph->add_nebr_bulk(v, nebrs + v_offset[v], nebr_count);
+            }
         }
     }
     
@@ -592,14 +597,18 @@ void weighted_dtest0(const string& idir, const string& odir)
     free(nebrs);
 
     //-------Run bfs and PR------
-    uint8_t* level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, 
+    uint8_t* level_array = 0;
+    level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
+    
+    /*
+    level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, 
                             PROT_READ|PROT_WRITE,
                             MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
     
     if (MAP_FAILED == level_array) {
         cout << "Huge page alloc failed for level array" << endl;
         level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
-    }
+    }*/
     
     
     vert_table_t<lite_edge_t>* beg_pos = sgraph->get_begpos();
@@ -627,10 +636,14 @@ void weighted_dtest0(const string& idir, const string& odir)
     free(degree_snap);
     free(level_array);
     
+    //----
+    //graph->store_graph_baseline();
+    //----
 
 
     //-------Graph Updates-------
     g->create_snapthread();
+    usleep(1000);
     int fd1 = open(action_file.c_str(), O_RDONLY);
     assert(fd1 != -1);
     index_t size1 = fsize(fd1);
@@ -687,11 +700,15 @@ void weighted_dtest0(const string& idir, const string& odir)
     while (blog->blog_tail != blog->blog_head) {
         usleep(10);
     }
+    //----
+    graph->store_graph_baseline();
+    //----
     end = mywtime();
     cout << "Make graph time = " << end - start << endl;
     
 
     //-------Run bfs and PR------
+    /*
     level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, 
                             PROT_READ|PROT_WRITE,
                             MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
@@ -721,7 +738,7 @@ void weighted_dtest0(const string& idir, const string& odir)
                    v_count, 1e-8);
 
     free(degree_snap);
-
+*/
 
     return ;
 }
