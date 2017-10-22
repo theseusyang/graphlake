@@ -36,7 +36,7 @@ typedef uint32_t snapid_t ;
 typedef uint32_t degree_t;
 #endif
 
-typedef uint32_t vflag_t;
+typedef uint16_t vflag_t;
 
 #ifndef PLAIN_GRAPH 
 #ifdef B64
@@ -105,6 +105,7 @@ extern index_t  DVT_SIZE;
 extern index_t  DURABLE_SIZE;//
 
 extern index_t  OFF_COUNT;
+extern int      THD_COUNT;
 
 void free_buf(void* buf);
 void* alloc_buf();
@@ -309,7 +310,8 @@ template <class T>
 class vunit_t {
  public:
 	//Durable adj list, and num of nebrs in that
-	vflag_t       vflag;
+	uint16_t      vflag;
+	int16_t       max_size;
 	degree_t      count;
     index_t       offset;
 	delta_adjlist_t<T>* delta_adjlist;

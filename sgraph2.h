@@ -277,8 +277,6 @@ void onegraph_t<T>::setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end)
     }
 }
 
-#define CLEAN_THDS 56
-
 template <class T>
 void pgraph_t<T>::make_graph_d() 
 {
@@ -286,7 +284,7 @@ void pgraph_t<T>::make_graph_d()
     
     vid_t v_count = sgraph_out[0]->get_vcount();
     vid_t range_count = 1024;
-    vid_t thd_count = CLEAN_THDS;
+    vid_t thd_count = THD_COUNT;
     vid_t  base_vid = ((v_count -1)/range_count);
     
     //find the number of bits to do shift to find the range
@@ -310,7 +308,7 @@ void pgraph_t<T>::make_graph_d()
     index_t edge_count = ((blog->blog_marker - blog->blog_tail)*1.15)/(thd_count);
     
 
-    #pragma omp parallel num_threads(CLEAN_THDS)
+    #pragma omp parallel
     {
         int tid = omp_get_thread_num();
         vid_t* vid_range = (vid_t*)calloc(sizeof(vid_t), range_count); 
@@ -431,7 +429,7 @@ void pgraph_t<T>::make_graph_u()
     
     vid_t v_count = sgraph[0]->get_vcount();
     vid_t range_count = 1024;
-    vid_t thd_count = CLEAN_THDS;
+    vid_t thd_count = THD_COUNT;
     vid_t  base_vid = ((v_count -1)/range_count);
     
     //find the number of bits to do shift to find the range
@@ -451,7 +449,7 @@ void pgraph_t<T>::make_graph_u()
         
     double start = mywtime();
 
-    #pragma omp parallel num_threads(CLEAN_THDS)
+    #pragma omp parallel
     {
         int tid = omp_get_thread_num();
         vid_t* vid_range = (vid_t*)calloc(sizeof(vid_t), range_count); 

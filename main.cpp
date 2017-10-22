@@ -1,8 +1,8 @@
 
+#include <omp.h>
 #include <iostream>
 #include <getopt.h>
 #include <stdlib.h>
-
 #include "graph.h"
 #include "test1.h"
 
@@ -13,6 +13,7 @@
 //using namespace std;
 
 graph* g;
+int THD_COUNT = 0;
 
 void ontology_lubm();
 void fill_lubm_inference_type();
@@ -42,6 +43,8 @@ int main(int argc, char* argv[])
     int convert = -1;
 	vid_t v_count = 0;
     int job = 0;
+	THD_COUNT = omp_get_max_threads();
+	cout << "Total thds = " << THD_COUNT << endl;
     g = new graph; 
 	while ((o = getopt_long(argc, argv, "i:c:j:o:q:t:r:v:h", longopts, &index)) != -1) {
 		switch(o) {
