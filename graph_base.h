@@ -603,7 +603,7 @@ typedef onekv_t<lite_edge_t> lite_skv_t;
 #define AIO_MAXIO 32768
 #define IO_MAX    32768
 #define AIO_BATCHIO 256
-#define BUF_SIZE  (1L<< 32L)
+#define BUF_SIZE  (1L<< 29L)
 
 class meta_t {
     public:
@@ -757,7 +757,7 @@ int io_driver::prep_random_read_aio(vid_t& last_read, vid_t v_count,
         
 		if(status[vid] != level) { 
 			cont +=  local_size;
-			if (cont > 4096) {
+			if (cont > 1024) {
 				if(started)  {
 					started = false;
 					sz_to_read = UPPER_ALIGN(total_size);

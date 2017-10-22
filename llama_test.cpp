@@ -600,7 +600,7 @@ void llama_test_bfs(const string& odir)
 {
     double start = mywtime();
     // READ vtable
-    string vtfile = odir + "friend0.vtable";
+    string vtfile = odir + "friend0out.vtable";
     int vtf = open(vtfile.c_str(), O_RDONLY);
     assert(-1 != vtf);
 
@@ -631,7 +631,7 @@ void llama_test_bfs(const string& odir)
     free(dvt);
     
     // READ etable
-    string etfile = odir + "friend0.etable";
+    string etfile = odir + "friend0out.etable";
     int etf = open(etfile.c_str(), O_RDONLY|O_DIRECT);
     assert(-1 != etf);
     
@@ -711,12 +711,13 @@ void llama_test_pr(const string& odir)
     
     // READ etable
     string etfile = odir + "friend0in.etable";
-    int etf = open(etfile.c_str(), O_RDONLY);
+    int etf = open(etfile.c_str(), O_RDONLY|O_DIRECT);
     assert(-1 != etf);
     
 
     //Run PR 
-    llama_pagerank<sid_t>(v_unit, degree_out, etf, v_count, 5);
+    //llama_pagerank<sid_t>(v_unit, degree_out, etf, v_count, 5);
+    fg_pagerank<sid_t>(v_unit, degree_out, etf, v_count, 5);
     
     double end = mywtime();
     cout << "total time = " << end - start << endl;
