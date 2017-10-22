@@ -102,11 +102,12 @@ class pgraph_t: public cfinfo_t {
         }
 
         blog->blog_beg[index1] = edge;
-
+        /*
         //Make the edge log durable
         if(index - blog->blog_wmarker == W_SIZE) {
             create_wmarker(index);
         }
+        */
         return eOK; 
     }
     
@@ -179,6 +180,11 @@ class pgraph_t: public cfinfo_t {
         //cout << "working on snapshot" << endl;
         //cout << "Marker dequeue. Position = " << m_index % q_count << " " << marker << endl;
         return eOK;
+    }
+
+    index_t update_marker() { 
+        blog->blog_tail = blog->blog_marker;
+        return blog->blog_tail;
     }
 
  public:

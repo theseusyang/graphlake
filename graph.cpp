@@ -321,6 +321,7 @@ void graph::create_snapshot()
 {
     int work_done = 0;
     index_t snap_marker = 0;
+    //index_t last_durable_marker = 0;
     do {
         work_done = 0;
         for (int i = 1; i < cf_count; i++) {
@@ -329,9 +330,15 @@ void graph::create_snapshot()
                 ++work_done;
 			}
         }
+        /*
+        if (snap_marker - last_durable_marker >= (1L << 29) ) { //4 GB memory
+            cf_info[1]->store_graph_baseline();
+            last_durable_marker = snap_marker;
+        }*/
 
         if (work_done != 0 ) { 
-                incr_snapid(snap_marker, 0);
+            //cf_info[1]->update_marker();
+            incr_snapid(snap_marker, 0);
         } else {
             break;
         } 

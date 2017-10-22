@@ -75,7 +75,7 @@ class cfinfo_t {
     virtual status_t batch_update(const string& src, const string& dst, propid_t pid, 
                           propid_t count, prop_pair_t* prop_pair, int del = 0);
     
-    
+    virtual index_t update_marker() {return 0;};    
     virtual void prep_graph_baseline();
     virtual void calc_degree();
     virtual void make_graph_baseline();

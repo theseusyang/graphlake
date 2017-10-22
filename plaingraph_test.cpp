@@ -1269,6 +1269,210 @@ void paper_test_hop2(const string& idir, const string& odir)
 
 }
 
+void update_test0(const string& idirname, const string& odirname)
+{
+    plaingraph_manager::schema_plaingraph();
+    //do some setup for plain graphs
+    plaingraph_manager::setup_graph(v_count);    
+    
+    struct dirent *ptr;
+    DIR *dir;
+    int file_count = 0;
+    string filename;
+    propid_t cf_id = g->get_cfid("friend");
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+        
+    FILE* file = 0;
+    index_t size =  0;
+    index_t edge_count = 0;
+    
+    
+    //Read graph files
+    double start = mywtime();
+    dir = opendir(idirname.c_str());
+    blog_t<sid_t>* blog = ugraph->blog;
+    edge_t* edge = blog->blog_beg;
+    while (NULL != (ptr = readdir(dir))) {
+        if (ptr->d_name[0] == '.') continue;
+        filename = idirname + "/" + string(ptr->d_name);
+        file_count++;
+        
+        file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
+        assert(file != 0);
+        size = fsize(filename);
+        edge_count = size/sizeof(edge_t);
+        edge = blog->blog_beg + blog->blog_head;
+        if (edge_count != fread(edge, sizeof(edge_t), edge_count, file)) {
+            assert(0);
+        }
+        blog->blog_head += edge_count;
+    }
+    closedir(dir);
+    double end = mywtime();
+    cout << "Reading "  << file_count  << " file time = " << end - start << endl;
+    start = mywtime();
+
+    cout << "End marker = " << blog->blog_head << endl;
+    
+    //Make Graph
+    index_t total_edge_count = blog->blog_head;
+    index_t marker = 0;
+    index_t snap_marker = 0;
+    index_t batch_size = (total_edge_count >> residue);
+    cout << "batch _size = " << batch_size << endl;
+
+    while (marker < blog->blog_head) {
+        marker = min(blog->blog_head, marker+batch_size);
+        ugraph->create_marker(marker);
+        if (eOK != ugraph->move_marker(snap_marker)) {
+            assert(0);
+        }
+        //blog->marker = marker;
+        ugraph->make_graph_baseline();
+        //ugraph->store_graph_baseline();
+        g->incr_snapid(snap_marker, snap_marker);
+        //cout << marker << endl;
+    }
+    end = mywtime ();
+    cout << "Make graph time = " << end - start << endl;
+    
+    //Run BFS
+    uint8_t* level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, 
+                            PROT_READ|PROT_WRITE,
+                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
+    
+    if (MAP_FAILED == level_array) {
+        cout << "Huge page alloc failed for level array" << endl;
+        level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
+    }
+    
+    onegraph_t<sid_t>*   sgraph = ugraph->sgraph[0];
+    vert_table_t<sid_t>* graph = sgraph->get_begpos();
+    
+    snapshot_t* snapshot = g->get_snapshot();
+    marker = blog->blog_head;
+    index_t old_marker = 0;
+    degree_t* degree_array = 0;
+        
+    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
+
+    if (snapshot) {
+        old_marker = snapshot->marker;
+        create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
+    }
+
+    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
+    ext_bfs<sid_t>(sgraph, degree_array, sgraph, degree_array, 
+                   snapshot, marker, blog->blog_beg,
+                   v_count, level_array, 1);
+    
+}
+
+void update_test1(const string& idirname, const string& odirname)
+{
+    plaingraph_manager::schema_plaingraph();
+    //do some setup for plain graphs
+    plaingraph_manager::setup_graph(v_count);    
+    g->create_snapthread();
+    //usleep(1000);
+    
+    struct dirent *ptr;
+    DIR *dir;
+    int file_count = 0;
+    string filename;
+    propid_t cf_id = g->get_cfid("friend");
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+        
+    FILE* file = 0;
+    index_t size =  0;
+    index_t edge_count = 0;
+    index_t total_edge_count = 0;
+    
+    
+    //Read graph files
+    double start = mywtime();
+    dir = opendir(idirname.c_str());
+    edge_t* edges =  (edge_t*)calloc(sizeof(edge_t),(1L<<32));
+    edge_t* edge = edges;
+    while (NULL != (ptr = readdir(dir))) {
+        if (ptr->d_name[0] == '.') continue;
+        filename = idirname + "/" + string(ptr->d_name);
+        file_count++;
+        
+        file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
+        assert(file != 0);
+        size = fsize(filename);
+        edge_count = size/sizeof(edge_t);
+        edge = edges + total_edge_count;
+        if (edge_count != fread(edge, sizeof(edge_t), edge_count, file)) {
+            assert(0);
+        }
+        total_edge_count += edge_count;
+    }
+    closedir(dir);
+    double end = mywtime();
+    cout << "Reading "  << file_count  << " file time = " << end - start << endl;
+    start = mywtime();
+    cout << "End marker = " << total_edge_count << endl;
+    
+    
+    //Batch and Make Graph
+    for (index_t i = 0; i < total_edge_count; ++i) {
+        ugraph->batch_edge(edges[i]);
+    }
+
+    //----------
+    end = mywtime ();
+    cout << "Batch Update Time = " << end - start << endl;
+    
+    blog_t<sid_t>* blog = ugraph->blog;
+    index_t marker = blog->blog_head;
+    if (marker != blog->blog_marker) {
+        ugraph->create_marker(marker);
+    }
+
+    //Wait for make graph
+    while (blog->blog_tail != blog->blog_head) {
+        usleep(10);
+    }
+    //---------
+    end = mywtime();
+    cout << "Make graph time = " << end - start << endl;
+    
+    //Run BFS
+    //blog_t<sid_t>* blog = ugraph->blog;
+    marker = blog->blog_head;
+    uint8_t* level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, 
+                            PROT_READ|PROT_WRITE,
+                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
+    
+    if (MAP_FAILED == level_array) {
+        cout << "Huge page alloc failed for level array" << endl;
+        level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
+    }
+    
+    onegraph_t<sid_t>*   sgraph = ugraph->sgraph[0];
+    vert_table_t<sid_t>* graph = sgraph->get_begpos();
+    
+    snapshot_t* snapshot = g->get_snapshot();
+    marker = blog->blog_head;
+    index_t old_marker = 0;
+    degree_t* degree_array = 0;
+        
+    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
+
+    if (snapshot) {
+        old_marker = snapshot->marker;
+        create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
+    }
+
+    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
+    ext_bfs<sid_t>(sgraph, degree_array, sgraph, degree_array, 
+                   snapshot, marker, blog->blog_beg,
+                   v_count, level_array, 1);
+    
+}
+
 void llama_test_bfs(const string& odir);
 void llama_test_pr(const string& odir);
 void llama_test_pr_push(const string& odir);
@@ -1341,9 +1545,11 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
         case 20:
             llama_test_pr_push(odir);
             break;
-
         case 21: 
-            //update_test0(idir, odir);
+            update_test0(idir, odir);
+            break;
+        case 22: 
+            update_test1(idir, odir);
             break;
         case 99:
             estimate_IO<sid_t>(idir, odir);
