@@ -331,7 +331,7 @@ void split_graph(const string& idirname, const string& odirname)
 
     blog_t<T> my_blog; 
     blog_t<T>* blog = &my_blog;
-    memset(blog, sizeof(my_blog), 0);
+    memset(blog, 0, sizeof(my_blog));
     blog->blog_beg = (edgeT_t<T>*) calloc((1L<<33), sizeof(edgeT_t<T>)); 
     
     //Read graph files

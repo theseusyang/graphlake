@@ -190,12 +190,6 @@ private:
     index_t    log_tail; //current log cleaning position
     index_t    log_count;//size of memory log
     
-    /*
-    T*         log_beg;  //memory log pointer
-    index_t    log_head; // current log write position
-    index_t    log_whead; //Write this pointer for write persistency
-    index_t    log_wtail; //Write upto this point
-    */
     //degree array related log, in-memory, fixed size logs
 	//indirection will help better cleaning.
     snapT_t<T>* dlog_beg;  //memory log pointer
@@ -203,15 +197,7 @@ private:
     index_t     dlog_count;//size of memory log
     index_t     dlog_head; // current log write position
     index_t     dlog_tail; //current log cleaning position
-    index_t     dlog_wpos; //Write this pointer for write persistency
 
-    /*
-    //degree array related log, for writing to disk
-    disk_snapT_t<T>* snap_log;
-    index_t snap_count;
-    index_t snap_whead;
-    index_t snap_wtail;
-*/
 	//v_unit log, in-memory, fixed size log
 	//indirection will help better cleaning
 	vunit_t<T>* vunit_beg;
@@ -225,8 +211,6 @@ private:
 
     //vertex table file related log
     write_seg_t  write_seg[3];
-    //disk_vtable_t* dvt;
-    //vid_t    dvt_count; 
     vid_t    dvt_max_count;
 
     int      vtf;   //vertex table file
@@ -285,7 +269,6 @@ public:
         dlog_count = 0;
         dlog_head = 0;
         dlog_tail = 0;
-        dlog_wpos = 0;
        
        /* 
         snap_count = 0;
@@ -332,10 +315,20 @@ public:
     }
     
     inline void add_nebr_noatomic(vid_t vid, T sid) {
+		vunit_t<T>* v_unit = beg_pos[vid].v_unit; 
+		#ifdef OVER_COMMIT 
+		degree_t max_size = v_unit->max_size;
+		if (v_unit->adj_list->get_nebrcount() >= max_size) {
+			v_unit->adj_list = v_unit->adj_list->get_next();
+			v_unit->max_size = v_unit->adj_list->get_nebrcount();
+			v_unit->adj_list->set_nebrcount(0);
+			//assert(0);
+		}
+		#endif
         if (IS_DEL(get_sid(sid))) { 
             return del_nebr_noatomic(vid, sid);
         }
-        beg_pos[vid].v_unit->adj_list->add_nebr_noatomic(sid);
+        v_unit->adj_list->add_nebr_noatomic(sid);
     }
     
     inline void add_nebr_bulk(vid_t vid, T* adj_list1, degree_t count) {

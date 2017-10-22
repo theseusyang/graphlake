@@ -4,7 +4,7 @@ EXE2=graphone64
 EXE3=graphlake32
 EXE4=graphlake64
 #CFLAGS=-g -Wall -std=gnu++11  -march=native -DB64 -fopenmp
-CFLAGS=-g -Wall -std=gnu++11 -march=native -fopenmp -lpthread
+CFLAGS=-g -Wall -std=gnu++11 -march=native -fopenmp -lpthread -DOVER_COMMIT
 #CFLAGS=-O3 -Wall -std=gnu++11  -march=native -fopenmp -lpthread
 SRC=main.cpp \
 	cf_info.cpp\

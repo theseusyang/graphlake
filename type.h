@@ -45,12 +45,18 @@ typedef uint16_t vflag_t;
 #define THIGH_MASK 0x7FFFFF0000000000
 #define DEL_MASK   0x8000000000000000
 #define SID_MASK   0x7FFFFFFFFFFFFFFF
+#define CL_COUNT   4
+#define CL_ADJUST  1
+#define CL_MASK    0xFFFFFFFFFFFFFFFC
 #elif B32
 #define VBIT 28
 #define VMASK 0xfffffff
 #define THIGH_MASK 0x70000000
 #define DEL_MASK   0x80000000
 #define SID_MASK   0x7FFFFFFF
+#define CL_COUNT   8
+#define CL_ADJUST  2
+#define CL_MASK    0xFFFFFFFFFFFFFFF8
 #endif
 #else
 #ifdef B64
@@ -59,14 +65,22 @@ typedef uint16_t vflag_t;
 #define THIGH_MASK 0x7FFFFF0000000000
 #define DEL_MASK   0x8000000000000000
 #define SID_MASK   0x7FFFFFFFFFFFFFFF
+#define CL_COUNT   8 
+#define CL_ADJUST  2
+#define CL_MASK    0xFFFFFFFFFFFFFFF8
 #elif B32
 #define VBIT 31
 #define VMASK 0x7fffffff
 #define THIGH_MASK 0x00000000
 #define DEL_MASK   0x80000000
 #define SID_MASK   0x7FFFFFFF
+#define CL_COUNT   16 
+#define CL_ADJUST  4
+#define CL_MASK    0xFFFFFFFFFFFFFFF0
 #endif
 #endif
+
+#define TO_MAXCOUNT(X) ((((X)+CL_ADJUST+CL_COUNT-1) & CL_MASK) - CL_ADJUST)
 
 #define TO_TID(sid)  ((sid & THIGH_MASK) >> VBIT)
 #define TO_VID(sid)  (sid & VMASK)
@@ -305,13 +319,13 @@ class durable_adjlist_t {
 //#define TO_VUNIT_FLAG(flag)  (flag & 0x3)
 //#define TO_VUNIT_COUNT(flag) ((flag >> 2 ) & 0x7)
 
-
+#ifdef OVER_COMMIT 
 template <class T>
 class vunit_t {
  public:
 	//Durable adj list, and num of nebrs in that
 	uint16_t      vflag;
-	int16_t       max_size;
+	uint16_t       max_size;
 	degree_t      count;
     index_t       offset;
 	delta_adjlist_t<T>* delta_adjlist;
@@ -325,6 +339,26 @@ class vunit_t {
         adj_list = 0;
 	}
 };
+#else
+template <class T>
+class vunit_t {
+ public:
+	//Durable adj list, and num of nebrs in that
+	uint32_t      vflag;
+	degree_t      count;
+    index_t       offset;
+	delta_adjlist_t<T>* delta_adjlist;
+	delta_adjlist_t<T>* adj_list;//Last chain
+
+	inline void reset() {
+		vflag = 0;
+		count = 0;
+		offset = -1L;
+		delta_adjlist = 0;
+        adj_list = 0;
+	}
+};
+#endif
 
 class pedge_t {
  public:

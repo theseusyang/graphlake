@@ -172,6 +172,135 @@ void pgraph_t<T>::fill_adjlist_noatomic(onegraph_t<T>** sgraph, global_range_t<T
         }
     }
 }
+#ifdef OVER_COMMIT 
+template <class T>
+void onegraph_t<T>::setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end)
+{
+    degree_t count, del_count, total_count;
+	degree_t max_count = 0;
+	vunit_t<T>* v_unit = 0;
+    snapT_t<T>* curr;
+	snapT_t<T>* next;
+    snapid_t snap_id = g->get_snapid() + 1;
+
+    index_t my_vunit_count = 0;
+    index_t my_dsnap_count = 0;
+    index_t my_degree_count = 0;
+    index_t my_delta_size = 0;
+    
+	//Memory estimation
+    for (vid_t vid = vid_start; vid < vid_end; ++vid) {
+        del_count = nebr_count[vid].del_count;
+        count = nebr_count[vid].add_count;
+        total_count = count + del_count;
+        
+        if (0 == total_count) { continue; }
+        
+        next = beg_pos[vid].recycle_snapblob(snap_id);
+        if (next != 0) {
+            next->del_count += del_count;
+            next->degree    += count;
+        }
+        my_degree_count += (0 == next);
+        ++my_dsnap_count;
+    
+        v_unit = beg_pos[vid].get_vunit();
+		if (v_unit == 0) {
+			++my_vunit_count;
+			max_count = TO_MAXCOUNT(total_count);
+			my_delta_size += max_count;
+		} else if (total_count + v_unit->adj_list->get_nebrcount() > v_unit->max_size) {
+			max_count = TO_MAXCOUNT(total_count + v_unit->adj_list->get_nebrcount() - v_unit->max_size);
+			my_delta_size += max_count;
+		}
+    }
+
+	//Bulk memory allocation
+    vunit_t<T>* my_vunit_beg = new_vunit_bulk(my_vunit_count);
+    snapT_t<T>* my_dlog_beg = new_snapdegree_bulk(my_degree_count);
+    assert(dlog_head <= dlog_count);
+
+	index_t new_count = my_delta_size*sizeof(T) 
+						+ my_dsnap_count*sizeof(delta_adjlist_t<T>);
+    char*  my_adjlog_beg = new_delta_adjlist_bulk(new_count);
+    assert(adjlog_head <= adjlog_count);
+
+	delta_adjlist_t<T>* prev_delta = 0;
+	delta_adjlist_t<T>* delta_adjlist = 0;
+    index_t delta_size = 0;
+    index_t delta_metasize = sizeof(delta_adjlist_t<T>);
+
+	//individual allocation
+    for (vid_t vid = vid_start; vid < vid_end; ++vid) {
+        del_count = nebr_count[vid].del_count;
+        count = nebr_count[vid].add_count;
+        total_count = count + del_count;
+        
+        if (0 == total_count) { continue; }
+
+        //Degree Allocation
+        curr = beg_pos[vid].get_snapblob();
+        if (0 == curr || curr->snap_id < snap_id) {
+			next                = my_dlog_beg; 
+            my_dlog_beg        += 1;
+            next->del_count     = del_count;
+            next->snap_id       = snap_id;
+            next->degree        = count;
+            if (curr) {
+                next->degree += curr->degree;
+                next->del_count += curr->del_count;
+            }
+            beg_pos[vid].set_snapblob1(next);
+        }
+        
+        //v-unit allocation, and delta adj list allocation
+        v_unit = beg_pos[vid].get_vunit();
+        if (v_unit == 0 || v_unit->adj_list == 0) {
+            v_unit = my_vunit_beg;
+            my_vunit_beg += 1;
+			
+			//Delta adj list allocation
+			max_count = TO_MAXCOUNT(total_count);
+			delta_adjlist = (delta_adjlist_t<T>*)(my_adjlog_beg); 
+			delta_size = max_count*sizeof(T) + delta_metasize;
+			my_adjlog_beg += delta_size;
+			if (my_adjlog_beg > adjlog_beg + adjlog_count) { //rewind happened
+				my_adjlog_beg -=  adjlog_count;
+				//Last allocation is wasted due to rewind
+				delta_adjlist = (delta_adjlist_t<T>*)new_delta_adjlist_bulk(delta_size);
+			}
+			delta_adjlist->set_nebrcount(0);
+			delta_adjlist->add_next(0);
+
+            v_unit->delta_adjlist = delta_adjlist;
+			v_unit->adj_list = delta_adjlist;
+			v_unit->max_size = max_count;
+            beg_pos[vid].set_vunit(v_unit);
+
+        } else if (total_count + v_unit->adj_list->get_nebrcount() > v_unit->max_size) {
+            prev_delta = v_unit->adj_list;
+				
+			//Delta adj list allocation
+			max_count = TO_MAXCOUNT(total_count + v_unit->adj_list->get_nebrcount() - v_unit->max_size);
+			delta_adjlist = (delta_adjlist_t<T>*)(my_adjlog_beg); 
+			delta_size = max_count*sizeof(T) + delta_metasize;
+			my_adjlog_beg += delta_size;
+			if (my_adjlog_beg > adjlog_beg + adjlog_count) { //rewind happened
+				my_adjlog_beg -=  adjlog_count;
+				//Last allocation is wasted due to rewind
+				delta_adjlist = (delta_adjlist_t<T>*)new_delta_adjlist_bulk(delta_size);
+			}
+
+			delta_adjlist->set_nebrcount(max_count);
+			delta_adjlist->add_next(0);
+			prev_delta->add_next(delta_adjlist);
+		}
+
+        reset_count(vid);
+    }
+}
+
+#else
 
 template <class T>
 void onegraph_t<T>::setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end)
@@ -187,6 +316,7 @@ void onegraph_t<T>::setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end)
     index_t my_degree_count = 0;
     index_t my_delta_size = 0;
     
+	//Memory estimation
     for (vid_t vid = vid_start; vid < vid_end; ++vid) {
         del_count = nebr_count[vid].del_count;
         count = nebr_count[vid].add_count;
@@ -207,6 +337,7 @@ void onegraph_t<T>::setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end)
         my_delta_size += total_count;
     }
 
+	//Bulk memory allocation
     vunit_t<T>* my_vunit_beg = new_vunit_bulk(my_vunit_count);
     snapT_t<T>* my_dlog_beg = new_snapdegree_bulk(my_degree_count);
     assert(dlog_head <= dlog_count);
@@ -221,6 +352,7 @@ void onegraph_t<T>::setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end)
     index_t delta_size = 0;
     index_t delta_metasize = sizeof(delta_adjlist_t<T>);
 
+	//individual allocation
     for (vid_t vid = vid_start; vid < vid_end; ++vid) {
         del_count = nebr_count[vid].del_count;
         count = nebr_count[vid].add_count;
@@ -276,6 +408,8 @@ void onegraph_t<T>::setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end)
         reset_count(vid);
     }
 }
+#endif
+
 
 template <class T>
 void pgraph_t<T>::make_graph_d() 
@@ -310,7 +444,7 @@ void pgraph_t<T>::make_graph_d()
 
     #pragma omp parallel
     {
-        int tid = omp_get_thread_num();
+        vid_t tid = omp_get_thread_num();
         vid_t* vid_range = (vid_t*)calloc(sizeof(vid_t), range_count); 
         vid_t* vid_range_in = (vid_t*)calloc(sizeof(vid_t), range_count); 
         thd_local[tid].vid_range = vid_range;
@@ -422,6 +556,15 @@ void pgraph_t<T>::make_graph_d()
     blog->blog_tail = blog->blog_marker;  
 }
 
+inline void print(const char* str, double start_time) 
+{
+	//#pragma omp master
+	//{
+	//	double end = mywtime();
+	//	cout << str << end - start_time << endl;
+	//}
+}
+
 template <class T>
 void pgraph_t<T>::make_graph_u() 
 {
@@ -455,8 +598,6 @@ void pgraph_t<T>::make_graph_u()
         vid_t* vid_range = (vid_t*)calloc(sizeof(vid_t), range_count); 
         thd_local[tid].vid_range = vid_range;
 
-        double end;
-
         //Get the count for classification
         this->estimate_classify(vid_range, vid_range, bit_shift);
         
@@ -467,7 +608,7 @@ void pgraph_t<T>::make_graph_u()
         this->classify(vid_range, vid_range, bit_shift, global_range, global_range);
         #pragma omp master 
         {
-            end = mywtime();
+            //double end = mywtime();
             //cout << " classify " << end - start << endl;
             this->work_division(global_range, thd_local, range_count, thd_count, edge_count);
         }
@@ -486,31 +627,19 @@ void pgraph_t<T>::make_graph_u()
         
         //degree count
         this->calc_degree_noatomic(sgraph, global_range, j_start, j_end);
-        #pragma omp master 
-        {   
-            end = mywtime();
-            //cout << " Degree = " << end -start << endl;
-        } 
+		print(" Degree = ", start);
 
         //Adj list
         vid_t vid_start = (j_start << bit_shift);
         vid_t vid_end = (j_end << bit_shift);
         sgraph[0]->setup_adjlist_noatomic(vid_start, vid_end);
-        #pragma omp master 
-        {
-            end = mywtime();
-            //cout << " adj-list setup " << end -start << endl;
-        } 
+		print(" adj-list setup =", start);
         
         //fill adj-list
         this->fill_adjlist_noatomic(sgraph, global_range, j_start, j_end);
         free(vid_range);
         #pragma omp barrier 
-        #pragma omp master 
-        {
-            end = mywtime();
-            //cout << " adj-list filled " << end - start << endl;
-        } 
+        print(" adj-list filled = ", start);
         
         //free the memory
         #pragma omp for schedule (static)
