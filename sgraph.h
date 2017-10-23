@@ -469,14 +469,16 @@ typedef one2one<lite_edge_t> p_one2one_t;
 template <class T>
 void onegraph_t<T>::setup(tid_t tid)
 {
-    index_t total_memory = 0;
     if(0 == super_id) {
         super_id = g->get_type_scount(tid);
         vid_t v_count = TO_VID(super_id);
         max_vcount = v_count;// (v_count << 1);
         beg_pos = (vert_table_t<T>*)calloc(sizeof(vert_table_t<T>), max_vcount);
+
+#ifdef BULK
         nebr_count = (nebrcount_t<T>*)calloc(sizeof(nebrcount_t<T>), max_vcount);
 
+        index_t total_memory = 0;
         total_memory += max_vcount*(sizeof(vert_table_t<T>) + sizeof(nebrcount_t<T>));
         cout << "Total Memory 1 = " << total_memory << endl;
         
@@ -567,6 +569,7 @@ void onegraph_t<T>::setup(tid_t tid)
 		for (vid_t i = v_count; i < i_end; ++i) {
 			vunit_ind[i-v_count] = i; 
 		}
+#endif
 
     } else {
         super_id = g->get_type_scount(tid);

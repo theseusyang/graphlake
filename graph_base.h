@@ -2,10 +2,16 @@
 #include <omp.h>
 #include <iostream>
 #include <libaio.h>
+#include <sys/mman.h>
+#include <asm/mman.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <algorithm>
 #include "type.h"
 
 using std::cout;
 using std::endl;
+using std::max;
 
 ////
 inline void add_nebr1(sid_t* adj_list, vid_t index, sid_t value) {
@@ -58,6 +64,18 @@ inline void set_value1(sid_t* kv, vid_t vid, sid_t value) {
 inline void set_value1(lite_edge_t* kv, vid_t vid, sid_t value, univ_t univ) {
     kv[vid].first = value;
     kv[vid].second = univ;
+}
+
+inline void* alloc_huge(index_t size)
+{   
+    void* buf = mmap(NULL, size, PROT_READ|PROT_WRITE,
+                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0);
+    //if (buf== MAP_FAILED) {
+    //    cout << "huge page failed" << endl;
+    //}
+    return buf;
+    
+    //return MAP_FAILED;
 }
 
 //One vertex's neighbor information
@@ -313,16 +331,16 @@ public:
     //void setup_adjlist(vid_t vid_start, vid_t vid_end);
     void setup_adjlist();
     void setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end);
-	#ifdef OVER_COMMIT
-	void increment_count_noatomic(vid_t vid);
-    void decrement_count_noatomic(vid_t vid);
-	#else
+	#ifdef BULK
     void increment_count_noatomic(vid_t vid) {
         ++nebr_count[vid].add_count;
     }
     void decrement_count_noatomic(vid_t vid) {
         ++nebr_count[vid].del_count;
     }
+	#else
+	void increment_count_noatomic(vid_t vid);
+    void decrement_count_noatomic(vid_t vid);
 	#endif
 
     inline void increment_count(vid_t vid) { 
@@ -342,11 +360,9 @@ public:
     
     inline void add_nebr_noatomic(vid_t vid, T sid) {
 		vunit_t<T>* v_unit = beg_pos[vid].v_unit; 
-		#ifdef OVER_COMMIT 
+		#ifndef BULK 
 		if (v_unit->adj_list == 0 || 
 			v_unit->adj_list->get_nebrcount() >= v_unit->max_size) {
-			//v_unit->adj_list = v_unit->adj_list->get_next();
-			//v_unit->max_size = v_unit->adj_list->get_nebrcount();
 			
 			snapT_t<T>* curr = beg_pos[vid].get_snapblob();
 			degree_t new_count = curr->degree + curr->del_count;
@@ -365,8 +381,6 @@ public:
 				v_unit->delta_adjlist = adj_list;
 				v_unit->adj_list = adj_list;
 			}
-
-			//assert(0);
 		}
 		#endif
         if (IS_DEL(get_sid(sid))) { 
@@ -474,8 +488,11 @@ public:
 	inline vunit_t<T>* new_vunit_local() {
 		thd_mem_t<T>* my_thd_mem = thd_mem + omp_get_thread_num();
 		if (my_thd_mem->vunit_count == 0) {
-			my_thd_mem->vunit_beg = (vunit_t<T>*)calloc(sizeof(vunit_t<T>), 1L<< LOCAL_VUNIT_COUNT);
 		    my_thd_mem->vunit_count = (1L << LOCAL_VUNIT_COUNT);
+            my_thd_mem->vunit_beg = (vunit_t<T>*)alloc_huge(my_thd_mem->vunit_count*sizeof(vunit_t<T>));
+            if (MAP_FAILED == my_thd_mem->vunit_beg) {
+			    my_thd_mem->vunit_beg = (vunit_t<T>*)calloc(sizeof(vunit_t<T>), my_thd_mem->vunit_count);
+            }
 		}
 		my_thd_mem->vunit_count--;
 		return my_thd_mem->vunit_beg++;
@@ -484,8 +501,11 @@ public:
 	inline snapT_t<T>* new_snapdegree_local() {
 		thd_mem_t<T>* my_thd_mem = thd_mem + omp_get_thread_num();
 		if (my_thd_mem->dsnap_count == 0) {
-			my_thd_mem->dlog_beg = (snapT_t<T>*)calloc(sizeof(snapT_t<T>), 1L<< LOCAL_VUNIT_COUNT);
 		    my_thd_mem->dsnap_count = (1L << LOCAL_VUNIT_COUNT);
+			my_thd_mem->dlog_beg = (snapT_t<T>*)alloc_huge(sizeof(snapT_t<T>)*my_thd_mem->dsnap_count);
+            if (MAP_FAILED == my_thd_mem->dlog_beg) {
+			    my_thd_mem->dlog_beg = (snapT_t<T>*)calloc(sizeof(snapT_t<T>), 1L<< LOCAL_VUNIT_COUNT);
+            }
 		}
 		my_thd_mem->dsnap_count--;
 		return my_thd_mem->dlog_beg++;
@@ -495,8 +515,11 @@ public:
 		thd_mem_t<T>* my_thd_mem = thd_mem + omp_get_thread_num();
 		index_t size = count*sizeof(T) + sizeof(delta_adjlist_t<T>);
 		if (size > my_thd_mem->delta_size) {
-			my_thd_mem->delta_size = (1L << LOCAL_DELTA_SIZE);
-			my_thd_mem->adjlog_beg = (char*)malloc(my_thd_mem->delta_size);
+			my_thd_mem->delta_size = max(1UL << LOCAL_DELTA_SIZE, size);
+			my_thd_mem->adjlog_beg = (char*)alloc_huge(my_thd_mem->delta_size);
+            if (MAP_FAILED == my_thd_mem->adjlog_beg) {
+			    my_thd_mem->adjlog_beg = (char*)malloc(my_thd_mem->delta_size);
+            }
 		}
 		delta_adjlist_t<T>* adj_list = (delta_adjlist_t<T>*)my_thd_mem->adjlog_beg;
 		assert(adj_list != 0);

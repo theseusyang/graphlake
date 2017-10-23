@@ -80,7 +80,11 @@ typedef uint16_t vflag_t;
 #endif
 #endif
 
+#ifdef OVER_COMMIT
 #define TO_MAXCOUNT(X) ((((X)+CL_ADJUST+CL_COUNT-1) & CL_MASK) - CL_ADJUST)
+#else
+#define TO_MAXCOUNT(X) (X)
+#endif
 
 #define TO_TID(sid)  ((sid & THIGH_MASK) >> VBIT)
 #define TO_VID(sid)  (sid & VMASK)
@@ -321,13 +325,12 @@ class durable_adjlist_t {
 //#define TO_VUNIT_FLAG(flag)  (flag & 0x3)
 //#define TO_VUNIT_COUNT(flag) ((flag >> 2 ) & 0x7)
 
-#ifdef OVER_COMMIT 
+#ifdef BULK 
 template <class T>
 class vunit_t {
  public:
 	//Durable adj list, and num of nebrs in that
-	uint16_t      vflag;
-	uint16_t       max_size;
+	uint32_t      vflag;
 	degree_t      count;
     index_t       offset;
 	delta_adjlist_t<T>* delta_adjlist;
@@ -346,7 +349,8 @@ template <class T>
 class vunit_t {
  public:
 	//Durable adj list, and num of nebrs in that
-	uint32_t      vflag;
+	uint16_t      vflag;
+	uint16_t      max_size;
 	degree_t      count;
     index_t       offset;
 	delta_adjlist_t<T>* delta_adjlist;

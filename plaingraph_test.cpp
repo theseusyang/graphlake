@@ -36,6 +36,149 @@ struct estimate_t {
 
 //estimate the IO read and Write amount and number of chains
 template <class T>
+void estimate_chain(const string& idirname, const string& odirname)
+{
+    plaingraph_manager::schema_plaingraph();
+    //do some setup for plain graphs
+    plaingraph_manager::setup_graph(v_count);    
+    
+    struct dirent *ptr;
+    DIR *dir;
+    int file_count = 0;
+    string filename;
+    propid_t cf_id = g->get_cfid("friend");
+    pgraph_t<T>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+        
+    FILE* file = 0;
+    index_t size =  0;
+    index_t edge_count = 0;
+    
+    //Read graph files
+    double start = mywtime();
+    dir = opendir(idirname.c_str());
+    blog_t<T>* blog = ugraph->blog;
+    edgeT_t<T>* edge = blog->blog_beg;
+    while (NULL != (ptr = readdir(dir))) {
+        if (ptr->d_name[0] == '.') continue;
+        filename = idirname + "/" + string(ptr->d_name);
+        file_count++;
+        
+        file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
+        assert(file != 0);
+        size = fsize(filename);
+        edge_count = size/sizeof(edge_t);
+        edge = blog->blog_beg + blog->blog_head;
+        if (edge_count != fread(edge, sizeof(edgeT_t<T>), edge_count, file)) {
+            assert(0);
+        }
+        blog->blog_head += edge_count;
+    }
+    closedir(dir);
+    double end = mywtime();
+    cout << "Reading "  << file_count  << " file time = " << end - start << endl;
+    start = mywtime();
+
+    index_t marker = blog->blog_head ;
+    cout << "End marker = " << blog->blog_head;
+    cout << "make graph marker = " << marker << endl;
+    if (marker == 0) return;
+    
+    edge = blog->blog_beg;
+    estimate_t* est = (estimate_t*)calloc(sizeof(estimate_t), v_count);
+    index_t last = 0;
+    vid_t src = 0;
+    vid_t dst = 0;
+
+    index_t total_used_memory = 0;
+    index_t total_chain = 0;
+    int max_chain = 0;
+    vid_t total_hub_vertex = 0;
+
+    
+    for (index_t i = 0; i < marker; i +=65536) {
+        last = min(i + 65536, marker);
+        //do batching
+        #pragma omp parallel for private(src, dst)
+        for (index_t j = i; j < last; ++j) {
+            src = edge[j].src_id;
+            dst = edge[j].dst_id;
+            est[src].degree++;
+            est[dst].degree++;
+        }
+        index_t used_memory = 0;
+
+        //Do memory allocation and cleaning
+        #pragma omp parallel reduction(+:used_memory, total_chain) reduction(max:max_chain)
+        {
+        index_t  local_memory = 0;
+        degree_t total_degree = 0;
+        degree_t new_count = 0;
+        #pragma omp for  
+        for (vid_t vid = 0; vid < v_count; ++vid) {
+            if (est[vid].degree == 0) continue;
+            //---------------
+            local_memory = est[vid].degree*sizeof(T) + 16;
+            used_memory += local_memory;
+            est[vid].chain_count++;
+            max_chain = max(max_chain, est[vid].chain_count);
+            total_chain++;
+            est[vid].delta_degree += est[vid].degree;
+            est[vid].degree = 0;
+            
+            //---------------
+            /*
+            //Embedded case only
+            //if (false)
+            if (est[vid].durable_degree == 0) 
+            {
+                if (total_degree <= 7) {
+                    est[vid].delta_degree += est[vid].degree;
+                    est[vid].degree = 0;
+                    continue;
+                } else if (est[vid].delta_degree <= 7) {//total > 7
+                    local_memory = UPPER_ALIGN_32B(total_degree + 1);
+                    used_memory += local_memory;
+                    
+                    est[vid].chain_count = 1;
+                    est[vid].space_left = local_memory - total_degree - 1;
+                    est[vid].delta_degree += est[vid].degree;
+                    est[vid].degree = 0;
+                    continue;
+                }
+            }
+            
+
+            //At least 0th chain exists or will be created
+            if (est[vid].degree <= est[vid].space_left) {
+                est[vid].space_left -= est[vid].degree; 
+                est[vid].delta_degree += est[vid].degree;
+                est[vid].degree = 0;
+            } else {
+                new_count = est[vid].degree - est[vid].space_left;
+                local_memory = UPPER_ALIGN_32B(new_count + 1) ;
+                used_memory += local_memory;
+                
+                est[vid].chain_count++;
+                est[vid].space_left = local_memory - new_count - 1;
+                est[vid].delta_degree += est[vid].degree;
+                est[vid].degree = 0;     
+            }
+            */
+        }
+        }
+        total_used_memory += used_memory;
+    }
+
+    end = mywtime ();
+    cout << "Used Memory = " << total_used_memory << endl;
+    cout << "Make graph time = " << end - start << endl;
+    cout << "total_hub_vertex =" << total_hub_vertex << endl;
+    cout << "total_chain_count =" << total_chain << endl;
+    cout << "max_chain =" << max_chain << endl;
+}
+
+//estimate the IO read and Write amount and number of chains
+template <class T>
 void estimate_IO(const string& idirname, const string& odirname)
 {
     plaingraph_manager::schema_plaingraph();
@@ -1551,6 +1694,9 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
         case 22: 
             update_test1(idir, odir);
             break;
+        case 98:
+            estimate_chain<sid_t>(idir, odir);
+            break; 
         case 99:
             estimate_IO<sid_t>(idir, odir);
             break; 
