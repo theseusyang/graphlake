@@ -1,4 +1,5 @@
 #pragma once
+#include <omp.h>
 #include <iostream>
 #include <libaio.h>
 #include "type.h"
@@ -166,6 +167,21 @@ class nebrcount_t {
 	//delta_adjlist_t<T>* adj_list;
 };
 
+template <class T>
+class thd_mem_t {
+	public:
+    vunit_t<T>* vunit_beg;
+    snapT_t<T>* dlog_beg;
+    char*       adjlog_beg;
+
+	index_t     vunit_count;
+	index_t     dsnap_count;
+	index_t     degree_count;
+	index_t    	delta_size;
+
+	index_t    unused;	
+};
+
 //one type's graph
 template <class T>
 class onegraph_t {
@@ -179,7 +195,11 @@ private:
     //count in adj list. Used for book-keeping purpose during setup and update.
 
     vid_t    max_vcount;
-    
+	
+	//Thread local memory data structures
+	thd_mem_t<T>* thd_mem;
+
+	//---------Global memory data structures
     //delta adj list
     char*      adjlog_beg;  //memory log pointer
     index_t    adjlog_count;//size of memory log
@@ -207,7 +227,7 @@ private:
 	index_t     vunit_head;
 	index_t     vunit_tail;
 	index_t     vunit_wtail;
-
+	//-----------
 
     //vertex table file related log
     write_seg_t  write_seg[3];
@@ -244,6 +264,8 @@ public:
         beg_pos = 0;
         nebr_count = 0;
         max_vcount = 0;
+
+		thd_mem = (thd_mem_t<T>*)calloc(sizeof(thd_mem_t<T>), THD_COUNT);
        
 	    vunit_beg	= 0;
 		vunit_count = 0;
@@ -291,13 +313,17 @@ public:
     //void setup_adjlist(vid_t vid_start, vid_t vid_end);
     void setup_adjlist();
     void setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end);
-
+	#ifdef OVER_COMMIT
+	void increment_count_noatomic(vid_t vid);
+    void decrement_count_noatomic(vid_t vid);
+	#else
     void increment_count_noatomic(vid_t vid) {
         ++nebr_count[vid].add_count;
     }
     void decrement_count_noatomic(vid_t vid) {
         ++nebr_count[vid].del_count;
     }
+	#endif
 
     inline void increment_count(vid_t vid) { 
         __sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
@@ -317,11 +343,29 @@ public:
     inline void add_nebr_noatomic(vid_t vid, T sid) {
 		vunit_t<T>* v_unit = beg_pos[vid].v_unit; 
 		#ifdef OVER_COMMIT 
-		degree_t max_size = v_unit->max_size;
-		if (v_unit->adj_list->get_nebrcount() >= max_size) {
-			v_unit->adj_list = v_unit->adj_list->get_next();
-			v_unit->max_size = v_unit->adj_list->get_nebrcount();
-			v_unit->adj_list->set_nebrcount(0);
+		if (v_unit->adj_list == 0 || 
+			v_unit->adj_list->get_nebrcount() >= v_unit->max_size) {
+			//v_unit->adj_list = v_unit->adj_list->get_next();
+			//v_unit->max_size = v_unit->adj_list->get_nebrcount();
+			
+			snapT_t<T>* curr = beg_pos[vid].get_snapblob();
+			degree_t new_count = curr->degree + curr->del_count;
+		    if (curr->prev) {
+				new_count -= curr->prev->degree + curr->prev->del_count; 
+			}
+			degree_t max_count = TO_MAXCOUNT(new_count);
+			delta_adjlist_t<T>* adj_list = new_delta_adjlist_local(max_count);
+			adj_list->set_nebrcount(0);
+			adj_list->add_next(0);
+			v_unit->max_size = max_count;
+			if (v_unit->adj_list) {
+				v_unit->adj_list->add_next(adj_list);
+				v_unit->adj_list = adj_list;
+			} else {
+				v_unit->delta_adjlist = adj_list;
+				v_unit->adj_list = adj_list;
+			}
+
 			//assert(0);
 		}
 		#endif
@@ -425,7 +469,42 @@ public:
 		assert(index_dlog   < dlog_count);
 		return (dlog_beg + index_dlog);
 	}
-	
+
+	//------------------------ local allocation-------
+	inline vunit_t<T>* new_vunit_local() {
+		thd_mem_t<T>* my_thd_mem = thd_mem + omp_get_thread_num();
+		if (my_thd_mem->vunit_count == 0) {
+			my_thd_mem->vunit_beg = (vunit_t<T>*)calloc(sizeof(vunit_t<T>), 1L<< LOCAL_VUNIT_COUNT);
+		    my_thd_mem->vunit_count = (1L << LOCAL_VUNIT_COUNT);
+		}
+		my_thd_mem->vunit_count--;
+		return my_thd_mem->vunit_beg++;
+	}
+    
+	inline snapT_t<T>* new_snapdegree_local() {
+		thd_mem_t<T>* my_thd_mem = thd_mem + omp_get_thread_num();
+		if (my_thd_mem->dsnap_count == 0) {
+			my_thd_mem->dlog_beg = (snapT_t<T>*)calloc(sizeof(snapT_t<T>), 1L<< LOCAL_VUNIT_COUNT);
+		    my_thd_mem->dsnap_count = (1L << LOCAL_VUNIT_COUNT);
+		}
+		my_thd_mem->dsnap_count--;
+		return my_thd_mem->dlog_beg++;
+	}
+
+	inline delta_adjlist_t<T>* new_delta_adjlist_local(degree_t count) {
+		thd_mem_t<T>* my_thd_mem = thd_mem + omp_get_thread_num();
+		index_t size = count*sizeof(T) + sizeof(delta_adjlist_t<T>);
+		if (size > my_thd_mem->delta_size) {
+			my_thd_mem->delta_size = (1L << LOCAL_DELTA_SIZE);
+			my_thd_mem->adjlog_beg = (char*)malloc(my_thd_mem->delta_size);
+		}
+		delta_adjlist_t<T>* adj_list = (delta_adjlist_t<T>*)my_thd_mem->adjlog_beg;
+		assert(adj_list != 0);
+		my_thd_mem->adjlog_beg += size;
+		my_thd_mem->delta_size -= size;
+		return adj_list;
+	}
+	//------------------
     inline void reset_count(vid_t vid) {
         nebr_count[vid].add_count = 0;
         nebr_count[vid].del_count = 0;

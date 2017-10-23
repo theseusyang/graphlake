@@ -285,7 +285,7 @@ fg_pagerank(ext_vunit_t* ext_vunits, degree_t* degree_out, int etf, vid_t v_coun
     io_driver io_driver;
     init_aio(etf);
 
-    size_t   size = fsize(etf);
+    int64_t   size = fsize(etf);
     if (size == -1L) {
         assert(0);
     }
@@ -519,7 +519,7 @@ fg_pagerank_push(ext_vunit_t* ext_vunits, int etf, vid_t v_count, int iteration_
     io_driver io_driver;
     init_aio(etf);
 
-    size_t   size = fsize(etf);
+    int64_t   size = fsize(etf);
     if (size == -1L) {
         assert(0);
     }
@@ -755,7 +755,7 @@ fg_bfs(ext_vunit_t* ext_vunits, int etf, vid_t v_count, uint8_t* status, vid_t r
     int		level      = 1;
 	sid_t	frontier   = 0;
 
-    size_t   size = fsize(etf);
+    int64_t   size = fsize(etf);
     if (size == -1L) {
         assert(0);
     }

@@ -250,7 +250,7 @@ verification(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, int iteratio
                 local_adjlist = delta_adjlist->get_adjlist();
                 local_degree = delta_adjlist->get_nebrcount();
             
-                for (vid_t k = 0; k < local_degree; ++k) {
+                for (degree_t k = 0; k < local_degree; ++k) {
                     sid = get_nebr(local_adjlist, k);
                     cout << sid << " ";
                 }
@@ -264,7 +264,7 @@ verification(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in, int iteratio
                 pread(etf, adj_list, (durable_degree+1)*sizeof(T), offset);
             }
 
-            for (vid_t k = 1; k <= durable_degree; ++k) {
+            for (degree_t k = 1; k <= durable_degree; ++k) {
                 sid = get_nebr(adj_list, k);
                 cout << sid << " ";
             }

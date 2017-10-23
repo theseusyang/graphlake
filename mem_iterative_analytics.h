@@ -651,7 +651,7 @@ mem_hop2(vert_table_t<T>* graph_out, degree_t* degree_out,
          d = query[q].d;
 
         #pragma omp for schedule (static) reduction(+:sum) nowait
-        for (vid_t j = 0; j < d; ++j) {
+        for (degree_t j = 0; j < d; ++j) {
             v = vlist[j];
             v_unit = graph[v].get_vunit();
             if (0 == v_unit) continue;

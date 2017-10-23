@@ -120,6 +120,8 @@ extern index_t  DURABLE_SIZE;//
 
 extern index_t  OFF_COUNT;
 extern int      THD_COUNT;
+extern index_t  LOCAL_VUNIT_COUNT;
+extern index_t  LOCAL_DELTA_SIZE;
 
 void free_buf(void* buf);
 void* alloc_buf();
@@ -402,9 +404,7 @@ class delentry_t {
 template <class T>
 class  snapT_t {
  public:
-    //snapT_t<T>*     next;//next snapshot of this vid 
     snapT_t<T>*     prev;//prev snapshot of this vid 
-    //T*        adj_list;//validity depends on cleaning state 
     snapid_t  snap_id;
     degree_t  degree;
     degree_t  del_count;
