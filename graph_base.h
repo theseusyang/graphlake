@@ -68,14 +68,13 @@ inline void set_value1(lite_edge_t* kv, vid_t vid, sid_t value, univ_t univ) {
 
 inline void* alloc_huge(index_t size)
 {   
-    void* buf = mmap(NULL, size, PROT_READ|PROT_WRITE,
-                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0);
+    //void* buf = mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0);
     //if (buf== MAP_FAILED) {
     //    cout << "huge page failed" << endl;
     //}
-    return buf;
+    //return buf;
     
-    //return MAP_FAILED;
+    return MAP_FAILED;
 }
 
 //One vertex's neighbor information

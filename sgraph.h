@@ -42,7 +42,7 @@ class pgraph_t: public cfinfo_t {
 
         //edge batching buffer
         blog_t<T>*  blog;
-        FILE*       wtf;   //edge log file
+        int       wtf;   //edge log file
 
         //queue
         index_t*   q_beg;
@@ -82,6 +82,7 @@ class pgraph_t: public cfinfo_t {
         return eOK;
     }
     status_t batch_edge(edgeT_t<T> edge) {
+        status_t ret = eOK;
         index_t index = __sync_fetch_and_add(&blog->blog_head, 1L);
         index_t index1 = (index & BLOG_MASK);
         index_t size = (index - blog->blog_marker) % BATCH_SIZE;
@@ -89,7 +90,7 @@ class pgraph_t: public cfinfo_t {
             blog->blog_beg[index1] = edge;
             create_marker(index + 1);
             //cout << "Will create a snapshot now " << endl;
-            return eEndBatch;
+            ret = eEndBatch;
         } else if ((index - blog->blog_tail) == blog->blog_count - 1000) {
             blog->blog_beg[index1] = edge;
             create_marker(index + 1);
@@ -101,13 +102,17 @@ class pgraph_t: public cfinfo_t {
             return eOOM;
         }
 
-        blog->blog_beg[index1] = edge;
-        /*
+        if (ret != eEndBatch) {
+            blog->blog_beg[index1] = edge;
+        }
+            
+        //----
         //Make the edge log durable
-        if(index - blog->blog_wmarker == W_SIZE) {
+        if ((index != blog->blog_wmarker) && 
+            ((index - blog->blog_wmarker) % W_SIZE) == 0) {
             create_wmarker(index);
         }
-        */
+    
         return eOK; 
     }
     
@@ -115,7 +120,7 @@ class pgraph_t: public cfinfo_t {
     void create_wmarker(index_t marker) {
         pthread_mutex_lock(&g->w_mutex);
         if (marker > blog->blog_wmarker) {
-            blog->blog_marker = marker;
+            blog->blog_wmarker = marker;
         }
         pthread_cond_signal(&g->w_condition);
         pthread_mutex_unlock(&g->w_mutex);
@@ -134,7 +139,8 @@ class pgraph_t: public cfinfo_t {
         w_count = w_marker - w_tail;
         if (w_count) {
             //write and update tail
-            fwrite(blog->blog_beg + w_tail, sizeof(edgeT_t<T>), w_count, wtf);
+            //fwrite(blog->blog_beg + w_tail, sizeof(edgeT_t<T>), w_count, wtf);
+            write(wtf, blog->blog_beg + w_tail, sizeof(edgeT_t<T>)*w_count);
             blog->blog_wtail = w_marker;
             return eOK;
         }
@@ -1435,7 +1441,8 @@ void pgraph_t<T>::file_open_sgraph(onegraph_t<T>** sgraph, const string& dir, co
     
     char name[8];
     string  basefile = dir + col_info[0]->p_name;
-    string  filename; 
+    string  filename;
+    string  wtfile; 
 
     // For each file.
     tid_t    t_count = g->get_total_types();
@@ -1445,6 +1452,13 @@ void pgraph_t<T>::file_open_sgraph(onegraph_t<T>** sgraph, const string& dir, co
         sprintf(name, "%d", i);
         filename = basefile + name + postfix ; 
         sgraph[i]->file_open(filename, trunc);
+        
+        wtfile = filename + ".elog";
+		if (trunc) {
+            wtf = open(wtfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
+        } else {
+		    wtf = open(wtfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
+        }
     }
 }
 

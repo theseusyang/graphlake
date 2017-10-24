@@ -65,9 +65,9 @@ typedef uint16_t vflag_t;
 #define THIGH_MASK 0x7FFFFF0000000000
 #define DEL_MASK   0x8000000000000000
 #define SID_MASK   0x7FFFFFFFFFFFFFFF
-#define CL_COUNT   8 
-#define CL_ADJUST  2
-#define CL_MASK    0xFFFFFFFFFFFFFFF8
+#define CL_COUNT   15 
+#define CL_ADJUST  1 
+#define CL_MASK    0xFFFFFFFFFFFFFFF0
 #elif B32
 #define VBIT 31
 #define VMASK 0x7fffffff

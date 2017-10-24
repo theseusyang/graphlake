@@ -479,7 +479,7 @@ void graph::create_wthread()
 
 void* graph::w_func(void* arg)
 {
-    
+    cout << "enterting w_func" << endl; 
     graph* g_ptr = (graph*)(arg);
     
     do {
@@ -487,6 +487,7 @@ void* graph::w_func(void* arg)
         pthread_cond_wait(&g_ptr->w_condition, &g_ptr->w_mutex);
         pthread_mutex_unlock(&g_ptr->w_mutex);
         g_ptr->write_edgelog();
+        cout << "Writing w_thd" << endl;
     } while(1);
 
     return 0;
