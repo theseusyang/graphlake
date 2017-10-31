@@ -388,7 +388,6 @@ void pgraph_t<T>::make_graph_d()
         thd_local_in[tid].vid_range = vid_range_in;
 
         double start = mywtime();
-        double end;
 
         //Get the count for classification
         this->estimate_classify(vid_range, vid_range_in, bit_shift);
@@ -402,8 +401,8 @@ void pgraph_t<T>::make_graph_d()
         
         #pragma omp master 
         {
-            end = mywtime();
-            cout << " classify " << end - start << endl;
+            //double end = mywtime();
+            //cout << " classify " << end - start << endl;
             this->work_division(global_range, thd_local, range_count, thd_count, edge_count);
             //this->work_division(global_range_in, thd_local_in, range_count, thd_count, edge_count);
         }
@@ -474,7 +473,7 @@ void pgraph_t<T>::make_graph_d()
     
     free(global_range_in);
     free(thd_local_in);
-    blog->blog_tail = blog->blog_marker;  
+    //blog->blog_tail = blog->blog_marker;  
 }
 
 template <class T>
@@ -545,6 +544,7 @@ void pgraph_t<T>::make_graph_u()
 		#ifdef BULK 
         vid_t vid_start = (j_start << bit_shift);
         vid_t vid_end = (j_end << bit_shift);
+        if (vid_end > v_count) vid_end = v_count;
 		sgraph[0]->setup_adjlist_noatomic(vid_start, vid_end);
 		print(" adj-list setup =", start);
 		#endif

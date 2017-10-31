@@ -7,20 +7,21 @@ double bu_factor = 0.07;
 int32_t MAX_BCOUNT = 1;
 uint64_t MAX_ECOUNT = (1<<9);
 uint64_t MAX_PECOUNT = (MAX_ECOUNT << 1)/3;
-index_t  BATCH_SIZE = (1L << 17);//edge batching in edge log
+index_t  BATCH_SIZE = (1L << 16);//edge batching in edge log
+index_t  BATCH_MASK =  0xFFFF;
 
 //In-memory data structure size
 index_t  BLOG_SHIFT = 32;
 index_t  BLOG_SIZE = (1L << BLOG_SHIFT); //size of edge log
 index_t  BLOG_MASK = (BLOG_SIZE - 1);
 
-index_t  DELTA_SIZE = (1L << 36) ;//(32 + sizeof(T));  //sizeo of delta adj-list
+index_t  DELTA_SIZE = (1L << 37) ;//(32 + sizeof(T));  //sizeo of delta adj-list
 index_t  SNAP_COUNT  = (2);
 index_t  LOCAL_VUNIT_COUNT = 22;
 index_t  LOCAL_DELTA_SIZE = 30;
 
 //durable data structure buffer size
-index_t  W_SIZE = (1L << 20); //Edges to write
+index_t  W_SIZE = (1L << 12); //Edges to write
 index_t  DVT_SIZE = (1L <<24);//durable v-unit 
 index_t  DURABLE_SIZE = (1L << 30);//Durable adj-list
 

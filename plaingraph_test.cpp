@@ -29,7 +29,7 @@ struct estimate_t {
 };
 
 #define HUB_TYPE 1
-#define HUB_COUNT 32768 
+#define HUB_COUNT_TEST 32768 
 
 #define ALIGN_MASK_32B 0xFFFFFFFFFFFFFFF0
 #define ALIGN_MASK_4KB 0xFFFFFFFFFFFFFC00
@@ -103,7 +103,6 @@ void estimate_chain(const string& idirname, const string& odirname)
     for (index_t i = 0; i < marker; i +=batching_size) {
         last = min(i + batching_size, marker);
         //do batching
-        #pragma omp parallel for private(src, dst)
         for (index_t j = i; j < last; ++j) {
             src = edge[j].src_id;
             dst = edge[j].dst_id;
@@ -116,8 +115,6 @@ void estimate_chain(const string& idirname, const string& odirname)
         #pragma omp parallel reduction(+:used_memory, total_chain) reduction(max:max_chain)
         {
         index_t  local_memory = 0;
-        degree_t total_degree = 0;
-        degree_t new_count = 0;
         #pragma omp for  
         for (vid_t vid = 0; vid < v_count; ++vid) {
             if (est[vid].degree == 0) continue;
@@ -213,7 +210,7 @@ void estimate_chain_new(const string& idirname, const string& odirname)
     vid_t dst = 0;
 
     index_t total_used_memory = 0;
-    index_t total_chain = 0;
+    index_t total_chain_count = 0;
     int max_chain = 0;
     vid_t total_hub_vertex = 0;
 
@@ -221,7 +218,6 @@ void estimate_chain_new(const string& idirname, const string& odirname)
     for (index_t i = 0; i < marker; i +=65536) {
         last = min(i + 65536, marker);
         //do batching
-        #pragma omp parallel for private(src, dst)
         for (index_t j = i; j < last; ++j) {
             src = edge[j].src_id;
             dst = edge[j].dst_id;
@@ -229,6 +225,7 @@ void estimate_chain_new(const string& idirname, const string& odirname)
             est[dst].degree++;
         }
         index_t used_memory = 0;
+        index_t total_chain = 0;
 
         //Do memory allocation and cleaning
         #pragma omp parallel reduction(+:used_memory, total_chain) reduction(max:max_chain)
@@ -243,7 +240,6 @@ void estimate_chain_new(const string& idirname, const string& odirname)
             //---------------
             total_degree = est[vid].delta_degree + est[vid].degree;
             //Embedded case only
-            //if (false)
             if (total_degree <= 5) {
                 est[vid].delta_degree += est[vid].degree;
                 est[vid].degree = 0;
@@ -267,7 +263,7 @@ void estimate_chain_new(const string& idirname, const string& odirname)
                 est[vid].delta_degree += est[vid].degree;
                 est[vid].degree = 0;
             //------hub vertices case
-            } else if (total_degree >= 8192) {
+            } else if (total_degree >= 8192 || est[vid].degree >=256) {
                 new_count = est[vid].degree - est[vid].space_left;
                 local_memory = UPPER_ALIGN_4KB(new_count);
                 
@@ -294,13 +290,14 @@ void estimate_chain_new(const string& idirname, const string& odirname)
         }
         }
         total_used_memory += used_memory;
+        total_chain_count += total_chain;
     }
 
     end = mywtime ();
     cout << "Used Memory = " << total_used_memory << endl;
     cout << "Make graph time = " << end - start << endl;
     cout << "total_hub_vertex =" << total_hub_vertex << endl;
-    cout << "total_chain_count =" << total_chain << endl;
+    cout << "total_chain_count =" << total_chain_count << endl;
     cout << "max_chain =" << max_chain << endl;
 }
 
@@ -363,7 +360,7 @@ void estimate_IO(const string& idirname, const string& odirname)
     index_t total_memory = (1L<<30L);//4GB
     index_t free_memory = 0;
     index_t cut_off = (4 << 20); //16MB
-    index_t cut_off2 = (64 << 20); //256MB
+    //index_t cut_off2 = (64 << 20); //256MB
     index_t wbuf_count = (21); //32MB
     index_t total_used_memory = 0;
 
@@ -393,7 +390,7 @@ void estimate_IO(const string& idirname, const string& odirname)
         {
         index_t  local_memory = 0;
         degree_t total_degree = 0;
-        degree_t new_count = 0;
+        //degree_t new_count = 0;
         #pragma omp for  
         for (vid_t vid = 0; vid < v_count; ++vid) {
             if (est[vid].degree == 0) continue;
@@ -539,7 +536,7 @@ void estimate_IO(const string& idirname, const string& odirname)
                 io_read += est[vid].durable_degree + 2;
                 io_read_count++;
                 /*
-                if (est[vid].durable_degree + est[vid].delta_degree >= HUB_COUNT) {
+                if (est[vid].durable_degree + est[vid].delta_degree >= HUB_COUNT_TEST) {
                     est[vid].type = HUB_TYPE;
                     io_write += est[vid].durable_degree;
                     ++hub_vertex;
@@ -727,6 +724,9 @@ void plaind_test0(const string& idir, const string& odir)
     index_t old_marker = 0;
     degree_t* degree_out = 0;
     degree_t* degree_in = 0;
+        
+    degree_out = (degree_t*) calloc(v_count, sizeof(degree_t));
+    degree_in = (degree_t*) calloc(v_count, sizeof(degree_t));
 
     if (snapshot) {
         old_marker = snapshot->marker;
@@ -855,10 +855,11 @@ void weighted_dtest0(const string& idir, const string& odir)
 
     graph->create_marker(marker);
     if (eOK == graph->move_marker(snap_marker)) {
-        blog->blog_tail = marker;
         //graph->make_graph_baseline();
         //graph->store_graph_baseline();
         g->incr_snapid(snap_marker, snap_marker);
+        //blog->blog_tail = marker;
+        graph->update_marker();
     }
     cout << "Batch time = " << end - start << endl;
     end = mywtime();
@@ -967,6 +968,7 @@ void weighted_dtest0(const string& idir, const string& odir)
         //graph->make_graph_baseline();
         //graph->store_graph_baseline();
         //g->incr_snapid(snap_marker, snap_marker);
+        //g->update_marker();
     //}
     cout << "batch Edge time = " << end - start << endl;
     cout << "no of actions " << na << endl;
@@ -1132,6 +1134,8 @@ void plaind_test1(const string& odir)
     index_t old_marker = 0;
     degree_t* degree_out = 0;
     degree_t* degree_in  = 0;
+    degree_out = (degree_t*) calloc(v_count, sizeof(degree_t));
+    degree_in = (degree_t*) calloc(v_count, sizeof(degree_t));
 
     if (snapshot) {
         old_marker = snapshot->marker;
@@ -1544,6 +1548,171 @@ void paper_test_hop2(const string& idir, const string& odir)
 
 }
 
+void update_test0d(const string& idirname, const string& odirname)
+{
+    plaingraph_manager::schema_plaingraphd();
+    //do some setup for plain graphs
+    plaingraph_manager::setup_graph(v_count);    
+    
+    struct dirent *ptr;
+    DIR *dir;
+    int file_count = 0;
+    string filename;
+    propid_t cf_id = g->get_cfid("friend");
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+        
+    FILE* file = 0;
+    index_t size =  0;
+    index_t edge_count = 0;
+    
+    
+    //Read graph files
+    double start = mywtime();
+    dir = opendir(idirname.c_str());
+    blog_t<sid_t>* blog = ugraph->blog;
+    edge_t* edge = blog->blog_beg;
+    while (NULL != (ptr = readdir(dir))) {
+        if (ptr->d_name[0] == '.') continue;
+        filename = idirname + "/" + string(ptr->d_name);
+        file_count++;
+        
+        file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
+        assert(file != 0);
+        size = fsize(filename);
+        edge_count = size/sizeof(edge_t);
+        edge = blog->blog_beg + blog->blog_head;
+        if (edge_count != fread(edge, sizeof(edge_t), edge_count, file)) {
+            assert(0);
+        }
+        blog->blog_head += edge_count;
+    }
+    closedir(dir);
+    double end = mywtime();
+    cout << "Reading "  << file_count  << " file time = " << end - start << endl;
+    start = mywtime();
+
+    cout << "End marker = " << blog->blog_head << endl;
+    
+    //Make Graph
+    index_t marker = 0;
+    index_t snap_marker = 0;
+    //index_t total_edge_count = blog->blog_head;
+    //index_t batch_size = (total_edge_count >> residue);
+    index_t batch_size = (1L << residue);
+    cout << "batch_size = " << batch_size << endl;
+
+    while (marker < blog->blog_head) {
+        marker = min(blog->blog_head, marker+batch_size);
+        ugraph->create_marker(marker);
+        if (eOK != ugraph->move_marker(snap_marker)) {
+            assert(0);
+        }
+        ugraph->make_graph_baseline();
+        //ugraph->store_graph_baseline();
+        g->incr_snapid(snap_marker, snap_marker);
+        //blog->marker = marker;
+        ugraph->update_marker();
+        //cout << marker << endl;
+    }
+    end = mywtime ();
+    cout << "Make graph time = " << end - start << endl;
+    
+    onegraph_t<sid_t>*   sgraph_out = ugraph->sgraph_out[0];
+    vert_table_t<sid_t>* graph_out = sgraph_out->get_begpos();
+    onegraph_t<sid_t>*   sgraph_in = ugraph->sgraph_in[0];
+    vert_table_t<sid_t>* graph_in =  sgraph_in->get_begpos();
+    degree_t* degree_array_out = 0;
+    degree_t* degree_array_in = 0;
+    
+    //Run BFS
+    for (int i = 0; i < 1; i++){
+        uint8_t* level_array = 0;
+        
+        /*
+        level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, 
+                                PROT_READ|PROT_WRITE,
+                                MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
+        
+        if (MAP_FAILED == level_array) {
+            cout << "Huge page alloc failed for level array" << endl;
+            level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
+        }*/
+        
+        level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
+        
+        
+        snapshot_t* snapshot = g->get_snapshot();
+        marker = blog->blog_head;
+        index_t old_marker = 0;
+            
+        degree_array_out = (degree_t*) calloc(v_count, sizeof(degree_t));
+        degree_array_in = (degree_t*) calloc(v_count, sizeof(degree_t));
+
+        if (snapshot) {
+            old_marker = snapshot->marker;
+            create_degreesnapd(sgraph_out, sgraph_in, snapshot, marker, blog->blog_beg,
+                               degree_array_out, degree_array_in);
+        }
+
+        cout << "old marker = " << old_marker << " New marker = " << marker << endl;
+        /*
+        ext_bfs<sid_t>(sgraph, degree_array, sgraph, degree_array, 
+                       snapshot, marker, blog->blog_beg,
+                       v_count, level_array, 1);
+        */
+        mem_bfs<sid_t>(graph_out, degree_array_out, graph_in, degree_array_in, 
+                       snapshot, marker, blog->blog_beg,
+                       v_count, level_array, 1);
+        free(level_array);
+        free(degree_array_out);
+        free(degree_array_in);
+    }
+    
+    //Run PageRank
+    for (int i = 0; i < 1; i++){
+        snapshot_t* snapshot = g->get_snapshot();
+        marker = blog->blog_head;
+        index_t old_marker = 0;
+        degree_array_out = (degree_t*) calloc(v_count, sizeof(degree_t));
+        degree_array_in = (degree_t*) calloc(v_count, sizeof(degree_t));
+            
+        if (snapshot) {
+            old_marker = snapshot->marker;
+            create_degreesnapd(sgraph_out, sgraph_in, snapshot, marker, blog->blog_beg,
+                               degree_array_out, degree_array_in);
+        }
+
+        cout << "old marker = " << old_marker << " New marker = " << marker << endl;
+        mem_pagerank_push<sid_t>(graph_out, degree_array_out, 
+                   snapshot, marker, blog->blog_beg,
+                   v_count, 5);
+        free(degree_array_out);
+        free(degree_array_in);
+    }
+    
+    //Run 1-HOP query
+    for (int i = 0; i < 1; i++){
+        snapshot_t* snapshot = g->get_snapshot();
+        marker = blog->blog_head;
+        index_t old_marker = 0;
+        degree_array_out = (degree_t*) calloc(v_count, sizeof(degree_t));
+        degree_array_in = (degree_t*) calloc(v_count, sizeof(degree_t));
+            
+        if (snapshot) {
+            old_marker = snapshot->marker;
+            create_degreesnapd(sgraph_out, sgraph_in, snapshot, marker, blog->blog_beg,
+                               degree_array_out, degree_array_in);
+        }
+
+        cout << "old marker = " << old_marker << " New marker = " << marker << endl;
+        mem_hop1<sid_t>(graph_out, degree_array_out, 
+                   snapshot, marker, blog->blog_beg,
+                   v_count);
+        free(degree_array_out);
+        free(degree_array_in);
+    }
+}
+
 void update_test0(const string& idirname, const string& odirname)
 {
     plaingraph_manager::schema_plaingraph();
@@ -1590,11 +1759,12 @@ void update_test0(const string& idirname, const string& odirname)
     cout << "End marker = " << blog->blog_head << endl;
     
     //Make Graph
-    index_t total_edge_count = blog->blog_head;
     index_t marker = 0;
     index_t snap_marker = 0;
-    index_t batch_size = (total_edge_count >> residue);
-    cout << "batch _size = " << batch_size << endl;
+    //index_t total_edge_count = blog->blog_head;
+    //index_t batch_size = (total_edge_count >> residue);
+    index_t batch_size = (1L << residue);
+    cout << "batch_size = " << batch_size << endl;
 
     while (marker < blog->blog_head) {
         marker = min(blog->blog_head, marker+batch_size);
@@ -1602,21 +1772,21 @@ void update_test0(const string& idirname, const string& odirname)
         if (eOK != ugraph->move_marker(snap_marker)) {
             assert(0);
         }
-        //blog->marker = marker;
         ugraph->make_graph_baseline();
         //ugraph->store_graph_baseline();
         g->incr_snapid(snap_marker, snap_marker);
+        //blog->marker = marker;
+        ugraph->update_marker();
         //cout << marker << endl;
     }
     end = mywtime ();
     cout << "Make graph time = " << end - start << endl;
     
-    /*
     //Run BFS
-    for (int i = 0; i < 8; i++){
+    for (int i = 0; i < 1; i++){
         uint8_t* level_array = 0;
         
-        / *
+        /*
         level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, 
                                 PROT_READ|PROT_WRITE,
                                 MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
@@ -1624,7 +1794,7 @@ void update_test0(const string& idirname, const string& odirname)
         if (MAP_FAILED == level_array) {
             cout << "Huge page alloc failed for level array" << endl;
             level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
-        }* /
+        }*/
         
         level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
         
@@ -1644,11 +1814,11 @@ void update_test0(const string& idirname, const string& odirname)
         }
 
         cout << "old marker = " << old_marker << " New marker = " << marker << endl;
-        / *
+        /*
         ext_bfs<sid_t>(sgraph, degree_array, sgraph, degree_array, 
                        snapshot, marker, blog->blog_beg,
                        v_count, level_array, 1);
-        * /
+        */
         mem_bfs<sid_t>(graph, degree_array, graph, degree_array, 
                        snapshot, marker, blog->blog_beg,
                        v_count, level_array, 1);
@@ -1657,7 +1827,7 @@ void update_test0(const string& idirname, const string& odirname)
     }
     
     //Run PageRank
-    for (int i = 0; i < 8; i++){
+    for (int i = 0; i < 1; i++){
         onegraph_t<sid_t>*   sgraph = ugraph->sgraph[0];
         vert_table_t<sid_t>* graph = sgraph->get_begpos();
         
@@ -1681,7 +1851,7 @@ void update_test0(const string& idirname, const string& odirname)
     }
     
     //Run 1-HOP query
-    for (int i = 0; i < 8; i++){
+    for (int i = 0; i < 1; i++){
         onegraph_t<sid_t>*   sgraph = ugraph->sgraph[0];
         vert_table_t<sid_t>* graph = sgraph->get_begpos();
         
@@ -1703,16 +1873,18 @@ void update_test0(const string& idirname, const string& odirname)
                    v_count);
         free(degree_array);
     }
-    */
 }
 
-void update_test1(const string& idirname, const string& odirname)
+void update_test1d(const string& idirname, const string& odirname)
 {
-    plaingraph_manager::schema_plaingraph();
+    plaingraph_manager::schema_plaingraphd();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
+    
+    //-----
     g->create_snapthread();
-    //usleep(1000);
+    usleep(1000);
+    //-----
     
     struct dirent *ptr;
     DIR *dir;
@@ -1758,13 +1930,140 @@ void update_test1(const string& idirname, const string& odirname)
     for (index_t i = 0; i < total_edge_count; ++i) {
         ugraph->batch_edge(edges[i]);
     }
+    
+    blog_t<sid_t>* blog = ugraph->blog;
+    index_t marker = blog->blog_head;
 
     //----------
     end = mywtime ();
     cout << "Batch Update Time = " << end - start << endl;
     
+    if (marker != blog->blog_marker) {
+        ugraph->create_marker(marker);
+    }
+
+    //Wait for make graph
+    while (blog->blog_tail != blog->blog_head) {
+        usleep(10);
+    }
+    //---------
+    end = mywtime();
+    cout << "Make graph time = " << end - start << endl;
+    
+    onegraph_t<sid_t>*   sgraph_out = ugraph->sgraph_out[0];
+    vert_table_t<sid_t>* graph_out = sgraph_out->get_begpos();
+    onegraph_t<sid_t>*   sgraph_in = ugraph->sgraph_in[0];
+    vert_table_t<sid_t>* graph_in =  sgraph_in->get_begpos();
+    degree_t* degree_array_out = 0;
+    degree_t* degree_array_in = 0;
+    
+    //Run BFS
+    for (int i = 0; i < 1; i++){
+        uint8_t* level_array = 0;
+        
+        /*
+        level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, 
+                                PROT_READ|PROT_WRITE,
+                                MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
+        
+        if (MAP_FAILED == level_array) {
+            cout << "Huge page alloc failed for level array" << endl;
+            level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
+        }*/
+        
+        level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
+        
+        
+        snapshot_t* snapshot = g->get_snapshot();
+        marker = blog->blog_head;
+        index_t old_marker = 0;
+            
+        degree_array_out = (degree_t*) calloc(v_count, sizeof(degree_t));
+        degree_array_in = (degree_t*) calloc(v_count, sizeof(degree_t));
+
+        if (snapshot) {
+            old_marker = snapshot->marker;
+            create_degreesnapd(sgraph_out, sgraph_in, snapshot, marker, blog->blog_beg,
+                               degree_array_out, degree_array_in);
+        }
+
+        cout << "old marker = " << old_marker << " New marker = " << marker << endl;
+        /*
+        ext_bfs<sid_t>(sgraph, degree_array, sgraph, degree_array, 
+                       snapshot, marker, blog->blog_beg,
+                       v_count, level_array, 1);
+        */
+        mem_bfs<sid_t>(graph_out, degree_array_out, graph_in, degree_array_in, 
+                       snapshot, marker, blog->blog_beg,
+                       v_count, level_array, 1);
+        free(level_array);
+        free(degree_array_out);
+        free(degree_array_in);
+    }
+}
+
+void update_test1(const string& idirname, const string& odirname)
+{
+    plaingraph_manager::schema_plaingraph();
+    //do some setup for plain graphs
+    plaingraph_manager::setup_graph(v_count);    
+    
+    //---
+    g->create_snapthread();
+    usleep(1000);
+    //---
+    
+    struct dirent *ptr;
+    DIR *dir;
+    int file_count = 0;
+    string filename;
+    propid_t cf_id = g->get_cfid("friend");
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+        
+    FILE* file = 0;
+    index_t size =  0;
+    index_t edge_count = 0;
+    index_t total_edge_count = 0;
+    
+    
+    //Read graph files
+    double start = mywtime();
+    dir = opendir(idirname.c_str());
+    edge_t* edges =  (edge_t*)calloc(sizeof(edge_t),(1L<<32));
+    edge_t* edge = edges;
+    while (NULL != (ptr = readdir(dir))) {
+        if (ptr->d_name[0] == '.') continue;
+        filename = idirname + "/" + string(ptr->d_name);
+        file_count++;
+        
+        file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
+        assert(file != 0);
+        size = fsize(filename);
+        edge_count = size/sizeof(edge_t);
+        edge = edges + total_edge_count;
+        if (edge_count != fread(edge, sizeof(edge_t), edge_count, file)) {
+            assert(0);
+        }
+        total_edge_count += edge_count;
+    }
+    closedir(dir);
+    double end = mywtime();
+    cout << "Reading "  << file_count  << " file time = " << end - start << endl;
+    start = mywtime();
+    cout << "End marker = " << total_edge_count << endl;
+    
+    
+    //Batch and Make Graph
+    for (index_t i = 0; i < total_edge_count; ++i) {
+        ugraph->batch_edge(edges[i]);
+    }
     blog_t<sid_t>* blog = ugraph->blog;
     index_t marker = blog->blog_head;
+
+    //----------
+    end = mywtime ();
+    cout << "Batch Update Time = " << end - start << endl;
+    
     if (marker != blog->blog_marker) {
         ugraph->create_marker(marker);
     }
@@ -1805,10 +2104,14 @@ void update_test1(const string& idirname, const string& odirname)
     }
 
     cout << "old marker = " << old_marker << " New marker = " << marker << endl;
+    mem_bfs<sid_t>(graph, degree_array, graph, degree_array, 
+                       snapshot, marker, blog->blog_beg,
+                       v_count, level_array, 1);
+    /*
     ext_bfs<sid_t>(sgraph, degree_array, sgraph, degree_array, 
                    snapshot, marker, blog->blog_beg,
                    v_count, level_array, 1);
-    
+    */
 }
 
 void llama_test_bfs(const string& odir);
@@ -1888,6 +2191,12 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             break;
         case 22: 
             update_test1(idir, odir);
+            break;
+        case 23: 
+            update_test0d(idir, odir);
+            break;
+        case 24: 
+            update_test1d(idir, odir);
             break;
         case 97:
             estimate_chain_new<sid_t>(idir, odir);

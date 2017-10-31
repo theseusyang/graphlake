@@ -242,8 +242,9 @@ void prep_graph_sync(const string& idirname, const string& odirname)
     ugraph->create_marker(marker);
     if (eOK == ugraph->move_marker(snap_marker)) {
         ugraph->make_graph_baseline();
-        ugraph->store_graph_baseline();
+        //ugraph->store_graph_baseline();
         g->incr_snapid(snap_marker, snap_marker);
+        ugraph->update_marker();
     }
     end = mywtime ();
     cout << "Make graph time = " << end - start << endl;
@@ -256,8 +257,9 @@ void prep_graph_sync(const string& idirname, const string& odirname)
     ugraph->create_marker(marker);
     if (eOK == ugraph->move_marker(snap_marker)) {
         ugraph->make_graph_baseline();
-        ugraph->store_graph_baseline();
+        //ugraph->store_graph_baseline();
         g->incr_snapid(snap_marker, snap_marker);
+        ugraph->update_marker();
     }
 }
 
@@ -389,6 +391,7 @@ void plaingraph_manager::prep_graph_paper_num(const string& idirname, const stri
         ugraph->make_graph_baseline();
         //ugraph->store_graph_baseline();
         g->incr_snapid(snap_marker, snap_marker);
+        ugraph->update_marker();
     }
     end = mywtime ();
     cout << "Make graph time = " << end - start << endl;
@@ -452,6 +455,7 @@ void plaingraph_manager::prep_graph_paper_chain(const string& idirname, const st
 			//clean = (i == residue);
             //ugraph->store_graph_baseline(clean);
             g->incr_snapid(snap_marker, snap_marker);
+            ugraph->update_marker();
         }
     }
 

@@ -38,6 +38,8 @@ typedef uint32_t degree_t;
 
 typedef uint16_t vflag_t;
 
+#define HUB_COUNT  8192
+
 #ifndef PLAIN_GRAPH 
 #ifdef B64
 #define VBIT 40
@@ -86,6 +88,8 @@ typedef uint16_t vflag_t;
 #define TO_MAXCOUNT(X) (X)
 #endif
 
+#define TO_MAXCOUNT1(X) ((((X) + CL_ADJUST+ 1024 - 1) & 0xFFFFFFFFFFFFFC00) - CL_ADJUST)
+
 #define TO_TID(sid)  ((sid & THIGH_MASK) >> VBIT)
 #define TO_VID(sid)  (sid & VMASK)
 #define TO_SID(sid)  (sid & SID_MASK)
@@ -113,6 +117,7 @@ extern uint64_t MAX_ECOUNT; //1000000
 extern uint64_t MAX_PECOUNT;//670000
 
 extern index_t  BATCH_SIZE;//
+extern index_t  BATCH_MASK;//
 extern index_t  BLOG_SIZE;//
 extern index_t  BLOG_MASK;//
 extern index_t  DELTA_SIZE;

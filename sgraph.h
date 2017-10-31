@@ -85,12 +85,13 @@ class pgraph_t: public cfinfo_t {
         status_t ret = eOK;
         index_t index = __sync_fetch_and_add(&blog->blog_head, 1L);
         index_t index1 = (index & BLOG_MASK);
-        index_t size = (index - blog->blog_marker) % BATCH_SIZE;
+        index_t size = ((index - blog->blog_marker) & BATCH_MASK);
         if ((0 == size) && (index != blog->blog_marker)) {
             blog->blog_beg[index1] = edge;
             create_marker(index + 1);
             //cout << "Will create a snapshot now " << endl;
-            ret = eEndBatch;
+            return eEndBatch;
+            //ret = eEndBatch;
         } else if ((index - blog->blog_tail) == blog->blog_count - 1000) {
             blog->blog_beg[index1] = edge;
             create_marker(index + 1);
@@ -102,18 +103,19 @@ class pgraph_t: public cfinfo_t {
             return eOOM;
         }
 
-        if (ret != eEndBatch) {
-            blog->blog_beg[index1] = edge;
-        }
+        blog->blog_beg[index1] = edge;
+        //if (ret != eEndBatch) {
+        //    blog->blog_beg[index1] = edge;
+        //}
             
         //----
         //Make the edge log durable
-        if ((index != blog->blog_wmarker) && 
-            ((index - blog->blog_wmarker) % W_SIZE) == 0) {
-            create_wmarker(index);
-        }
+        //if ((index != blog->blog_wmarker) && 
+        //    ((index - blog->blog_wmarker) % W_SIZE) == 0) {
+        //    create_wmarker(index);
+        //}
     
-        return eOK; 
+        return ret; 
     }
     
     //Called from front end thread
@@ -1914,7 +1916,7 @@ void dgraph<T>::make_graph_baseline()
     end = mywtime();
     cout << "fill  time = " << end-start << endl;
     
-    blog->blog_tail = blog->blog_marker;
+    //blog->blog_tail = blog->blog_marker;
     */
 }
 
@@ -2013,7 +2015,7 @@ void ugraph<T>::make_graph_baseline()
     }
     end = mywtime();
     cout << "Make graph time = " << end - start << endl;
-    blog->blog_tail = blog->blog_marker;  
+    //blog->blog_tail = blog->blog_marker;  
    */ 
 }
 

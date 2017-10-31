@@ -187,16 +187,19 @@ class nebrcount_t {
 template <class T>
 class thd_mem_t {
 	public:
+    
     vunit_t<T>* vunit_beg;
     snapT_t<T>* dlog_beg;
     char*       adjlog_beg;
-
-	index_t     vunit_count;
-	index_t     dsnap_count;
+	
+    index_t    	delta_size1;
+	uint32_t    vunit_count;
+	uint32_t    dsnap_count;
 	index_t     degree_count;
 	index_t    	delta_size;
+    
+    char*       adjlog_beg1;
 
-	index_t    unused;	
 };
 
 //one type's graph
@@ -363,13 +366,23 @@ public:
 		if (v_unit->adj_list == 0 || 
 			v_unit->adj_list->get_nebrcount() >= v_unit->max_size) {
 			
+			delta_adjlist_t<T>* adj_list = 0;
 			snapT_t<T>* curr = beg_pos[vid].get_snapblob();
 			degree_t new_count = curr->degree + curr->del_count;
+            degree_t max_count = new_count;
 		    if (curr->prev) {
-				new_count -= curr->prev->degree + curr->prev->del_count; 
+				max_count -= curr->prev->degree + curr->prev->del_count; 
 			}
-			degree_t max_count = TO_MAXCOUNT(new_count);
-			delta_adjlist_t<T>* adj_list = new_delta_adjlist_local(max_count);
+            
+            if (new_count >= HUB_COUNT || max_count >= 256) {
+                max_count = TO_MAXCOUNT1(max_count);
+			    adj_list = new_delta_adjlist_local1(max_count);
+            } else {
+			    max_count = TO_MAXCOUNT(max_count);
+			    adj_list = new_delta_adjlist_local(max_count);
+            }
+			max_count = TO_MAXCOUNT(max_count);
+			adj_list = new_delta_adjlist_local(max_count);
 			adj_list->set_nebrcount(0);
 			adj_list->add_next(0);
 			v_unit->max_size = max_count;
@@ -524,6 +537,20 @@ public:
 		assert(adj_list != 0);
 		my_thd_mem->adjlog_beg += size;
 		my_thd_mem->delta_size -= size;
+		return adj_list;
+	}
+    
+	inline delta_adjlist_t<T>* new_delta_adjlist_local1(degree_t count) {
+		thd_mem_t<T>* my_thd_mem = thd_mem + omp_get_thread_num();
+		index_t size = count*sizeof(T) + sizeof(delta_adjlist_t<T>);
+		if (size > my_thd_mem->delta_size1) {
+			my_thd_mem->delta_size1 = max(1UL << 32, size);
+			my_thd_mem->adjlog_beg1 = (char*)malloc(my_thd_mem->delta_size1);
+		}
+		delta_adjlist_t<T>* adj_list = (delta_adjlist_t<T>*)my_thd_mem->adjlog_beg1;
+		assert(adj_list != 0);
+		my_thd_mem->adjlog_beg1 += size;
+		my_thd_mem->delta_size1 -= size;
 		return adj_list;
 	}
 	//------------------

@@ -5,6 +5,8 @@ EXE3=graphlake32
 EXE4=graphlake64
 CFLAGS=-g -Wall -std=gnu++11 -march=native -fopenmp -lpthread -DOVER_COMMIT
 #CFLAGS=-O3 -Wall -std=gnu++11  -march=native -fopenmp -lpthread -DOVER_COMMIT
+#CFLAGS=-O3 -Wall -std=gnu++11  -march=native -fopenmp -lpthread -DBULK
+
 SRC=main.cpp \
 	cf_info.cpp\
 	graph.cpp\

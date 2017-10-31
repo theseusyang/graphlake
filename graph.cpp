@@ -337,8 +337,8 @@ void graph::create_snapshot()
         }*/
 
         if (work_done != 0 ) { 
-            //cf_info[1]->update_marker();
             incr_snapid(snap_marker, 0);
+            cf_info[1]->update_marker();
         } else {
             break;
         } 

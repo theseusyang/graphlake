@@ -86,6 +86,7 @@ void create_degreesnapd (onegraph_t<T>* graph_out, onegraph_t<T>* graph_in,
     vid_t           vcount_out = graph_out->get_vcount();
     vid_t           vcount_in  = graph_in->get_vcount();
 
+    /*
     degree_out  = (degree_t*)mmap(NULL, sizeof(degree_t)*vcount_out, PROT_READ|PROT_WRITE,
                             MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
     
@@ -100,7 +101,7 @@ void create_degreesnapd (onegraph_t<T>* graph_out, onegraph_t<T>* graph_in,
     if (MAP_FAILED == degree_in) {
         cout << "Huge page alloc failed for degree array" << endl;
         degree_in = (degree_t*)calloc(vcount_in, sizeof(degree_t));
-    }
+    }*/
 
     #pragma omp parallel
     {
@@ -724,6 +725,7 @@ mem_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
     }
     
 	double start1 = mywtime();
+    if (degree_out[root] == 0) { root = 0;}
 	status[root] = level;
     
 	do {
@@ -844,7 +846,7 @@ mem_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
 		//     << endl;
 	
         //Point is to simulate bottom up bfs, and measure the trade-off    
-		if ((frontier >= 0.002*v_count) || (level == 2)) {
+		if ((frontier >= 0.002*v_count) || level == 2) {
 			top_down = false;
 		} else {
             top_down = true;
@@ -863,6 +865,147 @@ mem_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
         }
         cout << " Level = " << l << " count = " << vid_count << endl;
     }
+}
+
+template<class T>
+void 
+mem_pagerank_push(vert_table_t<T>* graph_out, degree_t* degree_out, 
+        snapshot_t* snapshot, index_t marker, edgeT_t<T>* edges,
+        vid_t v_count, int iteration_count)
+{
+    index_t old_marker = 0;
+
+	float* rank_array = 0 ;
+	float* prior_rank_array = 0;
+    float* dset = 0;
+	
+    double start = mywtime();
+    
+    if (snapshot) { 
+        old_marker = snapshot->marker;
+    }
+    
+    rank_array  = (float*)mmap(NULL, sizeof(float)*v_count, PROT_READ|PROT_WRITE,
+                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
+    if (MAP_FAILED == rank_array) {
+        cout << "Huge page alloc failed for rank array" << endl;
+        rank_array = (float*)calloc(v_count, sizeof(float));
+    }
+    
+    prior_rank_array  = (float*)mmap(NULL, sizeof(float)*v_count, PROT_READ|PROT_WRITE,
+                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
+    if (MAP_FAILED == prior_rank_array) {
+        cout << "Huge page alloc failed for prior rank array" << endl;
+        prior_rank_array = (float*)calloc(v_count, sizeof(float));
+    }
+    
+    dset  = (float*)mmap(NULL, sizeof(float)*v_count, PROT_READ|PROT_WRITE,
+                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
+    
+    if (MAP_FAILED == dset) {
+        cout << "Huge page alloc failed for dset" << endl;
+        dset = (float*)calloc(v_count, sizeof(float));
+    }
+	
+	//initialize the rank, and get the degree information
+    
+    #pragma omp parallel
+    { 
+    degree_t degree = 0;
+    float	inv_v_count = 0.15;//1.0f/vert_count;
+    #pragma omp for
+    for (vid_t v = 0; v < v_count; ++v) {
+        degree = degree_out[v];
+        if (degree != 0) {
+            dset[v] = 1.0f/degree;
+            prior_rank_array[v] = inv_v_count;//XXX
+        } else {
+            dset[v] = 0;
+            prior_rank_array[v] = 0;
+        }
+    }
+    }
+
+	//let's run the pagerank
+	for (int iter_count = 0; iter_count < iteration_count; ++iter_count) {
+        double start1 = mywtime();
+        #pragma omp parallel 
+        {
+            sid_t sid;
+            degree_t      delta_degree = 0;
+            degree_t durable_degree = 0;
+            degree_t nebr_count = 0;
+            degree_t local_degree = 0;
+
+            vert_table_t<T>* graph  = 0;
+            delta_adjlist_t<T>* delta_adjlist;
+            T* local_adjlist = 0;
+
+            vunit_t<T>* v_unit = 0;
+            graph = graph_out;
+            float rank = 0.0f; 
+            
+            #pragma omp for nowait
+            for (vid_t v = 0; v < v_count; v++) {
+                v_unit = graph[v].get_vunit();
+                if (0 == v_unit) continue;
+
+                durable_degree = v_unit->count;
+                delta_adjlist = v_unit->delta_adjlist;
+                
+                nebr_count = degree_out[v];
+                rank = prior_rank_array[v];
+                
+                //traverse the delta adj list
+                delta_degree = nebr_count - durable_degree;
+                while (delta_adjlist != 0 && delta_degree > 0) {
+                    local_adjlist = delta_adjlist->get_adjlist();
+                    local_degree = delta_adjlist->get_nebrcount();
+                    degree_t i_count = min(local_degree, delta_degree);
+                    for (degree_t i = 0; i < i_count; ++i) {
+                        sid = get_nebr(local_adjlist, i);
+                        qthread_dincr(rank_array + sid, rank);
+                    }
+                    delta_adjlist = delta_adjlist->get_next();
+                    delta_degree -= local_degree;
+                }
+                assert(durable_degree == 0); 
+            }
+        
+
+            //on-the-fly snapshots should process this
+            //cout << "On the Fly" << endl;
+            vid_t src, dst;
+            #pragma omp for 
+            for (index_t i = old_marker; i < marker; ++i) {
+                src = edges[i].src_id;
+                dst = get_dst(edges+i);
+                qthread_dincr(rank_array + src, prior_rank_array[dst]);
+                qthread_dincr(rank_array + dst, prior_rank_array[src]);
+            }
+
+            if (iter_count != iteration_count -1) {
+                #pragma omp for
+                for (vid_t v = 0; v < v_count; v++ ) {
+                    rank_array[v] = (0.15 + 0.85*rank_array[v])*dset[v];
+                    prior_rank_array[v] = 0;
+                } 
+            } else { 
+                #pragma omp for
+                for (vid_t v = 0; v < v_count; v++ ) {
+                    rank_array[v] = (0.15 + 0.85*rank_array[v]);
+                    prior_rank_array[v] = 0;
+                }
+            }
+        }
+        swap(prior_rank_array, rank_array);
+        double end1 = mywtime();
+        cout << "Iteration Time = " << end1 - start1 << endl;
+    }	
+    double end = mywtime();
+
+	cout << "PR Time = " << end - start << endl;
+	cout << endl;
 }
 
 template<class T>
