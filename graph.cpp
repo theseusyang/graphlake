@@ -477,17 +477,31 @@ void graph::create_wthread()
     }
 }
 
+//void* graph::w_func(void* arg)
+//{
+//    cout << "enterting w_func" << endl; 
+//    graph* g_ptr = (graph*)(arg);
+//    
+//    do {
+//        pthread_mutex_lock(&g_ptr->w_mutex);
+//        pthread_cond_wait(&g_ptr->w_condition, &g_ptr->w_mutex);
+//        pthread_mutex_unlock(&g_ptr->w_mutex);
+//        g_ptr->write_edgelog();
+//        cout << "Writing w_thd" << endl;
+//    } while(1);
+//
+//    return 0;
+//}
+
 void* graph::w_func(void* arg)
 {
     cout << "enterting w_func" << endl; 
     graph* g_ptr = (graph*)(arg);
     
     do {
-        pthread_mutex_lock(&g_ptr->w_mutex);
-        pthread_cond_wait(&g_ptr->w_condition, &g_ptr->w_mutex);
-        pthread_mutex_unlock(&g_ptr->w_mutex);
         g_ptr->write_edgelog();
-        cout << "Writing w_thd" << endl;
+        //cout << "Writing w_thd" << endl;
+        usleep(10);
     } while(1);
 
     return 0;

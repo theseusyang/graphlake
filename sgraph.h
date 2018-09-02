@@ -131,23 +131,46 @@ class pgraph_t: public cfinfo_t {
     
     //called from w thread 
     status_t write_edgelog() {
-        index_t w_marker = 0;
-        index_t w_tail = 0;
-        index_t w_count = 0;
-        pthread_mutex_lock(&g->w_mutex);
-        w_marker = blog->blog_wmarker;
-        pthread_mutex_unlock(&g->w_mutex);
-        w_tail = blog->blog_wtail;
-        w_count = w_marker - w_tail;
-        if (w_count) {
+        index_t w_marker = blog->blog_head;
+        index_t w_tail = blog->blog_wtail;
+        index_t w_count = w_marker - w_tail;
+        if (w_count == 0) return eNoWork;
+
+        index_t actual_tail = w_tail & BLOG_MASK;
+        index_t actual_marker = w_marker & BLOG_MASK;
+        
+        if (actual_tail < actual_marker) {
             //write and update tail
             //fwrite(blog->blog_beg + w_tail, sizeof(edgeT_t<T>), w_count, wtf);
-            write(wtf, blog->blog_beg + w_tail, sizeof(edgeT_t<T>)*w_count);
-            blog->blog_wtail = w_marker;
-            return eOK;
+            write(wtf, blog->blog_beg + actual_tail, sizeof(edgeT_t<T>)*w_count);
         }
-        return eNoWork;
+
+        write(wtf, blog->blog_beg + actual_tail, sizeof(edgeT_t<T>)*(BLOG_SIZE - actual_tail));
+        write(wtf, blog->blog_beg, sizeof(edgeT_t<T>)*actual_marker);
+        blog->blog_wtail = w_marker;
+        //fsync();
+        return eOK;
+            
     }
+    
+   // status_t write_edgelog() {
+   //     index_t w_marker = 0;
+   //     index_t w_tail = 0;
+   //     index_t w_count = 0;
+   //     pthread_mutex_lock(&g->w_mutex);
+   //     w_marker = blog->blog_wmarker;
+   //     pthread_mutex_unlock(&g->w_mutex);
+   //     w_tail = blog->blog_wtail;
+   //     w_count = w_marker - w_tail;
+   //     if (w_count) {
+   //         //write and update tail
+   //         //fwrite(blog->blog_beg + w_tail, sizeof(edgeT_t<T>), w_count, wtf);
+   //         write(wtf, blog->blog_beg + w_tail, sizeof(edgeT_t<T>)*w_count);
+   //         blog->blog_wtail = w_marker;
+   //         return eOK;
+   //     }
+   //     return eNoWork;
+   // }
     
     void create_marker(index_t marker) {
         pthread_mutex_lock(&g->snap_mutex);

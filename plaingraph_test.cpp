@@ -1625,7 +1625,7 @@ void update_test0d(const string& idirname, const string& odirname)
     degree_t* degree_array_in = 0;
     
     //Run BFS
-    for (int i = 0; i < 1; i++){
+    for (int i = 0; i < 0; i++){
         uint8_t* level_array = 0;
         
         /*
@@ -1669,7 +1669,7 @@ void update_test0d(const string& idirname, const string& odirname)
     }
     
     //Run PageRank
-    for (int i = 0; i < 1; i++){
+    for (int i = 0; i < 10 ; i++){
         snapshot_t* snapshot = g->get_snapshot();
         marker = blog->blog_head;
         index_t old_marker = 0;
@@ -1683,15 +1683,23 @@ void update_test0d(const string& idirname, const string& odirname)
         }
 
         cout << "old marker = " << old_marker << " New marker = " << marker << endl;
+        /*
         mem_pagerank_push<sid_t>(graph_out, degree_array_out, 
                    snapshot, marker, blog->blog_beg,
                    v_count, 5);
+       */ 
+       
+        
+        mem_pagerank<sid_t>(graph_in, degree_array_in, degree_array_out, 
+                   snapshot, marker, blog->blog_beg,
+                   v_count, 5);
+        
         free(degree_array_out);
         free(degree_array_in);
     }
     
     //Run 1-HOP query
-    for (int i = 0; i < 1; i++){
+    for (int i = 0; i < 0; i++){
         snapshot_t* snapshot = g->get_snapshot();
         marker = blog->blog_head;
         index_t old_marker = 0;
@@ -2010,6 +2018,7 @@ void update_test1(const string& idirname, const string& odirname)
     
     //---
     g->create_snapthread();
+    g->create_wthread();
     usleep(1000);
     //---
     
@@ -2049,9 +2058,9 @@ void update_test1(const string& idirname, const string& odirname)
     closedir(dir);
     double end = mywtime();
     cout << "Reading "  << file_count  << " file time = " << end - start << endl;
-    start = mywtime();
     cout << "End marker = " << total_edge_count << endl;
     
+    start = mywtime();
     
     //Batch and Make Graph
     for (index_t i = 0; i < total_edge_count; ++i) {
@@ -2069,12 +2078,22 @@ void update_test1(const string& idirname, const string& odirname)
     }
 
     //Wait for make graph
-    while (blog->blog_tail != blog->blog_head) {
-        usleep(10);
+    bool done_making = false;
+    bool done_persisting = false;
+    while (!done_making || !done_persisting) {
+        if (blog->blog_tail == blog->blog_head && !done_making) {
+            end = mywtime();
+            cout << "Make Graph Time = " << end - start << endl;
+            done_making = true;
+        }
+        if (blog->blog_wtail == blog->blog_head && !done_persisting) {
+            end = mywtime();
+            cout << "Durable Graph Time = " << end - start << endl;
+            done_persisting = true;
+        }
+        usleep(1);
     }
     //---------
-    end = mywtime();
-    cout << "Make graph time = " << end - start << endl;
     
     //Run BFS
     //blog_t<sid_t>* blog = ugraph->blog;

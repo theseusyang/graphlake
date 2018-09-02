@@ -944,8 +944,8 @@ mem_pagerank_push(vert_table_t<T>* graph_out, degree_t* degree_out,
             vunit_t<T>* v_unit = 0;
             graph = graph_out;
             float rank = 0.0f; 
-            
-            #pragma omp for nowait
+         
+            #pragma omp for schedule (dynamic, 4096) nowait 
             for (vid_t v = 0; v < v_count; v++) {
                 v_unit = graph[v].get_vunit();
                 if (0 == v_unit) continue;
@@ -1086,7 +1086,7 @@ mem_pagerank(vert_table_t<T>* graph_in, degree_t* degree_in, degree_t* degree_ou
             graph = graph_in;
             float rank = 0.0f; 
             
-            #pragma omp for nowait
+            #pragma omp for schedule (dynamic, 4096) nowait 
             for (vid_t v = 0; v < v_count; v++) {
                 v_unit = graph[v].get_vunit();
                 if (0 == v_unit) continue;
