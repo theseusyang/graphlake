@@ -240,7 +240,7 @@ void plaingraph_manager::setup_weightedgraph_memory(vid_t v_count)
 
 extern vid_t v_count;
 
-void plaingraph_manager::prep_graph_sync(const string& idirname, const string& odirname)
+void plaingraph_manager::prep_graph_adj(const string& idirname, const string& odirname)
 {
     propid_t          cf_id = g->get_cfid("friend");
     pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
@@ -276,6 +276,45 @@ void plaingraph_manager::prep_graph_sync(const string& idirname, const string& o
 }
 
 void plaingraph_manager::prep_graph(const string& idirname, const string& odirname)
+{
+    //-----
+    g->create_snapthread();
+    usleep(1000);
+    //-----
+    
+    edge_t* edges = 0;
+    index_t total_edge_count = read_idir(idirname, &edges, true); 
+    
+    propid_t cf_id = g->get_cfid("friend");
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+    
+    //Batch and Make Graph
+    double start = mywtime();
+    for (index_t i = 0; i < total_edge_count; ++i) {
+        ugraph->batch_edge(edges[i]);
+    }
+    
+    blog_t<sid_t>* blog = ugraph->blog;
+    index_t marker = blog->blog_head;
+
+    //----------
+    double end = mywtime ();
+    cout << "Batch Update Time = " << end - start << endl;
+    
+    if (marker != blog->blog_marker) {
+        ugraph->create_marker(marker);
+    }
+
+    //Wait for make graph
+    while (blog->blog_tail != blog->blog_head) {
+        usleep(1);
+    }
+    //---------
+    end = mywtime();
+    cout << "Make graph time = " << end - start << endl;
+}
+
+void plaingraph_manager::prep_graph_durable(const string& idirname, const string& odirname)
 {
     //-----
     g->create_wthread();
@@ -366,7 +405,7 @@ void plaingraph_manager::prep_graph_paper_chain(const string& idirname, const st
     cout << "Make graph time = " << end - start << endl;
 }
 
-void run_pr() 
+void plaingraph_manager::run_pr() 
 {
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
@@ -394,7 +433,7 @@ void run_pr()
     free(degree_array);
 }
 
-void run_prd()
+void plaingraph_manager::run_prd()
 {
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
@@ -434,7 +473,7 @@ void run_prd()
     free(degree_array_in);
 }
 
-void run_bfs()
+void plaingraph_manager::run_bfs()
 {
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
@@ -481,7 +520,7 @@ void run_bfs()
     free(degree_array);
 }
 
-void run_bfsd() 
+void plaingraph_manager::run_bfsd() 
 {
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
@@ -533,7 +572,7 @@ void run_bfsd()
     free(degree_array_in);
 }
 
-void run_1hop() 
+void plaingraph_manager::run_1hop()
 {
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
@@ -556,7 +595,7 @@ void run_1hop()
 
 }
 
-void run_1hopd()
+void plaingraph_manager::run_1hopd()
 {
     propid_t          cf_id = g->get_cfid("friend");
     pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
@@ -587,4 +626,27 @@ void run_1hopd()
                v_count);
     free(degree_array_out);
     free(degree_array_in);
+}
+
+void plaingraph_manager::run_2hop()
+{
+    propid_t cf_id = g->get_cfid("friend");
+    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
+    vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
+    blog_t<sid_t>* blog = ugraph->blog;
+   
+    snapshot_t* snapshot = g->get_snapshot();
+    index_t marker = blog->blog_head;
+    index_t old_marker = 0;
+    degree_t* degree_array = 0;
+    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t)); 
+    if (snapshot) {
+        old_marker = snapshot->marker;
+    }
+    degree_array = create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
+
+    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
+
+    mem_hop2<sid_t>(graph, degree_array, snapshot, marker, blog->blog_beg, v_count);
+    free(degree_array);
 }

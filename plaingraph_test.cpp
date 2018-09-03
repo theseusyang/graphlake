@@ -580,95 +580,6 @@ void split_graph(const string& idirname, const string& odirname)
     cout << "Make graph time = " << end - start << endl;
 }
 
-void plain_test0(const string& idir, const string& odir)
-{
-    plaingraph_manager::schema_plaingraph();
-    //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_sync(idir, odir);
-    
-    propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
-    onegraph_t<sid_t>*   sgraph = ugraph->sgraph[0];
-    vert_table_t<sid_t>* graph = sgraph->get_begpos();
-    blog_t<sid_t>* blog = ugraph->blog;
-   
-    uint8_t* level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, 
-                            PROT_READ|PROT_WRITE,
-                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
-    
-    if (MAP_FAILED == level_array) {
-        cout << "Huge page alloc failed for level array" << endl;
-        level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
-    }
-    
-    snapshot_t* snapshot = g->get_snapshot();
-    index_t marker = blog->blog_head;
-    index_t old_marker = 0;
-    degree_t* degree_array = 0;
-        
-    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
-
-    if (snapshot) {
-        old_marker = snapshot->marker;
-        create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
-    }
-
-    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
-
-    ext_bfs<sid_t>(sgraph, degree_array, sgraph, degree_array, 
-                   snapshot, marker, blog->blog_beg,
-                   v_count, level_array, 1);
-    
-    return;
-}
-
-void plaind_test0(const string& idir, const string& odir)
-{
-    plaingraph_manager::schema_plaingraphd();
-    //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_sync(idir, odir);
-    
-    propid_t cf_id = g->get_cfid("friend");
-    pgraph_t<sid_t>* pgraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
-    onegraph_t<sid_t>* sgraph_out = pgraph->sgraph_out[0];
-    onegraph_t<sid_t>* sgraph_in  = pgraph->sgraph_in[0];
-    blog_t<sid_t>* blog = pgraph->blog;
-   
-    uint8_t* level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count,
-                            PROT_READ|PROT_WRITE,
-                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
-    
-    if (MAP_FAILED == level_array) {
-        cout << "Huge page alloc failed for level array" << endl;
-        level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
-    }
-    
-    snapshot_t* snapshot = g->get_snapshot();
-    index_t marker = blog->blog_head;
-    index_t old_marker = 0;
-    degree_t* degree_out = 0;
-    degree_t* degree_in = 0;
-        
-    degree_out = (degree_t*) calloc(v_count, sizeof(degree_t));
-    degree_in = (degree_t*) calloc(v_count, sizeof(degree_t));
-
-    if (snapshot) {
-        old_marker = snapshot->marker;
-        create_degreesnapd (sgraph_out, sgraph_in, snapshot, marker, blog->blog_beg,
-                            degree_out, degree_in);
-    }
-
-    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
-
-
-    ext_bfs<sid_t>(sgraph_out, degree_out, sgraph_in, degree_in, 
-                   snapshot, marker, blog->blog_beg,
-                   v_count, level_array, 1);
-    return ;
-}
-            
 void weight_dtest0(const string& idir, const string& odir)
 {
     plaingraph_manager::schema_weightedgraphd();
@@ -1031,53 +942,6 @@ void plain_test1(const string& idir, const string& odir)
     return ;
 }
 
-void plaind_test1(const string& odir)
-{
-    plaingraph_manager::schema_plaingraphd();
-    //do some setup for plain graphs
-    //plaingraph_manager::setup_graph(v_count);    
-    propid_t cf_id = g->get_cfid("friend");
-    pgraph_t<sid_t>* pgraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
-    pgraph->flag1 = 1;
-    pgraph->flag2 = 1;
-    
-    g->read_graph_baseline();
-   
-    onegraph_t<sid_t>* sgraph_out = pgraph->sgraph_out[0];
-    onegraph_t<sid_t>* sgraph_in  = pgraph->sgraph_in[0];
-    blog_t<sid_t>* blog = pgraph->blog;
-   
-    uint8_t* level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, 
-                            PROT_READ|PROT_WRITE,
-                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
-    if (MAP_FAILED == level_array) {
-        cout << "Huge page alloc failed for level array" << endl;
-        level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
-    }
-
-    snapshot_t* snapshot = g->get_snapshot();
-    index_t marker = blog->blog_head;
-    index_t old_marker = 0;
-    degree_t* degree_out = 0;
-    degree_t* degree_in  = 0;
-    degree_out = (degree_t*) calloc(v_count, sizeof(degree_t));
-    degree_in = (degree_t*) calloc(v_count, sizeof(degree_t));
-
-    if (snapshot) {
-        old_marker = snapshot->marker;
-        create_degreesnapd(sgraph_out, sgraph_in, snapshot, marker, blog->blog_beg,
-                           degree_out, degree_in);
-    }
-
-    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
-
-    ext_bfs<sid_t>(sgraph_out, degree_out, sgraph_in, degree_in, 
-                   snapshot, marker, blog->blog_beg,
-                   v_count, level_array, 1);
-    
-    return ;
-}
-
 void plain_test2(const string& odir)
 {
     plaingraph_manager::schema_plaingraph();
@@ -1217,43 +1081,6 @@ void plain_test6(const string& odir)
     return ;
 }
 
-void paper_test0(vid_t v_count, const string& idir, const string& odir)
-{
-    plaingraph_manager::schema_plaingraph();
-    //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_sync(idir, odir);
-    
-    propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
-    vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
-    blog_t<sid_t>* blog = ugraph->blog;
-   
-    uint8_t* level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, PROT_READ|PROT_WRITE,
-                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
-    if (MAP_FAILED == level_array) {
-        cout << "Huge page alloc failed for level array" << endl;
-        level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
-    }
-    snapshot_t* snapshot = g->get_snapshot();
-    index_t marker = blog->blog_head;
-    index_t old_marker = 0;
-    degree_t* degree_array = 0;
-    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
-
-    if (snapshot) {
-        old_marker = snapshot->marker;
-        create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
-    }
-
-    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
-
-    mem_bfs<sid_t>(graph, degree_array, graph, degree_array, 
-                   snapshot, marker, blog->blog_beg,
-                   v_count, level_array, 1);
-
-}
-
 void paper_test_chain_bfs(const string& idir, const string& odir)
 {
     plaingraph_manager::schema_plaingraph();
@@ -1261,42 +1088,9 @@ void paper_test_chain_bfs(const string& idir, const string& odir)
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph_paper_chain(idir, odir);
     
-    propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
-    vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
-    blog_t<sid_t>* blog = ugraph->blog;
-   
-    uint8_t* level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, PROT_READ|PROT_WRITE,
-                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
-    if (MAP_FAILED == level_array) {
-        cout << "Huge page alloc failed for level array" << endl;
-        level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
-    }
-    snapshot_t* snapshot = g->get_snapshot();
-    index_t marker = blog->blog_head;
-    index_t old_marker = 0;
-    degree_t* degree_array = 0;
-    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
-
-    if (snapshot) {
-        old_marker = snapshot->marker;
-        create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
-    }
-
-    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
-   
     for (int i = 0; i < 10; i++) {
-        memset(level_array, 0, v_count*sizeof(uint8_t));
-        mem_bfs<sid_t>(graph, degree_array, graph, degree_array, 
-                   snapshot, marker, blog->blog_beg,
-                   v_count, level_array, 1);
+        plaingraph_manager::run_bfs();
     }
-    
-    /*
-	ext_bfs<sid_t>(ugraph->sgraph[0], degree_array, ugraph->sgraph[0], degree_array, 
-                   snapshot, marker, blog->blog_beg,
-                   v_count, level_array, 1);
-	*/
 }
 void paper_test_pr_chain(const string& idir, const string& odir)
 {
@@ -1305,29 +1099,9 @@ void paper_test_pr_chain(const string& idir, const string& odir)
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph_paper_chain(idir, odir);
     
-    propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
-    vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
-    blog_t<sid_t>* blog = ugraph->blog;
-   
-    snapshot_t* snapshot = g->get_snapshot();
-    index_t marker = blog->blog_head;
-    index_t old_marker = 0;
-    degree_t* degree_array = 0;
-    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
-    if (snapshot) {
-        old_marker = snapshot->marker;
-        create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
-    }
-
-    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
-
     for (int i = 0; i < 10; i++) {
-        mem_pagerank<sid_t>(graph, degree_array, degree_array, 
-                   snapshot, marker, blog->blog_beg,
-                   v_count, 5);
+        plaingraph_manager::run_pr();
     }
-
 }
 
 void paper_test_pr(const string& idir, const string& odir)
@@ -1335,29 +1109,9 @@ void paper_test_pr(const string& idir, const string& odir)
     plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_sync(idir, odir);
+    plaingraph_manager::prep_graph_adj(idir, odir);
     
-    propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
-    vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
-    blog_t<sid_t>* blog = ugraph->blog;
-   
-    snapshot_t* snapshot = g->get_snapshot();
-    index_t marker = blog->blog_head;
-    index_t old_marker = 0;
-    degree_t* degree_array = 0;
-    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
-    if (snapshot) {
-        old_marker = snapshot->marker;
-        create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
-    }
-
-    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
-
-    mem_pagerank<sid_t>(graph, degree_array, degree_array, 
-                   snapshot, marker, blog->blog_beg,
-                   v_count, 5);
-
+    plaingraph_manager::run_pr();
 }
 
 void paper_test_hop1_chain(const string& idir, const string& odir)
@@ -1367,27 +1121,7 @@ void paper_test_hop1_chain(const string& idir, const string& odir)
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph_paper_chain(idir, odir);
     
-    propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
-    vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
-    blog_t<sid_t>* blog = ugraph->blog;
-   
-    snapshot_t* snapshot = g->get_snapshot();
-    index_t marker = blog->blog_head;
-    index_t old_marker = 0;
-    degree_t* degree_array = 0;
-    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t)); 
-    if (snapshot) {
-        old_marker = snapshot->marker;
-    }
-    create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
-
-    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
-
-    for (int i = 0; i < 10; i++) {
-        mem_hop1<sid_t>(graph, degree_array, snapshot, marker, blog->blog_beg, v_count);
-    }
-
+    plaingraph_manager::run_1hop();
 }
 
 void paper_test_hop1(const string& idir, const string& odir)
@@ -1395,27 +1129,9 @@ void paper_test_hop1(const string& idir, const string& odir)
     plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_sync(idir, odir);
+    plaingraph_manager::prep_graph_adj(idir, odir);
     
-    propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
-    vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
-    blog_t<sid_t>* blog = ugraph->blog;
-   
-    snapshot_t* snapshot = g->get_snapshot();
-    index_t marker = blog->blog_head;
-    index_t old_marker = 0;
-    degree_t* degree_array = 0;
-    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
-    if (snapshot) {
-        old_marker = snapshot->marker;
-    }
-    create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
-
-    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
-
-    mem_hop1<sid_t>(graph, degree_array, snapshot, marker, blog->blog_beg, v_count);
-
+    plaingraph_manager::run_1hop();
 }
 
 void paper_test_hop2_chain(const string& idir, const string& odir)
@@ -1425,25 +1141,7 @@ void paper_test_hop2_chain(const string& idir, const string& odir)
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph_paper_chain(idir, odir);
     
-    propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
-    vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
-    blog_t<sid_t>* blog = ugraph->blog;
-   
-    snapshot_t* snapshot = g->get_snapshot();
-    index_t marker = blog->blog_head;
-    index_t old_marker = 0;
-    degree_t* degree_array = 0;
-    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t)); 
-    if (snapshot) {
-        old_marker = snapshot->marker;
-    }
-    degree_array = create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
-
-    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
-
-    mem_hop2<sid_t>(graph, degree_array, snapshot, marker, blog->blog_beg, v_count);
-
+    plaingraph_manager::run_2hop();
 }
 
 void paper_test_hop2(const string& idir, const string& odir)
@@ -1451,27 +1149,9 @@ void paper_test_hop2(const string& idir, const string& odir)
     plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_sync(idir, odir);
+    plaingraph_manager::prep_graph_adj(idir, odir);
     
-    propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
-    vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
-    blog_t<sid_t>* blog = ugraph->blog;
-   
-    snapshot_t* snapshot = g->get_snapshot();
-    index_t marker = blog->blog_head;
-    index_t old_marker = 0;
-    degree_t* degree_array = 0;
-    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t)); 
-    if (snapshot) {
-        old_marker = snapshot->marker;
-    }
-    create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg,degree_array);
-
-    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
-
-    mem_hop2<sid_t>(graph, degree_array, snapshot, marker, blog->blog_beg, v_count);
-
+    plaingraph_manager::run_2hop();
 }
 
 void update_test0d(const string& idir, const string& odir)
@@ -1479,115 +1159,23 @@ void update_test0d(const string& idir, const string& odir)
     plaingraph_manager::schema_plaingraphd();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_sync(idir, odir);    
+    plaingraph_manager::prep_graph_adj(idir, odir);    
     
-    propid_t          cf_id = g->get_cfid("friend");
-    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
-    blog_t<sid_t>*     blog = ugraph->blog;
-    
-    onegraph_t<sid_t>*   sgraph_out = ugraph->sgraph_out[0];
-    vert_table_t<sid_t>* graph_out = sgraph_out->get_begpos();
-    onegraph_t<sid_t>*   sgraph_in = ugraph->sgraph_in[0];
-    vert_table_t<sid_t>* graph_in =  sgraph_in->get_begpos();
-    degree_t* degree_array_out = 0;
-    degree_t* degree_array_in = 0;
-    index_t marker = 0;
-
     //Run BFS
-    for (int i = 0; i < 0; i++){
-        uint8_t* level_array = 0;
-        
-        /*
-        level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, 
-                                PROT_READ|PROT_WRITE,
-                                MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
-        
-        if (MAP_FAILED == level_array) {
-            cout << "Huge page alloc failed for level array" << endl;
-            level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
-        }*/
-        
-        level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
-        
-        
-        snapshot_t* snapshot = g->get_snapshot();
-        marker = blog->blog_head;
-        index_t old_marker = 0;
-            
-        degree_array_out = (degree_t*) calloc(v_count, sizeof(degree_t));
-        degree_array_in = (degree_t*) calloc(v_count, sizeof(degree_t));
-
-        if (snapshot) {
-            old_marker = snapshot->marker;
-            create_degreesnapd(sgraph_out, sgraph_in, snapshot, marker, blog->blog_beg,
-                               degree_array_out, degree_array_in);
-        }
-
-        cout << "old marker = " << old_marker << " New marker = " << marker << endl;
-        /*
-        ext_bfs<sid_t>(sgraph, degree_array, sgraph, degree_array, 
-                       snapshot, marker, blog->blog_beg,
-                       v_count, level_array, 1);
-        */
-        mem_bfs<sid_t>(graph_out, degree_array_out, graph_in, degree_array_in, 
-                       snapshot, marker, blog->blog_beg,
-                       v_count, level_array, 1);
-        free(level_array);
-        free(degree_array_out);
-        free(degree_array_in);
+    for (int i = 0; i < 1; i++){
+        plaingraph_manager::run_bfs();
     }
     
     //Run PageRank
-    for (int i = 0; i < 10 ; i++){
-        snapshot_t* snapshot = g->get_snapshot();
-        marker = blog->blog_head;
-        index_t old_marker = 0;
-        degree_array_out = (degree_t*) calloc(v_count, sizeof(degree_t));
-        degree_array_in = (degree_t*) calloc(v_count, sizeof(degree_t));
-            
-        if (snapshot) {
-            old_marker = snapshot->marker;
-            create_degreesnapd(sgraph_out, sgraph_in, snapshot, marker, blog->blog_beg,
-                               degree_array_out, degree_array_in);
-        }
-
-        cout << "old marker = " << old_marker << " New marker = " << marker << endl;
-        /*
-        mem_pagerank_push<sid_t>(graph_out, degree_array_out, 
-                   snapshot, marker, blog->blog_beg,
-                   v_count, 5);
-       */ 
-       
-        
-        mem_pagerank<sid_t>(graph_in, degree_array_in, degree_array_out, 
-                   snapshot, marker, blog->blog_beg,
-                   v_count, 5);
-        
-        free(degree_array_out);
-        free(degree_array_in);
+    for (int i = 0; i < 1; i++){
+        plaingraph_manager::run_pr();
     }
     
     //Run 1-HOP query
-    for (int i = 0; i < 0; i++){
-        snapshot_t* snapshot = g->get_snapshot();
-        marker = blog->blog_head;
-        index_t old_marker = 0;
-        degree_array_out = (degree_t*) calloc(v_count, sizeof(degree_t));
-        degree_array_in = (degree_t*) calloc(v_count, sizeof(degree_t));
-            
-        if (snapshot) {
-            old_marker = snapshot->marker;
-            create_degreesnapd(sgraph_out, sgraph_in, snapshot, marker, blog->blog_beg,
-                               degree_array_out, degree_array_in);
-        }
-
-        cout << "old marker = " << old_marker << " New marker = " << marker << endl;
-        mem_hop1<sid_t>(graph_out, degree_array_out, 
-                   snapshot, marker, blog->blog_beg,
-                   v_count);
-        free(degree_array_out);
-        free(degree_array_in);
+    for (int i = 0; i < 1; i++){
+        plaingraph_manager::run_1hop();
     }
+    
 }
 
 void update_test0(const string& idir, const string& odir)
@@ -1596,105 +1184,21 @@ void update_test0(const string& idir, const string& odir)
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
     
-    plaingraph_manager::prep_graph_sync(idir, odir);
-    
-    propid_t          cf_id = g->get_cfid("friend");
-    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
-    blog_t<sid_t>*     blog = ugraph->blog;
-    
-    //Make Graph
-    index_t marker = 0;
+    plaingraph_manager::prep_graph_adj(idir, odir);
     
     //Run BFS
     for (int i = 0; i < 1; i++){
-        uint8_t* level_array = 0;
-        
-        /*
-        level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, 
-                                PROT_READ|PROT_WRITE,
-                                MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
-        
-        if (MAP_FAILED == level_array) {
-            cout << "Huge page alloc failed for level array" << endl;
-            level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
-        }*/
-        
-        level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
-        
-        onegraph_t<sid_t>*   sgraph = ugraph->sgraph[0];
-        vert_table_t<sid_t>* graph = sgraph->get_begpos();
-        
-        snapshot_t* snapshot = g->get_snapshot();
-        marker = blog->blog_head;
-        index_t old_marker = 0;
-        degree_t* degree_array = 0;
-            
-        degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
-
-        if (snapshot) {
-            old_marker = snapshot->marker;
-            create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
-        }
-
-        cout << "old marker = " << old_marker << " New marker = " << marker << endl;
-        /*
-        ext_bfs<sid_t>(sgraph, degree_array, sgraph, degree_array, 
-                       snapshot, marker, blog->blog_beg,
-                       v_count, level_array, 1);
-        */
-        mem_bfs<sid_t>(graph, degree_array, graph, degree_array, 
-                       snapshot, marker, blog->blog_beg,
-                       v_count, level_array, 1);
-        free(level_array);
-        free(degree_array);
+        plaingraph_manager::run_bfs();
     }
     
     //Run PageRank
     for (int i = 0; i < 1; i++){
-        onegraph_t<sid_t>*   sgraph = ugraph->sgraph[0];
-        vert_table_t<sid_t>* graph = sgraph->get_begpos();
-        
-        snapshot_t* snapshot = g->get_snapshot();
-        marker = blog->blog_head;
-        index_t old_marker = 0;
-        degree_t* degree_array = 0;
-            
-        degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
-
-        if (snapshot) {
-            old_marker = snapshot->marker;
-            create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
-        }
-
-        cout << "old marker = " << old_marker << " New marker = " << marker << endl;
-        mem_pagerank<sid_t>(graph, degree_array, degree_array, 
-                   snapshot, marker, blog->blog_beg,
-                   v_count, 5);
-        free(degree_array);
+        plaingraph_manager::run_pr();
     }
     
     //Run 1-HOP query
     for (int i = 0; i < 1; i++){
-        onegraph_t<sid_t>*   sgraph = ugraph->sgraph[0];
-        vert_table_t<sid_t>* graph = sgraph->get_begpos();
-        
-        snapshot_t* snapshot = g->get_snapshot();
-        marker = blog->blog_head;
-        index_t old_marker = 0;
-        degree_t* degree_array = 0;
-            
-        degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
-
-        if (snapshot) {
-            old_marker = snapshot->marker;
-            create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
-        }
-
-        cout << "old marker = " << old_marker << " New marker = " << marker << endl;
-        mem_hop1<sid_t>(graph, degree_array, 
-                   snapshot, marker, blog->blog_beg,
-                   v_count);
-        free(degree_array);
+        plaingraph_manager::run_1hop();
     }
 }
 
@@ -1704,63 +1208,7 @@ void update_test1d(const string& idir, const string& odir)
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph(idir, odir); 
-    
-    propid_t cf_id = g->get_cfid("friend");
-    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
-    blog_t<sid_t>* blog = ugraph->blog;
-    
-    
-    onegraph_t<sid_t>*   sgraph_out = ugraph->sgraph_out[0];
-    vert_table_t<sid_t>* graph_out = sgraph_out->get_begpos();
-    onegraph_t<sid_t>*   sgraph_in = ugraph->sgraph_in[0];
-    vert_table_t<sid_t>* graph_in =  sgraph_in->get_begpos();
-    degree_t* degree_array_out = 0;
-    degree_t* degree_array_in = 0;
-    index_t marker = 0;
-    
-    //Run BFS
-    for (int i = 0; i < 1; i++){
-        uint8_t* level_array = 0;
-        
-        /*
-        level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, 
-                                PROT_READ|PROT_WRITE,
-                                MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
-        
-        if (MAP_FAILED == level_array) {
-            cout << "Huge page alloc failed for level array" << endl;
-            level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
-        }*/
-        
-        level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
-        
-        
-        snapshot_t* snapshot = g->get_snapshot();
-        marker = blog->blog_head;
-        index_t old_marker = 0;
-            
-        degree_array_out = (degree_t*) calloc(v_count, sizeof(degree_t));
-        degree_array_in = (degree_t*) calloc(v_count, sizeof(degree_t));
-
-        if (snapshot) {
-            old_marker = snapshot->marker;
-            create_degreesnapd(sgraph_out, sgraph_in, snapshot, marker, blog->blog_beg,
-                               degree_array_out, degree_array_in);
-        }
-
-        cout << "old marker = " << old_marker << " New marker = " << marker << endl;
-        /*
-        ext_bfs<sid_t>(sgraph, degree_array, sgraph, degree_array, 
-                       snapshot, marker, blog->blog_beg,
-                       v_count, level_array, 1);
-        */
-        mem_bfs<sid_t>(graph_out, degree_array_out, graph_in, degree_array_in, 
-                       snapshot, marker, blog->blog_beg,
-                       v_count, level_array, 1);
-        free(level_array);
-        free(degree_array_out);
-        free(degree_array_in);
-    }
+    plaingraph_manager::run_bfsd();    
 }
 
 void update_test1(const string& idir, const string& odir)
@@ -1769,47 +1217,7 @@ void update_test1(const string& idir, const string& odir)
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
     plaingraph_manager::prep_graph(idir, odir); 
-    
-    propid_t cf_id = g->get_cfid("friend");
-    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
-    blog_t<sid_t>* blog = ugraph->blog;
-    
-    //Run BFS
-    //blog_t<sid_t>* blog = ugraph->blog;
-    index_t marker = blog->blog_head;
-    uint8_t* level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, 
-                            PROT_READ|PROT_WRITE,
-                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
-    
-    if (MAP_FAILED == level_array) {
-        cout << "Huge page alloc failed for level array" << endl;
-        level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
-    }
-    
-    onegraph_t<sid_t>*   sgraph = ugraph->sgraph[0];
-    vert_table_t<sid_t>* graph = sgraph->get_begpos();
-    
-    snapshot_t* snapshot = g->get_snapshot();
-    marker = blog->blog_head;
-    index_t old_marker = 0;
-    degree_t* degree_array = 0;
-        
-    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
-
-    if (snapshot) {
-        old_marker = snapshot->marker;
-        create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
-    }
-
-    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
-    mem_bfs<sid_t>(graph, degree_array, graph, degree_array, 
-                       snapshot, marker, blog->blog_beg,
-                       v_count, level_array, 1);
-    /*
-    ext_bfs<sid_t>(sgraph, degree_array, sgraph, degree_array, 
-                   snapshot, marker, blog->blog_beg,
-                   v_count, level_array, 1);
-    */
+    plaingraph_manager::run_bfs();    
 }
 
 void llama_test_bfs(const string& odir);
@@ -1820,9 +1228,6 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
 {
     v_count = v_count1; 
     switch (job) {
-        case 0:
-            plain_test0(idir, odir);
-            break;
         case 1:
             plain_test1(idir, odir);
             break;
@@ -1841,18 +1246,9 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
         case 6:
             weight_dtest1(odir);
             break;
-        case 7:
-            plaind_test0(idir, odir);
-            break;
-        case 8:
-            plaind_test1(odir);
-            break;
         case 9:
             //stinger test
             weighted_dtest0(idir, odir);
-            break;
-        case 10:
-            paper_test0(v_count1, idir, odir);
             break;
         case 11:
             paper_test_pr(idir, odir);

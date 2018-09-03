@@ -24,8 +24,17 @@ class plaingraph_manager {
     static void setup_weightedgraph(vid_t v_count);
     static void setup_weightedgraph_memory(vid_t v_count);
 
+    static void prep_graph_adj(const string& idirname, const string& odirname);
     static void prep_graph(const string& idirname, const string& odirname);
-    static void prep_graph_sync(const string& idirname, const string& odirname);
+    static void prep_graph_durable(const string& idirname, const string& odirname);
     static void prep_graph_paper_chain(const string& idirname, const string& odirname);
     static void prep_weighted_rmat(const string& graph_file, const string& action_file);
+
+    static void run_pr();
+    static void run_prd();
+    static void run_bfs();
+    static void run_bfsd();
+    static void run_1hop();
+    static void run_1hopd();
+    static void run_2hop();
 };
