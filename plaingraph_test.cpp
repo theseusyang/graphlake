@@ -39,29 +39,29 @@ struct estimate_t {
 //1024+4-1=1027
 #define UPPER_ALIGN_4KB(x) (((x) + 1027) & ALIGN_MASK_4KB)
 
-template <class T>
-void estimate_chain(const string& idirname, const string& odirname)
+index_t read_idir(const string& idirname, edge_t** pedges, bool alloc)
 {
-    plaingraph_manager::schema_plaingraph();
-    //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
-    
     struct dirent *ptr;
     DIR *dir;
     int file_count = 0;
     string filename;
-    propid_t cf_id = g->get_cfid("friend");
-    pgraph_t<T>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
         
     FILE* file = 0;
     index_t size =  0;
     index_t edge_count = 0;
+    index_t total_edge_count = 0;
     
     //Read graph files
     double start = mywtime();
     dir = opendir(idirname.c_str());
-    blog_t<T>* blog = ugraph->blog;
-    edgeT_t<T>* edge = blog->blog_beg;
+    edge_t* edges = 0;
+    if (alloc) {
+        edges =  (edge_t*)calloc(sizeof(edge_t),(1L<<32));
+        *pedges = edges;
+    } else {
+        edges = *pedges;
+    }
+    edge_t* edge = edges;
     while (NULL != (ptr = readdir(dir))) {
         if (ptr->d_name[0] == '.') continue;
         filename = idirname + "/" + string(ptr->d_name);
@@ -71,23 +71,79 @@ void estimate_chain(const string& idirname, const string& odirname)
         assert(file != 0);
         size = fsize(filename);
         edge_count = size/sizeof(edge_t);
-        edge = blog->blog_beg + blog->blog_head;
-        if (edge_count != fread(edge, sizeof(edgeT_t<T>), edge_count, file)) {
+        edge = edges + total_edge_count;
+        if (edge_count != fread(edge, sizeof(edge_t), edge_count, file)) {
             assert(0);
         }
-        blog->blog_head += edge_count;
+        total_edge_count += edge_count;
     }
     closedir(dir);
     double end = mywtime();
     cout << "Reading "  << file_count  << " file time = " << end - start << endl;
-    start = mywtime();
+    cout << "End marker = " << total_edge_count << endl;
+    return total_edge_count;
+}
+
+//void read_idir1(const string& idirname)
+//{
+//    struct dirent *ptr;
+//    DIR *dir;
+//    int file_count = 0;
+//    string filename;
+//    propid_t cf_id = g->get_cfid("friend");
+//    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+//        
+//    FILE* file = 0;
+//    index_t size =  0;
+//    index_t edge_count = 0;
+//    
+//    //Read graph files
+//    double start = mywtime();
+//    dir = opendir(idirname.c_str());
+//    blog_t<sid_t>* blog = ugraph->blog;
+//    edge_t* edge = blog->blog_beg;
+//    while (NULL != (ptr = readdir(dir))) {
+//        if (ptr->d_name[0] == '.') continue;
+//        filename = idirname + "/" + string(ptr->d_name);
+//        file_count++;
+//        
+//        file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
+//        assert(file != 0);
+//        size = fsize(filename);
+//        edge_count = size/sizeof(edge_t);
+//        edge = blog->blog_beg + blog->blog_head;
+//        if (edge_count != fread(edge, sizeof(edge_t), edge_count, file)) {
+//            assert(0);
+//        }
+//        blog->blog_head += edge_count;
+//    }
+//    closedir(dir);
+//    double end = mywtime();
+//    cout << "Reading "  << file_count  << " file time = " << end - start << endl;
+//    cout << "End marker = " << blog->blog_head << endl;
+//}
+
+template <class T>
+void estimate_chain(const string& idirname, const string& odirname)
+{
+    plaingraph_manager::schema_plaingraph();
+    //do some setup for plain graphs
+    plaingraph_manager::setup_graph(v_count);    
+    
+    propid_t          cf_id = g->get_cfid("friend");
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+    blog_t<sid_t>*     blog = ugraph->blog;
+    
+    blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
+    
+    double start = mywtime();
 
     index_t marker = blog->blog_head ;
     cout << "End marker = " << blog->blog_head;
     cout << "make graph marker = " << marker << endl;
     if (marker == 0) return;
     
-    edge = blog->blog_beg;
+    edge_t* edge = blog->blog_beg;
     estimate_t* est = (estimate_t*)calloc(sizeof(estimate_t), v_count);
     index_t last = 0;
     vid_t src = 0;
@@ -131,7 +187,7 @@ void estimate_chain(const string& idirname, const string& odirname)
         total_used_memory += used_memory;
     }
 
-    end = mywtime ();
+    double end = mywtime ();
     cout << "Used Memory = " << total_used_memory << endl;
     cout << "Make graph time = " << end - start << endl;
     cout << "total_hub_vertex =" << total_hub_vertex << endl;
@@ -161,49 +217,21 @@ void estimate_chain_new(const string& idirname, const string& odirname)
     plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
+
+    propid_t          cf_id = g->get_cfid("friend");
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+    blog_t<sid_t>*     blog = ugraph->blog;
     
-    struct dirent *ptr;
-    DIR *dir;
-    int file_count = 0;
-    string filename;
-    propid_t cf_id = g->get_cfid("friend");
-    pgraph_t<T>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
-        
-    FILE* file = 0;
-    index_t size =  0;
-    index_t edge_count = 0;
+    blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
     
-    //Read graph files
     double start = mywtime();
-    dir = opendir(idirname.c_str());
-    blog_t<T>* blog = ugraph->blog;
-    edgeT_t<T>* edge = blog->blog_beg;
-    while (NULL != (ptr = readdir(dir))) {
-        if (ptr->d_name[0] == '.') continue;
-        filename = idirname + "/" + string(ptr->d_name);
-        file_count++;
-        
-        file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
-        assert(file != 0);
-        size = fsize(filename);
-        edge_count = size/sizeof(edge_t);
-        edge = blog->blog_beg + blog->blog_head;
-        if (edge_count != fread(edge, sizeof(edgeT_t<T>), edge_count, file)) {
-            assert(0);
-        }
-        blog->blog_head += edge_count;
-    }
-    closedir(dir);
-    double end = mywtime();
-    cout << "Reading "  << file_count  << " file time = " << end - start << endl;
-    start = mywtime();
 
     index_t marker = blog->blog_head ;
     cout << "End marker = " << blog->blog_head;
     cout << "make graph marker = " << marker << endl;
     if (marker == 0) return;
     
-    edge = blog->blog_beg;
+    edge_t* edge = blog->blog_beg;
     estimate_t* est = (estimate_t*)calloc(sizeof(estimate_t), v_count);
     index_t last = 0;
     vid_t src = 0;
@@ -293,7 +321,7 @@ void estimate_chain_new(const string& idirname, const string& odirname)
         total_chain_count += total_chain;
     }
 
-    end = mywtime ();
+    double end = mywtime ();
     cout << "Used Memory = " << total_used_memory << endl;
     cout << "Make graph time = " << end - start << endl;
     cout << "total_hub_vertex =" << total_hub_vertex << endl;
@@ -309,49 +337,21 @@ void estimate_IO(const string& idirname, const string& odirname)
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
     
-    struct dirent *ptr;
-    DIR *dir;
-    int file_count = 0;
-    string filename;
-    propid_t cf_id = g->get_cfid("friend");
-    pgraph_t<T>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
-        
-    FILE* file = 0;
-    index_t size =  0;
-    index_t edge_count = 0;
+    propid_t          cf_id = g->get_cfid("friend");
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+    blog_t<sid_t>*     blog = ugraph->blog;
     
+    blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
     
-    //Read graph files
     double start = mywtime();
-    dir = opendir(idirname.c_str());
-    blog_t<T>* blog = ugraph->blog;
-    edgeT_t<T>* edge = blog->blog_beg;
-    while (NULL != (ptr = readdir(dir))) {
-        if (ptr->d_name[0] == '.') continue;
-        filename = idirname + "/" + string(ptr->d_name);
-        file_count++;
-        
-        file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
-        assert(file != 0);
-        size = fsize(filename);
-        edge_count = size/sizeof(edge_t);
-        edge = blog->blog_beg + blog->blog_head;
-        if (edge_count != fread(edge, sizeof(edgeT_t<T>), edge_count, file)) {
-            assert(0);
-        }
-        blog->blog_head += edge_count;
-    }
-    closedir(dir);
-    double end = mywtime();
-    cout << "Reading "  << file_count  << " file time = " << end - start << endl;
-    start = mywtime();
+    double end;
 
     index_t marker = blog->blog_head ;
     cout << "End marker = " << blog->blog_head;
     cout << "make graph marker = " << marker << endl;
     if (marker == 0) return;
     
-    edge = blog->blog_beg;
+    edge_t* edge = blog->blog_beg;
     estimate_t* est = (estimate_t*)calloc(sizeof(estimate_t), v_count);
     index_t last = 0;
     vid_t src = 0;
@@ -582,56 +582,27 @@ void estimate_IO(const string& idirname, const string& odirname)
     cout << "total_hub_vertex =" << total_hub_vertex << endl;
 }
 
-
 template <class T>
 void split_graph(const string& idirname, const string& odirname)
 {
+    propid_t          cf_id = g->get_cfid("friend");
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+    blog_t<sid_t>*     blog = ugraph->blog;
     
-    struct dirent *ptr;
-    DIR *dir;
-    int file_count = 0;
-    string filename;
-        
-    FILE* file = 0;
-    index_t size =  0;
-    index_t edge_count = 0;
-
-    blog_t<T> my_blog; 
-    blog_t<T>* blog = &my_blog;
-    memset(blog, 0, sizeof(my_blog));
-    blog->blog_beg = (edgeT_t<T>*) calloc((1L<<33), sizeof(edgeT_t<T>)); 
+    blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
     
-    //Read graph files
-    double start = mywtime();
-    dir = opendir(idirname.c_str());
-    edgeT_t<T>* edge = blog->blog_beg;
-    while (NULL != (ptr = readdir(dir))) {
-        if (ptr->d_name[0] == '.') continue;
-        filename = idirname + "/" + string(ptr->d_name);
-        file_count++;
-        
-        file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
-        assert(file != 0);
-        size = fsize(filename);
-        edge_count = size/sizeof(edgeT_t<T>);
-        edge = blog->blog_beg + blog->blog_head;
-        if (edge_count != fread(edge, sizeof(edgeT_t<T>), edge_count, file)) {
-            assert(0);
-        }
-        blog->blog_head += edge_count;
-        fclose(file);
-    }
-    closedir(dir);
-    double end = mywtime();
-    cout << "Reading "  << file_count  << " file time = " << end - start << endl;
     cout << "Creating " << residue << " graphs of equal size" << endl;
 
-    start = mywtime();
+    double start = mywtime();
 
     index_t marker = blog->blog_head/residue;
     index_t old_marker = 0;
     index_t new_marker = 0;
+    index_t edge_count = 0;
+    string filename;
+    FILE* file = 0;
     char  suffix[8];
+
     for (index_t i = 1; i <= residue; ++i) {
         sprintf(suffix, "%ld",i);
           
@@ -650,7 +621,7 @@ void split_graph(const string& idirname, const string& odirname)
         old_marker = new_marker;
     }
 
-    end = mywtime ();
+    double end = mywtime ();
     cout << "Make graph time = " << end - start << endl;
 }
 
@@ -1554,44 +1525,13 @@ void update_test0d(const string& idirname, const string& odirname)
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
     
-    struct dirent *ptr;
-    DIR *dir;
-    int file_count = 0;
-    string filename;
-    propid_t cf_id = g->get_cfid("friend");
+    propid_t          cf_id = g->get_cfid("friend");
     pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
-        
-    FILE* file = 0;
-    index_t size =  0;
-    index_t edge_count = 0;
+    blog_t<sid_t>*     blog = ugraph->blog;
     
+    blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
     
-    //Read graph files
     double start = mywtime();
-    dir = opendir(idirname.c_str());
-    blog_t<sid_t>* blog = ugraph->blog;
-    edge_t* edge = blog->blog_beg;
-    while (NULL != (ptr = readdir(dir))) {
-        if (ptr->d_name[0] == '.') continue;
-        filename = idirname + "/" + string(ptr->d_name);
-        file_count++;
-        
-        file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
-        assert(file != 0);
-        size = fsize(filename);
-        edge_count = size/sizeof(edge_t);
-        edge = blog->blog_beg + blog->blog_head;
-        if (edge_count != fread(edge, sizeof(edge_t), edge_count, file)) {
-            assert(0);
-        }
-        blog->blog_head += edge_count;
-    }
-    closedir(dir);
-    double end = mywtime();
-    cout << "Reading "  << file_count  << " file time = " << end - start << endl;
-    start = mywtime();
-
-    cout << "End marker = " << blog->blog_head << endl;
     
     //Make Graph
     index_t marker = 0;
@@ -1614,7 +1554,7 @@ void update_test0d(const string& idirname, const string& odirname)
         ugraph->update_marker();
         //cout << marker << endl;
     }
-    end = mywtime ();
+    double end = mywtime();
     cout << "Make graph time = " << end - start << endl;
     
     onegraph_t<sid_t>*   sgraph_out = ugraph->sgraph_out[0];
@@ -1727,44 +1667,13 @@ void update_test0(const string& idirname, const string& odirname)
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
     
-    struct dirent *ptr;
-    DIR *dir;
-    int file_count = 0;
-    string filename;
-    propid_t cf_id = g->get_cfid("friend");
+    propid_t          cf_id = g->get_cfid("friend");
     pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
-        
-    FILE* file = 0;
-    index_t size =  0;
-    index_t edge_count = 0;
+    blog_t<sid_t>*     blog = ugraph->blog;
     
+    blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
     
-    //Read graph files
     double start = mywtime();
-    dir = opendir(idirname.c_str());
-    blog_t<sid_t>* blog = ugraph->blog;
-    edge_t* edge = blog->blog_beg;
-    while (NULL != (ptr = readdir(dir))) {
-        if (ptr->d_name[0] == '.') continue;
-        filename = idirname + "/" + string(ptr->d_name);
-        file_count++;
-        
-        file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
-        assert(file != 0);
-        size = fsize(filename);
-        edge_count = size/sizeof(edge_t);
-        edge = blog->blog_beg + blog->blog_head;
-        if (edge_count != fread(edge, sizeof(edge_t), edge_count, file)) {
-            assert(0);
-        }
-        blog->blog_head += edge_count;
-    }
-    closedir(dir);
-    double end = mywtime();
-    cout << "Reading "  << file_count  << " file time = " << end - start << endl;
-    start = mywtime();
-
-    cout << "End marker = " << blog->blog_head << endl;
     
     //Make Graph
     index_t marker = 0;
@@ -1787,7 +1696,7 @@ void update_test0(const string& idirname, const string& odirname)
         ugraph->update_marker();
         //cout << marker << endl;
     }
-    end = mywtime ();
+    double end = mywtime ();
     cout << "Make graph time = " << end - start << endl;
     
     //Run BFS
@@ -1894,47 +1803,14 @@ void update_test1d(const string& idirname, const string& odirname)
     usleep(1000);
     //-----
     
-    struct dirent *ptr;
-    DIR *dir;
-    int file_count = 0;
-    string filename;
+    edge_t* edges = 0;
+    index_t total_edge_count = read_idir(idirname, &edges, true); 
+    
     propid_t cf_id = g->get_cfid("friend");
     pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
-        
-    FILE* file = 0;
-    index_t size =  0;
-    index_t edge_count = 0;
-    index_t total_edge_count = 0;
-    
-    
-    //Read graph files
-    double start = mywtime();
-    dir = opendir(idirname.c_str());
-    edge_t* edges =  (edge_t*)calloc(sizeof(edge_t),(1L<<32));
-    edge_t* edge = edges;
-    while (NULL != (ptr = readdir(dir))) {
-        if (ptr->d_name[0] == '.') continue;
-        filename = idirname + "/" + string(ptr->d_name);
-        file_count++;
-        
-        file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
-        assert(file != 0);
-        size = fsize(filename);
-        edge_count = size/sizeof(edge_t);
-        edge = edges + total_edge_count;
-        if (edge_count != fread(edge, sizeof(edge_t), edge_count, file)) {
-            assert(0);
-        }
-        total_edge_count += edge_count;
-    }
-    closedir(dir);
-    double end = mywtime();
-    cout << "Reading "  << file_count  << " file time = " << end - start << endl;
-    start = mywtime();
-    cout << "End marker = " << total_edge_count << endl;
-    
     
     //Batch and Make Graph
+    double start = mywtime();
     for (index_t i = 0; i < total_edge_count; ++i) {
         ugraph->batch_edge(edges[i]);
     }
@@ -1943,7 +1819,7 @@ void update_test1d(const string& idirname, const string& odirname)
     index_t marker = blog->blog_head;
 
     //----------
-    end = mywtime ();
+    double end = mywtime ();
     cout << "Batch Update Time = " << end - start << endl;
     
     if (marker != blog->blog_marker) {
@@ -2022,47 +1898,15 @@ void update_test1(const string& idirname, const string& odirname)
     usleep(1000);
     //---
     
-    struct dirent *ptr;
-    DIR *dir;
-    int file_count = 0;
-    string filename;
+    edge_t* edges = 0;
+    index_t total_edge_count = read_idir(idirname, &edges, true); 
+    
     propid_t cf_id = g->get_cfid("friend");
     pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
-        
-    FILE* file = 0;
-    index_t size =  0;
-    index_t edge_count = 0;
-    index_t total_edge_count = 0;
     
-    
-    //Read graph files
-    double start = mywtime();
-    dir = opendir(idirname.c_str());
-    edge_t* edges =  (edge_t*)calloc(sizeof(edge_t),(1L<<32));
-    edge_t* edge = edges;
-    while (NULL != (ptr = readdir(dir))) {
-        if (ptr->d_name[0] == '.') continue;
-        filename = idirname + "/" + string(ptr->d_name);
-        file_count++;
-        
-        file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
-        assert(file != 0);
-        size = fsize(filename);
-        edge_count = size/sizeof(edge_t);
-        edge = edges + total_edge_count;
-        if (edge_count != fread(edge, sizeof(edge_t), edge_count, file)) {
-            assert(0);
-        }
-        total_edge_count += edge_count;
-    }
-    closedir(dir);
-    double end = mywtime();
-    cout << "Reading "  << file_count  << " file time = " << end - start << endl;
-    cout << "End marker = " << total_edge_count << endl;
-    
-    start = mywtime();
     
     //Batch and Make Graph
+    double start = mywtime();
     for (index_t i = 0; i < total_edge_count; ++i) {
         ugraph->batch_edge(edges[i]);
     }
@@ -2070,7 +1914,7 @@ void update_test1(const string& idirname, const string& odirname)
     index_t marker = blog->blog_head;
 
     //----------
-    end = mywtime ();
+    double end = mywtime();
     cout << "Batch Update Time = " << end - start << endl;
     
     if (marker != blog->blog_marker) {
