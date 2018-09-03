@@ -11,8 +11,6 @@
 
 using namespace std;
 
-void prep_graph_sync(const string& idirname, const string& odirname);
-    
 extern index_t residue;
 vid_t v_count = 0;
 
@@ -39,50 +37,7 @@ struct estimate_t {
 //1024+4-1=1027
 #define UPPER_ALIGN_4KB(x) (((x) + 1027) & ALIGN_MASK_4KB)
 
-index_t read_idir(const string& idirname, edge_t** pedges, bool alloc)
-{
-    struct dirent *ptr;
-    DIR *dir;
-    int file_count = 0;
-    string filename;
-        
-    FILE* file = 0;
-    index_t size =  0;
-    index_t edge_count = 0;
-    index_t total_edge_count = 0;
-    
-    //Read graph files
-    double start = mywtime();
-    dir = opendir(idirname.c_str());
-    edge_t* edges = 0;
-    if (alloc) {
-        edges =  (edge_t*)calloc(sizeof(edge_t),(1L<<32));
-        *pedges = edges;
-    } else {
-        edges = *pedges;
-    }
-    edge_t* edge = edges;
-    while (NULL != (ptr = readdir(dir))) {
-        if (ptr->d_name[0] == '.') continue;
-        filename = idirname + "/" + string(ptr->d_name);
-        file_count++;
-        
-        file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
-        assert(file != 0);
-        size = fsize(filename);
-        edge_count = size/sizeof(edge_t);
-        edge = edges + total_edge_count;
-        if (edge_count != fread(edge, sizeof(edge_t), edge_count, file)) {
-            assert(0);
-        }
-        total_edge_count += edge_count;
-    }
-    closedir(dir);
-    double end = mywtime();
-    cout << "Reading "  << file_count  << " file time = " << end - start << endl;
-    cout << "End marker = " << total_edge_count << endl;
-    return total_edge_count;
-}
+index_t read_idir(const string& idirname, edge_t** pedges, bool alloc);
 
 //void read_idir1(const string& idirname)
 //{
@@ -630,7 +585,7 @@ void plain_test0(const string& idir, const string& odir)
     plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
-    prep_graph_sync(idir, odir);
+    plaingraph_manager::prep_graph_sync(idir, odir);
     
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
@@ -673,7 +628,7 @@ void plaind_test0(const string& idir, const string& odir)
     plaingraph_manager::schema_plaingraphd();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
-    prep_graph_sync(idir, odir);
+    plaingraph_manager::prep_graph_sync(idir, odir);
     
     propid_t cf_id = g->get_cfid("friend");
     pgraph_t<sid_t>* pgraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
@@ -1267,7 +1222,7 @@ void paper_test0(vid_t v_count, const string& idir, const string& odir)
     plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_paper_num(idir, odir);
+    plaingraph_manager::prep_graph_sync(idir, odir);
     
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
@@ -1380,7 +1335,7 @@ void paper_test_pr(const string& idir, const string& odir)
     plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_paper_num(idir, odir);
+    plaingraph_manager::prep_graph_sync(idir, odir);
     
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
@@ -1440,7 +1395,7 @@ void paper_test_hop1(const string& idir, const string& odir)
     plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_paper_num(idir, odir);
+    plaingraph_manager::prep_graph_sync(idir, odir);
     
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
@@ -1496,7 +1451,7 @@ void paper_test_hop2(const string& idir, const string& odir)
     plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_paper_num(idir, odir);
+    plaingraph_manager::prep_graph_sync(idir, odir);
     
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
@@ -1519,43 +1474,16 @@ void paper_test_hop2(const string& idir, const string& odir)
 
 }
 
-void update_test0d(const string& idirname, const string& odirname)
+void update_test0d(const string& idir, const string& odir)
 {
     plaingraph_manager::schema_plaingraphd();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
+    plaingraph_manager::prep_graph_sync(idir, odir);    
     
     propid_t          cf_id = g->get_cfid("friend");
     pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
     blog_t<sid_t>*     blog = ugraph->blog;
-    
-    blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
-    
-    double start = mywtime();
-    
-    //Make Graph
-    index_t marker = 0;
-    index_t snap_marker = 0;
-    //index_t total_edge_count = blog->blog_head;
-    //index_t batch_size = (total_edge_count >> residue);
-    index_t batch_size = (1L << residue);
-    cout << "batch_size = " << batch_size << endl;
-
-    while (marker < blog->blog_head) {
-        marker = min(blog->blog_head, marker+batch_size);
-        ugraph->create_marker(marker);
-        if (eOK != ugraph->move_marker(snap_marker)) {
-            assert(0);
-        }
-        ugraph->make_graph_baseline();
-        //ugraph->store_graph_baseline();
-        g->incr_snapid(snap_marker, snap_marker);
-        //blog->marker = marker;
-        ugraph->update_marker();
-        //cout << marker << endl;
-    }
-    double end = mywtime();
-    cout << "Make graph time = " << end - start << endl;
     
     onegraph_t<sid_t>*   sgraph_out = ugraph->sgraph_out[0];
     vert_table_t<sid_t>* graph_out = sgraph_out->get_begpos();
@@ -1563,7 +1491,8 @@ void update_test0d(const string& idirname, const string& odirname)
     vert_table_t<sid_t>* graph_in =  sgraph_in->get_begpos();
     degree_t* degree_array_out = 0;
     degree_t* degree_array_in = 0;
-    
+    index_t marker = 0;
+
     //Run BFS
     for (int i = 0; i < 0; i++){
         uint8_t* level_array = 0;
@@ -1661,43 +1590,20 @@ void update_test0d(const string& idirname, const string& odirname)
     }
 }
 
-void update_test0(const string& idirname, const string& odirname)
+void update_test0(const string& idir, const string& odir)
 {
     plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
     
+    plaingraph_manager::prep_graph_sync(idir, odir);
+    
     propid_t          cf_id = g->get_cfid("friend");
     pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
     blog_t<sid_t>*     blog = ugraph->blog;
     
-    blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
-    
-    double start = mywtime();
-    
     //Make Graph
     index_t marker = 0;
-    index_t snap_marker = 0;
-    //index_t total_edge_count = blog->blog_head;
-    //index_t batch_size = (total_edge_count >> residue);
-    index_t batch_size = (1L << residue);
-    cout << "batch_size = " << batch_size << endl;
-
-    while (marker < blog->blog_head) {
-        marker = min(blog->blog_head, marker+batch_size);
-        ugraph->create_marker(marker);
-        if (eOK != ugraph->move_marker(snap_marker)) {
-            assert(0);
-        }
-        ugraph->make_graph_baseline();
-        //ugraph->store_graph_baseline();
-        g->incr_snapid(snap_marker, snap_marker);
-        //blog->marker = marker;
-        ugraph->update_marker();
-        //cout << marker << endl;
-    }
-    double end = mywtime ();
-    cout << "Make graph time = " << end - start << endl;
     
     //Run BFS
     for (int i = 0; i < 1; i++){
@@ -1792,47 +1698,17 @@ void update_test0(const string& idirname, const string& odirname)
     }
 }
 
-void update_test1d(const string& idirname, const string& odirname)
+void update_test1d(const string& idir, const string& odir)
 {
     plaingraph_manager::schema_plaingraphd();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
-    
-    //-----
-    g->create_snapthread();
-    usleep(1000);
-    //-----
-    
-    edge_t* edges = 0;
-    index_t total_edge_count = read_idir(idirname, &edges, true); 
+    plaingraph_manager::prep_graph(idir, odir); 
     
     propid_t cf_id = g->get_cfid("friend");
     pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
-    
-    //Batch and Make Graph
-    double start = mywtime();
-    for (index_t i = 0; i < total_edge_count; ++i) {
-        ugraph->batch_edge(edges[i]);
-    }
-    
     blog_t<sid_t>* blog = ugraph->blog;
-    index_t marker = blog->blog_head;
-
-    //----------
-    double end = mywtime ();
-    cout << "Batch Update Time = " << end - start << endl;
     
-    if (marker != blog->blog_marker) {
-        ugraph->create_marker(marker);
-    }
-
-    //Wait for make graph
-    while (blog->blog_tail != blog->blog_head) {
-        usleep(10);
-    }
-    //---------
-    end = mywtime();
-    cout << "Make graph time = " << end - start << endl;
     
     onegraph_t<sid_t>*   sgraph_out = ugraph->sgraph_out[0];
     vert_table_t<sid_t>* graph_out = sgraph_out->get_begpos();
@@ -1840,6 +1716,7 @@ void update_test1d(const string& idirname, const string& odirname)
     vert_table_t<sid_t>* graph_in =  sgraph_in->get_begpos();
     degree_t* degree_array_out = 0;
     degree_t* degree_array_in = 0;
+    index_t marker = 0;
     
     //Run BFS
     for (int i = 0; i < 1; i++){
@@ -1886,62 +1763,20 @@ void update_test1d(const string& idirname, const string& odirname)
     }
 }
 
-void update_test1(const string& idirname, const string& odirname)
+void update_test1(const string& idir, const string& odir)
 {
     plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
-    
-    //---
-    g->create_snapthread();
-    g->create_wthread();
-    usleep(1000);
-    //---
-    
-    edge_t* edges = 0;
-    index_t total_edge_count = read_idir(idirname, &edges, true); 
+    plaingraph_manager::prep_graph(idir, odir); 
     
     propid_t cf_id = g->get_cfid("friend");
     pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
-    
-    
-    //Batch and Make Graph
-    double start = mywtime();
-    for (index_t i = 0; i < total_edge_count; ++i) {
-        ugraph->batch_edge(edges[i]);
-    }
     blog_t<sid_t>* blog = ugraph->blog;
-    index_t marker = blog->blog_head;
-
-    //----------
-    double end = mywtime();
-    cout << "Batch Update Time = " << end - start << endl;
-    
-    if (marker != blog->blog_marker) {
-        ugraph->create_marker(marker);
-    }
-
-    //Wait for make graph
-    bool done_making = false;
-    bool done_persisting = false;
-    while (!done_making || !done_persisting) {
-        if (blog->blog_tail == blog->blog_head && !done_making) {
-            end = mywtime();
-            cout << "Make Graph Time = " << end - start << endl;
-            done_making = true;
-        }
-        if (blog->blog_wtail == blog->blog_head && !done_persisting) {
-            end = mywtime();
-            cout << "Durable Graph Time = " << end - start << endl;
-            done_persisting = true;
-        }
-        usleep(1);
-    }
-    //---------
     
     //Run BFS
     //blog_t<sid_t>* blog = ugraph->blog;
-    marker = blog->blog_head;
+    index_t marker = blog->blog_head;
     uint8_t* level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, 
                             PROT_READ|PROT_WRITE,
                             MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
