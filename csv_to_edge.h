@@ -29,6 +29,8 @@ class plaingraph_manager {
     static void prep_graph_durable(const string& idirname, const string& odirname);
     static void prep_graph_paper_chain(const string& idirname, const string& odirname);
     static void prep_weighted_rmat(const string& graph_file, const string& action_file);
+    
+		static void recover_graph_adj(const string& idirname, const string& odirname);
 
     static void run_pr();
     static void run_prd();

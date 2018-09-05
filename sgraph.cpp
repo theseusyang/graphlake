@@ -484,7 +484,7 @@ void dgraph_t::make_graph_baseline()
 {
     if (blog->blog_tail >= blog->blog_marker) return;
 
-    #pragma omp parallel
+    #pragma omp parallel num_threads(THD_COUNT)
     {
     calc_edge_count(sgraph_out, sgraph_in);
 
@@ -499,7 +499,7 @@ void dgraph_t::make_graph_baseline()
 
 void dgraph_t::store_graph_baseline()
 {
-    //#pragma omp parallel
+    //#pragma omp parallel num_threads(THD_COUNT)
     {
     store_sgraph(sgraph_out);
     store_sgraph(sgraph_in);
@@ -560,7 +560,7 @@ void ugraph_t::make_graph_baseline()
     
     double start = mywtime(); 
     
-    #pragma omp parallel     
+    #pragma omp parallel     num_threads(THD_COUNT)
     {
     calc_edge_count(sgraph, sgraph);
     }
@@ -569,7 +569,7 @@ void ugraph_t::make_graph_baseline()
     
     start = mywtime(); 
     //prefix sum then reset the count
-    #pragma omp parallel     
+    #pragma omp parallel     num_threads(THD_COUNT)
     {
     prep_sgraph_internal(sgraph);
     }
@@ -578,7 +578,7 @@ void ugraph_t::make_graph_baseline()
 
     //populate and get the original count back
     start = mywtime(); 
-    #pragma omp parallel     
+    #pragma omp parallel     num_threads(THD_COUNT)
     {
     fill_adj_list(sgraph, sgraph);
     }
@@ -590,7 +590,7 @@ void ugraph_t::store_graph_baseline()
 {
     //double start, end;
 	    
-	//#pragma omp parallel     
+	//#pragma omp parallel     num_threads(THD_COUNT)
     //{
     update_count(sgraph);
     //}

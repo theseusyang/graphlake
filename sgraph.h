@@ -144,9 +144,10 @@ class pgraph_t: public cfinfo_t {
             //fwrite(blog->blog_beg + w_tail, sizeof(edgeT_t<T>), w_count, wtf);
             write(wtf, blog->blog_beg + actual_tail, sizeof(edgeT_t<T>)*w_count);
         }
-
-        write(wtf, blog->blog_beg + actual_tail, sizeof(edgeT_t<T>)*(BLOG_SIZE - actual_tail));
-        write(wtf, blog->blog_beg, sizeof(edgeT_t<T>)*actual_marker);
+        else {
+            write(wtf, blog->blog_beg + actual_tail, sizeof(edgeT_t<T>)*(BLOG_SIZE - actual_tail));
+            write(wtf, blog->blog_beg, sizeof(edgeT_t<T>)*actual_marker);
+        }
         blog->blog_wtail = w_marker;
         //fsync();
         return eOK;
@@ -906,7 +907,7 @@ void onegraph_t<T>::handle_write(bool clean /* = false */)
     do {
         last_vid2 = last_vid1;
         swap(seg1, seg2);
-        #pragma omp parallel
+        #pragma omp parallel num_threads(THD_COUNT)
         {
             #pragma omp master
             {
@@ -948,7 +949,7 @@ void onegraph_t<T>::handle_write(bool clean /* = false */)
     } while(last_vid2 < v_count);
 
 	//The last write and adj update	
-	#pragma omp parallel 
+	#pragma omp parallel num_threads(THD_COUNT)
 	{
 		//Write new adj list
 		#pragma omp master
@@ -1913,7 +1914,7 @@ void dgraph<T>::make_graph_baseline()
     if (blog->blog_tail >= blog->blog_marker) return;
     double start, end;
     start = mywtime(); 
-    #pragma omp parallel
+    #pragma omp parallel num_threads(THD_COUNT)
     {
     calc_edge_count(sgraph_out, sgraph_in);
     }
@@ -1922,7 +1923,7 @@ void dgraph<T>::make_graph_baseline()
     
     //prefix sum then reset the count
     start = mywtime(); 
-    #pragma omp parallel
+    #pragma omp parallel num_threads(THD_COUNT)
     {
     prep_sgraph_internal(sgraph_out);
     prep_sgraph_internal(sgraph_in);
@@ -1932,7 +1933,7 @@ void dgraph<T>::make_graph_baseline()
     
     //populate and get the original count back
     start = mywtime(); 
-    #pragma omp parallel
+    #pragma omp parallel num_threads(THD_COUNT)
     {
     fill_adj_list(sgraph_out, sgraph_in);
     }
@@ -1946,7 +1947,7 @@ void dgraph<T>::make_graph_baseline()
 template <class T> 
 void dgraph<T>::store_graph_baseline(bool clean)
 {
-    //#pragma omp parallel
+    //#pragma omp parallel num_threads(THD_COUNT)
     {
     store_sgraph(sgraph_out, clean);
     store_sgraph(sgraph_in, clean);
@@ -2015,7 +2016,7 @@ void ugraph<T>::make_graph_baseline()
     double start, end;
     start = mywtime(); 
     
-    #pragma omp parallel     
+    #pragma omp parallel   num_threads(THD_COUNT)  
     {
         calc_edge_count(sgraph, sgraph);
         #pragma omp master 

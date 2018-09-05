@@ -240,6 +240,36 @@ void plaingraph_manager::setup_weightedgraph_memory(vid_t v_count)
 
 extern vid_t v_count;
 
+void plaingraph_manager::recover_graph_adj(const string& idirname, const string& odirname)
+{
+    propid_t          cf_id = g->get_cfid("friend");
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+    blog_t<sid_t>*     blog = ugraph->blog;
+    
+    blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
+    
+    double start = mywtime();
+    
+    //Make Graph
+    index_t marker = 0;
+    index_t snap_marker = 0;
+    {
+        marker = blog->blog_head;
+        ugraph->create_marker(marker);
+        if (eOK != ugraph->move_marker(snap_marker)) {
+            assert(0);
+        }
+        ugraph->make_graph_baseline();
+        //ugraph->store_graph_baseline();
+        g->incr_snapid(snap_marker, snap_marker);
+        //blog->marker = marker;
+        ugraph->update_marker();
+        //cout << marker << endl;
+    }
+    double end = mywtime ();
+    cout << "Make graph time = " << end - start << endl;
+}
+
 void plaingraph_manager::prep_graph_adj(const string& idirname, const string& odirname)
 {
     propid_t          cf_id = g->get_cfid("friend");
@@ -296,11 +326,10 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
     
     blog_t<sid_t>* blog = ugraph->blog;
     index_t marker = blog->blog_head;
-
-    //----------
     double end = mywtime ();
     cout << "Batch Update Time = " << end - start << endl;
-    
+
+    //----------
     if (marker != blog->blog_marker) {
         ugraph->create_marker(marker);
     }
@@ -309,9 +338,9 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
     while (blog->blog_tail != blog->blog_head) {
         usleep(1);
     }
-    //---------
     end = mywtime();
     cout << "Make graph time = " << end - start << endl;
+    //---------
 }
 
 void plaingraph_manager::prep_graph_durable(const string& idirname, const string& odirname)
@@ -364,9 +393,9 @@ void plaingraph_manager::prep_graph_durable(const string& idirname, const string
     //while (blog->blog_tail != blog->blog_head) {
     //    usleep(10);
     //}
+    //end = mywtime();
+    //cout << "Make graph time = " << end - start << endl;
     //---------
-    end = mywtime();
-    cout << "Make graph time = " << end - start << endl;
 }
 
 void plaingraph_manager::prep_graph_paper_chain(const string& idirname, const string& odirname)

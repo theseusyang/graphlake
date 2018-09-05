@@ -1165,7 +1165,7 @@ void update_test0d(const string& idir, const string& odir)
     for (int i = 0; i < 1; i++){
         plaingraph_manager::run_bfs();
     }
-    
+    /*
     //Run PageRank
     for (int i = 0; i < 1; i++){
         plaingraph_manager::run_pr();
@@ -1175,7 +1175,7 @@ void update_test0d(const string& idir, const string& odir)
     for (int i = 0; i < 1; i++){
         plaingraph_manager::run_1hop();
     }
-    
+    */
 }
 
 void update_test0(const string& idir, const string& odir)
@@ -1190,7 +1190,7 @@ void update_test0(const string& idir, const string& odir)
     for (int i = 0; i < 1; i++){
         plaingraph_manager::run_bfs();
     }
-    
+    /*
     //Run PageRank
     for (int i = 0; i < 1; i++){
         plaingraph_manager::run_pr();
@@ -1199,11 +1199,54 @@ void update_test0(const string& idir, const string& odir)
     //Run 1-HOP query
     for (int i = 0; i < 1; i++){
         plaingraph_manager::run_1hop();
-    }
+    }*/
+}
+
+void recover_test0(const string& idir, const string& odir)
+{
+    plaingraph_manager::schema_plaingraph();
+    //do some setup for plain graphs
+    plaingraph_manager::setup_graph(v_count);    
+    
+    plaingraph_manager::recover_graph_adj(idir, odir);
+    
+    //Run BFS
+    plaingraph_manager::run_bfs();
+}
+
+void recover_test0d(const string& idir, const string& odir)
+{
+    plaingraph_manager::schema_plaingraphd();
+    //do some setup for plain graphs
+    plaingraph_manager::setup_graph(v_count);    
+    plaingraph_manager::recover_graph_adj(idir, odir);    
+    
+    //Run BFS
+    plaingraph_manager::run_bfs();
 }
 
 void update_test1d(const string& idir, const string& odir)
 {
+    plaingraph_manager::schema_plaingraphd();
+    //do some setup for plain graphs
+    plaingraph_manager::setup_graph(v_count);    
+    plaingraph_manager::prep_graph_durable(idir, odir); 
+    plaingraph_manager::run_bfsd();    
+}
+
+void update_test2(const string& idir, const string& odir)
+{
+    THD_COUNT = omp_get_max_threads() - 1;
+    plaingraph_manager::schema_plaingraph();
+    //do some setup for plain graphs
+    plaingraph_manager::setup_graph(v_count);    
+    plaingraph_manager::prep_graph(idir, odir); 
+    plaingraph_manager::run_bfs();    
+}
+
+void update_test2d(const string& idir, const string& odir)
+{
+    THD_COUNT = omp_get_max_threads() - 1;
     plaingraph_manager::schema_plaingraphd();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
@@ -1216,7 +1259,7 @@ void update_test1(const string& idir, const string& odir)
     plaingraph_manager::schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph(idir, odir); 
+    plaingraph_manager::prep_graph_durable(idir, odir); 
     plaingraph_manager::run_bfs();    
 }
 
@@ -1291,6 +1334,18 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             break;
         case 24: 
             update_test1d(idir, odir);
+            break;
+        case 25:
+            update_test2(idir, odir);
+            break;
+        case 26:
+            update_test2d(idir, odir);
+            break;
+        case 95:
+            recover_test0(idir, odir);
+            break;
+        case 96:
+            recover_test0d(idir, odir);
             break;
         case 97:
             estimate_chain_new<sid_t>(idir, odir);
