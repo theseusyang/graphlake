@@ -39,6 +39,10 @@ class pgraph_t: public cfinfo_t {
             onekv_t<T>** skv_in;
             onegraph_t<T>** sgraph_in;
         };
+        
+        edgeT_t<T>* edge_buf_out;
+        edgeT_t<T>* edge_buf_in;
+        index_t edge_buf_count;
 
         //edge batching buffer
         blog_t<T>*  blog;
@@ -55,6 +59,9 @@ class pgraph_t: public cfinfo_t {
         MAXX_ECOUNT = MAX_ECOUNT;
         sgraph = 0;
         sgraph_in = 0;
+        edge_buf_out = 0;
+        edge_buf_in = 0;
+        edge_buf_count = 0;
         
         blog = new blog_t<T>;
         blog->blog_count = BLOG_SIZE;
@@ -76,7 +83,46 @@ class pgraph_t: public cfinfo_t {
         q_tail = 0;
         wtf = 0;
     }
+    
+    inline void alloc_edge_buf(index_t total) {
+        index_t total_edge_count = 0;
+        if (0 == sgraph_in) {
+            total_edge_count = (total << 1);
+            if (0 == edge_buf_count) {
+                edge_buf_out = (edgeT_t<T>*)malloc(total_edge_count*sizeof(edgeT_t<T>));
+                edge_buf_count = total_edge_count;
+            } else if (edge_buf_count < total_edge_count) {
+                free(edge_buf_out);
+                edge_buf_out = (edgeT_t<T>*)malloc(total_edge_count*sizeof(edgeT_t<T>));
+                edge_buf_count = total_edge_count;
+            }
+        } else {
+            total_edge_count = total;
+            if (0 == edge_buf_count) {
+                edge_buf_out = (edgeT_t<T>*)malloc(total_edge_count*sizeof(edgeT_t<T>));
+                edge_buf_in = (edgeT_t<T>*)malloc(total_edge_count*sizeof(edgeT_t<T>));
+                edge_buf_count = total_edge_count;
+            } else if (edge_buf_count < total_edge_count) {
+                free(edge_buf_out);
+                free(edge_buf_in);
+                edge_buf_out = (edgeT_t<T>*)malloc(total_edge_count*sizeof(edgeT_t<T>));
+                edge_buf_in = (edgeT_t<T>*)malloc(total_edge_count*sizeof(edgeT_t<T>));
+                edge_buf_count = total_edge_count;
+            }
+        }
+    }
 
+    inline void free_edge_buf() {
+        if (edge_buf_out) {    
+            free(edge_buf_out);
+            edge_buf_out = 0;
+        }
+        if (edge_buf_in) {
+            free(edge_buf_in);
+            edge_buf_in = 0;
+        }
+        edge_buf_count = 0;
+    }
 
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0) {
         return eOK;
@@ -227,7 +273,7 @@ class pgraph_t: public cfinfo_t {
 
     void estimate_classify(vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift);
     void prefix_sum(global_range_t<T>* global_range, thd_local_t* thd_local,
-                    vid_t range_count, vid_t thd_count);
+                    vid_t range_count, vid_t thd_count, edgeT_t<T>* edge_buf);
     void work_division(global_range_t<T>* global_range, thd_local_t* thd_local,
                     vid_t range_count, vid_t thd_count, index_t equal_work);
     void classify(vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift, 

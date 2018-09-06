@@ -285,8 +285,13 @@ public:
         nebr_count = 0;
         max_vcount = 0;
 
-		thd_mem = (thd_mem_t<T>*)calloc(sizeof(thd_mem_t<T>), THD_COUNT);
-       
+        if(posix_memalign((void**)&thd_mem, 64 , THD_COUNT*sizeof(thd_mem_t<T>))) {
+            cout << "posix_memalign failed()" << endl;
+		    thd_mem = (thd_mem_t<T>*)calloc(sizeof(thd_mem_t<T>), THD_COUNT);
+        } else {
+            memset(thd_mem, 0, THD_COUNT*sizeof(thd_mem_t<T>));
+        } 
+
 	    vunit_beg	= 0;
 		vunit_count = 0;
 		vunit_ind	= 0;
@@ -381,8 +386,6 @@ public:
 			    max_count = TO_MAXCOUNT(max_count);
 			    adj_list = new_delta_adjlist_local(max_count);
             }
-			max_count = TO_MAXCOUNT(max_count);
-			adj_list = new_delta_adjlist_local(max_count);
 			adj_list->set_nebrcount(0);
 			adj_list->add_next(0);
 			v_unit->max_size = max_count;

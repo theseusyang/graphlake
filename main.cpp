@@ -32,7 +32,8 @@ int main(int argc, char* argv[])
 		{"job",       required_argument,  0, 'j'},
 		{"residue",   required_argument,  0, 'r'},
 		{"qfile",     required_argument,  0, 'q'},
-        {"typefile",  required_argument,  0, 't'},
+        {"typefile",  required_argument,  0, 'f'},
+        {"threadcount",  required_argument,  0, 't'},
 		{0,			  0,				  0,  0},
 	};
 
@@ -43,8 +44,10 @@ int main(int argc, char* argv[])
     int convert = -1;
 	vid_t v_count = 0;
     int job = 0;
-	THD_COUNT = omp_get_max_threads();
-	cout << "Total thds = " << THD_COUNT << endl;
+
+    //Thread thing
+	THD_COUNT = omp_get_max_threads();// - 3;
+
     g = new graph; 
 	while ((o = getopt_long(argc, argv, "i:c:j:o:q:t:r:v:h", longopts, &index)) != -1) {
 		switch(o) {
@@ -77,6 +80,10 @@ int main(int argc, char* argv[])
                 queryfile = optarg;
                 break;
             case 't':
+                //Thread thing
+                THD_COUNT = atoi(optarg);
+                break;
+            case 'f':
                 typefile = optarg;
                 break;
             case 'r':
@@ -86,6 +93,7 @@ int main(int argc, char* argv[])
                 break;
 		}
 	}
+	cout << "Total thds = " << THD_COUNT << endl;
     g->set_odir(odir);
     switch (convert) {
         case 0:

@@ -92,24 +92,27 @@ void pgraph_t<T>::estimate_classify(vid_t* vid_range, vid_t* vid_range_in, vid_t
 
 template <class T>
 void pgraph_t<T>::prefix_sum(global_range_t<T>* global_range, thd_local_t* thd_local,
-                             vid_t range_count, vid_t thd_count)
+                             vid_t range_count, vid_t thd_count, edgeT_t<T>* edge_buf)
 {
     index_t total = 0;
     index_t value = 0;
+    index_t alloc_start = 0;
 
-    #pragma omp for schedule(static) nowait
+    //#pragma omp for schedule(static) nowait
+    #pragma omp master
     for (vid_t i = 0; i < range_count; ++i) {
         total = 0;
+        global_range[i].edges = edge_buf + alloc_start;
         for (vid_t j = 0; j < thd_count; ++j) {
             value = thd_local[j].vid_range[i];
             thd_local[j].vid_range[i] = total;
             total += value;
         }
 
+        alloc_start += total;
         global_range[i].count = total;
-        if (total != 0)
-            global_range[i].edges = (edgeT_t<T>*)malloc(sizeof(edgeT_t<T>)*total);
-        
+        //if (total != 0)
+            //global_range[i].edges = (edgeT_t<T>*)malloc(sizeof(edgeT_t<T>)*total);
     }
 }
 
@@ -376,10 +379,13 @@ void pgraph_t<T>::make_graph_d()
     thd_local_t* thd_local = (thd_local_t*) calloc(sizeof(thd_local_t), thd_count);  
     thd_local_t* thd_local_in = (thd_local_t*) calloc(sizeof(thd_local_t), thd_count);  
    
-    index_t edge_count = ((blog->blog_marker - blog->blog_tail)*1.15)/(thd_count);
+    index_t total_edge_count = blog->blog_marker - blog->blog_tail;
+    alloc_edge_buf(total_edge_count);
+    
+    index_t edge_count = (total_edge_count*1.15)/(thd_count);
     
 
-    #pragma omp parallel
+    #pragma omp parallel num_threads (thd_count) 
     {
         vid_t tid = omp_get_thread_num();
         vid_t* vid_range = (vid_t*)calloc(sizeof(vid_t), range_count); 
@@ -392,8 +398,8 @@ void pgraph_t<T>::make_graph_d()
         //Get the count for classification
         this->estimate_classify(vid_range, vid_range_in, bit_shift);
         
-        this->prefix_sum(global_range, thd_local, range_count, thd_count);
-        this->prefix_sum(global_range_in, thd_local_in, range_count, thd_count);
+        this->prefix_sum(global_range, thd_local, range_count, thd_count, edge_buf_out);
+        this->prefix_sum(global_range_in, thd_local_in, range_count, thd_count, edge_buf_in);
         #pragma omp barrier 
         
         //Classify
@@ -457,15 +463,15 @@ void pgraph_t<T>::make_graph_d()
         free(vid_range_in);
         #pragma omp barrier 
         
-        //free the memory
-        #pragma omp for schedule (static)
-        for (vid_t i = 0; i < range_count; ++i) {
-            if (global_range[i].edges)
-                free(global_range[i].edges);
-            
-            if (global_range_in[i].edges)
-                free(global_range_in[i].edges);
-        }
+        ////free the memory
+        //#pragma omp for schedule (static)
+        //for (vid_t i = 0; i < range_count; ++i) {
+        //    if (global_range[i].edges)
+        //        free(global_range[i].edges);
+        //    
+        //    if (global_range_in[i].edges)
+        //        free(global_range_in[i].edges);
+        //}
     }
 
     free(global_range);
@@ -499,11 +505,13 @@ void pgraph_t<T>::make_graph_u()
                             sizeof(global_range_t<T>), range_count);
     
     thd_local_t* thd_local = (thd_local_t*) calloc(sizeof(thd_local_t), thd_count);  
-    index_t edge_count = (((blog->blog_marker - blog->blog_tail) << 1)*1.15)/(thd_count);
-        
+    index_t total_edge_count = blog->blog_marker - blog->blog_tail ;
+    index_t edge_count = ((total_edge_count << 1)*1.15)/(thd_count);
+    
+    alloc_edge_buf(total_edge_count);
     double start = mywtime();
 
-    #pragma omp parallel
+    #pragma omp parallel num_threads(thd_count)
     {
         int tid = omp_get_thread_num();
         vid_t* vid_range = (vid_t*)calloc(sizeof(vid_t), range_count); 
@@ -512,13 +520,14 @@ void pgraph_t<T>::make_graph_u()
         //Get the count for classification
         this->estimate_classify(vid_range, vid_range, bit_shift);
         
-        this->prefix_sum(global_range, thd_local, range_count, thd_count);
+        this->prefix_sum(global_range, thd_local, range_count, thd_count, edge_buf_out);
         #pragma omp barrier 
         
         //Classify
         this->classify(vid_range, vid_range, bit_shift, global_range, global_range);
         #pragma omp master 
         {
+            print(" classify = ", start);
             //double end = mywtime();
             //cout << " classify " << end - start << endl;
             this->work_division(global_range, thd_local, range_count, thd_count, edge_count);
@@ -555,14 +564,14 @@ void pgraph_t<T>::make_graph_u()
         #pragma omp barrier 
         print(" adj-list filled = ", start);
         
-        //free the memory
-        #pragma omp for schedule (static)
-        for (vid_t i = 0; i < range_count; ++i) {
-            if (global_range[i].edges)
-                free(global_range[i].edges);
-        }
+       // //free the memory
+       // #pragma omp for schedule (static)
+       // for (vid_t i = 0; i < range_count; ++i) {
+       //     if (global_range[i].edges)
+       //         free(global_range[i].edges);
+       // }
     }
-
+    //free_edge_buf();
     free(global_range);
     free(thd_local);
     blog->blog_tail = blog->blog_marker;  
