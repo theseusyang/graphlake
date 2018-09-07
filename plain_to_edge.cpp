@@ -240,32 +240,78 @@ void plaingraph_manager::setup_weightedgraph_memory(vid_t v_count)
 
 extern vid_t v_count;
 
-void plaingraph_manager::recover_graph_adj(const string& idirname, const string& odirname)
+void* recovery_func(void* arg) 
 {
+    string filename = *(string*)arg;
     propid_t          cf_id = g->get_cfid("friend");
     pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
     blog_t<sid_t>*     blog = ugraph->blog;
+    edgeT_t<sid_t>*    edge = blog->blog_beg;
     
-    blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
+    index_t to_read = 0;
+    index_t total_read = 0;
+    index_t batch_size = (1L << residue);
+    cout << "batch_size = " << batch_size << endl;
+        
+    FILE* file = fopen(filename.c_str(), "rb");
+    assert(file != 0);
+    index_t size = fsize(filename);
+    index_t edge_count = size/sizeof(edge_t);
+    
+    
+    while (total_read < edge_count) {
+        to_read = min(edge_count - total_read,batch_size);
+        if (to_read != fread(edge + total_read, sizeof(edge_t), to_read, file)) {
+            assert(0);
+        }
+        blog->blog_head += to_read;
+        total_read += to_read;
+    }
+    return 0;
+}
+
+void plaingraph_manager::recover_graph_adj(const string& idirname, const string& odirname)
+{
+    string idir = idirname;
+    index_t batch_size = (1L << residue);
+    cout << "batch_size = " << batch_size << endl;
+
+    pthread_t recovery_thread;
+    if (0 != pthread_create(&recovery_thread, 0, recovery_func , &idir)) {
+        assert(0);
+    }
+    
+    propid_t          cf_id = g->get_cfid("friend");
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+    blog_t<sid_t>*     blog = ugraph->blog;
+    index_t marker = 0;
+    index_t snap_marker = 0;
+    index_t size = fsize(idirname);
+    index_t edge_count = size/sizeof(edge_t);
     
     double start = mywtime();
     
     //Make Graph
-    index_t marker = 0;
-    index_t snap_marker = 0;
-    {
-        marker = blog->blog_head;
-        ugraph->create_marker(marker);
-        if (eOK != ugraph->move_marker(snap_marker)) {
-            assert(0);
-        }
-        ugraph->make_graph_baseline();
-        //ugraph->store_graph_baseline();
-        g->incr_snapid(snap_marker, snap_marker);
-        //blog->marker = marker;
-        ugraph->update_marker();
-        //cout << marker << endl;
+    while (0 == blog->blog_head) {
+        usleep(20);
     }
+    while (marker < edge_count) {
+        usleep(20);
+        while (marker < blog->blog_head) {
+            marker = min(blog->blog_head, marker+batch_size);
+            ugraph->create_marker(marker);
+            if (eOK != ugraph->move_marker(snap_marker)) {
+                assert(0);
+            }
+            ugraph->make_graph_baseline();
+            //ugraph->store_graph_baseline();
+            g->incr_snapid(snap_marker, snap_marker);
+            //blog->marker = marker;
+            ugraph->update_marker();
+            //cout << marker << endl;
+        }
+    }
+    
     double end = mywtime ();
     cout << "Make graph time = " << end - start << endl;
 }

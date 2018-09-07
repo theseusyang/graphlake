@@ -1163,7 +1163,7 @@ void update_test0d(const string& idir, const string& odir)
     
     //Run BFS
     for (int i = 0; i < 1; i++){
-        plaingraph_manager::run_bfs();
+        plaingraph_manager::run_bfsd();
     }
     /*
     //Run PageRank
@@ -1222,7 +1222,7 @@ void recover_test0d(const string& idir, const string& odir)
     plaingraph_manager::recover_graph_adj(idir, odir);    
     
     //Run BFS
-    plaingraph_manager::run_bfs();
+    plaingraph_manager::run_bfsd();
 }
 
 void update_test1d(const string& idir, const string& odir)
