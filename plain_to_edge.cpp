@@ -9,11 +9,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "csv_to_edge.h"
+
 #include "type.h"
 #include "graph.h"
 #include "typekv.h"
 #include "sgraph.h"
+#include "plain_to_edge.h"
 
 #include "iterative_analytics.h"
 #include "mem_iterative_analytics.h"
@@ -67,7 +68,7 @@ index_t read_idir(const string& idirname, edge_t** pedges, bool alloc)
     return total_edge_count;
 }
 
-void plaingraph_manager::schema_plaingraph()
+void plaingraph_manager_t::schema_plaingraph()
 {
     g->cf_info = new cfinfo_t*[2];
     g->p_info = new pinfo_t[2];
@@ -96,10 +97,11 @@ void plaingraph_manager::schema_plaingraph()
     info->create_columns();
     info->add_column(p_info);
     ++p_info;
+    set_pgraph(info);
 
 }
 
-void plaingraph_manager::schema_plaingraphd()
+void plaingraph_manager_t::schema_plaingraphd()
 {
     g->cf_info = new cfinfo_t*[2];
     g->p_info = new pinfo_t[2];
@@ -128,9 +130,10 @@ void plaingraph_manager::schema_plaingraphd()
     info->create_columns();
     info->add_column(p_info);
     ++p_info;
+    set_pgraph(info);
 }
 
-void plaingraph_manager::schema_weightedgraphu()
+void plaingraph_manager_t::schema_weightedgraphu()
 {
     g->cf_info = new cfinfo_t*[2];
     g->p_info = new pinfo_t[2];
@@ -159,9 +162,10 @@ void plaingraph_manager::schema_weightedgraphu()
     info->create_columns();
     info->add_column(p_info);
     ++p_info;
+    set_pgraph(info);
 }
 
-void plaingraph_manager::schema_weightedgraphd()
+void plaingraph_manager_t::schema_weightedgraphd()
 {
     g->cf_info = new cfinfo_t*[2];
     g->p_info = new pinfo_t[2];
@@ -190,14 +194,14 @@ void plaingraph_manager::schema_weightedgraphd()
     info->create_columns();
     info->add_column(p_info);
     ++p_info;
+    set_pgraph(info);
 }
 
 
-void plaingraph_manager::setup_graph(vid_t v_count)
+void plaingraph_manager_t::setup_graph(vid_t v_count)
 {
     //do some setup for plain graphs
-    propid_t cf_id = g->get_cfid("friend");
-    pgraph_t<sid_t>* graph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+    pgraph_t<sid_t>* graph = (pgraph_t<sid_t>*)get_plaingraph();
     graph->flag1 = 1;
     graph->flag2 = 1;
     typekv_t* typekv = g->get_typekv();
@@ -208,11 +212,10 @@ void plaingraph_manager::setup_graph(vid_t v_count)
     g->store_graph_baseline(); 
 }
 
-void plaingraph_manager::setup_weightedgraph(vid_t v_count)
+void plaingraph_manager_t::setup_weightedgraph(vid_t v_count)
 {
     //do some setup for plain graphs
-    propid_t cf_id = g->get_cfid("friend");
-    pgraph_t<lite_edge_t>* graph = (pgraph_t<lite_edge_t>*)g->cf_info[cf_id];
+    pgraph_t<lite_edge_t>* graph = (pgraph_t<lite_edge_t>*)get_weightedgraph();
     graph->flag1 = 1;
     graph->flag2 = 1;
     typekv_t* typekv = g->get_typekv();
@@ -223,11 +226,10 @@ void plaingraph_manager::setup_weightedgraph(vid_t v_count)
     g->store_graph_baseline(); 
 }
 
-void plaingraph_manager::setup_weightedgraph_memory(vid_t v_count)
+void plaingraph_manager_t::setup_weightedgraph_memory(vid_t v_count)
 {
     //do some setup for plain graphs
-    propid_t cf_id = g->get_cfid("friend");
-    pgraph_t<lite_edge_t>* graph = (pgraph_t<lite_edge_t>*)g->cf_info[cf_id];
+    pgraph_t<lite_edge_t>* graph = (pgraph_t<lite_edge_t>*)get_weightedgraph();
     graph->flag1 = 1;
     graph->flag2 = 1;
     typekv_t* typekv = g->get_typekv();
@@ -243,8 +245,7 @@ extern vid_t v_count;
 void* recovery_func(void* arg) 
 {
     string filename = *(string*)arg;
-    propid_t          cf_id = g->get_cfid("friend");
-    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)plaingraph_manager.get_plaingraph();
     blog_t<sid_t>*     blog = ugraph->blog;
     edgeT_t<sid_t>*    edge = blog->blog_beg;
     
@@ -270,7 +271,7 @@ void* recovery_func(void* arg)
     return 0;
 }
 
-void plaingraph_manager::recover_graph_adj(const string& idirname, const string& odirname)
+void plaingraph_manager_t::recover_graph_adj(const string& idirname, const string& odirname)
 {
     string idir = idirname;
     index_t batch_size = (1L << residue);
@@ -281,8 +282,7 @@ void plaingraph_manager::recover_graph_adj(const string& idirname, const string&
         assert(0);
     }
     
-    propid_t          cf_id = g->get_cfid("friend");
-    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)get_plaingraph();
     blog_t<sid_t>*     blog = ugraph->blog;
     index_t marker = 0;
     index_t snap_marker = 0;
@@ -316,10 +316,9 @@ void plaingraph_manager::recover_graph_adj(const string& idirname, const string&
     cout << "Make graph time = " << end - start << endl;
 }
 
-void plaingraph_manager::prep_graph_adj(const string& idirname, const string& odirname)
+void plaingraph_manager_t::prep_graph_and_compute(const string& idirname, const string& odirname)
 {
-    propid_t          cf_id = g->get_cfid("friend");
-    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)get_plaingraph();
     blog_t<sid_t>*     blog = ugraph->blog;
     
     blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
@@ -351,7 +350,41 @@ void plaingraph_manager::prep_graph_adj(const string& idirname, const string& od
     cout << "Make graph time = " << end - start << endl;
 }
 
-void plaingraph_manager::prep_graph(const string& idirname, const string& odirname)
+void plaingraph_manager_t::prep_graph_adj(const string& idirname, const string& odirname)
+{
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)get_plaingraph();
+    blog_t<sid_t>*     blog = ugraph->blog;
+    
+    blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
+    
+    double start = mywtime();
+    
+    //Make Graph
+    index_t marker = 0;
+    index_t snap_marker = 0;
+    //index_t total_edge_count = blog->blog_head;
+    //index_t batch_size = (total_edge_count >> residue);
+    index_t batch_size = (1L << residue);
+    cout << "batch_size = " << batch_size << endl;
+
+    while (marker < blog->blog_head) {
+        marker = min(blog->blog_head, marker+batch_size);
+        ugraph->create_marker(marker);
+        if (eOK != ugraph->move_marker(snap_marker)) {
+            assert(0);
+        }
+        ugraph->make_graph_baseline();
+        //ugraph->store_graph_baseline();
+        g->incr_snapid(snap_marker, snap_marker);
+        //blog->marker = marker;
+        ugraph->update_marker();
+        //cout << marker << endl;
+    }
+    double end = mywtime ();
+    cout << "Make graph time = " << end - start << endl;
+}
+
+void plaingraph_manager_t::prep_graph(const string& idirname, const string& odirname)
 {
     //-----
     g->create_snapthread();
@@ -361,8 +394,7 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
     edge_t* edges = 0;
     index_t total_edge_count = read_idir(idirname, &edges, true); 
     
-    propid_t cf_id = g->get_cfid("friend");
-    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)get_plaingraph();
     
     //Batch and Make Graph
     double start = mywtime();
@@ -389,7 +421,7 @@ void plaingraph_manager::prep_graph(const string& idirname, const string& odirna
     //---------
 }
 
-void plaingraph_manager::prep_graph_durable(const string& idirname, const string& odirname)
+void plaingraph_manager_t::prep_graph_durable(const string& idirname, const string& odirname)
 {
     //-----
     g->create_wthread();
@@ -400,8 +432,7 @@ void plaingraph_manager::prep_graph_durable(const string& idirname, const string
     edge_t* edges = 0;
     index_t total_edge_count = read_idir(idirname, &edges, true); 
     
-    propid_t cf_id = g->get_cfid("friend");
-    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)get_plaingraph();
     
     //Batch and Make Graph
     double start = mywtime();
@@ -444,10 +475,9 @@ void plaingraph_manager::prep_graph_durable(const string& idirname, const string
     //---------
 }
 
-void plaingraph_manager::prep_graph_paper_chain(const string& idirname, const string& odirname)
+void plaingraph_manager_t::prep_graph_paper_chain(const string& idirname, const string& odirname)
 {
-    propid_t          cf_id = g->get_cfid("friend");
-    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)get_plaingraph();
     blog_t<sid_t>*     blog = ugraph->blog;
     
     blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
@@ -480,10 +510,9 @@ void plaingraph_manager::prep_graph_paper_chain(const string& idirname, const st
     cout << "Make graph time = " << end - start << endl;
 }
 
-void plaingraph_manager::run_pr() 
+void plaingraph_manager_t::run_pr() 
 {
-    propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
+    ugraph_t* ugraph = (ugraph_t*)get_plaingraph();
     blog_t<sid_t>* blog = ugraph->blog;
     onegraph_t<sid_t>*   sgraph = ugraph->sgraph[0];
     vert_table_t<sid_t>* graph = sgraph->get_begpos();
@@ -508,10 +537,9 @@ void plaingraph_manager::run_pr()
     free(degree_array);
 }
 
-void plaingraph_manager::run_prd()
+void plaingraph_manager_t::run_prd()
 {
-    propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
+    dgraph_t* ugraph = (dgraph_t*)get_plaingraph();
     blog_t<sid_t>* blog = ugraph->blog;
     
     onegraph_t<sid_t>*   sgraph_out = ugraph->sgraph_out[0];
@@ -548,10 +576,9 @@ void plaingraph_manager::run_prd()
     free(degree_array_in);
 }
 
-void plaingraph_manager::run_bfs()
+void plaingraph_manager_t::run_bfs()
 {
-    propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
+    ugraph_t* ugraph = (ugraph_t*)get_plaingraph();
     blog_t<sid_t>* blog = ugraph->blog;
     //onegraph_t<sid_t>*   sgraph = ugraph->sgraph[0];
     vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
@@ -595,10 +622,9 @@ void plaingraph_manager::run_bfs()
     free(degree_array);
 }
 
-void plaingraph_manager::run_bfsd() 
+void plaingraph_manager_t::run_bfsd() 
 {
-    propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
+    dgraph_t* ugraph = (dgraph_t*)get_plaingraph();
     blog_t<sid_t>* blog = ugraph->blog;
     
     onegraph_t<sid_t>*   sgraph_out = ugraph->sgraph_out[0];
@@ -647,10 +673,9 @@ void plaingraph_manager::run_bfsd()
     free(degree_array_in);
 }
 
-void plaingraph_manager::run_1hop()
+void plaingraph_manager_t::run_1hop()
 {
-    propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
+    ugraph_t* ugraph = (ugraph_t*)get_plaingraph();
     blog_t<sid_t>* blog = ugraph->blog;
     vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
    
@@ -670,10 +695,9 @@ void plaingraph_manager::run_1hop()
 
 }
 
-void plaingraph_manager::run_1hopd()
+void plaingraph_manager_t::run_1hopd()
 {
-    propid_t          cf_id = g->get_cfid("friend");
-    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)get_plaingraph();
     blog_t<sid_t>*     blog = ugraph->blog;
     
     onegraph_t<sid_t>*   sgraph_out = ugraph->sgraph_out[0];
@@ -703,10 +727,9 @@ void plaingraph_manager::run_1hopd()
     free(degree_array_in);
 }
 
-void plaingraph_manager::run_2hop()
+void plaingraph_manager_t::run_2hop()
 {
-    propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
+    ugraph_t* ugraph = (ugraph_t*)get_plaingraph();
     vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
     blog_t<sid_t>* blog = ugraph->blog;
    

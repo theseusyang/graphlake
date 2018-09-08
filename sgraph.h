@@ -197,7 +197,6 @@ class pgraph_t: public cfinfo_t {
         blog->blog_wtail = w_marker;
         //fsync();
         return eOK;
-            
     }
     
    // status_t write_edgelog() {
@@ -239,13 +238,11 @@ class pgraph_t: public cfinfo_t {
             return eNoWork;
         }
         
-        
         index_t m_index = head - 1;
         index_t marker = q_beg[m_index % q_count];
         q_tail = head;
         blog->blog_marker = marker;
         snap_marker = blog->blog_marker;
-        
         
         /*
         index_t m_index = __sync_fetch_and_add(&q_tail, 1L);

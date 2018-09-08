@@ -3,7 +3,7 @@
 #include <dirent.h>
 
 #include "all.h"
-#include "csv_to_edge.h"
+#include "plain_to_edge.h"
 #include "iterative_analytics.h"
 #include "ext_iterative_analytics.h"
 #include "mem_iterative_analytics.h"
@@ -13,7 +13,7 @@ using namespace std;
 
 extern index_t residue;
 vid_t v_count = 0;
-
+plaingraph_manager_t plaingraph_manager; 
 
 struct estimate_t {
     degree_t durable_degree;
@@ -81,9 +81,9 @@ index_t read_idir(const string& idirname, edge_t** pedges, bool alloc);
 template <class T>
 void estimate_chain(const string& idirname, const string& odirname)
 {
-    plaingraph_manager::schema_plaingraph();
+    plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
+    plaingraph_manager.setup_graph(v_count);    
     
     propid_t          cf_id = g->get_cfid("friend");
     pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
@@ -169,9 +169,9 @@ void estimate_chain(const string& idirname, const string& odirname)
 template <class T>
 void estimate_chain_new(const string& idirname, const string& odirname)
 {
-    plaingraph_manager::schema_plaingraph();
+    plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
+    plaingraph_manager.setup_graph(v_count);    
 
     propid_t          cf_id = g->get_cfid("friend");
     pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
@@ -288,9 +288,9 @@ void estimate_chain_new(const string& idirname, const string& odirname)
 template <class T>
 void estimate_IO(const string& idirname, const string& odirname)
 {
-    plaingraph_manager::schema_plaingraph();
+    plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
+    plaingraph_manager.setup_graph(v_count);    
     
     propid_t          cf_id = g->get_cfid("friend");
     pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
@@ -582,30 +582,30 @@ void split_graph(const string& idirname, const string& odirname)
 
 void weight_dtest0(const string& idir, const string& odir)
 {
-    plaingraph_manager::schema_weightedgraphd();
-    plaingraph_manager::setup_weightedgraph(v_count);    
+    plaingraph_manager.schema_weightedgraphd();
+    plaingraph_manager.setup_weightedgraph(v_count);    
 }
 
 void weight_dtest1(const string& odir)
 {
-    plaingraph_manager::schema_weightedgraphu();
-    plaingraph_manager::setup_weightedgraph(v_count);    
+    plaingraph_manager.schema_weightedgraphu();
+    plaingraph_manager.setup_weightedgraph(v_count);    
 }
 
 //template <class T>
 void weighted_dtest0(const string& idir, const string& odir)
 {
     
-    plaingraph_manager::schema_weightedgraphu();
+    plaingraph_manager.schema_weightedgraphu();
     
     //Is called from below function
-    //plaingraph_manager::setup_weightedgraph(v_count);    
+    //plaingraph_manager.setup_weightedgraph(v_count);    
     
     //string graph_file = idir + "g.bin";
     //string action_file = idir + "a.bin"; 
     string graph_file = idir + "small_basegraph";
     string action_file = idir + "small_action"; 
-    //plaingraph_manager::prep_weighted_rmat(graph_file, action_file);
+    //plaingraph_manager.prep_weighted_rmat(graph_file, action_file);
     
     int fd = open(graph_file.c_str(), O_RDONLY);
     assert(fd != -1);
@@ -629,7 +629,7 @@ void weighted_dtest0(const string& idir, const string& odir)
 
     //Create number of vertex
     v_count = nv;
-    plaingraph_manager::setup_weightedgraph(v_count);
+    plaingraph_manager.setup_weightedgraph(v_count);
     
     //Do ingestion
     /*
@@ -859,10 +859,10 @@ void weighted_dtest0(const string& idir, const string& odir)
 
 void plain_test1(const string& idir, const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
+    plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph(idir, odir);
+    plaingraph_manager.setup_graph(v_count);    
+    plaingraph_manager.prep_graph(idir, odir);
     
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
@@ -875,7 +875,7 @@ void plain_test1(const string& idir, const string& odir)
     
     string idir1 = "/mnt/disk_huge_1/pradeepk/pradeep_graph/kron_21_16_incr/"; 
     //string idir1 = "../data/kron_21_16_incr/"; 
-    plaingraph_manager::prep_graph(idir1, odir);
+    plaingraph_manager.prep_graph(idir1, odir);
     
     snapid_t snap_id = g->get_snapid(); 
     uint8_t* level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
@@ -944,9 +944,9 @@ void plain_test1(const string& idir, const string& odir)
 
 void plain_test2(const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
+    plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
-    //plaingraph_manager::setup_graph(v_count);    
+    //plaingraph_manager.setup_graph(v_count);    
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
     ugraph->flag1 = 1;
@@ -1016,11 +1016,11 @@ void plain_test2(const string& odir)
 
 void plain_test3(const string& idir, const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
+    plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_paper_chain(idir, odir);
-    //plaingraph_manager::prep_graph(idir, odir);
+    plaingraph_manager.setup_graph(v_count);    
+    plaingraph_manager.prep_graph_paper_chain(idir, odir);
+    //plaingraph_manager.prep_graph(idir, odir);
     
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
@@ -1030,14 +1030,14 @@ void plain_test3(const string& idir, const string& odir)
 
 void plain_test4(const string& idir, const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
+    plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
+    plaingraph_manager.setup_graph(v_count);    
     
-    plaingraph_manager::prep_graph(idir, odir);
+    plaingraph_manager.prep_graph(idir, odir);
     
     string idir1 = "/mnt/disk_huge_1/pradeepk/pradeep_graph/kron_21_16_incr/"; 
-    plaingraph_manager::prep_graph(idir1, odir);
+    plaingraph_manager.prep_graph(idir1, odir);
     
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
@@ -1047,9 +1047,9 @@ void plain_test4(const string& idir, const string& odir)
 
 void plain_test5(const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
+    plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
-    //plaingraph_manager::setup_graph(v_count);    
+    //plaingraph_manager.setup_graph(v_count);    
     
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
@@ -1064,9 +1064,9 @@ void plain_test5(const string& odir)
 
 void plain_test6(const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
+    plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
+    plaingraph_manager.setup_graph(v_count);    
     
     g->read_graph_baseline();
     
@@ -1083,184 +1083,184 @@ void plain_test6(const string& odir)
 
 void paper_test_chain_bfs(const string& idir, const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
+    plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_paper_chain(idir, odir);
+    plaingraph_manager.setup_graph(v_count);    
+    plaingraph_manager.prep_graph_paper_chain(idir, odir);
     
     for (int i = 0; i < 10; i++) {
-        plaingraph_manager::run_bfs();
+        plaingraph_manager.run_bfs();
     }
 }
 void paper_test_pr_chain(const string& idir, const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
+    plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_paper_chain(idir, odir);
+    plaingraph_manager.setup_graph(v_count);    
+    plaingraph_manager.prep_graph_paper_chain(idir, odir);
     
     for (int i = 0; i < 10; i++) {
-        plaingraph_manager::run_pr();
+        plaingraph_manager.run_pr();
     }
 }
 
 void paper_test_pr(const string& idir, const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
+    plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_adj(idir, odir);
+    plaingraph_manager.setup_graph(v_count);    
+    plaingraph_manager.prep_graph_adj(idir, odir);
     
-    plaingraph_manager::run_pr();
+    plaingraph_manager.run_pr();
 }
 
 void paper_test_hop1_chain(const string& idir, const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
+    plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_paper_chain(idir, odir);
+    plaingraph_manager.setup_graph(v_count);    
+    plaingraph_manager.prep_graph_paper_chain(idir, odir);
     
-    plaingraph_manager::run_1hop();
+    plaingraph_manager.run_1hop();
 }
 
 void paper_test_hop1(const string& idir, const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
+    plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_adj(idir, odir);
+    plaingraph_manager.setup_graph(v_count);    
+    plaingraph_manager.prep_graph_adj(idir, odir);
     
-    plaingraph_manager::run_1hop();
+    plaingraph_manager.run_1hop();
 }
 
 void paper_test_hop2_chain(const string& idir, const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
+    plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_paper_chain(idir, odir);
+    plaingraph_manager.setup_graph(v_count);    
+    plaingraph_manager.prep_graph_paper_chain(idir, odir);
     
-    plaingraph_manager::run_2hop();
+    plaingraph_manager.run_2hop();
 }
 
 void paper_test_hop2(const string& idir, const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
+    plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_adj(idir, odir);
+    plaingraph_manager.setup_graph(v_count);    
+    plaingraph_manager.prep_graph_adj(idir, odir);
     
-    plaingraph_manager::run_2hop();
+    plaingraph_manager.run_2hop();
 }
 
 void update_test0d(const string& idir, const string& odir)
 {
-    plaingraph_manager::schema_plaingraphd();
+    plaingraph_manager.schema_plaingraphd();
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_adj(idir, odir);    
+    plaingraph_manager.setup_graph(v_count);    
+    plaingraph_manager.prep_graph_adj(idir, odir);    
     
     //Run BFS
     for (int i = 0; i < 1; i++){
-        plaingraph_manager::run_bfsd();
+        plaingraph_manager.run_bfsd();
     }
     /*
     //Run PageRank
     for (int i = 0; i < 1; i++){
-        plaingraph_manager::run_pr();
+        plaingraph_manager.run_pr();
     }
     
     //Run 1-HOP query
     for (int i = 0; i < 1; i++){
-        plaingraph_manager::run_1hop();
+        plaingraph_manager.run_1hop();
     }
     */
 }
 
 void update_test0(const string& idir, const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
+    plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
+    plaingraph_manager.setup_graph(v_count);    
     
-    plaingraph_manager::prep_graph_adj(idir, odir);
+    plaingraph_manager.prep_graph_adj(idir, odir);
     
     //Run BFS
     for (int i = 0; i < 1; i++){
-        plaingraph_manager::run_bfs();
+        plaingraph_manager.run_bfs();
     }
     /*
     //Run PageRank
     for (int i = 0; i < 1; i++){
-        plaingraph_manager::run_pr();
+        plaingraph_manager.run_pr();
     }
     
     //Run 1-HOP query
     for (int i = 0; i < 1; i++){
-        plaingraph_manager::run_1hop();
+        plaingraph_manager.run_1hop();
     }*/
 }
 
 void recover_test0(const string& idir, const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
+    plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
+    plaingraph_manager.setup_graph(v_count);    
     
-    plaingraph_manager::recover_graph_adj(idir, odir);
+    plaingraph_manager.recover_graph_adj(idir, odir);
     
     //Run BFS
-    plaingraph_manager::run_bfs();
+    plaingraph_manager.run_bfs();
 }
 
 void recover_test0d(const string& idir, const string& odir)
 {
-    plaingraph_manager::schema_plaingraphd();
+    plaingraph_manager.schema_plaingraphd();
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::recover_graph_adj(idir, odir);    
+    plaingraph_manager.setup_graph(v_count);    
+    plaingraph_manager.recover_graph_adj(idir, odir);    
     
     //Run BFS
-    plaingraph_manager::run_bfsd();
+    plaingraph_manager.run_bfsd();
 }
 
 void update_test1d(const string& idir, const string& odir)
 {
-    plaingraph_manager::schema_plaingraphd();
+    plaingraph_manager.schema_plaingraphd();
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_durable(idir, odir); 
-    plaingraph_manager::run_bfsd();    
+    plaingraph_manager.setup_graph(v_count);    
+    plaingraph_manager.prep_graph_durable(idir, odir); 
+    plaingraph_manager.run_bfsd();    
 }
 
 void update_test2(const string& idir, const string& odir)
 {
     THD_COUNT = omp_get_max_threads() - 1;
-    plaingraph_manager::schema_plaingraph();
+    plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph(idir, odir); 
-    plaingraph_manager::run_bfs();    
+    plaingraph_manager.setup_graph(v_count);    
+    plaingraph_manager.prep_graph(idir, odir); 
+    plaingraph_manager.run_bfs();    
 }
 
 void update_test2d(const string& idir, const string& odir)
 {
     THD_COUNT = omp_get_max_threads() - 1;
-    plaingraph_manager::schema_plaingraphd();
+    plaingraph_manager.schema_plaingraphd();
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph(idir, odir); 
-    plaingraph_manager::run_bfsd();    
+    plaingraph_manager.setup_graph(v_count);    
+    plaingraph_manager.prep_graph(idir, odir); 
+    plaingraph_manager.run_bfsd();    
 }
 
 void update_test1(const string& idir, const string& odir)
 {
-    plaingraph_manager::schema_plaingraph();
+    plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
-    plaingraph_manager::setup_graph(v_count);    
-    plaingraph_manager::prep_graph_durable(idir, odir); 
-    plaingraph_manager::run_bfs();    
+    plaingraph_manager.setup_graph(v_count);    
+    plaingraph_manager.prep_graph_durable(idir, odir); 
+    plaingraph_manager.run_bfs();    
 }
 
 void llama_test_bfs(const string& odir);
