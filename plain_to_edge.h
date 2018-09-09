@@ -9,8 +9,12 @@ template<class T>
 class sstream_t;
 
 template<class T>
+class stream_t;
+
+template<class T>
 struct callback {
-      typedef void(*func)(sstream_t<T>*);
+      typedef void(*sfunc)(sstream_t<T>*);
+      typedef void(*func)(stream_t<T>*);
 };
 
 template <class T>
@@ -26,7 +30,7 @@ class sstream_t {
     index_t          edge_count;//their count
     
     void*            algo_meta;//algorithm specific data
-    typename callback<T>::func   stream_func; 
+    typename callback<T>::sfunc   stream_func; 
 
  public:
     sstream_t(){
@@ -35,6 +39,32 @@ class sstream_t {
         degree_out = 0;
         degree_in = 0;
         snapshot = 0;
+        edges = 0;
+        edge_count = 0;
+        algo_meta = 0;
+    }
+ public:
+    inline void    set_algometa(void* a_meta) {algo_meta = a_meta;};
+    inline void*   get_algometa() {return algo_meta;}
+
+    inline edgeT_t<T>* get_edges() { return edges;}
+    inline void        set_edges(edgeT_t<T>*a_edges) {edges = a_edges;}
+    
+    inline index_t     get_edgecount() { return edge_count;}
+    inline void        set_edgecount(index_t a_edgecount){edge_count = a_edgecount;}
+};
+
+template <class T>
+class stream_t {
+ public:
+    edgeT_t<T>*      edges; //mew edges
+    index_t          edge_count;//their count
+    void*            algo_meta;//algorithm specific data
+    
+    typename callback<T>::func   stream_func; 
+
+ public:
+    stream_t(){
         edges = 0;
         edge_count = 0;
         algo_meta = 0;
@@ -80,7 +110,8 @@ class plaingraph_manager_t {
      void schema_weightedgraphu();
      void schema_weightedgraphd();
 
-     sstream_t<sid_t>* reg_sstream_engine(callback<sid_t>::func func);
+     sstream_t<sid_t>* reg_sstream_engine(callback<sid_t>::sfunc func);
+     stream_t<sid_t>* reg_stream_engine(callback<sid_t>::func func);
     
      void setup_graph(vid_t v_count);
      void setup_weightedgraph(vid_t v_count);
@@ -95,7 +126,7 @@ class plaingraph_manager_t {
      void recover_graph_adj(const string& idirname, const string& odirname);
      void prep_graph_and_compute(const string& idirname, 
                                  const string& odirname, 
-                                 sstream_t<sid_t>* sstreamh);
+                                 stream_t<sid_t>* streamh);
 
      void run_pr();
      void run_prd();

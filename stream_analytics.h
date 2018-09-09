@@ -24,13 +24,13 @@ class wcc_t {
 const cid_t invalid_cid = -1;
 
 template <class T>
-void wcc_post_reg(sstream_t<T>* sstreamh, vid_t v_count) {
+void wcc_post_reg(stream_t<T>* streamh, vid_t v_count) {
     wcc_t* wcc = new wcc_t();
     wcc->v_cid =  (cid_t*)calloc(v_count, sizeof(cid_t));
     wcc->c_cid =  (cid_t*)calloc(v_count, sizeof(cid_t));
     memset(wcc->v_cid, invalid_cid, sizeof(cid_t)*v_count);
     memset(wcc->c_cid, invalid_cid, sizeof(cid_t)*v_count);
-    sstreamh->set_algometa(wcc);
+    streamh->set_algometa(wcc);
 } 
 
 inline void map_cid(cid_t c1, cid_t c, cid_t* c_cid)
@@ -104,10 +104,10 @@ void wcc_edge(vid_t v0, vid_t v1, wcc_t* wcc)
 }
 
 template <class T>
-void wcc_finalize(sstream_t<T>* sstreamh)
+void wcc_finalize(stream_t<T>* streamh)
 {
     cid_t count = 0;
-    wcc_t* wcc = (wcc_t*)sstreamh->get_algometa();
+    wcc_t* wcc = (wcc_t*)streamh->get_algometa();
     #pragma omp parallel for reduction(+:count)
     for(cid_t i = 0; i < wcc->c_count; ++i) {
         count += (i == wcc->c_cid[i]);
@@ -118,13 +118,13 @@ void wcc_finalize(sstream_t<T>* sstreamh)
 }
 
 template <class T>
-void do_stream_wcc(sstream_t<T>* sstreamh)
+void do_stream_wcc(stream_t<T>* streamh)
 {
-    edgeT_t<sid_t>* edges = sstreamh->get_edges();
-    index_t edge_count = sstreamh->get_edgecount();
+    edgeT_t<sid_t>* edges = streamh->get_edges();
+    index_t edge_count = streamh->get_edgecount();
     vid_t src, dst;
     
-    wcc_t* wcc = (wcc_t*)sstreamh->get_algometa();
+    wcc_t* wcc = (wcc_t*)streamh->get_algometa();
 
     for (index_t i = 0; i < edge_count; ++i) {
         src = edges[i].src_id;

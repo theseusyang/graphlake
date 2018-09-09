@@ -718,7 +718,7 @@ void plaingraph_manager_t::run_2hop()
 }
 
 sstream_t<sid_t>*
-plaingraph_manager_t::reg_sstream_engine(callback<sid_t>::func func)
+plaingraph_manager_t::reg_sstream_engine(callback<sid_t>::sfunc func)
 {
     sstream_t<sid_t>* sstreamh = new sstream_t<sid_t>;
 
@@ -738,7 +738,18 @@ plaingraph_manager_t::reg_sstream_engine(callback<sid_t>::func func)
     return sstreamh;
 }
 
-void plaingraph_manager_t::prep_graph_and_compute(const string& idirname, const string& odirname, sstream_t<sid_t>* sstreamh)
+stream_t<sid_t>*
+plaingraph_manager_t::reg_stream_engine(callback<sid_t>::func func)
+{
+    stream_t<sid_t>* streamh = new stream_t<sid_t>;
+
+    streamh->stream_func = func;
+    streamh->algo_meta = 0;
+
+    return streamh;
+}
+
+void plaingraph_manager_t::prep_graph_and_compute(const string& idirname, const string& odirname, stream_t<sid_t>* streamh)
 {
     pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)get_plaingraph();
     blog_t<sid_t>*     blog = ugraph->blog;
@@ -749,7 +760,7 @@ void plaingraph_manager_t::prep_graph_and_compute(const string& idirname, const 
     
     //Make Graph
     index_t marker = 0, prior_marker = 0;
-    index_t snap_marker = 0;
+    //index_t snap_marker = 0;
     //index_t total_edge_count = blog->blog_head;
     //index_t batch_size = (total_edge_count >> residue);
     index_t batch_size = (1L << residue);
@@ -757,21 +768,20 @@ void plaingraph_manager_t::prep_graph_and_compute(const string& idirname, const 
 
     while (marker < blog->blog_head) {
         marker = min(blog->blog_head, marker+batch_size);
-        ugraph->create_marker(marker);
-        if (eOK != ugraph->move_marker(snap_marker)) {
-            assert(0);
-        }
-        ugraph->make_graph_baseline();
-        //ugraph->store_graph_baseline();
-        g->incr_snapid(snap_marker, snap_marker);
-        //blog->marker = marker;
-        //cout << marker << endl;
-        ugraph->update_marker();
+        //ugraph->create_marker(marker);
+        //if (eOK != ugraph->move_marker(snap_marker)) {
+        //    assert(0);
+        //}
+        //ugraph->make_graph_baseline();
+        ////ugraph->store_graph_baseline();
+        //g->incr_snapid(snap_marker, snap_marker);
+        ////blog->marker = marker;
+        ////cout << marker << endl;
+        //ugraph->update_marker();
 
-        
-        sstreamh->set_edgecount(marker - prior_marker);
-        sstreamh->set_edges(blog->blog_beg + prior_marker);
-        sstreamh->stream_func(sstreamh);
+        streamh->set_edgecount(marker - prior_marker);
+        streamh->set_edges(blog->blog_beg + prior_marker);
+        streamh->stream_func(streamh);
         prior_marker = marker;
     }
     double end = mywtime ();

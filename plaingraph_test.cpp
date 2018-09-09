@@ -1270,10 +1270,10 @@ void stream_wcc(const string& idir, const string& odir)
     //do some setup for plain graphs
     plaingraph_manager.setup_graph(v_count);    
     
-    sstream_t<sid_t>* sstreamh = plaingraph_manager.reg_sstream_engine(do_stream_wcc);
-    wcc_post_reg(sstreamh, v_count); 
-    plaingraph_manager.prep_graph_and_compute(idir, odir, sstreamh); 
-    wcc_finalize(sstreamh); 
+    stream_t<sid_t>* streamh = plaingraph_manager.reg_stream_engine(do_stream_wcc);
+    wcc_post_reg(streamh, v_count); 
+    plaingraph_manager.prep_graph_and_compute(idir, odir, streamh); 
+    wcc_finalize(streamh); 
 }
 
 void llama_test_bfs(const string& odir);
