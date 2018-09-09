@@ -33,15 +33,31 @@ void wcc_post_reg(sstream_t<T>* sstreamh, vid_t v_count) {
     sstreamh->set_algometa(wcc);
 } 
 
-inline void map_cid(vid_t c1, vid_t c, cid_t* c_cid)
+inline void map_cid(cid_t c1, cid_t c, cid_t* c_cid)
 {
     c_cid[c1] = c;
 }
 
+//This the union function
+inline void union_cid()
+{
+}
+inline cid_t find(cid_t x, cid_t* c_cid)
+{
+    cid_t prev;
+     while (c_cid[x] != x) {
+         prev = x;
+         x = c_cid[x];
+         c_cid[prev] = c_cid[x];
+     }
+     return x;
+}
 template <class T>
 void wcc_edge(vid_t v0, vid_t v1, wcc_t* wcc)
 {
-    cid_t c00, c11;
+    if (v0 == v1) return;
+
+    cid_t c00 = invalid_cid, c11 = invalid_cid;
     cid_t c0 = wcc->v_cid[v0];
     cid_t c1 = wcc->v_cid[v1];
     int sw = (c0 != invalid_cid) + ((c1 != invalid_cid) << 1);
@@ -56,25 +72,29 @@ void wcc_edge(vid_t v0, vid_t v1, wcc_t* wcc)
         //++t_front_count;
         break;
     case 1: //} else if(c1 == invalid_cid) {
-        wcc->v_cid[v1] = c0;
+        c00 = find(c0, wcc->c_cid);
+        wcc->v_cid[v1] = c00;
         //++t_front_count;
         break;
     case 2: // } else if (c0 == invalid_cid) {
-        wcc->v_cid[v0] = c1;
+        c11 = find(c1, wcc->c_cid);
+        wcc->v_cid[v0] = c11;
         //++t_front_count;
         break;
     case 3: // } else if (c0 != c1) {
-        c00 = wcc->c_cid[wcc->v_cid[v0]];
-        c11 = wcc->c_cid[wcc->v_cid[v1]];
+        c00 = find(c0, wcc->c_cid); //wcc->c_cid[wcc->v_cid[v0]];
+        c11 = find(c1, wcc->c_cid); //wcc->c_cid[wcc->v_cid[v1]];
         if (c00 < c11) {
             //if (cid[c1] == c1)
             wcc->v_cid[v1] = c00;
-            map_cid(c1, c00, wcc->c_cid);
+            //map_cid(c1, c00, wcc->c_cid);
+            map_cid(c11, c00, wcc->c_cid);
             //++t_front_count;
-        } else if (c00 > c11) {
+        } else if (c00 >= c11) {
             //if (cid[c0] == c0)
             wcc->v_cid[v0] = c11;
-            map_cid(c0, c11, wcc->c_cid);
+            //map_cid(c0, c11, wcc->c_cid);
+            map_cid(c00, c11, wcc->c_cid);
             //++t_front_count;
         }
         break;
@@ -86,18 +106,13 @@ void wcc_edge(vid_t v0, vid_t v1, wcc_t* wcc)
 template <class T>
 void wcc_finalize(sstream_t<T>* sstreamh)
 {
-    wcc_t* wcc = (wcc_t*)sstreamh->get_algometa();
-    std::sort(wcc->c_cid, wcc->c_cid + wcc->c_count);
-    
-    cid_t tt;
     cid_t count = 0;
-    
-    #pragma omp parallel for reduction(+:count) private(tt)
-    for(cid_t i = 1; i < wcc->c_count; ++i) {
-        tt = wcc->c_cid[i- 1];
-        count += (tt != wcc->c_cid[i]);
+    wcc_t* wcc = (wcc_t*)sstreamh->get_algometa();
+    #pragma omp parallel for reduction(+:count)
+    for(cid_t i = 0; i < wcc->c_count; ++i) {
+        count += (i == wcc->c_cid[i]);
     }
-    ++count;
+    
     cout << "WCC count = " << count << endl;
     cout << "wcc_group used <debug> =" << wcc->c_count << endl;
 }
