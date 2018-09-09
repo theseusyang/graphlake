@@ -753,16 +753,14 @@ mem_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
 					v_unit = graph[v].get_vunit();
                     if (0 == v_unit) continue;
 
-                    durable_degree = 0;
+					nebr_count     = degree_out[v];
                     durable_degree = v_unit->count;
-                    delta_adjlist = v_unit->delta_adjlist;
-					nebr_count = degree_out[v];
-                    
-                    //traverse the delta adj list
-                    delta_degree = nebr_count - durable_degree;
+                    delta_degree   = nebr_count - durable_degree;
+                    delta_adjlist  = v_unit->delta_adjlist;
 				    //cout << "delta adjlist " << delta_degree << endl;	
 				    //cout << "Nebr list of " << v <<" degree = " << nebr_count << endl;	
                     
+                    //traverse the delta adj list
                     while (delta_adjlist != 0 && delta_degree > 0) {
                         local_adjlist = delta_adjlist->get_adjlist();
                         local_degree = delta_adjlist->get_nebrcount();

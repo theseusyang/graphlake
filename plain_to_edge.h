@@ -4,12 +4,50 @@
 #include "type.h"
 
 using std::string;
-class csv_manager {
+
+template<class T>
+class sstream_t;
+
+template<class T>
+struct callback {
+      typedef void(*func)(sstream_t<T>*);
+};
+
+template <class T>
+class sstream_t {
  public:
-    static void prep_graph(const string& conf_file, 
-                           const string& idir, const string& odir);
-    static void prep_vtable(const string& filename, string predicate, const string& odir);
-    static void prep_etable(const string& filename, const econf_t& e_conf, const string& odir);
+    vert_table_t<T>* graph_out;
+    vert_table_t<T>* graph_in;
+    degree_t*        degree_out;
+    degree_t*        degree_in;
+
+    snapshot_t*      snapshot;
+    edgeT_t<T>*      edges; //mew edges
+    index_t          edge_count;//their count
+    
+    void*            algo_meta;//algorithm specific data
+    typename callback<T>::func   stream_func; 
+
+ public:
+    sstream_t(){
+        graph_out = 0;
+        graph_in = 0;
+        degree_out = 0;
+        degree_in = 0;
+        snapshot = 0;
+        edges = 0;
+        edge_count = 0;
+        algo_meta = 0;
+    }
+ public:
+    inline void    set_algometa(void* a_meta) {algo_meta = a_meta;};
+    inline void*   get_algometa() {return algo_meta;}
+
+    inline edgeT_t<T>* get_edges() { return edges;}
+    inline void        set_edges(edgeT_t<T>*a_edges) {edges = a_edges;}
+    
+    inline index_t     get_edgecount() { return edge_count;}
+    inline void        set_edgecount(index_t a_edgecount){edge_count = a_edgecount;}
 };
 
 class plaingraph_manager_t {
@@ -41,6 +79,8 @@ class plaingraph_manager_t {
      void schema_plaingraphd();
      void schema_weightedgraphu();
      void schema_weightedgraphd();
+
+     sstream_t<sid_t>* reg_sstream_engine(callback<sid_t>::func func);
     
      void setup_graph(vid_t v_count);
      void setup_weightedgraph(vid_t v_count);
@@ -53,7 +93,9 @@ class plaingraph_manager_t {
      void prep_weighted_rmat(const string& graph_file, const string& action_file);
     
      void recover_graph_adj(const string& idirname, const string& odirname);
-     void prep_graph_and_compute(const string& idirname, const string& odirname);
+     void prep_graph_and_compute(const string& idirname, 
+                                 const string& odirname, 
+                                 sstream_t<sid_t>* sstreamh);
 
      void run_pr();
      void run_prd();

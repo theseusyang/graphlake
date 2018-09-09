@@ -18,6 +18,7 @@
 
 #include "iterative_analytics.h"
 #include "mem_iterative_analytics.h"
+#include "stream_analytics.h"
 using namespace std;
 
 
@@ -316,39 +317,6 @@ void plaingraph_manager_t::recover_graph_adj(const string& idirname, const strin
     cout << "Make graph time = " << end - start << endl;
 }
 
-void plaingraph_manager_t::prep_graph_and_compute(const string& idirname, const string& odirname)
-{
-    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)get_plaingraph();
-    blog_t<sid_t>*     blog = ugraph->blog;
-    
-    blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
-    
-    double start = mywtime();
-    
-    //Make Graph
-    index_t marker = 0;
-    index_t snap_marker = 0;
-    //index_t total_edge_count = blog->blog_head;
-    //index_t batch_size = (total_edge_count >> residue);
-    index_t batch_size = (1L << residue);
-    cout << "batch_size = " << batch_size << endl;
-
-    while (marker < blog->blog_head) {
-        marker = min(blog->blog_head, marker+batch_size);
-        ugraph->create_marker(marker);
-        if (eOK != ugraph->move_marker(snap_marker)) {
-            assert(0);
-        }
-        ugraph->make_graph_baseline();
-        //ugraph->store_graph_baseline();
-        g->incr_snapid(snap_marker, snap_marker);
-        //blog->marker = marker;
-        ugraph->update_marker();
-        //cout << marker << endl;
-    }
-    double end = mywtime ();
-    cout << "Make graph time = " << end - start << endl;
-}
 
 void plaingraph_manager_t::prep_graph_adj(const string& idirname, const string& odirname)
 {
@@ -747,4 +715,65 @@ void plaingraph_manager_t::run_2hop()
 
     mem_hop2<sid_t>(graph, degree_array, snapshot, marker, blog->blog_beg, v_count);
     free(degree_array);
+}
+
+sstream_t<sid_t>*
+plaingraph_manager_t::reg_sstream_engine(callback<sid_t>::func func)
+{
+    sstream_t<sid_t>* sstreamh = new sstream_t<sid_t>;
+
+    ugraph_t*           ugraph     = (ugraph_t*)get_plaingraph();
+    onegraph_t<sid_t>*  sgraph_out = ugraph->sgraph_out[0];
+    //onegraph_t<sid_t>*  sgraph_in  = ugraph->sgraph_in[0];
+    
+    sstreamh->graph_out = sgraph_out->get_begpos();
+    //sstreamh->graph_in  = sgraph_in->get_begpos();
+    
+    sstreamh->degree_out = (degree_t*) calloc(v_count, sizeof(degree_t));
+    //sstreamh->degree_in  = sstreamh->degree_out;
+
+    sstreamh->stream_func = func;
+    sstreamh->algo_meta = 0;
+
+    return sstreamh;
+}
+
+void plaingraph_manager_t::prep_graph_and_compute(const string& idirname, const string& odirname, sstream_t<sid_t>* sstreamh)
+{
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)get_plaingraph();
+    blog_t<sid_t>*     blog = ugraph->blog;
+    
+    blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
+    
+    double start = mywtime();
+    
+    //Make Graph
+    index_t marker = 0, prior_marker = 0;
+    index_t snap_marker = 0;
+    //index_t total_edge_count = blog->blog_head;
+    //index_t batch_size = (total_edge_count >> residue);
+    index_t batch_size = (1L << residue);
+    cout << "batch_size = " << batch_size << endl;
+
+    while (marker < blog->blog_head) {
+        marker = min(blog->blog_head, marker+batch_size);
+        ugraph->create_marker(marker);
+        if (eOK != ugraph->move_marker(snap_marker)) {
+            assert(0);
+        }
+        ugraph->make_graph_baseline();
+        //ugraph->store_graph_baseline();
+        g->incr_snapid(snap_marker, snap_marker);
+        //blog->marker = marker;
+        //cout << marker << endl;
+        ugraph->update_marker();
+
+        
+        sstreamh->set_edgecount(marker - prior_marker);
+        sstreamh->set_edges(blog->blog_beg + prior_marker);
+        sstreamh->stream_func(sstreamh);
+        prior_marker = marker;
+    }
+    double end = mywtime ();
+    cout << "Make graph time = " << end - start << endl;
 }

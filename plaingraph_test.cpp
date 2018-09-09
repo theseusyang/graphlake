@@ -8,6 +8,7 @@
 #include "ext_iterative_analytics.h"
 #include "mem_iterative_analytics.h"
 #include "snap_iterative_analytics.h"
+#include "stream_analytics.h"
 
 using namespace std;
 
@@ -1263,6 +1264,18 @@ void update_test1(const string& idir, const string& odir)
     plaingraph_manager.run_bfs();    
 }
 
+void stream_wcc(const string& idir, const string& odir)
+{
+    plaingraph_manager.schema_plaingraph();
+    //do some setup for plain graphs
+    plaingraph_manager.setup_graph(v_count);    
+    
+    sstream_t<sid_t>* sstreamh = plaingraph_manager.reg_sstream_engine(do_stream_wcc);
+    wcc_post_reg(sstreamh, v_count); 
+    plaingraph_manager.prep_graph_and_compute(idir, odir, sstreamh); 
+    wcc_finalize(sstreamh); 
+}
+
 void llama_test_bfs(const string& odir);
 void llama_test_pr(const string& odir);
 void llama_test_pr_push(const string& odir);
@@ -1340,6 +1353,9 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             break;
         case 26:
             update_test2d(idir, odir);
+            break;
+        case 27:
+            stream_wcc(idir, odir);
             break;
         case 95:
             recover_test0(idir, odir);

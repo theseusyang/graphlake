@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <algorithm>
+#include <stdio.h>
+#include <errno.h>
 #include "type.h"
 
 using std::cout;
