@@ -264,28 +264,25 @@ class pgraph_t: public cfinfo_t {
 
  public:
     onegraph_t<T>** prep_sgraph(sflag_t ori_flag, onegraph_t<T>** a_sgraph);
-    onekv_t<T>** prep_skv(sflag_t ori_flag, onekv_t<T>** a_skv);
+    onekv_t<T>**    prep_skv(sflag_t ori_flag, onekv_t<T>** a_skv);
+    
     void make_graph_d(); 
     void make_graph_u();
 
-    void estimate_classify(vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift);
-    void prefix_sum(global_range_t<T>* global_range, thd_local_t* thd_local,
+    void estimate_classify (vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift);
+    void prefix_sum (global_range_t<T>* global_range, thd_local_t* thd_local,
                     vid_t range_count, vid_t thd_count, edgeT_t<T>* edge_buf);
-    void work_division(global_range_t<T>* global_range, thd_local_t* thd_local,
+    void work_division (global_range_t<T>* global_range, thd_local_t* thd_local,
                     vid_t range_count, vid_t thd_count, index_t equal_work);
-    void classify(vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift, 
+    void classify (vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift, 
             global_range_t<T>* global_range, global_range_t<T>* global_range_in);
-    void calc_degree_noatomic(onegraph_t<T>** sgraph, global_range_t<T>* global_range, 
+    void calc_degree_noatomic (onegraph_t<T>** sgraph, global_range_t<T>* global_range, 
                       vid_t j_start, vid_t j_end);
-    void fill_adjlist_noatomic(onegraph_t<T>** sgraph, global_range_t<T>* global_range, 
+    void fill_adjlist_noatomic (onegraph_t<T>** sgraph, global_range_t<T>* global_range, 
                       vid_t j_start, vid_t j_end);
 
-    void calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in); 
-    void calc_edge_count_out(onegraph_t<T>** p_sgraph_out);
-    void calc_edge_count_in(onegraph_t<T>** sgraph_in);
     
     void prep_sgraph_internal(onegraph_t<T>** sgraph);
-    void update_count(onegraph_t<T>** sgraph);
     
     void store_sgraph(onegraph_t<T>** sgraph, bool clean = false);
     void store_skv(onekv_t<T>** skv);
@@ -295,7 +292,11 @@ class pgraph_t: public cfinfo_t {
     
     void file_open_sgraph(onegraph_t<T>** sgraph, const string& odir, const string& postfix, bool trunc);
     void file_open_skv(onekv_t<T>** skv, const string& odir, const string& postfix, bool trunc);
-    
+   
+    void update_count(onegraph_t<T>** sgraph);
+    void calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in); 
+    void calc_edge_count_out(onegraph_t<T>** p_sgraph_out);
+    void calc_edge_count_in(onegraph_t<T>** sgraph_in);
     void fill_adj_list(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in);
     void fill_adj_list_in(onekv_t<T>** skv_out, onegraph_t<T>** sgraph_in); 
     void fill_adj_list_out(onegraph_t<T>** sgraph_out, onekv_t<T>** skv_in); 

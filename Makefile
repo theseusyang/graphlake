@@ -17,12 +17,14 @@ SRC=main.cpp \
 	nt_to_edge.cpp\
 	csv_to_edge.cpp\
 	plain_to_edge.cpp\
+	netflow_to_edge.cpp\
 	query_triple.cpp\
 	graph_query.cpp\
 	graph_base.cpp\
 	rset.cpp\
 	propkv.cpp\
 	plaingraph_test.cpp\
+    netflow_test.cpp\
 	llama_test.cpp\
 	
 #lite_sgraph.cpp\
@@ -58,6 +60,7 @@ HEADER=graph.h\
 	snap_iterative_analytics.h\
 	stream_analytics.h\
 	nt_to_edge.h\
+	netflow_to_edge.h\
 	csv_to_edge.h\
 	plain_to_edge.h\
 	darshan_to_edge.h\

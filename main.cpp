@@ -99,15 +99,17 @@ int main(int argc, char* argv[])
         case 0:
         plain_test(v_count, idir, odir, job);
             break;
-
-#ifdef B64
         case 1:
+           netflow_test(idir, odir, job); 
+            break;
+#ifdef B64
+        case 2:
         lubm_test1(typefile, idir, odir);
             break;
-        case 2:
+        case 3:
         lubm_test2(odir);
             break;
-        case 3:
+        case 4:
         lubm_test0(typefile, idir, odir);
             break;
         case 10:
