@@ -3,7 +3,7 @@
 #include <dirent.h>
 
 #include "plain_to_edge.h"
-
+#include "netflow_to_edge.h"
 #include "all.h"
 #include "util.h"
 
@@ -1176,6 +1176,31 @@ void update_test0d(const string& idir, const string& odir)
     */
 }
 
+void netflow_test0(const string& idir, const string& odir)
+{
+    plaingraph_manager_t<netflow_dst_t> manager;
+    manager.schema_plaingraph();
+    //do some setup for plain graphs
+    manager.setup_graph(v_count);    
+    
+    manager.prep_graph_adj(idir, odir);
+    
+    //Run BFS
+    for (int i = 0; i < 1; i++){
+        manager.run_bfs();
+    }
+    /*
+    //Run PageRank
+    for (int i = 0; i < 1; i++){
+        plaingraph_manager.run_pr();
+    }
+    
+    //Run 1-HOP query
+    for (int i = 0; i < 1; i++){
+        plaingraph_manager.run_1hop();
+    }*/
+}
+
 void update_test0(const string& idir, const string& odir)
 {
     plaingraph_manager.schema_plaingraph();
@@ -1299,6 +1324,9 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             break;
         case 6:
             weight_dtest1(odir);
+            break;
+        case 7:
+            netflow_test0(idir, odir);
             break;
         case 9:
             //stinger test

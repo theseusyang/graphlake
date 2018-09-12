@@ -185,15 +185,34 @@ class  edgeT_t {
     T     dst_id;
 };
 
+
+struct netflow_weight_t {
+    uint32_t time;
+    uint32_t duration;
+    uint32_t protocol;
+    uint16_t src_port;
+    uint16_t dst_port;
+    uint32_t src_packet;
+    uint32_t dst_packet;
+    uint32_t src_bytes;
+    uint32_t dst_bytes;
+};
+
 //First can be nebr sid, while the second could be edge id/property
-class lite_edge_t {
+template <class T>
+class dst_weight_t {
  public:
     sid_t first;
-    univ_t second;
+    T second;
 };
+
+//Feel free to name the derived types, but not required.
+typedef dst_weight_t<univ_t> lite_edge_t;
+typedef dst_weight_t<netflow_weight_t> netflow_dst_t;
 
 typedef edgeT_t<sid_t> edge_t;
 typedef edgeT_t<lite_edge_t> ledge_t;
+typedef edgeT_t<netflow_dst_t> netflow_edge_t;
 
 inline sid_t get_dst(edge_t* edge) { 
     return edge->dst_id;
@@ -204,46 +223,72 @@ inline void set_dst(edge_t* edge, sid_t dst_id) {
 inline void set_weight(edge_t* edge, sid_t dst_id) {
 }
 
-inline sid_t get_dst(ledge_t* edge) { 
+template <class T>
+inline sid_t get_dst(edgeT_t<T>* edge) { 
     return edge->dst_id.first;
 }
-inline void set_dst(ledge_t* edge, sid_t dst_id) {
+template <class T>
+inline void set_dst(edgeT_t<T>* edge, sid_t dst_id) {
     edge->dst_id.first = dst_id;
 }
-inline void set_weight(ledge_t* edge, lite_edge_t dst_id) {
+template <class T>
+inline void set_weight(edgeT_t<T>* edge, T dst_id) {
     edge->dst_id.second = dst_id.second;
 }
 
 ////
-inline sid_t get_sid(lite_edge_t lite_edge)
+template <class T> sid_t get_sid(T dst);
+template <class T> void set_sid(T& edge, sid_t sid1);
+template <class T> void set_weight(T& edge, T& dst);
+template <class T> sid_t get_nebr(T* adj, vid_t k); 
+
+template <class T>
+inline sid_t get_sid(T dst)
 {
-    return lite_edge.first;
+    return dst.first;
 }
 
-inline sid_t get_sid(sid_t sid)
+template <class T>
+inline void set_sid(T& edge, sid_t sid1)
 {
-    return sid;
+    edge.first = sid1;
 }
 
-inline void set_sid(lite_edge_t& lite_edge, sid_t sid1)
+template <class T>
+inline void set_weight(T& edge, T& dst)
 {
-    lite_edge.first = sid1;
+    edge.second = dst.second;
 }
 
-inline void set_sid(sid_t& sid , sid_t sid1)
+template <class T>
+inline sid_t get_nebr(T* adj, vid_t k) {
+    return adj[k].first;
+}
+
+//Specialized functions for plain graphs, no weights
+template <>
+inline void set_sid<sid_t>(sid_t& sid , sid_t sid1)
 {
     sid = sid1;
 }
 
-inline void set_weight(lite_edge_t& lite_edge, lite_edge_t dst)
-{
-    lite_edge.second = dst.second;
-}
-
-inline void set_weight(sid_t& sid , sid_t dst)
+template<>
+inline void set_weight<sid_t>(sid_t& sid , sid_t& dst)
 {
     return;
 }
+
+template<>
+inline sid_t get_sid<sid_t>(sid_t sid)
+{
+    return sid;
+}
+
+template <>
+inline sid_t get_nebr<sid_t>(sid_t* adj, vid_t k) {
+    return adj[k];
+}
+
 
 class snapshot_t {
  public:

@@ -346,8 +346,8 @@ class ugraph: public pgraph_t<T> {
     void read_graph_baseline();
     void file_open(const string& odir,  bool trunc);
     
-    status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
+    //status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    //virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
 template <class T>
@@ -388,8 +388,8 @@ class dgraph: public pgraph_t<T> {
     void read_graph_baseline();
     void file_open(const string& odir,  bool trunc);
     
-    status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
+    //status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    //virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
 template <class T>
@@ -436,8 +436,8 @@ class many2one: public pgraph_t<T> {
     void read_graph_baseline();
     void file_open(const string& odir,  bool trunc);
     
-    status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
+    //status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    //virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
 template <class T>
@@ -475,8 +475,8 @@ class one2one: public pgraph_t<T> {
     void read_graph_baseline();
     void file_open(const string& odir,  bool trunc);
     
-    status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
+    //status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    //virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
 template <class T>
@@ -523,8 +523,8 @@ class one2many: public pgraph_t<T> {
     void read_graph_baseline();
     void file_open(const string& odir,  bool trunc);
     
-    status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
-    virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
+    //status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    //virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
 
@@ -2560,6 +2560,7 @@ void many2one<T>::create_snapshot()
     update_count(sgraph_in);
 }
 
+/*
 template <class T>
 status_t ugraph<T>::extend(srset_t* iset, srset_t* oset, direction_t direction)
 {
@@ -2732,7 +2733,7 @@ status_t one2many<T>::transform(srset_t* iset, srset_t* oset, direction_t direct
     }
     return eOK;
 }
-
+*/
     /*
 template <class T>
 void onegraph_t<T>::update_count() 

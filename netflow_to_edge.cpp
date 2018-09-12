@@ -38,13 +38,14 @@ vid_t str2vid(string str) {
 index_t netflow_text_to_bin(const string& textfile, const string& ofile)
 {
 	size_t file_size = fsize(textfile.c_str());
-	//fd = open( textfile.c_str(), O_RDWR, 00777);
-	//ss_head = (char*)mmap(NULL,file_size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0);
-    
     size_t estimated_count = file_size/sizeof(netflow_edge_t);
-    FILE* file = fopen(textfile.c_str(), "r");
+    
     netflow_edge_t* netflow_array = (netflow_edge_t*)calloc(estimated_count, 
                                                       sizeof(netflow_edge_t));
+    
+    FILE* file = fopen(textfile.c_str(), "r");
+    assert(file);
+
     netflow_edge_t* netflow = netflow_array;
     index_t icount = 0;
 	char sss[256];
@@ -59,47 +60,47 @@ index_t netflow_text_to_bin(const string& textfile, const string& ofile)
         }
         
         token = strtok_r(line, ",\n", &line);
-        netflow->dst_id.netflow.time = atoi(token);
+        netflow->dst_id.second.time = atoi(token);
         token = strtok_r(line, ",\n", &line);
-        netflow->dst_id.netflow.duration = atoi(token);
+        netflow->dst_id.second.duration = atoi(token);
         
         token = strtok_r(line, ",\n", &line);
         netflow->src_id = str2vid(token);
         token = strtok_r(line, ",\n", &line);
-        netflow->dst_id.dst_id = str2vid(token);
+        netflow->dst_id.first = str2vid(token);
         
         token = strtok_r(line, ",\n", &line);
-        netflow->dst_id.netflow.protocol = atoi(token);
+        netflow->dst_id.second.protocol = atoi(token);
         
         token = strtok_r(line, ",\n", &line);
         if (token[0] == 'P') {
-            netflow->dst_id.netflow.src_port = atoi(token+4);
+            netflow->dst_id.second.src_port = atoi(token+4);
         } else {
-            netflow->dst_id.netflow.src_port = atoi(token);
+            netflow->dst_id.second.src_port = atoi(token);
         }
         token = strtok_r(line, ",\n", &line);
         if (token[0] == 'P') {
-            netflow->dst_id.netflow.dst_port = atoi(token+4);
+            netflow->dst_id.second.dst_port = atoi(token+4);
         } else {
-            netflow->dst_id.netflow.dst_port = atoi(token);
+            netflow->dst_id.second.dst_port = atoi(token);
         }
         token = strtok_r(line, ",\n", &line);
         
-        netflow->dst_id.netflow.src_packet = atoi(token);
+        netflow->dst_id.second.src_packet = atoi(token);
         token = strtok_r(line, ",\n", &line);
-        netflow->dst_id.netflow.dst_packet = atoi(token);
+        netflow->dst_id.second.dst_packet = atoi(token);
         token = strtok_r(line, ",\n", &line);
-        netflow->dst_id.netflow.src_bytes = atoi(token);
+        netflow->dst_id.second.src_bytes = atoi(token);
         token = strtok_r(line, ",\n", &line);
-        netflow->dst_id.netflow.dst_bytes = atoi(token);
-        //netflow++;
+        netflow->dst_id.second.dst_bytes = atoi(token);
+        netflow++;
         icount++;
     }
     fclose(file);
     //write the binary file
-    //file = fopen(ofile.c_str(), "wb");
-    //fwrite(netflow_array, sizeof(netflow_edge_t), icount, file);
-    //fclose(file);
+    file = fopen(ofile.c_str(), "wb");
+    fwrite(netflow_array, sizeof(netflow_edge_t), icount, file);
+    fclose(file);
     return 0;
 }
 

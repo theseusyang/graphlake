@@ -49,13 +49,6 @@ inline vid_t get_nebrcount1(lite_edge_t* adj_list) {
     return adj_list[0].first;
 }
 
-inline sid_t get_nebr(sid_t* adj, vid_t k) {
-    return adj[k];
-}
-
-inline sid_t get_nebr(lite_edge_t* adj, vid_t k) {
-    return adj[k].first;
-}
 
 
 ////
