@@ -2,6 +2,8 @@
 
 #include "all.h"
 
+index_t residue = 0;
+
 map<string, get_graph_instance>  graph_instance;
 map<string, get_encoder_instance>  encoder_instance;
 

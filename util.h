@@ -1,23 +1,62 @@
-#ifndef __UTIL_H_
-#define __UTIL_H_
+#pragma once
+#include "type.h"
 
-#include <stdint.h>
-#include <utility>
+template <class T>
+index_t read_idir(const string& idirname, edgeT_t<T>** pedges, bool alloc)
+{
+    struct dirent *ptr;
+    DIR *dir;
+    int file_count = 0;
+    string filename;
+        
+    FILE* file = 0;
+    index_t size = 0;
+    index_t edge_count = 0;
+    index_t total_edge_count = 0;
+    
+    edgeT_t<T>* edges = 0;
 
-using namespace std;
+    //allocate accuately
+    dir = opendir(idirname.c_str());
+    if (alloc) {
+        while (NULL != (ptr = readdir(dir))) {
+            if (ptr->d_name[0] == '.') continue;
+            filename = idirname + "/" + string(ptr->d_name);
+            size = fsize(filename);
+            edge_count = size/sizeof(edgeT_t<T>);
+            total_edge_count += edge_count;
+        }
+        closedir(dir);
 
-typedef pair<int32_t, int32_t> duet_t;
-
-/*
-typedef struct __duet_t {
-    int32_t first;
-    int32_t second;
-} duet_t;
-*/
-typedef duet_t sp_pair_t ;
-typedef duet_t op_pair_t ;
-typedef duet_t po_pair_t ;
-typedef duet_t ps_pair_t ;
-
-
-#endif
+        edges =  (edgeT_t<T>*)calloc(sizeof(edgeT_t<T>),total_edge_count);
+        *pedges = edges;
+    } else {
+        edges = *pedges;
+    }
+    
+    //Read graph files
+    total_edge_count = 0;
+    double start = mywtime();
+    dir = opendir(idirname.c_str());
+    edgeT_t<T>* edge = edges;
+    while (NULL != (ptr = readdir(dir))) {
+        if (ptr->d_name[0] == '.') continue;
+        filename = idirname + "/" + string(ptr->d_name);
+        file_count++;
+        
+        file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
+        assert(file != 0);
+        size = fsize(filename);
+        edge_count = size/sizeof(edgeT_t<T>);
+        edge = edges + total_edge_count;
+        if (edge_count != fread(edge, sizeof(edgeT_t<T>), edge_count, file)) {
+            assert(0);
+        }
+        total_edge_count += edge_count;
+    }
+    closedir(dir);
+    double end = mywtime();
+    cout << "Reading "  << file_count  << " file time = " << end - start << endl;
+    cout << "End marker = " << total_edge_count << endl;
+    return total_edge_count;
+}

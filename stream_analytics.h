@@ -3,10 +3,8 @@
 #include <algorithm>
 
 #include "graph.h"
-#include "wtime.h"
-
 #include "sgraph.h"
-//#include "p_sgraph.h"
+#include "wtime.h"
 
 typedef int cid_t;
 class wcc_t {
@@ -120,7 +118,7 @@ void wcc_finalize(stream_t<T>* streamh)
 template <class T>
 void do_stream_wcc(stream_t<T>* streamh)
 {
-    edgeT_t<sid_t>* edges = streamh->get_edges();
+    edgeT_t<T>* edges = streamh->get_edges();
     index_t edge_count = streamh->get_edgecount();
     vid_t src, dst;
     

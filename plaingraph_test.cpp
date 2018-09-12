@@ -2,20 +2,57 @@
 #include <iostream>
 #include <dirent.h>
 
-#include "all.h"
 #include "plain_to_edge.h"
+
+#include "all.h"
+#include "util.h"
+
+/*
 #include "iterative_analytics.h"
-#include "ext_iterative_analytics.h"
 #include "mem_iterative_analytics.h"
+*/
+
+#include "ext_iterative_analytics.h"
 #include "snap_iterative_analytics.h"
 #include "stream_analytics.h"
+
 
 using namespace std;
 
 extern index_t residue;
-vid_t v_count = 0;
-plaingraph_manager_t plaingraph_manager; 
 
+vid_t v_count = 0;
+plaingraph_manager_t<sid_t> plaingraph_manager; 
+plaingraph_manager_t<lite_edge_t> weightedgraph_manager; 
+
+void* recovery_func(void* arg) 
+{
+    string filename = *(string*)arg;
+    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)plaingraph_manager.get_plaingraph();
+    blog_t<sid_t>*     blog = ugraph->blog;
+    edgeT_t<sid_t>*    edge = blog->blog_beg;
+    
+    index_t to_read = 0;
+    index_t total_read = 0;
+    index_t batch_size = (1L << residue);
+    cout << "batch_size = " << batch_size << endl;
+        
+    FILE* file = fopen(filename.c_str(), "rb");
+    assert(file != 0);
+    index_t size = fsize(filename);
+    index_t edge_count = size/sizeof(edge_t);
+    
+    
+    while (total_read < edge_count) {
+        to_read = min(edge_count - total_read,batch_size);
+        if (to_read != fread(edge + total_read, sizeof(edge_t), to_read, file)) {
+            assert(0);
+        }
+        blog->blog_head += to_read;
+        total_read += to_read;
+    }
+    return 0;
+}
 struct estimate_t {
     degree_t durable_degree;
     degree_t delta_degree;
@@ -38,46 +75,6 @@ struct estimate_t {
 //1024+4-1=1027
 #define UPPER_ALIGN_4KB(x) (((x) + 1027) & ALIGN_MASK_4KB)
 
-index_t read_idir(const string& idirname, edge_t** pedges, bool alloc);
-
-//void read_idir1(const string& idirname)
-//{
-//    struct dirent *ptr;
-//    DIR *dir;
-//    int file_count = 0;
-//    string filename;
-//    propid_t cf_id = g->get_cfid("friend");
-//    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
-//        
-//    FILE* file = 0;
-//    index_t size =  0;
-//    index_t edge_count = 0;
-//    
-//    //Read graph files
-//    double start = mywtime();
-//    dir = opendir(idirname.c_str());
-//    blog_t<sid_t>* blog = ugraph->blog;
-//    edge_t* edge = blog->blog_beg;
-//    while (NULL != (ptr = readdir(dir))) {
-//        if (ptr->d_name[0] == '.') continue;
-//        filename = idirname + "/" + string(ptr->d_name);
-//        file_count++;
-//        
-//        file = fopen((idirname + "/" + string(ptr->d_name)).c_str(), "rb");
-//        assert(file != 0);
-//        size = fsize(filename);
-//        edge_count = size/sizeof(edge_t);
-//        edge = blog->blog_beg + blog->blog_head;
-//        if (edge_count != fread(edge, sizeof(edge_t), edge_count, file)) {
-//            assert(0);
-//        }
-//        blog->blog_head += edge_count;
-//    }
-//    closedir(dir);
-//    double end = mywtime();
-//    cout << "Reading "  << file_count  << " file time = " << end - start << endl;
-//    cout << "End marker = " << blog->blog_head << endl;
-//}
 
 template <class T>
 void estimate_chain(const string& idirname, const string& odirname)
@@ -90,7 +87,7 @@ void estimate_chain(const string& idirname, const string& odirname)
     pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
     blog_t<sid_t>*     blog = ugraph->blog;
     
-    blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
+    blog->blog_head  += read_idir<T>(idirname, &blog->blog_beg, false);
     
     double start = mywtime();
 
@@ -178,7 +175,7 @@ void estimate_chain_new(const string& idirname, const string& odirname)
     pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
     blog_t<sid_t>*     blog = ugraph->blog;
     
-    blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
+    blog->blog_head  += read_idir<T>(idirname, &blog->blog_beg, false);
     
     double start = mywtime();
 
@@ -297,7 +294,7 @@ void estimate_IO(const string& idirname, const string& odirname)
     pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
     blog_t<sid_t>*     blog = ugraph->blog;
     
-    blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
+    blog->blog_head  += read_idir<T>(idirname, &blog->blog_beg, false);
     
     double start = mywtime();
     double end;
@@ -542,10 +539,10 @@ template <class T>
 void split_graph(const string& idirname, const string& odirname)
 {
     propid_t          cf_id = g->get_cfid("friend");
-    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)g->cf_info[cf_id];
-    blog_t<sid_t>*     blog = ugraph->blog;
+    pgraph_t<T>* ugraph = (pgraph_t<T>*)g->cf_info[cf_id];
+    blog_t<T>*     blog = ugraph->blog;
     
-    blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
+    blog->blog_head  += read_idir<T>(idirname, &blog->blog_beg, false);
     
     cout << "Creating " << residue << " graphs of equal size" << endl;
 
@@ -1020,7 +1017,7 @@ void plain_test3(const string& idir, const string& odir)
     plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager.setup_graph(v_count);    
-    plaingraph_manager.prep_graph_paper_chain(idir, odir);
+    plaingraph_manager.prep_graph_adj(idir, odir);
     //plaingraph_manager.prep_graph(idir, odir);
     
     propid_t cf_id = g->get_cfid("friend");
@@ -1087,7 +1084,7 @@ void paper_test_chain_bfs(const string& idir, const string& odir)
     plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager.setup_graph(v_count);    
-    plaingraph_manager.prep_graph_paper_chain(idir, odir);
+    plaingraph_manager.prep_graph_adj(idir, odir);
     
     for (int i = 0; i < 10; i++) {
         plaingraph_manager.run_bfs();
@@ -1098,7 +1095,7 @@ void paper_test_pr_chain(const string& idir, const string& odir)
     plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager.setup_graph(v_count);    
-    plaingraph_manager.prep_graph_paper_chain(idir, odir);
+    plaingraph_manager.prep_graph_adj(idir, odir);
     
     for (int i = 0; i < 10; i++) {
         plaingraph_manager.run_pr();
@@ -1120,7 +1117,7 @@ void paper_test_hop1_chain(const string& idir, const string& odir)
     plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager.setup_graph(v_count);    
-    plaingraph_manager.prep_graph_paper_chain(idir, odir);
+    plaingraph_manager.prep_graph_adj(idir, odir);
     
     plaingraph_manager.run_1hop();
 }
@@ -1140,7 +1137,7 @@ void paper_test_hop2_chain(const string& idir, const string& odir)
     plaingraph_manager.schema_plaingraph();
     //do some setup for plain graphs
     plaingraph_manager.setup_graph(v_count);    
-    plaingraph_manager.prep_graph_paper_chain(idir, odir);
+    plaingraph_manager.prep_graph_adj(idir, odir);
     
     plaingraph_manager.run_2hop();
 }
@@ -1270,7 +1267,8 @@ void stream_wcc(const string& idir, const string& odir)
     //do some setup for plain graphs
     plaingraph_manager.setup_graph(v_count);    
     
-    stream_t<sid_t>* streamh = plaingraph_manager.reg_stream_engine(do_stream_wcc);
+    stream_t<sid_t>* streamh;
+    plaingraph_manager.reg_stream_engine(do_stream_wcc, &streamh);
     wcc_post_reg(streamh, v_count); 
     plaingraph_manager.prep_graph_and_compute(idir, odir, streamh); 
     wcc_finalize(streamh); 

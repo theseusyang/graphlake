@@ -16,7 +16,6 @@ SRC=main.cpp \
     vgraph.cpp\
 	nt_to_edge.cpp\
 	csv_to_edge.cpp\
-	plain_to_edge.cpp\
 	netflow_to_edge.cpp\
 	query_triple.cpp\
 	graph_query.cpp\
