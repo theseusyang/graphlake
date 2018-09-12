@@ -43,6 +43,14 @@ class cfinfo_t {
     uint8_t     flag1_count;
     uint8_t     flag2_count;
     index_t     MAXX_ECOUNT;
+        
+    //queue
+    index_t*   q_beg;
+    index_t    q_count;
+    index_t    q_head;
+    index_t    q_tail;
+        
+    int       wtf;   //edge log file
 
  public: 
     cfinfo_t();   

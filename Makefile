@@ -50,6 +50,7 @@ HEADER=graph.h\
 	query_triple.h\
 	type.h\
 	graph_base.h\
+	onegraph.h\
 	rset.h\
     query_clause.h\
 	iterative_analytics.h\

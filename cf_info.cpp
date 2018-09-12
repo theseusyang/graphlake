@@ -66,6 +66,7 @@ void cfinfo_t::add_edge_property(const char* longname, prop_encoder_t* prop_enco
 
 cfinfo_t::cfinfo_t()
 {
+    MAXX_ECOUNT = MAX_ECOUNT;
     /*
     batch_info = (batchinfo_t*)calloc(sizeof(batchinfo_t), MAX_BCOUNT);
     batch_count = 0;
@@ -87,6 +88,16 @@ cfinfo_t::cfinfo_t()
 
     col_info = 0;
     col_count = 0;
+    
+    q_count = 512;
+    q_beg = (index_t*)calloc(q_count, sizeof(index_t));
+    if (0 == q_beg) {
+        perror("posix memalign batch edge log");
+    }
+    q_head = 0;
+    q_tail = 0;
+        
+    wtf = 0;
     
 }
 
