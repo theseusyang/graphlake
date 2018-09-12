@@ -172,6 +172,13 @@ void onegraph_t<T>::setup(tid_t tid)
         vid_t v_count = TO_VID(super_id);
         max_vcount = v_count;// (v_count << 1);
         beg_pos = (vert_table_t<T>*)calloc(sizeof(vert_table_t<T>), max_vcount);
+        
+        if(posix_memalign((void**)&thd_mem, 64 , THD_COUNT*sizeof(thd_mem_t<T>))) {
+            cout << "posix_memalign failed()" << endl;
+		    thd_mem = (thd_mem_t<T>*)calloc(sizeof(thd_mem_t<T>), THD_COUNT);
+        } else {
+            memset(thd_mem, 0, THD_COUNT*sizeof(thd_mem_t<T>));
+        } 
 
 #ifdef BULK
         nebr_count = (nebrcount_t<T>*)calloc(sizeof(nebrcount_t<T>), max_vcount);

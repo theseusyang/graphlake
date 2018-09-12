@@ -48,14 +48,19 @@ class pgraph_t: public cfinfo_t {
         //circular edge log buffer
         blog_t<T>*  blog;
 
- 
  public:    
     inline pgraph_t() { 
         sgraph = 0;
         sgraph_in = 0;
         
+        edge_buf_out = 0;
+        edge_buf_in = 0;
+        edge_buf_count = 0;
+    }
+
+    inline void alloc_edgelog(index_t count) {
         blog = new blog_t<T>;
-        blog->blog_count = BLOG_SIZE;
+        blog->blog_count = count;
         blog->blog_beg = (edgeT_t<T>*)mmap(0, sizeof(edgeT_t<T>)*blog->blog_count, PROT_READ|PROT_WRITE,
                             MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0);
         if (MAP_FAILED == blog->blog_beg) {
@@ -64,10 +69,6 @@ class pgraph_t: public cfinfo_t {
                 perror("posix memalign batch edge log");
             }
         }
-        
-        edge_buf_out = 0;
-        edge_buf_in = 0;
-        edge_buf_count = 0;
     }
     
     inline void alloc_edge_buf(index_t total) {
@@ -1092,6 +1093,7 @@ status_t pgraph_t<T>::extend_kv_td(onekv_t<T>** skv, srset_t* iset, srset_t* ose
 template <class T> 
 void dgraph<T>::prep_graph_baseline()
 {
+    this->alloc_edgelog(BLOG_SIZE);
     flag1_count = __builtin_popcountll(flag1);
     flag2_count = __builtin_popcountll(flag2);
 
@@ -1195,6 +1197,7 @@ void dgraph<T>::read_graph_baseline()
 template <class T> 
 void ugraph<T>::prep_graph_baseline()
 {
+    this->alloc_edgelog(BLOG_SIZE);
     flag1 = flag1 | flag2;
     flag2 = flag1;
 
@@ -1287,6 +1290,7 @@ void ugraph<T>::read_graph_baseline()
 template <class T> 
 void many2one<T>::prep_graph_baseline()
 {
+    this->alloc_edgelog(BLOG_SIZE);
     flag1_count = __builtin_popcountll(flag1);
     flag2_count = __builtin_popcountll(flag2);
 
@@ -1365,6 +1369,7 @@ void many2one<T>::read_graph_baseline()
 template <class T> 
 void one2many<T>::prep_graph_baseline()
 {
+    this->alloc_edgelog(BLOG_SIZE);
     flag1_count = __builtin_popcountll(flag1);
     flag2_count = __builtin_popcountll(flag2);
 

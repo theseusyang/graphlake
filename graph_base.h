@@ -280,12 +280,6 @@ public:
         nebr_count = 0;
         max_vcount = 0;
 
-        if(posix_memalign((void**)&thd_mem, 64 , THD_COUNT*sizeof(thd_mem_t<T>))) {
-            cout << "posix_memalign failed()" << endl;
-		    thd_mem = (thd_mem_t<T>*)calloc(sizeof(thd_mem_t<T>), THD_COUNT);
-        } else {
-            memset(thd_mem, 0, THD_COUNT*sizeof(thd_mem_t<T>));
-        } 
 
 	    vunit_beg	= 0;
 		vunit_count = 0;

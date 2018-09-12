@@ -26,6 +26,7 @@ SRC=main.cpp \
     netflow_test.cpp\
 	llama_test.cpp\
 	
+#weight_graph.cpp\
 #lite_sgraph.cpp\
 #p_sgraph.cpp\
 
@@ -41,6 +42,7 @@ HEADER=graph.h\
 	cf_info.h\
 	sgraph.h\
 	sgraph2.h\
+	wgraph.h\
 	prop_encoder.h\
 	propkv.h\
 	stringkv.h\

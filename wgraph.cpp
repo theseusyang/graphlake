@@ -1,22 +1,22 @@
-#include "type.h"
-#include "p_sgraph.h"
-#include "sgraph.h"
+#include "weight_graph.h"
 
-p_pgraph_t::p_pgraph_t()
+weight_graph_t::weight_graph_t()
 {
     MAXX_ECOUNT = MAX_PECOUNT;
     encoder = 0;
+
+    flow_pgraph = new pgraph_t<net_flow_t>;
     
 }
 
-void p_pgraph_t::add_edge_property(const char* longname, prop_encoder_t* prop_encoder)
+void weight_graph_t::add_edge_property(const char* longname, prop_encoder_t* prop_encoder)
 {
     edge_propname = longname;
     encoder = prop_encoder;
 }
 
 //Assuming only one edge property
-status_t p_pgraph_t::batch_update(const string& src, const string& dst, propid_t pid,
+status_t weight_graph_t::batch_update(const string& src, const string& dst, propid_t pid,
                                 propid_t count, prop_pair_t* prop_pair, int del /* = 0*/)
 {
     ledge_t edge;
@@ -52,7 +52,8 @@ status_t p_pgraph_t::batch_update(const string& src, const string& dst, propid_t
     return batch_edge(edge);
 }
 
-void p_pgraph_t::fill_adj_list(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgraph_in)
+/*
+void weight_graph_t::fill_adj_list(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgraph_in)
 {
     sid_t     src, dst;
     vid_t     vert1_id, vert2_id;
@@ -85,7 +86,7 @@ void p_pgraph_t::fill_adj_list(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgrap
     }
 }
 
-void p_pgraph_t::fill_adj_list_in(lite_skv_t** skv_out, lite_sgraph_t** sgraph_in) 
+void weight_graph_t::fill_adj_list_in(lite_skv_t** skv_out, lite_sgraph_t** sgraph_in) 
 {
     sid_t src, dst;
     vid_t     vert1_id, vert2_id;
@@ -121,7 +122,7 @@ void p_pgraph_t::fill_adj_list_in(lite_skv_t** skv_out, lite_sgraph_t** sgraph_i
     }
 }
 
-void p_pgraph_t::fill_adj_list_out(lite_sgraph_t** sgraph_out, lite_skv_t** skv_in) 
+void weight_graph_t::fill_adj_list_out(lite_sgraph_t** sgraph_out, lite_skv_t** skv_in) 
 {
     sid_t   src, dst;
     vid_t   vert1_id, vert2_id;
@@ -158,7 +159,7 @@ void p_pgraph_t::fill_adj_list_out(lite_sgraph_t** sgraph_out, lite_skv_t** skv_
     }
 }
 
-void p_pgraph_t::fill_skv(lite_skv_t** skv_out, lite_skv_t** skv_in)
+void weight_graph_t::fill_skv(lite_skv_t** skv_out, lite_skv_t** skv_in)
 {
     sid_t     src, dst;
     vid_t     vert1_id, vert2_id;
@@ -191,9 +192,9 @@ void p_pgraph_t::fill_skv(lite_skv_t** skv_out, lite_skv_t** skv_in)
         }
     }
 }
-
+*/
 /*
-void p_pgraph_t::update_count(lite_sgraph_t** sgraph)
+void weight_graph_t::update_count(lite_sgraph_t** sgraph)
 {
     vid_t       v_count = 0;
     tid_t       t_count = g->get_total_types();
@@ -206,7 +207,7 @@ void p_pgraph_t::update_count(lite_sgraph_t** sgraph)
         }
     }
 }
-void p_pgraph_t::store_sgraph(lite_sgraph_t** sgraph, string dir, string postfix)
+void weight_graph_t::store_sgraph(lite_sgraph_t** sgraph, string dir, string postfix)
 {
     if (sgraph == 0) return;
     
@@ -234,7 +235,7 @@ void p_pgraph_t::store_sgraph(lite_sgraph_t** sgraph, string dir, string postfix
     }
 }
 
-void p_pgraph_t::read_sgraph(lite_sgraph_t** sgraph, string dir, string postfix)
+void weight_graph_t::read_sgraph(lite_sgraph_t** sgraph, string dir, string postfix)
 {
     if (sgraph == 0) return;
     
@@ -270,7 +271,7 @@ void p_pgraph_t::read_sgraph(lite_sgraph_t** sgraph, string dir, string postfix)
 
 /******************** super kv *************************/
 /*
-void p_pgraph_t::read_skv(lite_skv_t** skv, string dir, string postfix)
+void weight_graph_t::read_skv(lite_skv_t** skv, string dir, string postfix)
 {
     if (skv == 0) return;
 
@@ -300,7 +301,7 @@ void p_pgraph_t::read_skv(lite_skv_t** skv, string dir, string postfix)
     }
 }
 
-void p_pgraph_t::store_skv(lite_skv_t** skv, string dir, string postfix)
+void weight_graph_t::store_skv(lite_skv_t** skv, string dir, string postfix)
 {
     if (skv == 0) return;
 
@@ -325,7 +326,7 @@ void p_pgraph_t::store_skv(lite_skv_t** skv, string dir, string postfix)
 }
 
 //super bins memory allocation
-lite_skv_t** p_pgraph_t::prep_skv(sflag_t ori_flag, lite_skv_t** skv)
+lite_skv_t** weight_graph_t::prep_skv(sflag_t ori_flag, lite_skv_t** skv)
 {
     tid_t   pos  = 0;
     sflag_t flag       = ori_flag;
@@ -344,7 +345,7 @@ lite_skv_t** p_pgraph_t::prep_skv(sflag_t ori_flag, lite_skv_t** skv)
 */
 
 /************* Semantic graphs  *****************/
-void p_dgraph_t::prep_graph_baseline()
+void weight_dgraph_t::prep_graph_baseline()
 {
     if (batch_info[0].count == 0) return;
     flag1_count = __builtin_popcountll(flag1);
@@ -364,14 +365,14 @@ void p_dgraph_t::prep_graph_baseline()
     prep_sgraph(flag2, sgraph_in);
 }
 
-void p_dgraph_t::calc_degree()
+void weight_dgraph_t::calc_degree()
 {
     //estimate edge count
     calc_edge_count(sgraph_out, sgraph_in);
 }
 
 //We assume that no new vertex type is defined
-void p_dgraph_t::make_graph_baseline()
+void weight_dgraph_t::make_graph_baseline()
 {
     if (batch_info[0].count == 0) return;
 
@@ -388,13 +389,13 @@ void p_dgraph_t::make_graph_baseline()
     cleanup();
 }
 
-void p_dgraph_t::store_graph_baseline()
+void weight_dgraph_t::store_graph_baseline()
 {
     store_sgraph(sgraph_out);
     store_sgraph(sgraph_in);
 }
 
-void p_dgraph_t::read_graph_baseline()
+void weight_dgraph_t::read_graph_baseline()
 {
     tid_t   t_count    = g->get_total_types();
     
@@ -410,7 +411,7 @@ void p_dgraph_t::read_graph_baseline()
 }
 
 /*******************************************/
-void p_ugraph_t::prep_graph_baseline()
+void weight_ugraph_t::prep_graph_baseline()
 {
     if (batch_info[0].count == 0) return;
     flag1 = flag1 | flag2;
@@ -428,13 +429,13 @@ void p_ugraph_t::prep_graph_baseline()
     prep_sgraph(flag1, sgraph); 
 }
 
-void p_ugraph_t::calc_degree()
+void weight_ugraph_t::calc_degree()
 {
     //estimate edge count
     calc_edge_count(sgraph, sgraph);
 }
 
-void p_ugraph_t::make_graph_baseline()
+void weight_ugraph_t::make_graph_baseline()
 {
     if (batch_info[0].count == 0) return;
     
@@ -449,12 +450,12 @@ void p_ugraph_t::make_graph_baseline()
     cleanup();
 }
 
-void p_ugraph_t::store_graph_baseline()
+void weight_ugraph_t::store_graph_baseline()
 {
     store_sgraph(sgraph);
 }
 
-void p_ugraph_t::read_graph_baseline()
+void weight_ugraph_t::read_graph_baseline()
 {
     tid_t   t_count = g->get_total_types();
     
@@ -465,6 +466,7 @@ void p_ugraph_t::read_graph_baseline()
 }
 
 /***************************************/
+/*
 void p_many2one_t::prep_graph_baseline()
 {
     if (batch_info[0].count == 0) return;
@@ -528,8 +530,9 @@ void p_many2one_t::read_graph_baseline()
     }
     read_sgraph(sgraph_in);
 }
-
+*/
 /*******************************************/
+/*
 void p_one2many_t::prep_graph_baseline()
 {
     if (batch_info[0].count == 0) return;
@@ -593,8 +596,9 @@ void p_one2many_t::read_graph_baseline()
     }
     read_skv(skv_in);
 }
-
+*/
 /************************************************/
+/*
 void p_one2one_t::prep_graph_baseline()
 {
     if (batch_info[0].count == 0) return;
@@ -650,9 +654,9 @@ void p_one2one_t::read_graph_baseline()
     }
     read_skv(skv_in);
 }
-
+*/
 /*
-lite_sgraph_t** p_pgraph_t::prep_sgraph(sflag_t ori_flag, lite_sgraph_t** sgraph)
+lite_sgraph_t** weight_graph_t::prep_sgraph(sflag_t ori_flag, lite_sgraph_t** sgraph)
 {
     tid_t   pos = 0;//it is tid
     
@@ -671,7 +675,7 @@ lite_sgraph_t** p_pgraph_t::prep_sgraph(sflag_t ori_flag, lite_sgraph_t** sgraph
 }
 
 //estimate edge count
-void p_pgraph_t::calc_edge_count(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgraph_in) 
+void weight_graph_t::calc_edge_count(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgraph_in) 
 {
     sid_t     src, dst;
     vid_t     vert1_id, vert2_id;
@@ -701,7 +705,7 @@ void p_pgraph_t::calc_edge_count(lite_sgraph_t** sgraph_out, lite_sgraph_t** sgr
 }
 
 //estimate edge count
-void p_pgraph_t::calc_edge_count_out(lite_sgraph_t** sgraph_out)
+void weight_graph_t::calc_edge_count_out(lite_sgraph_t** sgraph_out)
 {
     sid_t     src;
     vid_t     vert1_id;
@@ -724,7 +728,7 @@ void p_pgraph_t::calc_edge_count_out(lite_sgraph_t** sgraph_out)
     }
 }
 //estimate edge count
-void p_pgraph_t::calc_edge_count_in(lite_sgraph_t** sgraph_in)
+void weight_graph_t::calc_edge_count_in(lite_sgraph_t** sgraph_in)
 {
     sid_t     dst;
     vid_t     vert2_id;
@@ -746,7 +750,7 @@ void p_pgraph_t::calc_edge_count_in(lite_sgraph_t** sgraph_in)
 
 
 //prefix sum, allocate adj list memory then reset the count
-void p_pgraph_t::prep_sgraph_internal(lite_sgraph_t** sgraph)
+void weight_graph_t::prep_sgraph_internal(lite_sgraph_t** sgraph)
 {
     tid_t       t_count = g->get_total_types();
     
@@ -759,7 +763,7 @@ void p_pgraph_t::prep_sgraph_internal(lite_sgraph_t** sgraph)
 
 /////////// QUERIES ///////////////////////////
 /*
-status_t p_pgraph_t::query_adjlist_td(lite_sgraph_t** sgraph, srset_t* iset, srset_t* oset)
+status_t weight_graph_t::query_adjlist_td(lite_sgraph_t** sgraph, srset_t* iset, srset_t* oset)
 {
     tid_t    iset_count = iset->get_rset_count();
     rset_t*        rset = 0;
@@ -791,7 +795,7 @@ status_t p_pgraph_t::query_adjlist_td(lite_sgraph_t** sgraph, srset_t* iset, srs
     }
     return eOK;
 }
-status_t p_pgraph_t::query_kv_td(lite_skv_t** skv, srset_t* iset, srset_t* oset)
+status_t weight_graph_t::query_kv_td(lite_skv_t** skv, srset_t* iset, srset_t* oset)
 {
     tid_t    iset_count = iset->get_rset_count();
     rset_t*        rset = 0;
@@ -817,7 +821,7 @@ status_t p_pgraph_t::query_kv_td(lite_skv_t** skv, srset_t* iset, srset_t* oset)
 }
 
 //sgraph_in and oset share the same flag.
-status_t p_pgraph_t::query_adjlist_bu(lite_sgraph_t** sgraph, srset_t* iset, srset_t* oset)
+status_t weight_graph_t::query_adjlist_bu(lite_sgraph_t** sgraph, srset_t* iset, srset_t* oset)
 {
     rset_t* rset = 0;
     tid_t   tid  = 0;
@@ -850,7 +854,7 @@ status_t p_pgraph_t::query_adjlist_bu(lite_sgraph_t** sgraph, srset_t* iset, srs
     return eOK;
 }
 
-status_t p_pgraph_t::query_kv_bu(lite_skv_t** skv, srset_t* iset, srset_t* oset) 
+status_t weight_graph_t::query_kv_bu(lite_skv_t** skv, srset_t* iset, srset_t* oset) 
 {
     rset_t*  rset = 0;
     tid_t    tid  = 0;
@@ -877,7 +881,7 @@ status_t p_pgraph_t::query_kv_bu(lite_skv_t** skv, srset_t* iset, srset_t* oset)
 
 //////extend functions ------------------------
 status_t 
-p_pgraph_t::extend_adjlist_td(lite_sgraph_t** sgraph, srset_t* iset, srset_t* oset)
+weight_graph_t::extend_adjlist_td(lite_sgraph_t** sgraph, srset_t* iset, srset_t* oset)
 {
     tid_t    iset_count = iset->get_rset_count();
     rset_t*        rset = 0;
@@ -906,7 +910,7 @@ p_pgraph_t::extend_adjlist_td(lite_sgraph_t** sgraph, srset_t* iset, srset_t* os
 }
 
 status_t 
-p_pgraph_t::extend_kv_td(lite_skv_t** skv, srset_t* iset, srset_t* oset)
+weight_graph_t::extend_kv_td(lite_skv_t** skv, srset_t* iset, srset_t* oset)
 {
     tid_t    iset_count = iset->get_rset_count();
     rset_t*        rset = 0;
@@ -933,15 +937,15 @@ p_pgraph_t::extend_kv_td(lite_skv_t** skv, srset_t* iset, srset_t* oset)
     }
     return eOK;
 }
-*/
-cfinfo_t* p_ugraph_t::create_instance()
+
+cfinfo_t* weight_ugraph_t::create_instance()
 {
-    return new p_ugraph_t;
+    return new weight_ugraph_t;
 }
 
-cfinfo_t* p_dgraph_t::create_instance()
+cfinfo_t* weight_dgraph_t::create_instance()
 {
-    return new p_dgraph_t;
+    return new weight_dgraph_t;
 }
 
 cfinfo_t* p_one2one_t::create_instance()
@@ -958,68 +962,5 @@ cfinfo_t* p_many2one_t::create_instance()
 {
     return new p_many2one_t;
 }
+*/
 //////
-void p_ugraph_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
-{
-    vid_t vert1_id = TO_VID(src);
-    vid_t vert2_id = TO_VID(dst);
-    
-    tid_t src_index = TO_TID(src);
-    tid_t dst_index = TO_TID(dst);
-    
-    
-    if (del) { 
-        sgraph[src_index]->increment_count(vert1_id);
-        sgraph[dst_index]->increment_count(vert2_id);
-    } else { 
-        sgraph[src_index]->decrement_count(vert1_id);
-        sgraph[dst_index]->decrement_count(vert2_id);
-    }
-}
-
-void p_dgraph_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
-{
-    tid_t src_index = TO_TID(src);
-    tid_t dst_index = TO_TID(dst);
-    
-    vid_t vert1_id = TO_VID(src);
-    vid_t vert2_id = TO_VID(dst);
-    
-    if (del) { 
-        sgraph_out[src_index]->increment_count(vert1_id);
-        sgraph_in[dst_index]->increment_count(vert2_id);
-    } else { 
-        sgraph_out[src_index]->decrement_count(vert1_id);
-        sgraph_in[dst_index]->decrement_count(vert2_id);
-    }
-}
-
-void p_one2one_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
-{
-}
-
-void p_one2many_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
-{
-    tid_t dst_index = TO_TID(dst);
-    
-    vid_t vert2_id = TO_VID(dst);
-    
-    if (del) { 
-        sgraph_in[dst_index]->increment_count(vert2_id);
-    } else { 
-        sgraph_in[dst_index]->decrement_count(vert2_id);
-    }
-}
-
-void p_many2one_t::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
-{
-    tid_t src_index = TO_TID(src);
-    
-    vid_t vert1_id = TO_VID(src);
-    
-    if (del) { 
-        sgraph_out[src_index]->increment_count(vert1_id);
-    } else { 
-        sgraph_out[src_index]->decrement_count(vert1_id);
-    }
-}
