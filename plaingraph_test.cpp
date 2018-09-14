@@ -1189,16 +1189,20 @@ void netflow_test0(const string& idir, const string& odir)
     for (int i = 0; i < 1; i++){
         manager.run_bfs();
     }
-    /*
-    //Run PageRank
-    for (int i = 0; i < 1; i++){
-        plaingraph_manager.run_pr();
-    }
+}
+
+void stream_netflow_aggregation(const string& idir, const string& odir)
+{
+    plaingraph_manager_t<netflow_dst_t> manager;
+    manager.schema_plaingraph();
+    //do some setup for plain graphs
+    manager.setup_graph(v_count);
     
-    //Run 1-HOP query
-    for (int i = 0; i < 1; i++){
-        plaingraph_manager.run_1hop();
-    }*/
+    stream_t<netflow_dst_t>* streamh;
+    manager.reg_stream_engine(do_stream_netflow_aggr, &streamh);
+    netflow_post_reg(streamh, v_count); 
+    manager.prep_graph_and_compute(idir, odir, streamh); 
+    //netflow_finalize(streamh); 
 }
 
 void update_test0(const string& idir, const string& odir)
@@ -1382,6 +1386,9 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             break;
         case 27:
             stream_wcc(idir, odir);
+            break;
+        case 28:
+            stream_netflow_aggregation(idir, odir);
             break;
         case 95:
             recover_test0(idir, odir);

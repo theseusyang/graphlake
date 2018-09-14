@@ -2,10 +2,12 @@
 #include <omp.h>
 #include <algorithm>
 
+#include "type.h"
 #include "graph.h"
 #include "sgraph.h"
 #include "wtime.h"
 
+//WCC specific data structure
 typedef int cid_t;
 class wcc_t {
   public:
@@ -31,6 +33,21 @@ void wcc_post_reg(stream_t<T>* streamh, vid_t v_count) {
     streamh->set_algometa(wcc);
 } 
 
+//netflow aggregation data structure
+struct aggr_flow_t {
+    index_t src_packet;
+    index_t dst_packet;
+
+    index_t src_bytes;
+    index_t dst_bytes;
+};
+
+inline void netflow_post_reg(stream_t<netflow_dst_t>* streamh, vid_t v_count) {
+    aggr_flow_t* aggr_flow = (aggr_flow_t*)calloc(v_count, sizeof(aggr_flow_t));
+    streamh->set_algometa(aggr_flow);
+} 
+
+//
 inline void map_cid(cid_t c1, cid_t c, cid_t* c_cid)
 {
     c_cid[c1] = c;
@@ -131,4 +148,27 @@ void do_stream_wcc(stream_t<T>* streamh)
     }
 }
 
+void do_stream_netflow_aggr(stream_t<netflow_dst_t>* streamh)
+{
+    edgeT_t<netflow_dst_t>* edges = streamh->get_edges();
+    index_t edge_count = streamh->get_edgecount();
+    vid_t src;
+
+    aggr_flow_t* aggr_flow = (aggr_flow_t*)streamh->get_algometa(); 
+
+    #pragma omp parallel for num_threads(THD_COUNT)
+    for (index_t i = 0; i < edge_count; ++i) {
+        src = edges[i].src_id;
+        
+        __sync_fetch_and_add(&aggr_flow[src].src_packet, edges[i].dst_id.second.src_packet);
+        __sync_fetch_and_add(&aggr_flow[src].dst_packet, edges[i].dst_id.second.dst_packet);
+        __sync_fetch_and_add(&aggr_flow[src].src_bytes, edges[i].dst_id.second.src_bytes);
+        __sync_fetch_and_add(&aggr_flow[src].dst_bytes, edges[i].dst_id.second.dst_bytes);
+        
+        //aggr_flow[src].src_packet += edges[i].dst_id.second.src_packet;
+        //aggr_flow[src].src_packet += edges[i].dst_id.second.src_packet;
+        //aggr_flow[src].src_bytes += edges[i].dst_id.second.src_bytes;
+        //aggr_flow[src].dst_bytes += edges[i].dst_id.second.dst_bytes;
+    }
+}
 
