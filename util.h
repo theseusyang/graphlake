@@ -1,6 +1,20 @@
 #pragma once
 #include "type.h"
 
+inline index_t upper_power_of_two(index_t v)
+{
+    v--;
+    v |= v >> 1;
+    v |= v >> 2;
+    v |= v >> 4;
+    v |= v >> 8;
+    v |= v >> 16;
+    v |= v >> 32;
+    v++;
+    return v;
+
+}
+
 template <class T>
 index_t read_idir(const string& idirname, edgeT_t<T>** pedges, bool alloc)
 {
@@ -31,7 +45,20 @@ index_t read_idir(const string& idirname, edgeT_t<T>** pedges, bool alloc)
         edges =  (edgeT_t<T>*)calloc(sizeof(edgeT_t<T>),total_edge_count);
         *pedges = edges;
     } else {
-        edges = *pedges;
+        //edges = *pedges;
+        //
+        while (NULL != (ptr = readdir(dir))) {
+            if (ptr->d_name[0] == '.') continue;
+            filename = idirname + "/" + string(ptr->d_name);
+            size = fsize(filename);
+            edge_count = size/sizeof(edgeT_t<T>);
+            total_edge_count += edge_count;
+        }
+        closedir(dir);
+        //upper align the memory allocation
+        index_t new_count =  upper_power_of_two(total_edge_count);
+        edges =  (edgeT_t<T>*)calloc(sizeof(edgeT_t<T>), new_count);
+        *pedges = edges;
     }
     
     //Read graph files

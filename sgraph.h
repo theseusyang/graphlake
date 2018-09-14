@@ -116,16 +116,28 @@ class pgraph_t: public cfinfo_t {
     }
     status_t batch_edge(edgeT_t<T> edge) {
         status_t ret = eOK;
+
         index_t index = __sync_fetch_and_add(&blog->blog_head, 1L);
-        index_t index1 = (index & BLOG_MASK);
+        
+        //Check if we are overwritting the unarchived data, if so sleep
+        while (index - blog->blog_tail >= blog->blog_count) {
+            usleep(10);
+        }
+        
         index_t size = ((index - blog->blog_marker) & BATCH_MASK);
+        index_t index1 = (index & BLOG_MASK);
+        
+        //inform archive thread about threshold being crossed
         if ((0 == size) && (index != blog->blog_marker)) {
             blog->blog_beg[index1] = edge;
             create_marker(index + 1);
             //cout << "Will create a snapshot now " << endl;
             return eEndBatch;
             //ret = eEndBatch;
-        } else if ((index - blog->blog_tail) == blog->blog_count - 1000) {
+        } 
+        
+        /*
+        else if ((index - blog->blog_tail) == blog->blog_count - 1000) {
             blog->blog_beg[index1] = edge;
             create_marker(index + 1);
             cout << "About OOM" << endl;
@@ -134,9 +146,10 @@ class pgraph_t: public cfinfo_t {
             //block
             assert(0);
             return eOOM;
-        }
+        }*/
 
         blog->blog_beg[index1] = edge;
+        
         //if (ret != eEndBatch) {
         //    blog->blog_beg[index1] = edge;
         //}

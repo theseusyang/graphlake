@@ -130,3 +130,5 @@ void do_stream_wcc(stream_t<T>* streamh)
         wcc_edge<T>(src, dst, wcc);
     }
 }
+
+

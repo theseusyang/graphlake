@@ -42,7 +42,7 @@ void* recovery_func(void* arg)
     index_t size = fsize(filename);
     index_t edge_count = size/sizeof(edge_t);
     
-    
+    //XXX some changes require to be made if edge log size is finite.   
     while (total_read < edge_count) {
         to_read = min(edge_count - total_read,batch_size);
         if (to_read != fread(edge + total_read, sizeof(edge_t), to_read, file)) {

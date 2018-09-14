@@ -383,6 +383,10 @@ void plaingraph_manager_t<T>::prep_graph_adj(const string& idirname, const strin
     
     blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
     
+    //Upper align this, and create a mask for it
+    index_t new_count = upper_power_of_two(blog->blog_head);
+    BLOG_MASK = new_count -1;
+    
     double start = mywtime();
     
     //Make Graph
