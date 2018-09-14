@@ -93,6 +93,8 @@ class stream_t {
     inline void        set_edgecount(index_t a_edgecount){edge_count = a_edgecount;}
 };
 
+template <class T>
+class snap_t;
 
 template <class T>
 class plaingraph_manager_t {
@@ -137,6 +139,20 @@ class plaingraph_manager_t {
      void prep_graph_and_compute(const string& idirname, 
                                  const string& odirname, 
                                  stream_t<T>* streamh);
+     
+     vid_t get_nebrs_out(snap_t<T>* snaph, vid_t vid, T* ptr);
+     vid_t get_nebrs_in (snap_t<T>* snaph, vid_t vid, T* ptr);
+     vid_t get_nebr_length_out(snap_t<T>* snaph, vid_t vid);
+     vid_t get_nebr_length_in (snap_t<T>* snaph, vid_t vid);
+     nebrcount_t get_nebrs_archived_out(snap_t<T>* snaph, vid_t, T*& ptr);
+     nebrcount_t get_nebrs_archived_in(snap_t<T>* snaph, vid_t, T*& ptr);
+
+
+
+     vid_t get_nebrs_out(sstream_t<T>* sstreamh, vid_t vid, T* ptr);
+     vid_t get_nebrs_in (sstream_t<T>* sstreamh, vid_t vid, T* ptr);
+     vid_t get_nebr_length_out(sstream_t<T>* sstreamh, vid_t vid);
+     vid_t get_nebr_length_in (sstream_t<T>* sstreamh, vid_t vid);
 
      void run_pr();
      void run_prd();

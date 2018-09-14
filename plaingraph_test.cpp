@@ -641,7 +641,7 @@ void weighted_dtest0(const string& idir, const string& odir)
     pgraph_t<lite_edge_t>*    graph = (pgraph_t<lite_edge_t>*)g->cf_info[cf_id];
     blog_t<lite_edge_t>*       blog = graph->blog;
     onegraph_t<lite_edge_t>* sgraph = graph->sgraph[0];
-    nebrcount_t<lite_edge_t>* degree_array = sgraph->nebr_count;
+    nebrcount_t* degree_array = sgraph->nebr_count;
     
     double start = mywtime();
     

@@ -47,6 +47,11 @@ inline void netflow_post_reg(stream_t<netflow_dst_t>* streamh, vid_t v_count) {
     streamh->set_algometa(aggr_flow);
 } 
 
+inline void netflow_post_sreg(sstream_t<netflow_dst_t>* sstreamh, vid_t v_count) {
+    aggr_flow_t* aggr_flow = (aggr_flow_t*)calloc(v_count, sizeof(aggr_flow_t));
+    sstreamh->set_algometa(aggr_flow);
+} 
+
 //
 inline void map_cid(cid_t c1, cid_t c, cid_t* c_cid)
 {
@@ -172,3 +177,18 @@ void do_stream_netflow_aggr(stream_t<netflow_dst_t>* streamh)
     }
 }
 
+void do_sstream_netflow_aggr(sstream_t<netflow_dst_t>* sstreamh)
+{
+    /*
+    edgeT_t<netflow_dst_t>* edges = sstreamh->get_edges();
+    index_t edge_count = sstreamh->get_edgecount();
+    vid_t src;
+    netflow_dst_t* netflow_dst;
+
+    aggr_flow_t* aggr_flow = (aggr_flow_t*)sstreamh->get_algometa(); 
+    
+    for (vid_t v = 0; v < v_count; ++v)
+    {
+        //netflow_dst = sstreamh->graph_out[];
+    }*/
+}

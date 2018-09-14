@@ -171,7 +171,6 @@ class vert_table_t {
     }
 };
 
-template <class T>
 class nebrcount_t {
  public:
     degree_t    add_count;
@@ -254,7 +253,7 @@ private:
     string   file;
 public:
     int    etf;   //edge table file
-    nebrcount_t<T>*   nebr_count;
+    nebrcount_t*   nebr_count;
 
 private:    
     inline void del_nebr(vid_t vid, T sid) {
