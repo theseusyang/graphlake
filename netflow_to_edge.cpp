@@ -42,13 +42,14 @@ index_t netflow_text_to_bin(const string& textfile, const string& ofile)
     
     netflow_edge_t* netflow_array = (netflow_edge_t*)calloc(estimated_count, 
                                                       sizeof(netflow_edge_t));
+    assert(netflow_array);
     
     FILE* file = fopen(textfile.c_str(), "r");
     assert(file);
 
     netflow_edge_t* netflow = netflow_array;
     index_t icount = 0;
-	char sss[256];
+	char sss[512];
     char* line = sss;
     char* token = 0;
     //const char* del = ",\n";
@@ -101,6 +102,7 @@ index_t netflow_text_to_bin(const string& textfile, const string& ofile)
     file = fopen(ofile.c_str(), "wb");
     fwrite(netflow_array, sizeof(netflow_edge_t), icount, file);
     fclose(file);
+    free(netflow_array);
     return 0;
 }
 
@@ -122,11 +124,12 @@ index_t netflow_manager_t::netflow_text_to_bin_idir(const string& idirname, cons
         filename = idirname + "/" + string(ptr->d_name);
         file_count++;
         ofilename = odirname + "/" + string(ptr->d_name);
+        cout << "ifile= "  << filename << endl 
+                <<" ofile=" << ofilename << endl;
         netflow_text_to_bin(filename, ofilename);    
         double end = mywtime();
-        cout << "ifile= "  << filename << endl 
-                <<" ofile=" << ofilename << endl
-                <<" Time = "<< end - start << endl;
+        cout <<" Time = "<< end - start;
+        cout << " vertex count" << vid << endl;
     }
     closedir(dir);
     cout << "vertex count" << vid << endl;
