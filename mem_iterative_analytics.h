@@ -5,7 +5,7 @@
 #include "wtime.h"
 
 #include "sgraph.h"
-//#include "p_sgraph.h"
+#include "type.h"
 
 using std::min;
 
@@ -24,15 +24,6 @@ degree_t* create_degreesnap (vert_table_t<T>* graph, vid_t v_count, snapshot_t* 
         old_marker = snapshot->marker;
     }
 
-    /*
-    degree_t* degree_array  = (degree_t*)mmap(NULL, sizeof(degree_t)*v_count, PROT_READ|PROT_WRITE,
-                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
-    
-    if (MAP_FAILED == degree_array) {
-        cout << "Huge page alloc failed for degree array" << endl;
-        degree_array = (degree_t*)calloc(v_count, sizeof(degree_t));
-    }
-    */
     #pragma omp parallel
     {
         snapT_t<T>*   snap_blob = 0;
@@ -41,7 +32,10 @@ degree_t* create_degreesnap (vert_table_t<T>* graph, vid_t v_count, snapshot_t* 
         #pragma omp for 
         for (vid_t v = 0; v < v_count; ++v) {
             snap_blob = graph[v].get_snapblob();
-            if (0 == snap_blob) { continue; }
+            if (0 == snap_blob) { 
+                degree_array[v] = 0;
+                continue; 
+            }
             
             nebr_count = 0;
             if (snap_id >= snap_blob->snap_id) {
@@ -70,9 +64,9 @@ degree_t* create_degreesnap (vert_table_t<T>* graph, vid_t v_count, snapshot_t* 
 }
 
 template <class T>
-void create_degreesnapd (onegraph_t<T>* graph_out, onegraph_t<T>* graph_in,
+void create_degreesnapd (vert_table_t<T>* begpos_out, vert_table_t<T>* begpos_in,
                          snapshot_t* snapshot, index_t marker, edgeT_t<T>* edges, 
-                         degree_t* &degree_out, degree_t* &degree_in)
+                         degree_t* &degree_out, degree_t* &degree_in, vid_t v_count)
 {
     snapid_t snap_id = 0;
     index_t old_marker = 0;
@@ -81,27 +75,8 @@ void create_degreesnapd (onegraph_t<T>* graph_out, onegraph_t<T>* graph_in,
         old_marker = snapshot->marker;
     }
 
-    vert_table_t<T>* begpos_out = graph_out->get_begpos();
-    vert_table_t<T>* begpos_in = graph_in->get_begpos();
-    vid_t           vcount_out = graph_out->get_vcount();
-    vid_t           vcount_in  = graph_in->get_vcount();
-
-    /*
-    degree_out  = (degree_t*)mmap(NULL, sizeof(degree_t)*vcount_out, PROT_READ|PROT_WRITE,
-                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
-    
-    if (MAP_FAILED == degree_out) {
-        cout << "Huge page alloc failed for degree array" << endl;
-        degree_out = (degree_t*)calloc(vcount_out, sizeof(degree_t));
-    }
-    
-    degree_in  = (degree_t*)mmap(NULL, sizeof(degree_t)*vcount_in, PROT_READ|PROT_WRITE,
-                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
-    
-    if (MAP_FAILED == degree_in) {
-        cout << "Huge page alloc failed for degree array" << endl;
-        degree_in = (degree_t*)calloc(vcount_in, sizeof(degree_t));
-    }*/
+    vid_t           vcount_out = v_count;
+    vid_t           vcount_in  = v_count;
 
     #pragma omp parallel
     {
@@ -111,7 +86,10 @@ void create_degreesnapd (onegraph_t<T>* graph_out, onegraph_t<T>* graph_in,
         #pragma omp for nowait 
         for (vid_t v = 0; v < vcount_out; ++v) {
             snap_blob = begpos_out[v].get_snapblob();
-            if (0 == snap_blob) { continue; }
+            if (0 == snap_blob) {
+                degree_out[v] = 0;
+                continue; 
+            }
             
             nebr_count = 0;
             if (snap_id >= snap_blob->snap_id) {
@@ -131,7 +109,10 @@ void create_degreesnapd (onegraph_t<T>* graph_out, onegraph_t<T>* graph_in,
         #pragma omp for nowait 
         for (vid_t v = 0; v < vcount_in; ++v) {
             snap_blob = begpos_in[v].get_snapblob();
-            if (0 == snap_blob) { continue; }
+            if (0 == snap_blob) { 
+                degree_in[v] = 0;
+                continue; 
+            }
             
             nebr_count = 0;
             if (snap_id >= snap_blob->snap_id) {
@@ -151,7 +132,7 @@ void create_degreesnapd (onegraph_t<T>* graph_out, onegraph_t<T>* graph_in,
         #pragma omp for
         for (index_t i = old_marker; i < marker; ++i) {
             __sync_fetch_and_add(degree_out + edges[i].src_id, 1);
-            __sync_fetch_and_add(degree_in + edges[i].dst_id, 1);
+            __sync_fetch_and_add(degree_in + get_dst(edges+i), 1);
         }
     }
 
@@ -709,8 +690,7 @@ mem_hop2(vert_table_t<T>* graph_out, degree_t* degree_out,
 }
 
 template<class T>
-void
-mem_bfs(vert_table_t<T>* graph_out, degree_t* degree_out, 
+void mem_bfs(vert_table_t<T>* graph_out, degree_t* degree_out, 
         vert_table_t<T>* graph_in, degree_t* degree_in,
         snapshot_t* snapshot, index_t marker, edgeT_t<T>* edges,
         vid_t v_count, uint8_t* status, sid_t root)
@@ -863,6 +843,22 @@ mem_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
         }
         cout << " Level = " << l << " count = " << vid_count << endl;
     }
+}
+
+template<class T>
+void mem_bfs(snap_t<T>* snaph,
+        uint8_t* status, sid_t root)
+{
+    index_t marker = snaph->edge_count;
+    snapshot_t* snapshot =  snaph->snapshot;
+    if (snapshot) {
+        marker += snapshot->marker;
+    }
+
+    mem_bfs(snaph->graph_out, snaph->degree_out, 
+        snaph->graph_in, snaph->degree_in,
+        snaph->snapshot, marker, snaph->edges,
+        snaph->v_count, status, root);
 }
 
 template<class T>

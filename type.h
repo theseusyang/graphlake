@@ -548,3 +548,193 @@ typedef struct __vconf_t {
     string predicate;
 } vconf_t; 
 
+class nebrcount_t {
+ public:
+    degree_t    add_count;
+    degree_t    del_count;
+	//delta_adjlist_t<T>* adj_list;
+};
+
+template <class T>
+class pgraph_t;
+
+template <class T>
+class vert_table_t;
+
+template<class T>
+class wsstream_t;
+
+template<class T>
+class sstream_t;
+
+template<class T>
+class wstream_t;
+
+template<class T>
+class stream_t;
+
+template<class T>
+struct callback {
+      typedef void(*wsfunc)(wsstream_t<T>*);
+      typedef void(*sfunc)(sstream_t<T>*);
+      typedef void(*wfunc)(wstream_t<T>*);
+      typedef void(*func)(stream_t<T>*);
+};
+
+template <class T>
+struct snap_t {
+    vert_table_t<T>* graph_out;
+    vert_table_t<T>* graph_in;
+    degree_t*        degree_out;
+    degree_t*        degree_in;
+
+    snapshot_t*      snapshot;
+    pgraph_t<T>*     pgraph;  
+    edgeT_t<T>*      edges; //mew edges
+    vid_t            edge_count;//their count
+    vid_t            v_count;
+public:
+
+    degree_t get_nebrs_out(vid_t vid, T*& ptr);
+    degree_t get_nebrs_in (vid_t vid, T*& ptr);
+    degree_t get_nebrs_length_out(vid_t vid);
+    degree_t get_nebrs_length_in (vid_t vid);
+     
+    //Raw access, low level APIs
+    nebrcount_t get_nebrs_archived_out(vid_t, T*& ptr);
+    nebrcount_t get_nebrs_archived_in(vid_t, T*& ptr);
+};
+
+template <class T>
+class wsstream_t {
+ public:
+    snapshot_t*      snapshot;
+    vid_t            v_count;
+    void*            algo_meta;//algorithm specific data
+    typename callback<T>::wsfunc   wsstream_func;
+    
+    //ending marker of the window
+    vert_table_t<T>* graph_out;
+    vert_table_t<T>* graph_in;
+    degree_t*        degree_out;
+    degree_t*        degree_in;
+    edgeT_t<T>*      edges; //new edges
+    index_t          edge_count;//their count
+    
+    //starting marker of the window
+    vert_table_t<T>* graph_out1;
+    vert_table_t<T>* graph_in1;
+    degree_t*        degree_out1;
+    degree_t*        degree_in1;
+    edgeT_t<T>*      edges1; //old edges
+    index_t          edge_count1; //their count
+
+ public:
+    wsstream_t(){
+        graph_out = 0;
+        graph_in = 0;
+        degree_out = 0;
+        degree_in = 0;
+        snapshot = 0;
+        edges = 0;
+        edge_count = 0;
+        algo_meta = 0;
+    }
+ public:
+    inline void    set_algometa(void* a_meta) {algo_meta = a_meta;}
+    inline void*   get_algometa() {return algo_meta;}
+    
+    degree_t get_nebrs_out(vid_t vid, T*& ptr);
+    degree_t get_nebrs_in (vid_t vid, T*& ptr);
+    degree_t get_nebrs_length_out(vid_t vid);
+    degree_t get_nebrs_length_in (vid_t vid);
+     
+    nebrcount_t get_nebrs_archived_out(wsstream_t<T>* snaph, vid_t, T*& ptr);
+    nebrcount_t get_nebrs_archived_in(wsstream_t<T>* snaph, vid_t, T*& ptr);
+    
+    void update_wsstream_engine(wsstream_t<T>* wsstreamh);
+
+};
+
+template <class T>
+class sstream_t {
+ public:
+    vert_table_t<T>* graph_out;
+    vert_table_t<T>* graph_in;
+    degree_t*        degree_out;
+    degree_t*        degree_in;
+
+    snapshot_t*      snapshot;
+
+    pgraph_t<T>*     pgraph;
+    edgeT_t<T>*      edges; //mew edges
+    index_t          edge_count;//their count
+    vid_t            v_count; 
+    
+    void*            algo_meta;//algorithm specific data
+    typename callback<T>::sfunc   stream_func; 
+
+ public:
+    sstream_t(){
+        graph_out = 0;
+        graph_in = 0;
+        degree_out = 0;
+        degree_in = 0;
+        snapshot = 0;
+        edges = 0;
+        edge_count = 0;
+        algo_meta = 0;
+        pgraph = 0;
+    }
+ public:
+    inline void    set_algometa(void* a_meta) {algo_meta = a_meta;}
+    inline void*   get_algometa() {return algo_meta;}
+
+    inline edgeT_t<T>* get_edges() { return edges;}
+    inline void        set_edges(edgeT_t<T>*a_edges) {edges = a_edges;}
+    
+    inline index_t     get_edgecount() { return edge_count;}
+    inline void        set_edgecount(index_t a_edgecount){edge_count = a_edgecount;}
+
+ public:
+    void update_sstream_engine();
+
+    degree_t get_nebrs_out(vid_t vid, T*& ptr);
+    degree_t get_nebrs_in (vid_t vid, T*& ptr);
+    degree_t get_nebrs_length_out(vid_t vid);
+    degree_t get_nebrs_length_in (vid_t vid);
+    nebrcount_t get_nebrs_archived_out(vid_t, T*& ptr);
+    nebrcount_t get_nebrs_archived_in(vid_t, T*& ptr);
+};
+
+template <class T>
+class stream_t {
+ public:
+    index_t          edge_offset;//Compute starting offset
+    edgeT_t<T>*      edges; //mew edges
+    index_t          edge_count;//their count
+    pgraph_t<T>*     pgraph;
+    
+    void*            algo_meta;//algorithm specific data
+    typename callback<T>::func   stream_func;
+
+
+ public:
+    stream_t(){
+        edges = 0;
+        edge_count = 0;
+        algo_meta = 0;
+    }
+ public:
+    inline void    set_algometa(void* a_meta) {algo_meta = a_meta;}
+    inline void*   get_algometa() {return algo_meta;}
+
+    inline edgeT_t<T>* get_edges() { return edges;}
+    inline void        set_edges(edgeT_t<T>*a_edges) {edges = a_edges;}
+    
+    inline index_t     get_edgecount() { return edge_count;}
+    inline void        set_edgecount(index_t a_edgecount){edge_count = a_edgecount;}
+
+ public:   
+    void update_stream_engine();
+};

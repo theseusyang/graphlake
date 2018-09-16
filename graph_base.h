@@ -171,13 +171,6 @@ class vert_table_t {
     }
 };
 
-class nebrcount_t {
- public:
-    degree_t    add_count;
-    degree_t    del_count;
-	//delta_adjlist_t<T>* adj_list;
-};
-
 template <class T>
 class thd_mem_t {
 	public:
