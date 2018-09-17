@@ -58,15 +58,16 @@ class plaingraph_manager_t {
                                  stream_t<T>* streamh);
      void reg_stream_engine(typename callback<T>::func func, stream_t<T>** streamh);
      void unreg_stream_engine(stream_t<T>* streamh);
+     
+     void reg_sstream_engine(typename callback<T>::sfunc func, sstream_t<T>** sstreamh,
+                             bool simple, bool priv, bool stale);
+     void unreg_sstream_engine(sstream_t<T>* sstreamh);
 
      void reg_wsstream_engine(typename callback<T>::wsfunc func,
                     wsstream_t<T>** wsstreamw, bool simple, bool priv, bool stale);
-     void reg_sstream_engine(typename callback<T>::sfunc func, sstream_t<T>** sstreamh,
-                             bool simple, bool priv, bool stale);
-     void reg_wstream_engine(typename callback<T>::wfunc func, wstream_t<T>** wstreamh);
-     
      void unreg_wsstream_engine(wsstream_t<T>* wsstreamh);
-     void unreg_sstream_engine(sstream_t<T>* sstreamh);
+     
+     void reg_wstream_engine(typename callback<T>::wfunc func, wstream_t<T>** wstreamh);
      void unreg_wstream_engine(wstream_t<T>* wstreamh);
 
      void create_static_view(bool simple, bool priv, bool stale, snap_t<T>** a_snaph);
