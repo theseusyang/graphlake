@@ -46,6 +46,7 @@ class plaingraph_manager_t {
      void setup_weightedgraph(vid_t v_count);
      void setup_weightedgraph_memory(vid_t v_count);
 
+     void prep_graph_edgelog(const string& idirname, const string& odirname);
      void prep_graph_adj(const string& idirname, const string& odirname);
      void prep_graph(const string& idirname, const string& odirname);
      void prep_graph_durable(const string& idirname, const string& odirname);
@@ -262,7 +263,45 @@ void plaingraph_manager_t<T>::setup_weightedgraph_memory(vid_t v_count)
 
 extern vid_t v_count;
 
-void* recovery_func(void* arg); 
+struct arg_t {
+    string file;
+    void* manager;
+};
+
+//void* recovery_func(void* arg); 
+
+template <class T>
+void* recovery_func(void* a_arg) 
+{
+    arg_t* arg = (arg_t*) a_arg; 
+    string filename = arg->file;
+    plaingraph_manager_t<T>* manager = (plaingraph_manager_t<T>*)arg->manager;
+
+    pgraph_t<T>* ugraph = (pgraph_t<T>*)manager->get_plaingraph();
+    blog_t<T>*     blog = ugraph->blog;
+    edgeT_t<T>*    edge = blog->blog_beg;
+    
+    index_t to_read = 0;
+    index_t total_read = 0;
+    index_t batch_size = (1L << residue);
+    cout << "batch_size = " << batch_size << endl;
+        
+    FILE* file = fopen(filename.c_str(), "rb");
+    assert(file != 0);
+    index_t size = fsize(filename);
+    index_t edge_count = size/sizeof(edgeT_t<T>);
+    
+    //XXX some changes require to be made if edge log size is finite.   
+    while (total_read < edge_count) {
+        to_read = min(edge_count - total_read,batch_size);
+        if (to_read != fread(edge + total_read, sizeof(edgeT_t<T>), to_read, file)) {
+            assert(0);
+        }
+        blog->blog_head += to_read;
+        total_read += to_read;
+    }
+    return 0;
+}
 
 template <class T>
 void plaingraph_manager_t<T>::recover_graph_adj(const string& idirname, const string& odirname)
@@ -271,8 +310,11 @@ void plaingraph_manager_t<T>::recover_graph_adj(const string& idirname, const st
     index_t batch_size = (1L << residue);
     cout << "batch_size = " << batch_size << endl;
 
+    arg_t* arg = new arg_t;
+    arg->file = idir;
+    arg->manager = this;
     pthread_t recovery_thread;
-    if (0 != pthread_create(&recovery_thread, 0, recovery_func , &idir)) {
+    if (0 != pthread_create(&recovery_thread, 0, &recovery_func<T> , &idir)) {
         assert(0);
     }
     
@@ -305,7 +347,7 @@ void plaingraph_manager_t<T>::recover_graph_adj(const string& idirname, const st
             //cout << marker << endl;
         }
     }
-    
+    delete arg; 
     double end = mywtime ();
     cout << "Make graph time = " << end - start << endl;
 }
@@ -350,6 +392,23 @@ void plaingraph_manager_t<T>::prep_graph_adj(const string& idirname, const strin
 }
 
 template <class T>
+void plaingraph_manager_t<T>::prep_graph_edgelog(const string& idirname, const string& odirname)
+{
+    edgeT_t<T>* edges = 0;
+    index_t total_edge_count = read_idir(idirname, &edges, true); 
+    
+    pgraph_t<T>* ugraph = (pgraph_t<T>*)get_plaingraph();
+    
+    //Batch and Make Graph
+    double start = mywtime();
+    for (index_t i = 0; i < total_edge_count; ++i) {
+        ugraph->batch_edge(edges[i]);
+    }
+    double end = mywtime ();
+    cout << "Batch Update Time = " << end - start << endl;
+}
+
+template <class T>
 void plaingraph_manager_t<T>::prep_graph(const string& idirname, const string& odirname)
 {
     //-----
@@ -357,7 +416,7 @@ void plaingraph_manager_t<T>::prep_graph(const string& idirname, const string& o
     usleep(1000);
     //-----
     
-    edge_t* edges = 0;
+    edgeT_t<T>* edges = 0;
     index_t total_edge_count = read_idir(idirname, &edges, true); 
     
     pgraph_t<T>* ugraph = (pgraph_t<T>*)get_plaingraph();
@@ -396,7 +455,7 @@ void plaingraph_manager_t<T>::prep_graph_durable(const string& idirname, const s
     usleep(1000);
     //-----
     
-    edge_t* edges = 0;
+    edgeT_t<T>* edges = 0;
     index_t total_edge_count = read_idir(idirname, &edges, true); 
     
     pgraph_t<T>* ugraph = (pgraph_t<T>*)get_plaingraph();

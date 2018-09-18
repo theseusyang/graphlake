@@ -25,34 +25,6 @@ vid_t v_count = 0;
 plaingraph_manager_t<sid_t> plaingraph_manager; 
 plaingraph_manager_t<lite_edge_t> weightedgraph_manager; 
 
-void* recovery_func(void* arg) 
-{
-    string filename = *(string*)arg;
-    pgraph_t<sid_t>* ugraph = (pgraph_t<sid_t>*)plaingraph_manager.get_plaingraph();
-    blog_t<sid_t>*     blog = ugraph->blog;
-    edgeT_t<sid_t>*    edge = blog->blog_beg;
-    
-    index_t to_read = 0;
-    index_t total_read = 0;
-    index_t batch_size = (1L << residue);
-    cout << "batch_size = " << batch_size << endl;
-        
-    FILE* file = fopen(filename.c_str(), "rb");
-    assert(file != 0);
-    index_t size = fsize(filename);
-    index_t edge_count = size/sizeof(edge_t);
-    
-    //XXX some changes require to be made if edge log size is finite.   
-    while (total_read < edge_count) {
-        to_read = min(edge_count - total_read,batch_size);
-        if (to_read != fread(edge + total_read, sizeof(edge_t), to_read, file)) {
-            assert(0);
-        }
-        blog->blog_head += to_read;
-        total_read += to_read;
-    }
-    return 0;
-}
 struct estimate_t {
     degree_t durable_degree;
     degree_t delta_degree;
@@ -1152,26 +1124,29 @@ void paper_test_hop2(const string& idir, const string& odir)
     plaingraph_manager.run_2hop();
 }
 
-void update_test0d(const string& idir, const string& odir)
+
+template <class T>
+void test_archived(const string& idir, const string& odir)
 {
-    plaingraph_manager.schema_plaingraphd();
+    plaingraph_manager_t<T> manager;
+    manager.schema_plaingraphd();
     //do some setup for plain graphs
-    plaingraph_manager.setup_graph(v_count);    
-    plaingraph_manager.prep_graph_adj(idir, odir);    
+    manager.setup_graph(v_count);    
+    manager.prep_graph_adj(idir, odir);    
     
     //Run BFS
     for (int i = 0; i < 1; i++){
-        plaingraph_manager.run_bfsd();
+        manager.run_bfsd();
     }
     /*
     //Run PageRank
     for (int i = 0; i < 1; i++){
-        plaingraph_manager.run_pr();
+        manager.run_pr();
     }
     
     //Run 1-HOP query
     for (int i = 0; i < 1; i++){
-        plaingraph_manager.run_1hop();
+        manager.run_1hop();
     }
     */
 }
@@ -1205,27 +1180,54 @@ void stream_netflow_aggregation(const string& idir, const string& odir)
     //netflow_finalize(streamh); 
 }
 
-void update_test0(const string& idir, const string& odir)
+template <class T>
+void test_logging(const string& idir, const string& odir)
 {
-    plaingraph_manager.schema_plaingraph();
+    plaingraph_manager_t<T> manager;
+    manager.schema_plaingraph();
     //do some setup for plain graphs
-    plaingraph_manager.setup_graph(v_count);    
-    
-    plaingraph_manager.prep_graph_adj(idir, odir);
+    manager.setup_graph(v_count);    
+    manager.prep_graph_edgelog(idir, odir);
     
     //Run BFS
     for (int i = 0; i < 1; i++){
-        plaingraph_manager.run_bfs();
+        manager.run_bfs();
     }
     /*
     //Run PageRank
     for (int i = 0; i < 1; i++){
-        plaingraph_manager.run_pr();
+        manager.run_pr();
     }
     
     //Run 1-HOP query
     for (int i = 0; i < 1; i++){
-        plaingraph_manager.run_1hop();
+        manager.run_1hop();
+    }*/
+}
+
+template <class T>
+void test_archive(const string& idir, const string& odir)
+{
+    plaingraph_manager_t<T> manager;
+    manager.schema_plaingraph();
+    //do some setup for plain graphs
+    manager.setup_graph(v_count);    
+    
+    manager.prep_graph_adj(idir, odir);
+    
+    //Run BFS
+    for (int i = 0; i < 1; i++){
+        manager.run_bfs();
+    }
+    /*
+    //Run PageRank
+    for (int i = 0; i < 1; i++){
+        manager.run_pr();
+    }
+    
+    //Run 1-HOP query
+    for (int i = 0; i < 1; i++){
+        manager.run_1hop();
     }*/
 }
 
@@ -1252,42 +1254,50 @@ void recover_test0d(const string& idir, const string& odir)
     plaingraph_manager.run_bfsd();
 }
 
-void update_test1d(const string& idir, const string& odir)
+template <class T>
+void test_ingestiond(const string& idir, const string& odir)
 {
-    plaingraph_manager.schema_plaingraphd();
+    plaingraph_manager_t<T> manager;
+    manager.schema_plaingraphd();
     //do some setup for plain graphs
-    plaingraph_manager.setup_graph(v_count);    
-    plaingraph_manager.prep_graph_durable(idir, odir); 
-    plaingraph_manager.run_bfsd();    
+    manager.setup_graph(v_count);    
+    manager.prep_graph_durable(idir, odir); 
+    manager.run_bfsd();    
 }
 
-void update_test2(const string& idir, const string& odir)
+template <class T>
+void test_ingestion_memory(const string& idir, const string& odir)
 {
     THD_COUNT = omp_get_max_threads() - 1;
-    plaingraph_manager.schema_plaingraph();
+    plaingraph_manager_t<T> manager;
+    manager.schema_plaingraph();
     //do some setup for plain graphs
-    plaingraph_manager.setup_graph(v_count);    
-    plaingraph_manager.prep_graph(idir, odir); 
-    plaingraph_manager.run_bfs();    
+    manager.setup_graph(v_count);    
+    manager.prep_graph(idir, odir); 
+    manager.run_bfs();    
 }
 
-void update_test2d(const string& idir, const string& odir)
+template<class T>
+void test_ingestion_memoryd(const string& idir, const string& odir)
 {
+    plaingraph_manager_t<T> manager;
     THD_COUNT = omp_get_max_threads() - 1;
-    plaingraph_manager.schema_plaingraphd();
+    manager.schema_plaingraphd();
     //do some setup for plain graphs
-    plaingraph_manager.setup_graph(v_count);    
-    plaingraph_manager.prep_graph(idir, odir); 
-    plaingraph_manager.run_bfsd();    
+    manager.setup_graph(v_count);    
+    manager.prep_graph(idir, odir); 
+    manager.run_bfsd();    
 }
 
-void update_test1(const string& idir, const string& odir)
+template <class T>
+void test_ingestion(const string& idir, const string& odir)
 {
-    plaingraph_manager.schema_plaingraph();
+    plaingraph_manager_t<T> manager;
+    manager.schema_plaingraph();
     //do some setup for plain graphs
-    plaingraph_manager.setup_graph(v_count);    
-    plaingraph_manager.prep_graph_durable(idir, odir); 
-    plaingraph_manager.run_bfs();    
+    manager.setup_graph(v_count);    
+    manager.prep_graph_durable(idir, odir); 
+    manager.run_bfs();    
 }
 
 void stream_wcc(const string& idir, const string& odir)
@@ -1367,29 +1377,50 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             llama_test_pr_push(odir);
             break;
         case 21: 
-            update_test0(idir, odir);
+            test_archive<sid_t>(idir, odir);
             break;
         case 22: 
-            update_test1(idir, odir);
+            test_ingestion<sid_t>(idir, odir);
             break;
         case 23: 
-            update_test0d(idir, odir);
+            test_archived<sid_t>(idir, odir);
             break;
         case 24: 
-            update_test1d(idir, odir);
+            test_ingestiond<sid_t>(idir, odir);
             break;
         case 25:
-            update_test2(idir, odir);
+            test_ingestion_memory<sid_t>(idir, odir);
             break;
         case 26:
-            update_test2d(idir, odir);
+            test_ingestion_memoryd<sid_t>(idir, odir);
             break;
         case 27:
-            stream_wcc(idir, odir);
+            test_logging<sid_t>(idir, odir);
             break;
         case 28:
+            break;
+
+        //netflow graph testing
+        case 30:
+            test_ingestion_memoryd<netflow_dst_t>(idir, odir);
+            break;
+        case 31:
+            test_ingestiond<netflow_dst_t>(idir, odir);
+            break;
+        case 32: 
+            test_archived<netflow_dst_t>(idir, odir);
+            break;
+        case 33:
+            test_logging<netflow_dst_t>(idir, odir);
+            break;
+        
+        case 93:
+            stream_wcc(idir, odir);
+            break;
+        case 94:
             stream_netflow_aggregation(idir, odir);
             break;
+        
         case 95:
             recover_test0(idir, odir);
             break;
