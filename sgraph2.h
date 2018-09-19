@@ -14,7 +14,7 @@ void pgraph_t<T>::estimate_classify(vid_t* vid_range, vid_t* vid_range_in, vid_t
 
     #pragma omp for
     for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
-        index = (i & BLOG_MASK);
+        index = (i & blog->blog_mask);
         src = edges[index].src_id;
         dst = get_sid(edges[index].dst_id);
         
@@ -105,7 +105,7 @@ void pgraph_t<T>::classify(vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shif
 
     #pragma omp for
     for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
-        index = (i & BLOG_MASK);
+        index = (i & blog->blog_mask);
         src = edges[index].src_id;
         dst = get_sid(edges[index].dst_id);
         

@@ -1193,16 +1193,21 @@ void test_logging(const string& idir, const string& odir)
     for (int i = 0; i < 1; i++){
         manager.run_bfs();
     }
-    /*
-    //Run PageRank
-    for (int i = 0; i < 1; i++){
-        manager.run_pr();
-    }
+}
+
+template <class T>
+void test_loggingd(const string& idir, const string& odir)
+{
+    plaingraph_manager_t<T> manager;
+    manager.schema_plaingraphd();
+    //do some setup for plain graphs
+    manager.setup_graph(v_count);    
+    manager.prep_graph_edgelog(idir, odir);
     
-    //Run 1-HOP query
+    //Run BFS
     for (int i = 0; i < 1; i++){
-        manager.run_1hop();
-    }*/
+        manager.run_bfsd();
+    }
 }
 
 template <class T>
@@ -1231,27 +1236,31 @@ void test_archive(const string& idir, const string& odir)
     }*/
 }
 
+template <class T>
 void recover_test0(const string& idir, const string& odir)
 {
-    plaingraph_manager.schema_plaingraph();
+    plaingraph_manager_t<T> manager;
+    manager.schema_plaingraph();
     //do some setup for plain graphs
-    plaingraph_manager.setup_graph(v_count);    
+    manager.setup_graph(v_count);    
     
-    plaingraph_manager.recover_graph_adj(idir, odir);
+    manager.recover_graph_adj(idir, odir);
     
     //Run BFS
     plaingraph_manager.run_bfs();
 }
 
+template <class T>
 void recover_test0d(const string& idir, const string& odir)
 {
-    plaingraph_manager.schema_plaingraphd();
+    plaingraph_manager_t<T> manager;
+    manager.schema_plaingraphd();
     //do some setup for plain graphs
-    plaingraph_manager.setup_graph(v_count);    
-    plaingraph_manager.recover_graph_adj(idir, odir);    
+    manager.setup_graph(v_count);    
+    manager.recover_graph_adj(idir, odir);    
     
     //Run BFS
-    plaingraph_manager.run_bfsd();
+    manager.run_bfsd();
 }
 
 template <class T>
@@ -1411,7 +1420,10 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             test_archived<netflow_dst_t>(idir, odir);
             break;
         case 33:
-            test_logging<netflow_dst_t>(idir, odir);
+            test_loggingd<netflow_dst_t>(idir, odir);
+            break;
+        case 34:
+            recover_test0d<netflow_dst_t>(idir, odir);
             break;
         
         case 93:
@@ -1422,10 +1434,10 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             break;
         
         case 95:
-            recover_test0(idir, odir);
+            recover_test0<sid_t>(idir, odir);
             break;
         case 96:
-            recover_test0d(idir, odir);
+            recover_test0d<sid_t>(idir, odir);
             break;
         case 97:
             estimate_chain_new<sid_t>(idir, odir);

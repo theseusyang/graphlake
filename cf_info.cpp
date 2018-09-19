@@ -12,8 +12,8 @@ index_t  BATCH_MASK =  0xFFFF;
 
 //In-memory data structure size
 index_t  BLOG_SHIFT = 27;
-index_t  BLOG_SIZE = (1L << BLOG_SHIFT); //size of edge log
-index_t  BLOG_MASK = (BLOG_SIZE - 1);
+//index_t  BLOG_SIZE = (1L << BLOG_SHIFT); //size of edge log
+//index_t  BLOG_MASK = (BLOG_SIZE - 1);
 
 index_t  DELTA_SIZE = (1L << 37) ;//(32 + sizeof(T));  //sizeo of delta adj-list
 index_t  SNAP_COUNT  = (2);

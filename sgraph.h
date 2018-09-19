@@ -56,18 +56,27 @@ class pgraph_t: public cfinfo_t {
         edge_buf_out = 0;
         edge_buf_in = 0;
         edge_buf_count = 0;
+        
+        blog = new blog_t<T>;
+    
     }
 
     inline void alloc_edgelog(index_t count) {
-        blog = new blog_t<T>;
+        if (blog->blog_beg) {
+            free(blog->blog_beg);
+            blog->blog_beg = 0;
+        }
+
         blog->blog_count = count;
-        blog->blog_beg = (edgeT_t<T>*)mmap(0, sizeof(edgeT_t<T>)*blog->blog_count, PROT_READ|PROT_WRITE,
-                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0);
-        if (MAP_FAILED == blog->blog_beg) {
-            cout << "Huge page alloc failed for edge log" << endl;
-            if (posix_memalign((void**)&blog->blog_beg, 2097152, blog->blog_count*sizeof(edgeT_t<T>))) {
-                perror("posix memalign batch edge log");
-            }
+        blog->blog_mask = count - 1;
+        //blog->blog_beg = (edgeT_t<T>*)mmap(0, sizeof(edgeT_t<T>)*blog->blog_count, 
+        //PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0);
+        //if (MAP_FAILED == blog->blog_beg) {
+        //    cout << "Huge page alloc failed for edge log" << endl;
+        //}
+        if (posix_memalign((void**)&blog->blog_beg, 2097152, 
+                           blog->blog_count*sizeof(edgeT_t<T>))) {
+            perror("posix memalign batch edge log");
         }
     }
     
@@ -125,7 +134,7 @@ class pgraph_t: public cfinfo_t {
         }
         
         index_t size = ((index - blog->blog_marker) & BATCH_MASK);
-        index_t index1 = (index & BLOG_MASK);
+        index_t index1 = (index & blog->blog_mask);
         
         //inform archive thread about threshold being crossed
         if ((0 == size) && (index != blog->blog_marker)) {
@@ -171,8 +180,8 @@ class pgraph_t: public cfinfo_t {
         index_t w_count = w_marker - w_tail;
         if (w_count == 0) return eNoWork;
 
-        index_t actual_tail = w_tail & BLOG_MASK;
-        index_t actual_marker = w_marker & BLOG_MASK;
+        index_t actual_tail = w_tail & blog->blog_mask;
+        index_t actual_marker = w_marker & blog->blog_mask;
         
         if (actual_tail < actual_marker) {
             //write and update tail
@@ -180,7 +189,7 @@ class pgraph_t: public cfinfo_t {
             write(wtf, blog->blog_beg + actual_tail, sizeof(edgeT_t<T>)*w_count);
         }
         else {
-            write(wtf, blog->blog_beg + actual_tail, sizeof(edgeT_t<T>)*(BLOG_SIZE - actual_tail));
+            write(wtf, blog->blog_beg + actual_tail, sizeof(edgeT_t<T>)*(blog->blog_count - actual_tail));
             write(wtf, blog->blog_beg, sizeof(edgeT_t<T>)*actual_marker);
         }
         blog->blog_wtail = w_marker;
@@ -656,7 +665,7 @@ void pgraph_t<T>::calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sg
    
     #pragma omp for
     for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
-        index = (i & BLOG_MASK);
+        index = (i & blog->blog_mask);
         src = edges[index].src_id;
         dst = get_sid(edges[index].dst_id);
         
@@ -686,7 +695,7 @@ void pgraph_t<T>::calc_edge_count_out(onegraph_t<T>** sgraph_out)
     
     index_t index = 0;
     for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
-        index = (i & BLOG_MASK);
+        index = (i & blog->blog_mask);
         src = edges[index].src_id;
         src_index = TO_TID(src);
         vert1_id = TO_VID(src);
@@ -716,7 +725,7 @@ void pgraph_t<T>::calc_edge_count_in(onegraph_t<T>** sgraph_in)
     
     index_t index = 0;
     for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
-        index = (i & BLOG_MASK);
+        index = (i & blog->blog_mask);
         src = edges[index].src_id;
         dst = get_sid(edges[index].dst_id);
         dst_index = TO_TID(dst);
@@ -742,7 +751,7 @@ void pgraph_t<T>::fill_adj_list(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgra
     index_t index = 0;
     #pragma omp for
     for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
-        index = (i & BLOG_MASK);
+        index = (i & blog->blog_mask);
         src = edges[index].src_id;
         dst = edges[index].dst_id;
         
@@ -771,7 +780,7 @@ void pgraph_t<T>::fill_adj_list_in(onekv_t<T>** skv_out, onegraph_t<T>** sgraph_
     
     index_t index = 0;
     for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
-        index = (i & BLOG_MASK);
+        index = (i & blog->blog_mask);
         src = edges[index].src_id;
         dst = edges[index].dst_id;
         
@@ -800,7 +809,7 @@ void pgraph_t<T>::fill_adj_list_out(onegraph_t<T>** sgraph_out, onekv_t<T>** skv
     
     index_t index = 0;
     for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
-        index = (i & BLOG_MASK);
+        index = (i & blog->blog_mask);
         src = edges[index].src_id;
         dst = edges[index].dst_id;
         
@@ -829,7 +838,7 @@ void pgraph_t<T>::fill_skv(onekv_t<T>** skv_out, onekv_t<T>** skv_in)
     
     index_t index = 0;
     for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
-        index = (i & BLOG_MASK);
+        index = (i & blog->blog_mask);
         src = edges[index].src_id;
         dst = edges[index].dst_id;
         
@@ -1106,7 +1115,7 @@ status_t pgraph_t<T>::extend_kv_td(onekv_t<T>** skv, srset_t* iset, srset_t* ose
 template <class T> 
 void dgraph<T>::prep_graph_baseline()
 {
-    this->alloc_edgelog(BLOG_SIZE);
+    this->alloc_edgelog(1 << BLOG_SHIFT);
     flag1_count = __builtin_popcountll(flag1);
     flag2_count = __builtin_popcountll(flag2);
 
@@ -1210,7 +1219,7 @@ void dgraph<T>::read_graph_baseline()
 template <class T> 
 void ugraph<T>::prep_graph_baseline()
 {
-    this->alloc_edgelog(BLOG_SIZE);
+    this->alloc_edgelog( 1 << BLOG_SHIFT);
     flag1 = flag1 | flag2;
     flag2 = flag1;
 
@@ -1303,7 +1312,7 @@ void ugraph<T>::read_graph_baseline()
 template <class T> 
 void many2one<T>::prep_graph_baseline()
 {
-    this->alloc_edgelog(BLOG_SIZE);
+    this->alloc_edgelog(1 << BLOG_SHIFT);
     flag1_count = __builtin_popcountll(flag1);
     flag2_count = __builtin_popcountll(flag2);
 
@@ -1382,7 +1391,7 @@ void many2one<T>::read_graph_baseline()
 template <class T> 
 void one2many<T>::prep_graph_baseline()
 {
-    this->alloc_edgelog(BLOG_SIZE);
+    this->alloc_edgelog(1 << BLOG_SHIFT);
     flag1_count = __builtin_popcountll(flag1);
     flag2_count = __builtin_popcountll(flag2);
 

@@ -42,7 +42,14 @@ index_t read_idir(const string& idirname, edgeT_t<T>** pedges, bool alloc)
         }
         closedir(dir);
 
-        edges =  (edgeT_t<T>*)calloc(sizeof(edgeT_t<T>),total_edge_count);
+        edges = (edgeT_t<T>*)mmap(0, sizeof(edgeT_t<T>)*total_edge_count,
+                    PROT_READ|PROT_WRITE,
+                    MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0);
+    
+        if (MAP_FAILED == edges) {
+            cout << "huge page alloc failed while reading input dir" << endl;
+            edges =  (edgeT_t<T>*)calloc(sizeof(edgeT_t<T>),total_edge_count);
+        }
         *pedges = edges;
     } else {
         //edges = *pedges;
@@ -56,8 +63,14 @@ index_t read_idir(const string& idirname, edgeT_t<T>** pedges, bool alloc)
         }
         closedir(dir);
         //upper align the memory allocation
-        index_t new_count =  upper_power_of_two(total_edge_count);
-        edges =  (edgeT_t<T>*)calloc(sizeof(edgeT_t<T>), new_count);
+        edges = (edgeT_t<T>*)mmap(0, sizeof(edgeT_t<T>)*total_edge_count,
+                    PROT_READ|PROT_WRITE,
+                    MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0);
+        
+        if (edges == MAP_FAILED) {
+            cout << "huge page alloc failed while reading input dir" << endl;
+            edges =  (edgeT_t<T>*)calloc(sizeof(edgeT_t<T>), total_edge_count);
+        }
         *pedges = edges;
     }
     

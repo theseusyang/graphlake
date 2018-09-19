@@ -118,8 +118,8 @@ extern uint64_t MAX_PECOUNT;//670000
 
 extern index_t  BATCH_SIZE;//
 extern index_t  BATCH_MASK;//
-extern index_t  BLOG_SIZE;//
-extern index_t  BLOG_MASK;//
+extern index_t  BLOG_SHIFT;//
+//extern index_t  BLOG_MASK;//
 extern index_t  DELTA_SIZE;
 extern index_t  SNAP_COUNT;
 
@@ -513,6 +513,9 @@ class blog_t {
     edgeT_t<T>* blog_beg;
     //In memory size
     index_t     blog_count;
+    //MASK
+    index_t     blog_mask;
+
     //current batching position
     index_t     blog_head;
     //Make adj list from this point

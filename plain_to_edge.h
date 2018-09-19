@@ -279,7 +279,6 @@ void* recovery_func(void* a_arg)
 
     pgraph_t<T>* ugraph = (pgraph_t<T>*)manager->get_plaingraph();
     blog_t<T>*     blog = ugraph->blog;
-    edgeT_t<T>*    edge = blog->blog_beg;
     
     index_t to_read = 0;
     index_t total_read = 0;
@@ -290,6 +289,13 @@ void* recovery_func(void* a_arg)
     assert(file != 0);
     index_t size = fsize(filename);
     index_t edge_count = size/sizeof(edgeT_t<T>);
+    
+    //Lets set the edge log higher
+    index_t new_count = upper_power_of_two(edge_count);
+    ugraph->alloc_edgelog(new_count);
+    edgeT_t<T>*    edge = blog->blog_beg;
+    cout << "edge_count = " << edge_count << endl;
+    cout << "new_count  = " << new_count << endl;
     
     //XXX some changes require to be made if edge log size is finite.   
     while (total_read < edge_count) {
@@ -314,7 +320,7 @@ void plaingraph_manager_t<T>::recover_graph_adj(const string& idirname, const st
     arg->file = idir;
     arg->manager = this;
     pthread_t recovery_thread;
-    if (0 != pthread_create(&recovery_thread, 0, &recovery_func<T> , &idir)) {
+    if (0 != pthread_create(&recovery_thread, 0, &recovery_func<T> , arg)) {
         assert(0);
     }
     
@@ -323,7 +329,7 @@ void plaingraph_manager_t<T>::recover_graph_adj(const string& idirname, const st
     index_t marker = 0;
     index_t snap_marker = 0;
     index_t size = fsize(idirname);
-    index_t edge_count = size/sizeof(edge_t);
+    index_t edge_count = size/sizeof(edgeT_t<T>);
     
     double start = mywtime();
     
@@ -358,11 +364,13 @@ void plaingraph_manager_t<T>::prep_graph_adj(const string& idirname, const strin
     pgraph_t<T>* ugraph = (pgraph_t<T>*)get_plaingraph();
     blog_t<T>*     blog = ugraph->blog;
     
+    free(blog->blog_beg);
+    blog->blog_beg = 0;
     blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
     
     //Upper align this, and create a mask for it
     index_t new_count = upper_power_of_two(blog->blog_head);
-    BLOG_MASK = new_count -1;
+    blog->blog_mask = new_count -1;
     
     double start = mywtime();
     
@@ -399,6 +407,12 @@ void plaingraph_manager_t<T>::prep_graph_edgelog(const string& idirname, const s
     
     pgraph_t<T>* ugraph = (pgraph_t<T>*)get_plaingraph();
     
+    //We need to increase the size of edge log to test logging functionalities
+    ugraph->alloc_edgelog(total_edge_count);
+    blog_t<T>*     blog = ugraph->blog;
+    index_t new_count = upper_power_of_two(total_edge_count);
+    blog->blog_mask = new_count -1;
+
     //Batch and Make Graph
     double start = mywtime();
     for (index_t i = 0; i < total_edge_count; ++i) {

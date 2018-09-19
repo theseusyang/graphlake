@@ -66,6 +66,7 @@ HEADER=graph.h\
 	csv_to_edge.h\
 	plain_to_edge.h\
 	darshan_to_edge.h\
+	util.h\
 
 #	lite_sgraph.h\
 #	p_sgraph.h\
