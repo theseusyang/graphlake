@@ -54,6 +54,7 @@ class plaingraph_manager_t {
      void prep_weighted_rmat(const string& graph_file, const string& action_file);
     
      void recover_graph_adj(const string& idirname, const string& odirname);
+     void prep_graph_serial_scompute(const string& idirname, const string& odirname, sstream_t<T>* sstreamh);
      void prep_graph_and_scompute(const string& idirname, const string& odirname,
                                   sstream_t<T>* sstreamh);
      void prep_graph_and_compute(const string& idirname, 
@@ -409,52 +410,53 @@ void* sstream_func(void* arg)
     return 0;
 }
 
-template <class T>
-void plaingraph_manager_t<T>::prep_graph_and_scompute(const string& idirname, const string& odirname, sstream_t<T>* sstreamh)
-{
-    pgraph_t<T>* ugraph = (pgraph_t<T>*)get_plaingraph();
-    blog_t<T>*     blog = ugraph->blog;
-    
-    free(blog->blog_beg);
-    blog->blog_beg = 0;
-    blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
-    
-    //Upper align this, and create a mask for it
-    index_t new_count = upper_power_of_two(blog->blog_head);
-    blog->blog_mask = new_count -1;
-    
-    double start = mywtime();
-    
-    //Make Graph
-    index_t marker = 0;
-    index_t snap_marker = 0;
-    index_t batch_size = (1L << residue);
-    cout << "batch_size = " << batch_size << endl;
 
-    //Create a thread for stream pagerank
-    pthread_t sstream_thread;
-    if (0 != pthread_create(&sstream_thread, 0, &sstream_func<T>, sstreamh)) {
-        assert(0);
-    }
-
-    while (marker < blog->blog_head) {
-        marker = min(blog->blog_head, marker+batch_size);
-        ugraph->create_marker(marker);
-        if (eOK != ugraph->move_marker(snap_marker)) {
-            assert(0);
-        }
-        ugraph->make_graph_baseline();
-        g->incr_snapid(snap_marker, snap_marker);
-        ugraph->update_marker();
-
-    }
-    double end = mywtime ();
-    cout << "Make graph time = " << end - start << endl;
-
-    void* ret;
-    pthread_join(sstream_thread, &ret);
-}
-
+//template <class T>
+//void plaingraph_manager_t<T>::prep_graph_and_scompute(const string& idirname, const string& odirname, sstream_t<T>* sstreamh)
+//{
+//    pgraph_t<T>* ugraph = (pgraph_t<T>*)get_plaingraph();
+//    blog_t<T>*     blog = ugraph->blog;
+//    
+//    free(blog->blog_beg);
+//    blog->blog_beg = 0;
+//    blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
+//    
+//    //Upper align this, and create a mask for it
+//    index_t new_count = upper_power_of_two(blog->blog_head);
+//    blog->blog_mask = new_count -1;
+//    
+//    double start = mywtime();
+//    
+//    //Make Graph
+//    index_t marker = 0;
+//    index_t snap_marker = 0;
+//    index_t batch_size = (1L << residue);
+//    cout << "batch_size = " << batch_size << endl;
+//
+//    //Create a thread for stream pagerank
+//    pthread_t sstream_thread;
+//    if (0 != pthread_create(&sstream_thread, 0, &sstream_func<T>, sstreamh)) {
+//        assert(0);
+//    }
+//
+//    while (marker < blog->blog_head) {
+//        marker = min(blog->blog_head, marker+batch_size);
+//        ugraph->create_marker(marker);
+//        if (eOK != ugraph->move_marker(snap_marker)) {
+//            assert(0);
+//        }
+//        ugraph->make_graph_baseline();
+//        g->incr_snapid(snap_marker, snap_marker);
+//        ugraph->update_marker();
+//
+//    }
+//    double end = mywtime ();
+//    cout << "Make graph time = " << end - start << endl;
+//
+//    void* ret;
+//    pthread_join(sstream_thread, &ret);
+//}
+//
 template <class T>
 void plaingraph_manager_t<T>::prep_graph_edgelog(const string& idirname, const string& odirname)
 {
@@ -514,6 +516,367 @@ void plaingraph_manager_t<T>::prep_graph(const string& idirname, const string& o
     end = mywtime();
     cout << "Make graph time = " << end - start << endl;
     //---------
+}
+
+template <class T>
+void plaingraph_manager_t<T>::prep_graph_and_scompute(const string& idirname, const string& odirname, sstream_t<T>* sstreamh)
+{
+    //-----
+    g->create_snapthread();
+    usleep(1000);
+    
+    edgeT_t<T>* edges = 0;
+    index_t total_edge_count = read_idir(idirname, &edges, true); 
+    
+    pgraph_t<T>* ugraph = (pgraph_t<T>*)get_plaingraph();
+    
+    //Create a thread for stream pagerank
+    pthread_t sstream_thread;
+    if (0 != pthread_create(&sstream_thread, 0, &sstream_func<T>, sstreamh)) {
+        assert(0);
+    }
+    
+    //Batch and Make Graph
+    double start = mywtime();
+    for (index_t i = 0; i < total_edge_count; ++i) {
+        ugraph->batch_edge(edges[i]);
+    }
+    
+    blog_t<T>* blog = ugraph->blog;
+    index_t marker = blog->blog_head;
+    double end = mywtime ();
+    cout << "Batch Update Time = " << end - start << endl;
+
+    if (marker != blog->blog_marker) {
+        ugraph->create_marker(marker);
+    }
+
+    //Wait for make graph
+    while (blog->blog_tail != blog->blog_head) {
+        usleep(1);
+    }
+    end = mywtime();
+    cout << "Make graph time = " << end - start << endl;
+    //---------
+    
+    void* ret;
+    pthread_join(sstream_thread, &ret);
+}
+
+//template<class T>
+//void* serial_sstream_func(void* arg) 
+//{
+//    cout << "entering stream thread" << endl;
+//    assert(arg);
+//    sstream_t<T>* sstreamh = (sstream_t<T>*)arg;
+//    pgraph_t<T>* ugraph  = sstreamh->pgraph;
+//    assert(ugraph);
+//    
+//    blog_t<T>* blog = ugraph->blog;
+//    index_t marker = 0; 
+//    index_t snap_marker = 0;
+//    double start = mywtime ();
+//    
+//    double epsilon =  1e-8;
+//    double  delta = 1.0;
+//    double  inv_count = 1.0/v_count;
+//    double inv_v_count = 0.15/v_count;
+//    
+//    double* rank_array = (double*)calloc(v_count, sizeof(double));
+//    double* prior_rank_array = (double*)calloc(v_count, sizeof(double));
+//
+//    #pragma omp parallel for
+//    for (vid_t v = 0; v < v_count; ++v) {
+//        prior_rank_array[v] = inv_count;
+//    }
+//
+//    vert_table_t<T>* graph_in = sstreamh->graph_in;
+//    degree_t* degree_in = sstreamh->degree_in;
+//    degree_t* degree_out = sstreamh->degree_out;
+//    
+//    int iter = 0;
+//
+//    while (blog->blog_head < 65536) {
+//        usleep(1);
+//    }
+//
+//    cout << "starting pr" << endl;
+//
+//    while (blog->blog_tail < blog->blog_head || delta > epsilon) {
+//        if (blog->blog_tail < blog->blog_head) {
+//            marker = blog->blog_head;
+//            cout << "marker = " << marker << endl;
+//            ugraph->create_marker(marker);
+//            if (eOK != ugraph->move_marker(snap_marker)) {
+//                assert(0);
+//            }
+//            ugraph->make_graph_baseline();
+//            g->incr_snapid(snap_marker, snap_marker);
+//            ugraph->update_marker();
+//        }
+//
+//        //update the sstream view
+//        sstreamh->update_sstream_view();
+//        graph_in = sstreamh->graph_in;
+//        degree_in  = sstreamh->degree_in;
+//        degree_out = sstreamh->degree_out;
+//        //double start1 = mywtime();
+//        #pragma omp parallel 
+//        {
+//            sid_t sid;
+//            degree_t      delta_degree = 0;
+//            degree_t    durable_degree = 0;
+//            degree_t        nebr_count = 0;
+//            degree_t      local_degree = 0;
+//
+//            vert_table_t<T>* graph  = graph_in;
+//            vunit_t<T>*      v_unit = 0;
+//            
+//            delta_adjlist_t<T>* delta_adjlist;
+//            T* local_adjlist = 0;
+//
+//            double rank = 0.0; 
+//            
+//            #pragma omp for 
+//            for (vid_t v = 0; v < v_count; v++) {
+//                v_unit = graph[v].get_vunit();
+//                if (0 == v_unit) continue;
+//
+//                durable_degree = v_unit->count;
+//                delta_adjlist = v_unit->delta_adjlist;
+//                
+//                nebr_count = degree_in[v];
+//                rank = 0.0;
+//                
+//                //traverse the delta adj list
+//                delta_degree = nebr_count - durable_degree;
+//                while (delta_adjlist != 0 && delta_degree > 0) {
+//                    local_adjlist = delta_adjlist->get_adjlist();
+//                    local_degree = delta_adjlist->get_nebrcount();
+//                    degree_t i_count = min(local_degree, delta_degree);
+//                    for (degree_t i = 0; i < i_count; ++i) {
+//                        sid = get_nebr(local_adjlist, i);
+//                        rank += prior_rank_array[sid];
+//                    }
+//                    delta_adjlist = delta_adjlist->get_next();
+//                    delta_degree -= local_degree;
+//                }
+//                rank_array[v] = rank;
+//            }
+//        
+//            
+//            double mydelta = 0;
+//            double new_rank = 0;
+//            delta = 0;
+//            
+//            #pragma omp for reduction(+:delta)
+//            for (vid_t v = 0; v < v_count; v++ ) {
+//                if (degree_out[v] == 0) continue;
+//                new_rank = inv_v_count + 0.85*rank_array[v];
+//                mydelta = new_rank - prior_rank_array[v]*degree_out[v];
+//                if (mydelta < 0) mydelta = -mydelta;
+//                delta += mydelta;
+//
+//                rank_array[v] = new_rank/degree_out[v];
+//                prior_rank_array[v] = 0;
+//            } 
+//        }
+//        swap(prior_rank_array, rank_array);
+//        ++iter;
+//    }
+//    
+//    #pragma omp for
+//    for (vid_t v = 0; v < v_count; v++ ) {
+//        rank_array[v] = rank_array[v]*degree_out[v];
+//    }
+//
+//    double end = mywtime();
+//    assert (blog->blog_tail == blog->blog_head);
+//
+//	  cout << "Iteration count" << iter << endl;
+//    cout << "PR Time = " << end - start << endl;
+//
+//    free(rank_array);
+//    free(prior_rank_array);
+//	  cout << endl;
+//
+//
+//    return 0;
+//}
+//
+template<class T>
+void* serial_sstream_func(void* arg) 
+{
+    cout << "entering stream thread" << endl;
+    assert(arg);
+    sstream_t<T>* sstreamh = (sstream_t<T>*)arg;
+    pgraph_t<T>* ugraph  = sstreamh->pgraph;
+    assert(ugraph);
+    
+    blog_t<T>* blog = ugraph->blog;
+    index_t marker = 0; 
+    index_t snap_marker = 0;
+    double start = mywtime ();
+    
+    double epsilon =  1e-8;
+    double  delta = 1.0;
+    double  inv_count = 1.0/v_count;
+    double inv_v_count = 0.15/v_count;
+    
+    double* rank_array = (double*)calloc(v_count, sizeof(double));
+    double* prior_rank_array = (double*)calloc(v_count, sizeof(double));
+
+    #pragma omp parallel for
+    for (vid_t v = 0; v < v_count; ++v) {
+        prior_rank_array[v] = inv_count;
+    }
+
+    vert_table_t<T>* graph_in = sstreamh->graph_in;
+    degree_t* degree_in = sstreamh->degree_in;
+    degree_t* degree_out = sstreamh->degree_out;
+    
+    int iter = 0;
+
+    while (blog->blog_head < 65536) {
+        usleep(1);
+    }
+
+    cout << "starting pr" << endl;
+
+    while (blog->blog_tail < blog->blog_head || delta > epsilon) {
+        if (blog->blog_tail < blog->blog_head) {
+            marker = blog->blog_head;
+            cout << "marker = " << marker << endl;
+            ugraph->create_marker(marker);
+            if (eOK != ugraph->move_marker(snap_marker)) {
+                assert(0);
+            }
+            ugraph->make_graph_baseline();
+            g->incr_snapid(snap_marker, snap_marker);
+            ugraph->update_marker();
+        }
+
+        //update the sstream view
+        sstreamh->update_sstream_view();
+        graph_in = sstreamh->graph_in;
+        degree_in  = sstreamh->degree_in;
+        degree_out = sstreamh->degree_out;
+        //double start1 = mywtime();
+        #pragma omp parallel 
+        {
+            sid_t sid;
+            degree_t      delta_degree = 0;
+            degree_t    durable_degree = 0;
+            degree_t        nebr_count = 0;
+            degree_t      local_degree = 0;
+
+            vert_table_t<T>* graph  = graph_in;
+            vunit_t<T>*      v_unit = 0;
+            
+            delta_adjlist_t<T>* delta_adjlist;
+            T* local_adjlist = 0;
+
+            double rank = 0.0; 
+            
+            #pragma omp for 
+            for (vid_t v = 0; v < v_count; v++) {
+                v_unit = graph[v].get_vunit();
+                if (0 == v_unit) continue;
+
+                durable_degree = v_unit->count;
+                delta_adjlist = v_unit->delta_adjlist;
+                
+                nebr_count = degree_in[v];
+                rank = 0.0;
+                
+                //traverse the delta adj list
+                delta_degree = nebr_count - durable_degree;
+                while (delta_adjlist != 0 && delta_degree > 0) {
+                    local_adjlist = delta_adjlist->get_adjlist();
+                    local_degree = delta_adjlist->get_nebrcount();
+                    degree_t i_count = min(local_degree, delta_degree);
+                    for (degree_t i = 0; i < i_count; ++i) {
+                        sid = get_nebr(local_adjlist, i);
+                        rank += prior_rank_array[sid];
+                    }
+                    delta_adjlist = delta_adjlist->get_next();
+                    delta_degree -= local_degree;
+                }
+                rank_array[v] = rank;
+            }
+        
+            
+            double mydelta = 0;
+            double new_rank = 0;
+            delta = 0;
+            
+            #pragma omp for reduction(+:delta)
+            for (vid_t v = 0; v < v_count; v++ ) {
+                if (degree_out[v] == 0) continue;
+                new_rank = inv_v_count + 0.85*rank_array[v];
+                mydelta = new_rank - prior_rank_array[v]*degree_out[v];
+                if (mydelta < 0) mydelta = -mydelta;
+                delta += mydelta;
+
+                rank_array[v] = new_rank/degree_out[v];
+                prior_rank_array[v] = 0;
+            } 
+        }
+        swap(prior_rank_array, rank_array);
+        ++iter;
+    }
+    
+    #pragma omp for
+    for (vid_t v = 0; v < v_count; v++ ) {
+        rank_array[v] = rank_array[v]*degree_out[v];
+    }
+
+    double end = mywtime();
+
+	cout << "Iteration count" << iter << endl;
+    cout << "PR Time = " << end - start << endl;
+
+    free(rank_array);
+    free(prior_rank_array);
+	cout << endl;
+
+    //Wait for make graph
+    while (blog->blog_tail != blog->blog_head) {
+        usleep(1);
+    }
+    end = mywtime();
+    cout << "Make graph time = " << end - start << endl;
+
+    //---------
+    return 0;
+}
+
+template <class T>
+void plaingraph_manager_t<T>::prep_graph_serial_scompute(const string& idirname, const string& odirname, sstream_t<T>* sstreamh)
+{
+    edgeT_t<T>* edges = 0;
+    index_t total_edge_count = read_idir(idirname, &edges, true); 
+    
+    pgraph_t<T>* ugraph = (pgraph_t<T>*)get_plaingraph();
+    
+    //Create a thread for make graph and stream pagerank
+    pthread_t sstream_thread;
+    if (0 != pthread_create(&sstream_thread, 0, &serial_sstream_func<T>, sstreamh)) {
+        assert(0);
+    }
+    cout << "created stream thread" << endl;
+    
+    //Batch and Make Graph
+    double start = mywtime();
+    for (index_t i = 0; i < total_edge_count; ++i) {
+        ugraph->batch_edge(edges[i]);
+    }
+    double end = mywtime ();
+    cout << "Batch Update Time = " << end - start << endl;
+    
+    void* ret;
+    pthread_join(sstream_thread, &ret);
+    //while (true) usleep(10);
 }
 
 template <class T>

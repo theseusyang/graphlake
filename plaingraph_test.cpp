@@ -1337,6 +1337,21 @@ void test_stream_pr(const string& idir, const string& odir)
     manager.prep_graph_and_scompute(idir, odir, sstreamh);
 }
 
+template <class T>
+void test_serial_stream_pr(const string& idir, const string& odir)
+{
+    THD_COUNT = omp_get_max_threads() - 1;
+    plaingraph_manager_t<T> manager;
+    manager.schema_plaingraph();
+    //do some setup for plain graphs
+    manager.setup_graph(v_count);    
+    
+    sstream_t<T>* sstreamh;
+    manager.reg_sstream_view(&stream_pagerank_epsilon<T>, &sstreamh, 0, 0 ,0);
+    
+    manager.prep_graph_serial_scompute(idir, odir, sstreamh);
+}
+
 void llama_test_bfs(const string& odir);
 void llama_test_pr(const string& odir);
 void llama_test_pr_push(const string& odir);
@@ -1428,6 +1443,9 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             break;
         case 28:
             test_stream_pr<sid_t>(idir, odir);
+            break;
+        case 29:
+            test_serial_stream_pr<sid_t>(idir, odir);
             break;
 
         //netflow graph testing

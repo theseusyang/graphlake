@@ -1279,47 +1279,35 @@ template<class T>
 void 
 stream_pagerank_epsilon(sstream_t<T>* sstreamh)
 {
-    double epsilon =  1e-8;
+    double   epsilon  =  1e-8;
+    double    delta   = 1.0;
+    vid_t   v_count   = sstreamh->v_count;
+    double  inv_count = 1.0/v_count;
+    double inv_v_count = 0.15/v_count;
+    
+    double* rank_array = (double*)calloc(v_count, sizeof(double));
+    double* prior_rank_array = (double*)calloc(v_count, sizeof(double));
+
+    #pragma omp parallel for
+    for (vid_t v = 0; v < v_count; ++v) {
+        prior_rank_array[v] = inv_count;
+    }
 
     while (sstreamh->snapshot == 0) {
         sstreamh->update_sstream_view();
         usleep(5);
     }
 
+    double start = mywtime();
     vert_table_t<T>* graph_in = sstreamh->graph_in;
     degree_t* degree_in = sstreamh->degree_in;
     degree_t* degree_out = sstreamh->degree_out;
     
-    vid_t v_count = sstreamh->v_count;
-
-    double* rank_array = (double*)calloc(v_count, sizeof(double));
-    double* prior_rank_array = (double*)calloc(v_count, sizeof(double));
-	
-	//initialize the rank, and get the degree information
-    double	inv_count = 1.0/v_count;
-
-    double start = mywtime();
-    #pragma omp parallel 
-    { 
-        degree_t degree = 0;
-        #pragma omp for
-        for (vid_t v = 0; v < v_count; ++v) {
-            degree = degree_out[v];
-            if (degree != 0) {
-                prior_rank_array[v] = inv_count/degree;
-            }
-        }
-    }
-
-    double  delta = 1.0;
-    double	inv_v_count = 0.15/v_count;
     int iter = 0;
 
 	//let's run the pagerank
 	while(delta > epsilon) {
         //double start1 = mywtime();
-
-        
         #pragma omp parallel 
         {
             sid_t sid;
