@@ -54,22 +54,24 @@ class plaingraph_manager_t {
      void prep_weighted_rmat(const string& graph_file, const string& action_file);
     
      void recover_graph_adj(const string& idirname, const string& odirname);
+     void prep_graph_and_scompute(const string& idirname, const string& odirname,
+                                  sstream_t<T>* sstreamh);
      void prep_graph_and_compute(const string& idirname, 
                                  const string& odirname, 
                                  stream_t<T>* streamh);
-     void reg_stream_engine(typename callback<T>::func func, stream_t<T>** streamh);
-     void unreg_stream_engine(stream_t<T>* streamh);
+     void reg_stream_view(typename callback<T>::func func, stream_t<T>** streamh);
+     void unreg_stream_view(stream_t<T>* streamh);
      
-     void reg_sstream_engine(typename callback<T>::sfunc func, sstream_t<T>** sstreamh,
+     void reg_sstream_view(typename callback<T>::sfunc func, sstream_t<T>** sstreamh,
                              bool simple, bool priv, bool stale);
-     void unreg_sstream_engine(sstream_t<T>* sstreamh);
+     void unreg_sstream_view(sstream_t<T>* sstreamh);
 
-     void reg_wsstream_engine(typename callback<T>::wsfunc func,
+     void reg_wsstream_view(typename callback<T>::wsfunc func,
                     wsstream_t<T>** wsstreamw, bool simple, bool priv, bool stale);
-     void unreg_wsstream_engine(wsstream_t<T>* wsstreamh);
+     void unreg_wsstream_view(wsstream_t<T>* wsstreamh);
      
-     void reg_wstream_engine(typename callback<T>::wfunc func, wstream_t<T>** wstreamh);
-     void unreg_wstream_engine(wstream_t<T>* wstreamh);
+     void reg_wstream_view(typename callback<T>::wfunc func, wstream_t<T>** wstreamh);
+     void unreg_wstream_view(wstream_t<T>* wstreamh);
 
      void create_static_view(bool simple, bool priv, bool stale, snap_t<T>** a_snaph);
      void delete_static_view(snap_t<T>* snaph);
@@ -397,6 +399,60 @@ void plaingraph_manager_t<T>::prep_graph_adj(const string& idirname, const strin
     }
     double end = mywtime ();
     cout << "Make graph time = " << end - start << endl;
+}
+
+template<class T>
+void* sstream_func(void* arg) 
+{
+    sstream_t<T>* sstreamh = (sstream_t<T>*)arg;
+    sstreamh->sstream_func(sstreamh);
+    return 0;
+}
+
+template <class T>
+void plaingraph_manager_t<T>::prep_graph_and_scompute(const string& idirname, const string& odirname, sstream_t<T>* sstreamh)
+{
+    pgraph_t<T>* ugraph = (pgraph_t<T>*)get_plaingraph();
+    blog_t<T>*     blog = ugraph->blog;
+    
+    free(blog->blog_beg);
+    blog->blog_beg = 0;
+    blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
+    
+    //Upper align this, and create a mask for it
+    index_t new_count = upper_power_of_two(blog->blog_head);
+    blog->blog_mask = new_count -1;
+    
+    double start = mywtime();
+    
+    //Make Graph
+    index_t marker = 0;
+    index_t snap_marker = 0;
+    index_t batch_size = (1L << residue);
+    cout << "batch_size = " << batch_size << endl;
+
+    //Create a thread for stream pagerank
+    pthread_t sstream_thread;
+    if (0 != pthread_create(&sstream_thread, 0, &sstream_func<T>, sstreamh)) {
+        assert(0);
+    }
+
+    while (marker < blog->blog_head) {
+        marker = min(blog->blog_head, marker+batch_size);
+        ugraph->create_marker(marker);
+        if (eOK != ugraph->move_marker(snap_marker)) {
+            assert(0);
+        }
+        ugraph->make_graph_baseline();
+        g->incr_snapid(snap_marker, snap_marker);
+        ugraph->update_marker();
+
+    }
+    double end = mywtime ();
+    cout << "Make graph time = " << end - start << endl;
+
+    void* ret;
+    pthread_join(sstream_thread, &ret);
 }
 
 template <class T>
@@ -780,15 +836,45 @@ void plaingraph_manager_t<T>::run_2hop()
 #include "stream_analytics.h"
 
 template <class T>
-void plaingraph_manager_t<T>::reg_sstream_engine(typename callback<T>::sfunc func, sstream_t<T>** a_sstreamh, bool simple, bool priv, bool stale)
+void plaingraph_manager_t<T>::prep_graph_and_compute(const string& idirname, const string& odirname, stream_t<T>* streamh)
+{
+    pgraph_t<T>* ugraph = (pgraph_t<T>*)get_plaingraph();
+    blog_t<T>*     blog = ugraph->blog;
+    
+    blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
+    
+    double start = mywtime();
+    
+    index_t marker = 0, prior_marker = 0;
+    index_t batch_size = (1L << residue);
+    cout << "batch_size = " << batch_size << endl;
+
+    while (marker < blog->blog_head) {
+        marker = min(blog->blog_head, marker+batch_size);
+        
+        //This is like a controlled update_stream_view() call
+        streamh->set_edgecount(marker - prior_marker);
+        streamh->set_edges(blog->blog_beg + prior_marker);
+        streamh->edge_offset = prior_marker;
+        streamh->stream_func(streamh);
+        prior_marker = marker;
+    }
+    double end = mywtime ();
+    cout << "Make graph time = " << end - start << endl;
+}
+
+template <class T>
+void plaingraph_manager_t<T>::reg_sstream_view(typename callback<T>::sfunc func, sstream_t<T>** a_sstreamh, bool simple, bool priv, bool stale)
 {
     sstream_t<T>* sstreamh = new sstream_t<T>;
-    sstreamh->stream_func = func;
+    sstreamh->sstream_func = func;
     sstreamh->algo_meta = 0;
     sstreamh->v_count = v_count;
     
-    pgraph_t<T>*       ugraph  = (pgraph_t<T>*)get_plaingraph();
-    onegraph_t<T>*  sgraph_out = ugraph->sgraph_out[0];
+    pgraph_t<T>* ugraph  = (pgraph_t<T>*)get_plaingraph();
+    sstreamh->pgraph     = ugraph;
+    
+    onegraph_t<T>* sgraph_out = ugraph->sgraph_out[0];
     sstreamh->graph_out  = sgraph_out->get_begpos();
     sstreamh->degree_out = (degree_t*) calloc(v_count, sizeof(degree_t));
     
@@ -804,34 +890,35 @@ void plaingraph_manager_t<T>::reg_sstream_engine(typename callback<T>::sfunc fun
 }
 
 template <class T>
-void sstream_t<T>::update_sstream_engine()
+void sstream_t<T>::update_sstream_view()
 {
-    blog_t<T>* blog = pgraph->blog;
-    index_t  marker = blog->blog_head;
+    snapshot_t* new_snapshot = g->get_snapshot();
+    if (new_snapshot == 0|| (new_snapshot == snapshot)) return;
     
-    snapshot_t* snapshot = g->get_snapshot();
-    index_t old_marker = 0;
-    if (snapshot) {
-        old_marker = snapshot->marker;
-    }
-
+    blog_t<T>* blog = pgraph->blog;
+    
+    //index_t  marker = blog->blog_head;
+    index_t new_marker   = new_snapshot->marker;
+    
     //for stale
     edges = blog->blog_beg;
-    edge_count = 0;//marker - old_marker;
+    edge_count = 0;//marker - new_marker;
     
         
     if (pgraph->sgraph_in == 0) {
         create_degreesnap(graph_out, v_count, snapshot, 
-                          old_marker, edges, degree_out);
+                          new_marker, edges, degree_out);
     } else {
         create_degreesnapd(graph_out, graph_in, snapshot,
-                           old_marker, edges, degree_out,
+                           new_marker, edges, degree_out,
                            degree_in, v_count);
     }
+
+    snapshot = new_snapshot;
 }
 
 template <class T>
-void plaingraph_manager_t<T>::reg_stream_engine(typename callback<T>::func func1, stream_t<T>** a_streamh)
+void plaingraph_manager_t<T>::reg_stream_view(typename callback<T>::func func1, stream_t<T>** a_streamh)
 {
     stream_t<T>* streamh = new stream_t<T>;
     pgraph_t<T>* ugraph  = (pgraph_t<T>*)get_plaingraph();
@@ -850,7 +937,7 @@ void plaingraph_manager_t<T>::reg_stream_engine(typename callback<T>::func func1
 }
 
 template <class T>
-void stream_t<T>::update_stream_engine()
+void stream_t<T>::update_stream_view()
 {
     blog_t<T>* blog = pgraph->blog;
     index_t  marker = blog->blog_head;
@@ -864,7 +951,7 @@ void stream_t<T>::update_stream_engine()
 }
 
 template <class T>
-void plaingraph_manager_t<T>::unreg_sstream_engine(sstream_t<T>* sstreamh)
+void plaingraph_manager_t<T>::unreg_sstream_view(sstream_t<T>* sstreamh)
 {
     if (sstreamh->degree_in ==  sstreamh->degree_out) {
         delete sstreamh->degree_out;
@@ -876,7 +963,7 @@ void plaingraph_manager_t<T>::unreg_sstream_engine(sstream_t<T>* sstreamh)
 }
 
 template <class T>
-void plaingraph_manager_t<T>::unreg_stream_engine(stream_t<T>* a_streamh)
+void plaingraph_manager_t<T>::unreg_stream_view(stream_t<T>* a_streamh)
 {
     //XXX may need to delete the edge log
     delete a_streamh;
@@ -934,34 +1021,6 @@ void plaingraph_manager_t<T>::delete_static_view(snap_t<T>* snaph)
     }
     //if edge log allocated, delete it
     delete snaph;
-}
-
-template <class T>
-void plaingraph_manager_t<T>::prep_graph_and_compute(const string& idirname, const string& odirname, stream_t<T>* streamh)
-{
-    pgraph_t<T>* ugraph = (pgraph_t<T>*)get_plaingraph();
-    blog_t<T>*     blog = ugraph->blog;
-    
-    blog->blog_head  += read_idir(idirname, &blog->blog_beg, false);
-    
-    double start = mywtime();
-    
-    index_t marker = 0, prior_marker = 0;
-    index_t batch_size = (1L << residue);
-    cout << "batch_size = " << batch_size << endl;
-
-    while (marker < blog->blog_head) {
-        marker = min(blog->blog_head, marker+batch_size);
-        
-        //This is like a controlled update_stream_view() call
-        streamh->set_edgecount(marker - prior_marker);
-        streamh->set_edges(blog->blog_beg + prior_marker);
-        streamh->edge_offset = prior_marker;
-        streamh->stream_func(streamh);
-        prior_marker = marker;
-    }
-    double end = mywtime ();
-    cout << "Make graph time = " << end - start << endl;
 }
 
 template <class T>

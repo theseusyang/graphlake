@@ -185,7 +185,6 @@ class  edgeT_t {
     T     dst_id;
 };
 
-
 struct netflow_weight_t {
     uint32_t time;
     uint32_t duration;
@@ -196,6 +195,17 @@ struct netflow_weight_t {
     uint32_t dst_packet;
     uint32_t src_bytes;
     uint32_t dst_bytes;
+};
+
+//vid_t    src_user;
+//vid_t    dst_user;
+struct auth_weight_t {
+    uint32_t time;
+    vid_t    src_computer;
+    vid_t    dst_computer;
+    uint8_t  auth_type;
+    uint8_t  logon_type;
+    uint8_t  status;
 };
 
 //First can be nebr sid, while the second could be edge id/property
@@ -209,12 +219,14 @@ class dst_weight_t {
 //Feel free to name the derived types, but not required.
 typedef dst_weight_t<univ_t> lite_edge_t;
 typedef dst_weight_t<netflow_weight_t> netflow_dst_t;
+typedef dst_weight_t<auth_weight_t> auth_dst_t;
 
 typedef edgeT_t<sid_t> edge_t;
 typedef edgeT_t<lite_edge_t> ledge_t;
 typedef edgeT_t<netflow_dst_t> netflow_edge_t;
+typedef edgeT_t<auth_dst_t> auth_edge_t;
 
-inline sid_t get_dst(edge_t* edge) { 
+inline sid_t get_dst(edge_t* edge) {
     return edge->dst_id;
 }
 inline void set_dst(edge_t* edge, sid_t dst_id) {
@@ -628,7 +640,7 @@ class sstream_t {
     index_t          non_archived_count;
     
     void*            algo_meta;//algorithm specific data
-    typename callback<T>::sfunc   stream_func; 
+    typename callback<T>::sfunc   sstream_func; 
 
  public:
     sstream_t(){
@@ -653,7 +665,7 @@ class sstream_t {
     inline void        set_edgecount(index_t a_edgecount){edge_count = a_edgecount;}
 
  public:
-    void update_sstream_engine();
+    void update_sstream_view();
 
     degree_t get_nebrs_out(vid_t vid, T*& ptr);
     degree_t get_nebrs_in (vid_t vid, T*& ptr);
@@ -717,7 +729,7 @@ class wsstream_t {
     nebrcount_t get_nebrs_archived_out(wsstream_t<T>* snaph, vid_t, T*& ptr);
     nebrcount_t get_nebrs_archived_in(wsstream_t<T>* snaph, vid_t, T*& ptr);
     
-    void update_wsstream_engine(wsstream_t<T>* wsstreamh);
+    void update_wsstream_view(wsstream_t<T>* wsstreamh);
 };
 
 template <class T>
@@ -749,5 +761,5 @@ class stream_t {
     inline void        set_edgecount(index_t a_edgecount){edge_count = a_edgecount;}
 
  public:   
-    void update_stream_engine();
+    void update_stream_view();
 };

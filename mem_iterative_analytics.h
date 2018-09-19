@@ -1273,3 +1273,138 @@ mem_pagerank_epsilon(vert_table_t<T>* graph_in, degree_t* degree_in, degree_t* d
     free(dset);
 	cout << endl;
 }
+
+
+template<class T>
+void 
+stream_pagerank_epsilon(sstream_t<T>* sstreamh)
+{
+    double epsilon =  1e-8;
+
+    while (sstreamh->snapshot == 0) {
+        sstreamh->update_sstream_view();
+        usleep(5);
+    }
+
+    vert_table_t<T>* graph_in = sstreamh->graph_in;
+    degree_t* degree_in = sstreamh->degree_in;
+    degree_t* degree_out = sstreamh->degree_out;
+    
+    vid_t v_count = sstreamh->v_count;
+
+    double* rank_array = (double*)calloc(v_count, sizeof(double));
+    double* prior_rank_array = (double*)calloc(v_count, sizeof(double));
+	
+	//initialize the rank, and get the degree information
+    double	inv_count = 1.0/v_count;
+
+    double start = mywtime();
+    #pragma omp parallel 
+    { 
+        degree_t degree = 0;
+        #pragma omp for
+        for (vid_t v = 0; v < v_count; ++v) {
+            degree = degree_out[v];
+            if (degree != 0) {
+                prior_rank_array[v] = inv_count/degree;
+            }
+        }
+    }
+
+    double  delta = 1.0;
+    double	inv_v_count = 0.15/v_count;
+    int iter = 0;
+
+	//let's run the pagerank
+	while(delta > epsilon) {
+        //double start1 = mywtime();
+
+        
+        #pragma omp parallel 
+        {
+            sid_t sid;
+            degree_t      delta_degree = 0;
+            degree_t    durable_degree = 0;
+            degree_t        nebr_count = 0;
+            degree_t      local_degree = 0;
+
+            vert_table_t<T>* graph  = graph_in;
+            vunit_t<T>*      v_unit = 0;
+            
+            delta_adjlist_t<T>* delta_adjlist;
+            T* local_adjlist = 0;
+
+            double rank = 0.0; 
+            
+            #pragma omp for 
+            for (vid_t v = 0; v < v_count; v++) {
+                v_unit = graph[v].get_vunit();
+                if (0 == v_unit) continue;
+
+                durable_degree = v_unit->count;
+                delta_adjlist = v_unit->delta_adjlist;
+                
+                nebr_count = degree_in[v];
+                rank = 0.0;
+                
+                //traverse the delta adj list
+                delta_degree = nebr_count - durable_degree;
+                while (delta_adjlist != 0 && delta_degree > 0) {
+                    local_adjlist = delta_adjlist->get_adjlist();
+                    local_degree = delta_adjlist->get_nebrcount();
+                    degree_t i_count = min(local_degree, delta_degree);
+                    for (degree_t i = 0; i < i_count; ++i) {
+                        sid = get_nebr(local_adjlist, i);
+                        rank += prior_rank_array[sid];
+                    }
+                    delta_adjlist = delta_adjlist->get_next();
+                    delta_degree -= local_degree;
+                }
+                rank_array[v] = rank;
+            }
+        
+            
+            double mydelta = 0;
+            double new_rank = 0;
+            delta = 0;
+            
+            #pragma omp for reduction(+:delta)
+            for (vid_t v = 0; v < v_count; v++ ) {
+                if (degree_out[v] == 0) continue;
+                new_rank = inv_v_count + 0.85*rank_array[v];
+                mydelta = new_rank - prior_rank_array[v]*degree_out[v];
+                if (mydelta < 0) mydelta = -mydelta;
+                delta += mydelta;
+
+                rank_array[v] = new_rank/degree_out[v];
+                prior_rank_array[v] = 0;
+            } 
+        }
+        swap(prior_rank_array, rank_array);
+        ++iter;
+        
+        //update the sstream view
+        sstreamh->update_sstream_view();
+        graph_in = sstreamh->graph_in;
+        degree_in  = sstreamh->degree_in;
+        degree_out = sstreamh->degree_out;
+
+        //double end1 = mywtime();
+        //cout << "Delta = " << delta << "Iteration Time = " << end1 - start1 << endl;
+    }	
+
+    #pragma omp for
+    for (vid_t v = 0; v < v_count; v++ ) {
+        rank_array[v] = rank_array[v]*degree_out[v];
+    }
+
+    double end = mywtime();
+
+	cout << "Iteration count" << iter << endl;
+    cout << "PR Time = " << end - start << endl;
+
+    free(rank_array);
+    free(prior_rank_array);
+	cout << endl;
+}
+

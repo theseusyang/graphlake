@@ -1174,7 +1174,7 @@ void stream_netflow_aggregation(const string& idir, const string& odir)
     manager.setup_graph(v_count);
     
     stream_t<netflow_dst_t>* streamh;
-    manager.reg_stream_engine(do_stream_netflow_aggr, &streamh);
+    manager.reg_stream_view(do_stream_netflow_aggr, &streamh);
     netflow_post_reg(streamh, v_count); 
     manager.prep_graph_and_compute(idir, odir, streamh); 
     //netflow_finalize(streamh); 
@@ -1316,10 +1316,25 @@ void stream_wcc(const string& idir, const string& odir)
     plaingraph_manager.setup_graph(v_count);    
     
     stream_t<sid_t>* streamh;
-    plaingraph_manager.reg_stream_engine(do_stream_wcc, &streamh);
+    plaingraph_manager.reg_stream_view(do_stream_wcc, &streamh);
     wcc_post_reg(streamh, v_count); 
     plaingraph_manager.prep_graph_and_compute(idir, odir, streamh); 
     wcc_finalize(streamh); 
+}
+
+template <class T>
+void test_stream_pr(const string& idir, const string& odir)
+{
+    THD_COUNT = omp_get_max_threads() - 1;
+    plaingraph_manager_t<T> manager;
+    manager.schema_plaingraph();
+    //do some setup for plain graphs
+    manager.setup_graph(v_count);    
+    
+    sstream_t<T>* sstreamh;
+    manager.reg_sstream_view(&stream_pagerank_epsilon<T>, &sstreamh, 0, 0 ,0);
+    
+    manager.prep_graph_and_scompute(idir, odir, sstreamh);
 }
 
 void llama_test_bfs(const string& odir);
@@ -1342,12 +1357,14 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
         case 4:
             split_graph<lite_edge_t>(idir, odir);
             break;
+        
         case 5:
             weight_dtest0(idir, odir);
             break;
         case 6:
             weight_dtest1(odir);
             break;
+        
         case 7:
             netflow_test0(idir, odir);
             break;
@@ -1355,6 +1372,7 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             //stinger test
             weighted_dtest0(idir, odir);
             break;
+        
         case 11:
             paper_test_pr(idir, odir);
             break;
@@ -1385,6 +1403,8 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
         case 20:
             llama_test_pr_push(odir);
             break;
+         
+        //plaingrah benchmark testing    
         case 21: 
             test_archive<sid_t>(idir, odir);
             break;
@@ -1407,6 +1427,7 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             test_logging<sid_t>(idir, odir);
             break;
         case 28:
+            test_stream_pr<sid_t>(idir, odir);
             break;
 
         //netflow graph testing
@@ -1432,7 +1453,6 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
         case 94:
             stream_netflow_aggregation(idir, odir);
             break;
-        
         case 95:
             recover_test0<sid_t>(idir, odir);
             break;
