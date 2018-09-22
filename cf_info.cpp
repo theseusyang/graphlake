@@ -15,18 +15,18 @@ index_t  BLOG_SHIFT = 27;
 //index_t  BLOG_SIZE = (1L << BLOG_SHIFT); //size of edge log
 //index_t  BLOG_MASK = (BLOG_SIZE - 1);
 
-index_t  DELTA_SIZE = (1L << 37) ;//(32 + sizeof(T));  //sizeo of delta adj-list
 index_t  SNAP_COUNT  = (2);
 index_t  LOCAL_VUNIT_COUNT = 22;
-index_t  LOCAL_DELTA_SIZE = 30;
+index_t  LOCAL_DELTA_SIZE = 28;
+
+#ifdef BULK
+index_t  DELTA_SIZE = (1L << 37) ;//(32 + sizeof(T));  //sizeo of delta adj-list
+index_t  DURABLE_SIZE = (1L << 30);//Durable adj-list
+#endif
 
 //durable data structure buffer size
 index_t  W_SIZE = (1L << 12); //Edges to write
 index_t  DVT_SIZE = (1L <<24);//durable v-unit 
-index_t  DURABLE_SIZE = (1L << 30);//Durable adj-list
-
-index_t  OFF_COUNT = 100000;
-
 
 using std::swap;
 

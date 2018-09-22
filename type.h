@@ -19,7 +19,7 @@ typedef uint64_t index_t;
 typedef uint32_t tid_t;
 typedef uint64_t sflag_t;
 typedef uint16_t qid_t;
-typedef uint32_t snapid_t ;
+typedef uint16_t snapid_t ;
 //typedef uint16_t rdegree_t; //relative degree
 typedef int32_t degree_t;
 #elif B32
@@ -31,7 +31,7 @@ typedef uint64_t index_t;
 typedef uint8_t tid_t;
 typedef uint64_t sflag_t;
 typedef uint16_t qid_t;
-typedef uint32_t snapid_t ;
+typedef uint16_t snapid_t ;
 //typedef uint16_t rdegree_t; //relative degree
 typedef uint32_t degree_t;
 #endif
@@ -412,9 +412,9 @@ class vunit_t {
  public:
 	//Durable adj list, and num of nebrs in that
 	uint16_t      vflag;
-	uint16_t      max_size;
-	degree_t      count;
-    index_t       offset;
+	uint16_t      max_size; //max count in delta adj list
+    degree_t      count;  //durable degree count
+    index_t       offset; //file offset at which it was written
 	delta_adjlist_t<T>* delta_adjlist;
 	delta_adjlist_t<T>* adj_list;//Last chain
 
@@ -471,9 +471,9 @@ template <class T>
 class  snapT_t {
  public:
     snapT_t<T>*     prev;//prev snapshot of this vid 
-    snapid_t  snap_id;
     degree_t  degree;
-    degree_t  del_count;
+    snapid_t  snap_id;
+    uint16_t  del_count;
 };
 
 //This will be used as disk write structure

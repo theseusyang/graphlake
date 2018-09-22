@@ -82,6 +82,8 @@ class vert_table_t {
 
  public:
 	vunit_t<T>*   v_unit;
+
+ public:   
     inline vert_table_t() { snap_blob = 0; v_unit = 0;}
 
     inline vid_t get_nebrcount() {
@@ -246,7 +248,7 @@ private:
     string   file;
 public:
     int    etf;   //edge table file
-    nebrcount_t*   nebr_count;
+    nebrcount_t*   nebr_count;//Only being used in BULK, remove it in future
 
 private:    
     inline void del_nebr(vid_t vid, T sid) {
@@ -269,7 +271,6 @@ public:
     inline onegraph_t() {
         super_id = 0;
         beg_pos = 0;
-        nebr_count = 0;
         max_vcount = 0;
 
 
@@ -313,6 +314,8 @@ public:
         vtf = -1;
         etf = -1;
         stf = 0;
+        nebr_count = 0;
+
     }
     
     void setup(tid_t tid);
@@ -338,7 +341,11 @@ public:
     inline void decrement_count(vid_t vid) { 
         __sync_fetch_and_add(&nebr_count[vid].del_count, 1L);
     }
-    
+    inline void reset_count(vid_t vid) {
+        nebr_count[vid].add_count = 0;
+        nebr_count[vid].del_count = 0;
+    }
+
     inline void add_nebr(vid_t vid, T sid) {
         if (IS_DEL(get_sid(sid))) { 
             return del_nebr(vid, sid);
@@ -538,10 +545,6 @@ public:
 		return adj_list;
 	}
 	//------------------
-    inline void reset_count(vid_t vid) {
-        nebr_count[vid].add_count = 0;
-        nebr_count[vid].del_count = 0;
-    }
     
     inline vert_table_t<T>* get_begpos() { return beg_pos;}
     inline vid_t get_vcount() { return TO_VID(super_id);}

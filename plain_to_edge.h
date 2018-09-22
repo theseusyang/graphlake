@@ -556,7 +556,8 @@ void plaingraph_manager_t<T>::prep_graph_and_scompute(const string& idirname, co
         usleep(1);
     }
     end = mywtime();
-    cout << "Make graph time = " << end - start << endl;
+    cout << blog->blog_head;
+    cout << " Make graph time = " << end - start << endl;
     //---------
     
     void* ret;
@@ -741,12 +742,13 @@ void* serial_sstream_func(void* arg)
         usleep(1);
     }
 
+    double end = 0;
     cout << "starting pr" << endl;
 
     while (blog->blog_tail < blog->blog_head || delta > epsilon) {
         if (blog->blog_tail < blog->blog_head) {
             marker = blog->blog_head;
-            cout << "marker = " << marker << endl;
+            //cout << "marker = " << marker << endl;
             ugraph->create_marker(marker);
             if (eOK != ugraph->move_marker(snap_marker)) {
                 assert(0);
@@ -754,6 +756,10 @@ void* serial_sstream_func(void* arg)
             ugraph->make_graph_baseline();
             g->incr_snapid(snap_marker, snap_marker);
             ugraph->update_marker();
+        } else {
+            end = mywtime();
+            cout << blog->blog_tail << " " << blog->blog_head ;
+            cout << " Make graph time = " << end - start << endl;
         }
 
         //update the sstream view
@@ -804,7 +810,6 @@ void* serial_sstream_func(void* arg)
                 }
                 rank_array[v] = rank;
             }
-        
             
             double mydelta = 0;
             double new_rank = 0;
@@ -826,28 +831,20 @@ void* serial_sstream_func(void* arg)
         ++iter;
     }
     
+    assert (blog->blog_tail == blog->blog_head); 
+    
     #pragma omp for
     for (vid_t v = 0; v < v_count; v++ ) {
         rank_array[v] = rank_array[v]*degree_out[v];
     }
 
-    double end = mywtime();
+    end = mywtime();
 
-	cout << "Iteration count" << iter << endl;
+	cout << "Iteration count = " << iter << endl;
     cout << "PR Time = " << end - start << endl;
 
     free(rank_array);
     free(prior_rank_array);
-	cout << endl;
-
-    //Wait for make graph
-    while (blog->blog_tail != blog->blog_head) {
-        usleep(1);
-    }
-    end = mywtime();
-    cout << "Make graph time = " << end - start << endl;
-
-    //---------
     return 0;
 }
 
@@ -1269,10 +1266,10 @@ void sstream_t<T>::update_sstream_view()
     
         
     if (pgraph->sgraph_in == 0) {
-        create_degreesnap(graph_out, v_count, snapshot, 
+        create_degreesnap(graph_out, v_count, new_snapshot, 
                           new_marker, edges, degree_out);
     } else {
-        create_degreesnapd(graph_out, graph_in, snapshot,
+        create_degreesnapd(graph_out, graph_in, new_snapshot,
                            new_marker, edges, degree_out,
                            degree_in, v_count);
     }

@@ -42,6 +42,7 @@ HEADER=graph.h\
 	cf_info.h\
 	sgraph.h\
 	sgraph2.h\
+	skv.h\
 	wgraph.h\
 	prop_encoder.h\
 	propkv.h\
@@ -53,6 +54,7 @@ HEADER=graph.h\
 	type.h\
 	graph_base.h\
 	onegraph.h\
+	onekv.h\
 	rset.h\
     query_clause.h\
 	iterative_analytics.h\
