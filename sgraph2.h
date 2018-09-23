@@ -231,7 +231,7 @@ void pgraph_t<T>::make_graph_d()
         thd_local[tid].vid_range = vid_range;
         thd_local_in[tid].vid_range = vid_range_in;
 
-        double start = mywtime();
+        //double start = mywtime();
 
         //Get the count for classification
         this->estimate_classify(vid_range, vid_range_in, bit_shift);
@@ -248,7 +248,6 @@ void pgraph_t<T>::make_graph_d()
             //double end = mywtime();
             //cout << " classify " << end - start << endl;
             this->work_division(global_range, thd_local, range_count, thd_count, edge_count);
-            //this->work_division(global_range_in, thd_local_in, range_count, thd_count, edge_count);
         }
         
         if (tid == 1) {
@@ -273,29 +272,9 @@ void pgraph_t<T>::make_graph_d()
         }
         j_end_in = thd_local_in[thd_count - 1 - tid].range_end;
 
-        //degree count
-        this->calc_degree_noatomic(sgraph_out, global_range, j_start, j_end);
-        this->calc_degree_noatomic(sgraph_in, global_range_in, j_start_in, j_end_in);
-		print(" Degree = ", start);
-        
-        #ifdef BULK
-        vid_t vid_start = (j_start << bit_shift);
-        vid_t vid_end = (j_end << bit_shift);
-        if (vid_end > v_count) vid_end = v_count;
-        sgraph_out[0]->setup_adjlist_noatomic(vid_start, vid_end);
-
-        vid_t vid_start_in = (j_start_in << bit_shift);
-        vid_t vid_end_in = (j_end_in << bit_shift);
-        if (vid_end_in > v_count) vid_end_in = v_count;
-        sgraph_in[0]->setup_adjlist_noatomic(vid_start_in, vid_end_in);
-		print(" adj-list setup =", start);
-        #endif
-        
-        //fill adj-list
-        this->fill_adjlist_noatomic(sgraph_out, global_range, j_start, j_end);
-        print(" adj-list filled = ", start);
-        this->fill_adjlist_noatomic(sgraph_in, global_range_in, j_start_in, j_end_in);
-        print(" adj-list in filled = ", start);
+        //actual work
+        make_on_classify(sgraph_out, global_range, j_start, j_end, bit_shift); 
+        make_on_classify(sgraph_in, global_range_in, j_start_in, j_end_in, bit_shift); 
         
         free(vid_range);
         free(vid_range_in);
@@ -318,6 +297,25 @@ void pgraph_t<T>::make_graph_d()
     free(global_range_in);
     free(thd_local_in);
     //blog->blog_tail = blog->blog_marker;  
+}
+
+template <class T>
+void pgraph_t<T>::make_on_classify(onegraph_t<T>** sgraph, global_range_t<T>* global_range, vid_t j_start, vid_t j_end, vid_t bit_shift)
+{
+    //degree count
+    this->calc_degree_noatomic(sgraph, global_range, j_start, j_end);
+
+    //Adj list
+    #ifdef BULK 
+    vid_t vid_start = (j_start << bit_shift);
+    vid_t vid_end = (j_end << bit_shift);
+    if (vid_end > v_count) vid_end = v_count;
+    sgraph[0]->setup_adjlist_noatomic(vid_start, vid_end);
+    #endif
+    
+    //fill adj-list
+    this->fill_adjlist_noatomic(sgraph, global_range, j_start, j_end);
+
 }
 
 template <class T>
@@ -383,26 +381,11 @@ void pgraph_t<T>::make_graph_u()
         }
         j_end = thd_local[tid].range_end;
         
-        //degree count
-        this->calc_degree_noatomic(sgraph, global_range, j_start, j_end);
-		print(" Degree = ", start);
-
-        //Adj list
-		#ifdef BULK 
-        vid_t vid_start = (j_start << bit_shift);
-        vid_t vid_end = (j_end << bit_shift);
-        if (vid_end > v_count) vid_end = v_count;
-		sgraph[0]->setup_adjlist_noatomic(vid_start, vid_end);
-		print(" adj-list setup =", start);
-		#endif
-        
-        //fill adj-list
-        this->fill_adjlist_noatomic(sgraph, global_range, j_start, j_end);
-        free(vid_range);
-        #pragma omp barrier 
-        print(" adj-list filled = ", start);
+        make_on_classify(sgraph, global_range, j_start, j_end, bit_shift); 
         
         //free the memory
+        free(vid_range);
+        #pragma omp barrier 
         #pragma omp for schedule (static)
         for (vid_t i = 0; i < range_count; ++i) {
             if (global_range[i].edges)

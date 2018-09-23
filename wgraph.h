@@ -4,6 +4,7 @@
 #include "sgraph.h"
 
 //edge properties are more dynamic, and are stored separately. Adj-list contains edge id now.
+//T is only weight type here.
 template <class T>
 class weight_graph_t : public cfinfo_t {
  
@@ -593,8 +594,6 @@ void weight_graph_t<T>::make_graph_u()
         #pragma omp master 
         {
             print(" classify = ", start);
-            //double end = mywtime();
-            //cout << " classify " << end - start << endl;
             this->work_division(global_range, thd_local, range_count, thd_count, edge_count);
         }
         #pragma omp barrier 
@@ -610,21 +609,7 @@ void weight_graph_t<T>::make_graph_u()
         }
         j_end = thd_local[tid].range_end;
         
-        //degree count
-        this->calc_degree_noatomic(sgraph, global_range, j_start, j_end);
-		print(" Degree = ", start);
-
-        //Adj list
-		#ifdef BULK 
-        vid_t vid_start = (j_start << bit_shift);
-        vid_t vid_end = (j_end << bit_shift);
-        if (vid_end > v_count) vid_end = v_count;
-		sgraph[0]->setup_adjlist_noatomic(vid_start, vid_end);
-		print(" adj-list setup =", start);
-		#endif
-        
-        //fill adj-list
-        this->fill_adjlist_noatomic(sgraph, global_range, j_start, j_end);
+        make_on_classify(sgraph, global_range, j_start, j_end, bit_shift); 
         free(vid_range);
         #pragma omp barrier 
         print(" adj-list filled = ", start);
@@ -643,6 +628,25 @@ void weight_graph_t<T>::make_graph_u()
     //cout << "setting the tail to" << blog->blog_tail << endl;
 }
 
+template <class T>
+void pgraph_t<T>::make_on_classify(onegraph_t<lite_edge_t>** sgraph, global_range_t<T>* global_range, vid_t j_start, vid_t j_end, vid_t bit_shift)
+{
+    //degree count
+    this->calc_degree_noatomic(sgraph, global_range, j_start, j_end);
+    print(" Degree = ", start);
+
+    //Adj list
+    #ifdef BULK 
+    vid_t vid_start = (j_start << bit_shift);
+    vid_t vid_end = (j_end << bit_shift);
+    if (vid_end > v_count) vid_end = v_count;
+    sgraph[0]->setup_adjlist_noatomic(vid_start, vid_end);
+    print(" adj-list setup =", start);
+    #endif
+    
+    //fill adj-list
+    this->fill_adjlist_noatomic(sgraph, global_range, j_start, j_end);
+}
 /*
 class p_many2one_t: public weight_graph_t {
  public:

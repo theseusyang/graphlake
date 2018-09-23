@@ -280,6 +280,8 @@ class pgraph_t: public cfinfo_t {
     
     void make_graph_d(); 
     void make_graph_u();
+    
+    void make_on_classify(onegraph_t<T>** sgraph, global_range_t<T>* global_range, vid_t j_start, vid_t j_end, vid_t bit_shift);
 
     void estimate_classify (vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift);
     void prefix_sum (global_range_t<T>* global_range, thd_local_t* thd_local,
