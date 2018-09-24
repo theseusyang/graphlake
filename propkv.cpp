@@ -25,13 +25,7 @@ status_t labelkv_t::batch_update(const string& src, const string& dst, propid_t 
         batch_info1[batch_count1].buf = mem; 
     }
 
-    map<string, vid_t>::iterator str2vid_iter = g->str2vid.find(src);
-    if (g->str2vid.end() == str2vid_iter) {
-        assert(0);
-    } else {
-        src_id = str2vid_iter->second;
-    }
-    
+    src_id = g->get_sid(src.c_str());
     tid_t type_id = TO_TID(src_id);
     flag1 |= (1L << type_id);
     

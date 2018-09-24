@@ -295,6 +295,7 @@ void one2many<T>::read_graph_baseline()
 template <class T> 
 void one2one<T>::prep_graph_baseline()
 {
+    this->alloc_edgelog(1 << BLOG_SHIFT);
     flag1_count = __builtin_popcountll(flag1);
     flag2_count = __builtin_popcountll(flag2);
     tid_t   t_count    = g->get_total_types();

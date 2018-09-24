@@ -50,10 +50,6 @@ graph::graph()
     
     snapshot = 0;
     snap_f = 0;
-    v_graph =  new vgraph_t;
-    //v_graph->create_columnfamily();
-    //pinfo_t *info = new pinfo_t;
-    //v_graph->add_column(info);
 
     pthread_mutex_init(&snap_mutex, 0);
     pthread_cond_init(&snap_condition, 0);
@@ -177,18 +173,20 @@ tid_t graph::get_total_types()
 
 sid_t graph::type_update(const string& src, const string& dst)
 {
-    typekv_t* typekv = (typekv_t*) cf_info[0];
+    typekv = (typekv_t*) cf_info[0];
     return typekv->type_update(src, dst);
 }
 
 void graph::type_done()
 {
-    v_graph->make_graph_baseline();
+    typekv = (typekv_t*) cf_info[0];
+    typekv->make_graph_baseline();
 }
 
 void graph::type_store(const string& odir)
 {
-    v_graph->store_graph_baseline();
+    typekv = (typekv_t*) cf_info[0];
+    typekv->store_graph_baseline();
 }
 
 propid_t graph::get_cfid(propid_t pid)
@@ -221,11 +219,7 @@ propid_t graph::get_pid(const char* predicate)
 
 sid_t graph::get_sid(const char* src)
 {
-    map<string, sid_t>::iterator str2vid_iter = str2vid.find(src);
-    if (str2vid_iter == str2vid.end()) {
-        return INVALID_SID;
-    }
-    return str2vid_iter->second;
+    return get_typekv()->get_sid(src);
 }
 
 status_t graph::add_property(const char* longname)
@@ -427,8 +421,10 @@ void graph::read_graph_baseline()
         cf_info[i]->file_open(odirname, false);
         cf_info[i]->read_graph_baseline();
     }
-    v_graph->read_graph_baseline();
-    v_graph->prep_str2sid(str2vid);
+    typekv = (typekv_t*) cf_info[0];
+
+    typekv->read_graph_baseline();
+    //typekv->prep_str2sid(str2vid);
 }
 
 void graph::read_snapshot()

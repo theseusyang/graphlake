@@ -66,14 +66,10 @@ class graph {
     FILE*        snap_f;
     map <string, propid_t> str2pid;
 
-    //vertex information
-    vgraph_t* v_graph;
-
     //Other information
-    map <string, sid_t> str2vid;
     vid_t     vert_count;
-
-    string odirname;
+    typekv_t* typekv;
+    string    odirname;
     
     //threads
     pthread_t snap_thread;

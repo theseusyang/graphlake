@@ -4,7 +4,7 @@
 
 
 double bu_factor = 0.07;
-int32_t MAX_BCOUNT = 1;
+int32_t MAX_BCOUNT = 256;
 uint64_t MAX_ECOUNT = (1<<9);
 uint64_t MAX_PECOUNT = (MAX_ECOUNT << 1)/3;
 index_t  BATCH_SIZE = (1L << 16);//edge batching in edge log
@@ -66,21 +66,33 @@ void cfinfo_t::add_edge_property(const char* longname, prop_encoder_t* prop_enco
 
 cfinfo_t::cfinfo_t()
 {
-    MAXX_ECOUNT = MAX_ECOUNT;
     /*
+    batch_info = 0; 
+    batch_count = 0;
+    batch_info1 = 0; 
+    batch_count1 = 0;
+    */
+
+    MAXX_ECOUNT = MAX_ECOUNT;
+    
     batch_info = (batchinfo_t*)calloc(sizeof(batchinfo_t), MAX_BCOUNT);
     batch_count = 0;
     batch_info1 = (batchinfo_t*)calloc(sizeof(batchinfo_t), MAX_BCOUNT);
     batch_count1 = 0;
+    
     //Only first buffer is allocated.
+    batch_info[0].buf    = calloc(sizeof(edge_t), MAX_ECOUNT);
+    batch_info1[0].buf   = calloc(sizeof(edge_t), MAX_ECOUNT);
+    batch_info[0].count  = 0; 
+    batch_info1[0].count = 0; 
     //Others are allocated at runtime
-    for (int32_t i = 0; i < MAX_BCOUNT; ++i) {
-        batch_info[i].buf = calloc(sizeof(edge_t), MAX_ECOUNT);
+    for (int32_t i = 1; i < MAX_BCOUNT; ++i) {
+        batch_info[i].buf = 0; // calloc(sizeof(edge_t), MAX_ECOUNT);
         batch_info[i].count = 0; 
-        batch_info1[i].buf = calloc(sizeof(edge_t), MAX_ECOUNT);
+        batch_info1[i].buf = 0; // calloc(sizeof(edge_t), MAX_ECOUNT);
         batch_info1[i].count = 0; 
     }
-    */
+    
     flag1 = 0;
     flag2 = 0;
     flag1_count = 0;
@@ -98,7 +110,6 @@ cfinfo_t::cfinfo_t()
     q_tail = 0;
         
     wtf = 0;
-    
 }
 
 void cfinfo_t::swap_log_buffer()

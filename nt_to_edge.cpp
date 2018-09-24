@@ -37,7 +37,7 @@ void ntriple_manager::prep_type(const string& typefile, const string& odir)
     }
 
     g->type_done();
-    g->type_store(odir);
+    //g->type_store(odir);
 }
 
 void ntriple_manager::prep_graph(const string& idirname, const string& odirname)
@@ -46,6 +46,8 @@ void ntriple_manager::prep_graph(const string& idirname, const string& odirname)
     DIR *dir;
     string subject, predicate, object, useless_dot;
     int file_count = 0;
+    
+    g->prep_graph_baseline();
     
     //Read graph file
     dir = opendir(idirname.c_str());
@@ -65,11 +67,10 @@ void ntriple_manager::prep_graph(const string& idirname, const string& odirname)
     }
     closedir(dir);
     
-    g->prep_graph_baseline();
     g->swap_log_buffer();
     g->calc_degree();
     g->make_graph_baseline();
-    g->store_graph_baseline();
+    //g->store_graph_baseline();
 }
 
 status_t ntriple_manager::remove_edge(const string& idirname, const string& odirname)

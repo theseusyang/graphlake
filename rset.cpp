@@ -463,7 +463,7 @@ void srset_t::create_select(qid_t index, const char* a_name, const char* prop_na
     select_info[index].name = gstrdup(a_name);
     
     if (0 == prop_name) {
-        select_info[index].rgraph = g->v_graph;
+        //select_info[index].rgraph = g->v_graph;
         return;
     }
 

@@ -3,8 +3,8 @@ EXE1=graphone32
 EXE2=graphone64
 EXE3=graphlake32
 EXE4=graphlake64
-#CFLAGS=-g -Wall -std=gnu++11 -march=native -fopenmp -lpthread -DOVER_COMMIT
-CFLAGS=-O3 -Wall -std=gnu++11  -march=native -fopenmp -lpthread -DOVER_COMMIT
+CFLAGS=-g -Wall -std=gnu++11 -march=native -fopenmp -lpthread -DOVER_COMMIT
+#CFLAGS=-O3 -Wall -std=gnu++11  -march=native -fopenmp -lpthread -DOVER_COMMIT
 #CFLAGS=-O3 -Wall -std=gnu++11  -march=native -fopenmp -lpthread -DBULK
 
 SRC=main.cpp \

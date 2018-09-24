@@ -4,8 +4,10 @@
 
 class tinfo_t {
  public:
+    sid_t   max_vcount;
     sid_t   vert_id;
     sid_t   type_name;
+    char**  vid2name;
 };
 
 class inference_tinfo_t {
@@ -28,7 +30,9 @@ class typekv_t : public cfinfo_t {
     //deleted vid list for each class
     lgraph_t* lgraph_in;
     
-    //mapping between enum and string
+    map <string, sid_t> str2vid;
+    
+    //mapping between type-name(string) and type-id
     map<string, tid_t> str2enum;
     
     //for each type/class, the count of vertices  
@@ -86,10 +90,20 @@ class typekv_t : public cfinfo_t {
     inline tid_t get_total_types() {
         return t_count;
     }
+
+    inline sid_t get_sid(const char* src) {
+        map<string, sid_t>::iterator str2vid_iter = str2vid.find(src);
+        if (str2vid_iter == str2vid.end()) {
+            return INVALID_SID;
+        }
+        return str2vid_iter->second;
+    }
     
     sid_t type_update(const string& src, const string& dst);
+    void id2name(vid_t src_id, const string& src);
+    
     void make_graph_baseline();
-    void store_graph_baseline(bool clean); 
+    virtual void store_graph_baseline(bool clean = false); 
     void read_graph_baseline();
     void file_open(const string& odir, bool trunc); 
 

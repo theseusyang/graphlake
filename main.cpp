@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
 	THD_COUNT = omp_get_max_threads();// - 3;
 
     g = new graph; 
-	while ((o = getopt_long(argc, argv, "i:c:j:o:q:t:r:v:h", longopts, &index)) != -1) {
+	while ((o = getopt_long(argc, argv, "i:c:j:o:q:t:f:r:v:h", longopts, &index)) != -1) {
 		switch(o) {
 			case 'v':
 				#ifdef B64
@@ -104,21 +104,15 @@ int main(int argc, char* argv[])
             break;
 #ifdef B64
         case 2:
-        lubm_test1(typefile, idir, odir);
+        lubm_test(typefile, idir, odir, job);
             break;
         case 3:
-        lubm_test2(odir);
-            break;
-        case 4:
-        lubm_test0(typefile, idir, odir);
-            break;
-        case 10:
             ldbc_test0(typefile, idir, odir);
             break;
-        case 12:
+        case 4:
             ldbc_test2(odir);
             break;
-        case 20:
+        case 5:
             darshan_test0(typefile, idir, odir);
             break;
 #endif
