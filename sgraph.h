@@ -123,7 +123,7 @@ class pgraph_t: public cfinfo_t {
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0) {
         return eOK;
     }
-    status_t batch_edge(edgeT_t<T> edge) {
+    status_t batch_edge(edgeT_t<T>& edge) {
         status_t ret = eOK;
 
         index_t index = __sync_fetch_and_add(&blog->blog_head, 1L);

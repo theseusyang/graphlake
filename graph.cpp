@@ -159,7 +159,7 @@ void graph::create_schema(propid_t count, const string& conf_file)
     }
 }
 
-sid_t graph::get_type_scount(tid_t type)
+sid_t graph::get_type_scount(tid_t type/*=0*/)
 {
     typekv_t* typekv = dynamic_cast<typekv_t*>(cf_info[0]);
     return typekv->get_type_scount(type);
@@ -171,10 +171,9 @@ tid_t graph::get_total_types()
     return typekv->get_total_types();
 }
 
-sid_t graph::type_update(const string& src, const string& dst)
+sid_t graph::type_update(const string& src, const string& dst/*="gtype"*/)
 {
-    typekv = (typekv_t*) cf_info[0];
-    return typekv->type_update(src, dst);
+    return get_typekv()->type_update(src, dst);
 }
 
 void graph::type_done()
@@ -414,6 +413,7 @@ void graph::read_graph_baseline()
     read_snapshot();
     
     cf_info[0]->file_open(odirname, false);
+    //typekv->prep_str2sid(str2vid);
     cf_info[0]->read_graph_baseline();
     
     for (int i = 1; i < cf_count; i++) {
@@ -422,9 +422,6 @@ void graph::read_graph_baseline()
         cf_info[i]->read_graph_baseline();
     }
     typekv = (typekv_t*) cf_info[0];
-
-    typekv->read_graph_baseline();
-    //typekv->prep_str2sid(str2vid);
 }
 
 void graph::read_snapshot()

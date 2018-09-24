@@ -177,6 +177,13 @@ typedef union __univeral_type {
 #endif
 }univ_t;
 
+//First can be nebr sid, while the second could be edge id/property
+template <class T>
+class dst_weight_t {
+ public:
+    sid_t first;
+    T second;
+};
 
 template <class T>
 class  edgeT_t {
@@ -185,6 +192,7 @@ class  edgeT_t {
     T     dst_id;
 };
 
+//------- LANL 2017 -----
 struct netflow_weight_t {
     uint32_t time;
     uint32_t duration;
@@ -197,6 +205,11 @@ struct netflow_weight_t {
     uint32_t dst_bytes;
 };
 
+typedef dst_weight_t<netflow_weight_t> netflow_dst_t;
+typedef edgeT_t<netflow_dst_t> netflow_edge_t;
+//------------
+
+//------ LANL 2015 -----
 //vid_t    src_user;
 //vid_t    dst_user;
 struct auth_weight_t {
@@ -208,23 +221,49 @@ struct auth_weight_t {
     uint8_t  status;
 };
 
-//First can be nebr sid, while the second could be edge id/property
-template <class T>
-class dst_weight_t {
- public:
-    sid_t first;
-    T second;
+//user
+//computer
+struct auth_proc_t {
+    uint32_t time;
+    uint16_t proc;
+    uint8_t  action;
 };
 
-//Feel free to name the derived types, but not required.
-typedef dst_weight_t<univ_t> lite_edge_t;
-typedef dst_weight_t<netflow_weight_t> netflow_dst_t;
-typedef dst_weight_t<auth_weight_t> auth_dst_t;
+//src computer
+//dst computer
+struct auth_flow_t {
+    uint32_t time;
+    uint32_t duration;
+    uint16_t src_port;
+    uint16_t dst_port;
+    uint32_t protocol;
+    uint32_t packet_count;
+    uint32_t byte_count;
+};
 
-typedef edgeT_t<sid_t> edge_t;
-typedef edgeT_t<lite_edge_t> ledge_t;
-typedef edgeT_t<netflow_dst_t> netflow_edge_t;
+//src_computer
+//resolved computer
+struct auth_dns_t {
+    uint32_t time;
+};
+
+//src_user
+//dst_computer
+struct auth_redteam_t {
+    uint32_t time;
+    vid_t    src_computer;
+};
+
+typedef dst_weight_t<auth_weight_t> auth_dst_t;
 typedef edgeT_t<auth_dst_t> auth_edge_t;
+//----------------
+
+//Feel free to name the derived types, but not required.
+typedef edgeT_t<sid_t> edge_t;
+
+typedef dst_weight_t<univ_t> lite_edge_t;
+typedef edgeT_t<lite_edge_t> ledge_t;
+
 
 inline sid_t get_dst(edge_t* edge) {
     return edge->dst_id;

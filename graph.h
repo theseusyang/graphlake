@@ -98,24 +98,23 @@ class graph {
     //void create_columnfamilies(propid_t a_cf_count);
     
     inline typekv_t* get_typekv() { return (typekv_t*)cf_info[0]; }
-    sid_t get_type_scount(tid_t type);
+    sid_t get_type_scount(tid_t type = 0);
     tid_t get_total_types();
 	tid_t get_tid(const char* type);
+    sid_t type_update(const string& src, const string& dst = "gtype");
+    void type_done();
+    sid_t get_sid(const char* src);
+    void type_store(const string& odir);
 
     propid_t get_cfid(propid_t pid);
     propid_t get_cfid(const char* property);
     propid_t get_pid(const char* property);
     
     status_t add_property(const char* longname);
-    sid_t get_sid(const char* src);
      
     //queries
     void run_query(query_clause* q);
     
-    sid_t type_update(const string& src, const string& dst);
-    void type_done();
-    void type_store(const string& odir);
-
     status_t batch_update(const string& src, const string& dst, const string& predicate);
     //useful or properties
     status_t batch_update(sid_t src_id, const string& dst, const string& predicate);

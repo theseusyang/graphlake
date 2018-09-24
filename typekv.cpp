@@ -5,6 +5,7 @@ sid_t typekv_t::type_update(const string& src, const string& dst)
 {
     sid_t       src_id = 0;
     sid_t       super_id = 0;
+    vid_t       vid = 0;
     tid_t       type_id;
 
     map<string, tid_t>::iterator str2enum_iter = str2enum.find(dst);
@@ -33,12 +34,13 @@ sid_t typekv_t::type_update(const string& src, const string& dst)
     map<string, vid_t>::iterator str2vid_iter = str2vid.find(src);
     if (str2vid.end() == str2vid_iter) {
         src_id = super_id++;
+        t_info[type_id].vert_id = super_id;
         ++g->vert_count;
         str2vid[src] = src_id;
 
-        //update the id
-        t_info[type_id].vert_id = super_id;
-        id2name(super_id, src);
+        vid     = TO_VID(super_id); 
+        assert(vid < t_info[type_id].max_vcount);
+        t_info[type_id].vid2name[vid] = gstrdup(src.c_str());
 
     } else {
         //dublicate entry 
@@ -61,16 +63,6 @@ sid_t typekv_t::type_update(const string& src, const string& dst)
 
     return src_id;
 }
-
-void typekv_t::id2name(sid_t super_id, const string& src)
-{
-    tid_t type_id = TO_TID(super_id);
-    vid_t vid     = TO_VID(super_id); 
-    assert(vid < t_info[type_id].max_vcount);
-
-    t_info[type_id].vid2name[vid] = gstrdup(src.c_str());
-}
-
 
 status_t typekv_t::filter(sid_t src, univ_t a_value, filter_fn_t fn)
 {
@@ -222,6 +214,7 @@ void typekv_t::manual_setup(sid_t  vert_count)
 {
     t_count = 1;
     t_info[0].vert_id = vert_count;
+    t_info[0].max_vcount = vert_count;
     //t_info[0].vid2name = (char**)calloc(sizeof(char*), vert_count);
 }
 
