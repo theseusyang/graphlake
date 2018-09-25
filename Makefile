@@ -3,8 +3,8 @@ EXE1=graphone32
 EXE2=graphone64
 EXE3=graphlake32
 EXE4=graphlake64
-#CFLAGS=-g -Wall -std=gnu++11 -march=native -fopenmp -lpthread -DOVER_COMMIT
-CFLAGS=-O3 -Wall -std=gnu++11  -march=native -fopenmp -lpthread -DOVER_COMMIT
+CFLAGS=-g -Wall -std=gnu++11 -march=native -fopenmp -lpthread -DOVER_COMMIT
+#CFLAGS=-O3 -Wall -std=gnu++11  -march=native -fopenmp -lpthread -DOVER_COMMIT
 #CFLAGS=-O3 -Wall -std=gnu++11  -march=native -fopenmp -lpthread -DBULK
 
 SRC=main.cpp \
@@ -66,6 +66,8 @@ HEADER=graph.h\
 	plain_to_edge.h\
 	darshan_to_edge.h\
 	util.h\
+	new_type.h\
+	new_func.h\
 	test1.h\
 
 #	lite_sgraph.h\
@@ -73,7 +75,7 @@ HEADER=graph.h\
 
 #INCLUDES= -Iantlr4/include -Iantlr4
 #LIBDIRS= -Lantlr4/lib
-INCLUDES=
+INCLUDES=-Iinclude 
 LIBDIRS=
 
 DEPS=$(SRC) $(HEADER)
