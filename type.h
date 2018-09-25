@@ -633,6 +633,8 @@ struct callback {
       typedef void(*sfunc)(sstream_t<T>*);
       typedef void(*wfunc)(wstream_t<T>*);
       typedef void(*func)(stream_t<T>*);
+
+      typedef index_t (*parse_fn_t)(const string&, const string&, pgraph_t<T>*);
 };
 
 template <class T>

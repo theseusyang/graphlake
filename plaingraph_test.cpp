@@ -3,7 +3,6 @@
 #include <dirent.h>
 
 #include "plain_to_edge.h"
-#include "netflow_to_edge.h"
 #include "all.h"
 #include "util.h"
 
@@ -1151,21 +1150,6 @@ void test_archived(const string& idir, const string& odir)
     */
 }
 
-void netflow_test0(const string& idir, const string& odir)
-{
-    plaingraph_manager_t<netflow_dst_t> manager;
-    manager.schema_plaingraph();
-    //do some setup for plain graphs
-    manager.setup_graph(v_count);    
-    
-    manager.prep_graph_adj(idir, odir);
-    
-    //Run BFS
-    for (int i = 0; i < 1; i++){
-        manager.run_bfs();
-    }
-}
-
 void stream_netflow_aggregation(const string& idir, const string& odir)
 {
     plaingraph_manager_t<netflow_dst_t> manager;
@@ -1299,6 +1283,19 @@ void test_ingestion_memoryd(const string& idir, const string& odir)
 }
 
 template <class T>
+void update_fromtext(const string& idir, const string& odir,
+                     typename callback<T>::parse_fn_t parsefile_fn)
+{
+    plaingraph_manager_t<T> manager;
+    THD_COUNT = omp_get_max_threads() - 1;
+    manager.schema_plaingraphd();
+    //do some setup for plain graphs
+    manager.setup_graph(v_count);    
+    manager.prep_graph_fromtext(idir, odir, parsefile_fn); 
+    manager.run_bfsd();    
+}
+
+template <class T>
 void test_ingestion(const string& idir, const string& odir)
 {
     plaingraph_manager_t<T> manager;
@@ -1380,12 +1377,12 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             weight_dtest1(odir);
             break;
         
-        case 7:
-            netflow_test0(idir, odir);
-            break;
         case 9:
             //stinger test
             weighted_dtest0(idir, odir);
+            break;
+        case 10:
+            stream_wcc(idir, odir);
             break;
         
         case 11:
@@ -1464,10 +1461,13 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
         case 34:
             recover_test0d<netflow_dst_t>(idir, odir);
             break;
-        
-        case 93:
-            stream_wcc(idir, odir);
+        case 35://text to our format
+            update_fromtext<netflow_dst_t>(idir, odir, parsefile_and_insert);
             break;
+        case 36://text to binary file
+            update_fromtext<netflow_dst_t>(idir, odir, parsefile_to_bin);
+            break;
+        
         case 94:
             stream_netflow_aggregation(idir, odir);
             break;

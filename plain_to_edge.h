@@ -46,6 +46,7 @@ class plaingraph_manager_t {
      void setup_weightedgraph(vid_t v_count);
      void setup_weightedgraph_memory(vid_t v_count);
 
+     void prep_graph_fromtext(const string& idirname, const string& odirname, typename callback<T>::parse_fn_t);
      void prep_graph_edgelog(const string& idirname, const string& odirname);
      void prep_graph_adj(const string& idirname, const string& odirname);
      void prep_graph(const string& idirname, const string& odirname);
@@ -478,6 +479,41 @@ void plaingraph_manager_t<T>::prep_graph_edgelog(const string& idirname, const s
     }
     double end = mywtime ();
     cout << "Batch Update Time = " << end - start << endl;
+}
+
+template <class T>
+void plaingraph_manager_t<T>::prep_graph_fromtext(const string& idirname, const string& odirname, 
+                                                  typename callback<T>::parse_fn_t parsefile_fn)
+{
+    //-----
+    g->create_snapthread();
+    usleep(1000);
+    //-----
+    
+    pgraph_t<T>* ugraph = (pgraph_t<T>*)get_plaingraph();
+    
+    //Batch and Make Graph
+    double start = mywtime();
+    read_idir_text(idirname, odirname, ugraph, parsefile_fn);    
+    double end = mywtime ();
+    cout << "Batch Update Time = " << end - start << endl;
+    
+    blog_t<T>* blog = ugraph->blog;
+    index_t marker = blog->blog_head;
+
+    //----------
+    if (marker != blog->blog_marker) {
+        ugraph->create_marker(marker);
+    }
+
+    //Wait for make graph
+    while (blog->blog_tail != blog->blog_head) {
+        usleep(1);
+    }
+    end = mywtime();
+    cout << "Make graph time = " << end - start << endl;
+    //---------
+    
 }
 
 template <class T>

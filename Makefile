@@ -3,8 +3,8 @@ EXE1=graphone32
 EXE2=graphone64
 EXE3=graphlake32
 EXE4=graphlake64
-CFLAGS=-g -Wall -std=gnu++11 -march=native -fopenmp -lpthread -DOVER_COMMIT
-#CFLAGS=-O3 -Wall -std=gnu++11  -march=native -fopenmp -lpthread -DOVER_COMMIT
+#CFLAGS=-g -Wall -std=gnu++11 -march=native -fopenmp -lpthread -DOVER_COMMIT
+CFLAGS=-O3 -Wall -std=gnu++11  -march=native -fopenmp -lpthread -DOVER_COMMIT
 #CFLAGS=-O3 -Wall -std=gnu++11  -march=native -fopenmp -lpthread -DBULK
 
 SRC=main.cpp \
@@ -16,14 +16,12 @@ SRC=main.cpp \
     vgraph.cpp\
 	nt_to_edge.cpp\
 	csv_to_edge.cpp\
-	netflow_to_edge.cpp\
 	query_triple.cpp\
 	graph_query.cpp\
 	graph_base.cpp\
 	rset.cpp\
 	propkv.cpp\
 	plaingraph_test.cpp\
-    netflow_test.cpp\
 	llama_test.cpp\
 	
 #weight_graph.cpp\
@@ -64,11 +62,11 @@ HEADER=graph.h\
 	snap_iterative_analytics.h\
 	stream_analytics.h\
 	nt_to_edge.h\
-	netflow_to_edge.h\
 	csv_to_edge.h\
 	plain_to_edge.h\
 	darshan_to_edge.h\
 	util.h\
+	test1.h\
 
 #	lite_sgraph.h\
 #	p_sgraph.h\

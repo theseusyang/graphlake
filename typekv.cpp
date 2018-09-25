@@ -212,10 +212,12 @@ typekv_t::typekv_t()
 
 void typekv_t::manual_setup(sid_t  vert_count)
 {
+    str2enum["gtype"] = 0;
     t_count = 1;
-    t_info[0].vert_id = vert_count;
+    t_info[0].vert_id = 0;
+    //t_info[0].vert_id = vert_count;
     t_info[0].max_vcount = vert_count;
-    //t_info[0].vid2name = (char**)calloc(sizeof(char*), vert_count);
+    t_info[0].vid2name = (char**)calloc(sizeof(char*), vert_count);
 }
 
 cfinfo_t*

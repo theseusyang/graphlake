@@ -82,7 +82,7 @@ class typekv_t : public cfinfo_t {
     };
 
     inline  sid_t get_type_scount(tid_t type) {
-        return t_info[type].vert_id;
+        return t_info[type].max_vcount;
     }
     inline const char* get_type_name(tid_t type) {
         return log_beg + t_info[type].type_name;
