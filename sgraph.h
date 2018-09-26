@@ -280,16 +280,22 @@ class pgraph_t: public cfinfo_t {
     
     void make_graph_d(); 
     void make_graph_u();
+    void make_graph_uni();
     
     void make_on_classify(onegraph_t<T>** sgraph, global_range_t<T>* global_range, vid_t j_start, vid_t j_end, vid_t bit_shift);
 
     void estimate_classify (vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift);
+    void estimate_classify_uni (vid_t* vid_range, vid_t bit_shift);
     void prefix_sum (global_range_t<T>* global_range, thd_local_t* thd_local,
                     vid_t range_count, vid_t thd_count, edgeT_t<T>* edge_buf);
     void work_division (global_range_t<T>* global_range, thd_local_t* thd_local,
                     vid_t range_count, vid_t thd_count, index_t equal_work);
+    
     void classify (vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift, 
             global_range_t<T>* global_range, global_range_t<T>* global_range_in);
+    void classify_uni (vid_t* vid_range, vid_t bit_shift, global_range_t<T>* global_range);
+    
+    
     void calc_degree_noatomic (onegraph_t<T>** sgraph, global_range_t<T>* global_range, 
                       vid_t j_start, vid_t j_end);
     virtual void fill_adjlist_noatomic (onegraph_t<T>** sgraph, global_range_t<T>* global_range, 
@@ -398,9 +404,45 @@ class dgraph: public pgraph_t<T> {
     //virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
 };
 
+template <class T>
+class unigraph: public pgraph_t<T> {
+ public:
+    using pgraph_t<T>::sgraph_in;
+    using pgraph_t<T>::sgraph_out;
+    using pgraph_t<T>::flag1;
+    using pgraph_t<T>::flag2;
+    using pgraph_t<T>::flag1_count;
+    using pgraph_t<T>::flag2_count;
+    using pgraph_t<T>::blog;
+    
+    using pgraph_t<T>::prep_sgraph;
+    using pgraph_t<T>::read_sgraph;
+    using pgraph_t<T>::file_open_sgraph;
+    using pgraph_t<T>::calc_edge_count;
+    using pgraph_t<T>::prep_sgraph_internal;
+    using pgraph_t<T>::fill_adj_list;
+    using pgraph_t<T>::store_sgraph;
+
+ public:
+    static cfinfo_t* create_instance();
+    
+    //void incr_count(sid_t src, sid_t dst, int del = 0);
+    //void add_nebr(sid_t src, sid_t dst, int del = 0);
+    void prep_graph_baseline();
+    void make_graph_baseline();
+    //void create_snapshot();
+    void store_graph_baseline(bool clean = false);
+    void read_graph_baseline();
+    void file_open(const string& odir,  bool trunc);
+    
+    //status_t transform(srset_t* iset, srset_t* oset, direction_t direction);
+    //virtual status_t extend(srset_t* iset, srset_t* oset, direction_t direction);
+};
+
 
 typedef ugraph<sid_t> ugraph_t;
 typedef dgraph<sid_t> dgraph_t;
+typedef unigraph<sid_t> unigraph_t;
 
 typedef ugraph<lite_edge_t> p_ugraph_t;
 typedef dgraph<lite_edge_t> p_dgraph_t;
@@ -1161,41 +1203,6 @@ void ugraph<T>::read_graph_baseline()
     read_sgraph(sgraph);
 }
 
-template <class T> 
-void ugraph<T>::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
-{
-    vid_t vert1_id = TO_VID(src);
-    vid_t vert2_id = TO_VID(dst);
-    
-    tid_t src_index = TO_TID(src);
-    tid_t dst_index = TO_TID(dst);
-    
-    if (!del) { 
-        sgraph[src_index]->increment_count(vert1_id);
-        sgraph[dst_index]->increment_count(vert2_id);
-    } else { 
-        sgraph[src_index]->decrement_count(vert1_id);
-        sgraph[dst_index]->decrement_count(vert2_id);
-    }
-}
-
-template <class T> 
-void dgraph<T>::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
-{
-    tid_t src_index = TO_TID(src);
-    tid_t dst_index = TO_TID(dst);
-    
-    vid_t vert1_id = TO_VID(src);
-    vid_t vert2_id = TO_VID(dst);
-    
-    if (!del) { 
-        sgraph_out[src_index]->increment_count(vert1_id);
-        sgraph_in[dst_index]->increment_count(vert2_id);
-    } else { 
-        sgraph_out[src_index]->decrement_count(vert1_id);
-        sgraph_in[dst_index]->decrement_count(vert2_id);
-    }
-}
 
 template <class T> 
 void ugraph<T>::add_nebr(sid_t src, sid_t dst, int del /*= 0*/)
@@ -1244,6 +1251,92 @@ void dgraph<T>::create_snapshot()
 {
     update_count(sgraph_out);
     update_count(sgraph_in);
+}
+
+template <class T> 
+void ugraph<T>::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
+{
+    vid_t vert1_id = TO_VID(src);
+    vid_t vert2_id = TO_VID(dst);
+    
+    tid_t src_index = TO_TID(src);
+    tid_t dst_index = TO_TID(dst);
+    
+    if (!del) { 
+        sgraph[src_index]->increment_count(vert1_id);
+        sgraph[dst_index]->increment_count(vert2_id);
+    } else { 
+        sgraph[src_index]->decrement_count(vert1_id);
+        sgraph[dst_index]->decrement_count(vert2_id);
+    }
+}
+
+template <class T> 
+void dgraph<T>::incr_count(sid_t src, sid_t dst, int del /*= 0*/)
+{
+    tid_t src_index = TO_TID(src);
+    tid_t dst_index = TO_TID(dst);
+    
+    vid_t vert1_id = TO_VID(src);
+    vid_t vert2_id = TO_VID(dst);
+    
+    if (!del) { 
+        sgraph_out[src_index]->increment_count(vert1_id);
+        sgraph_in[dst_index]->increment_count(vert2_id);
+    } else { 
+        sgraph_out[src_index]->decrement_count(vert1_id);
+        sgraph_in[dst_index]->decrement_count(vert2_id);
+    }
+}
+/***********/
+template <class T> 
+void unigraph<T>::prep_graph_baseline()
+{
+    this->alloc_edgelog(1 << BLOG_SHIFT);
+    flag1_count = __builtin_popcountll(flag1);
+    flag2_count = __builtin_popcountll(flag2);
+
+    //super bins memory allocation
+    tid_t   t_count = g->get_total_types();
+    
+    if (0 == sgraph_out) {
+        sgraph_out  = (onegraph_t<T>**) calloc (sizeof(onegraph_t<T>*), t_count);
+    }
+    prep_sgraph(flag1, sgraph_out);    
+}
+
+//We assume that no new vertex type is defined
+template <class T> 
+void unigraph<T>::make_graph_baseline()
+{
+    this->make_graph_uni();
+}
+
+template <class T> 
+void unigraph<T>::store_graph_baseline(bool clean)
+{
+    //#pragma omp parallel num_threads(THD_COUNT)
+    {
+    store_sgraph(sgraph_out, clean);
+    }
+}
+
+template <class T> 
+void unigraph<T>::file_open(const string& odir, bool trunc)
+{
+    string postfix = "out";
+    file_open_sgraph(sgraph_out, odir, postfix, trunc);
+}
+
+template <class T> 
+void unigraph<T>::read_graph_baseline()
+{
+    tid_t   t_count    = g->get_total_types();
+    
+    if (0 == sgraph_out) {
+        sgraph_out  = (onegraph_t<T>**) calloc (sizeof(onegraph_t<T>*), t_count);
+    }
+    read_sgraph(sgraph_out);
 }
 
 

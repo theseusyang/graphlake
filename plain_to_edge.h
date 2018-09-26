@@ -39,20 +39,16 @@ class plaingraph_manager_t {
     public:
      void schema_plaingraph();
      void schema_plaingraphd();
-     void schema_weightedgraphu();
-     void schema_weightedgraphd();
+     void schema_plaingraphuni();
     
      void setup_graph(vid_t v_count);
-     void setup_weightedgraph(vid_t v_count);
-     void setup_weightedgraph_memory(vid_t v_count);
+     void setup_graph_memory(vid_t v_count);
 
      void prep_graph_fromtext(const string& idirname, const string& odirname, typename callback<T>::parse_fn_t);
      void prep_graph_edgelog(const string& idirname, const string& odirname);
      void prep_graph_adj(const string& idirname, const string& odirname);
      void prep_graph(const string& idirname, const string& odirname);
      void prep_graph_durable(const string& idirname, const string& odirname);
-     void prep_graph_paper_chain(const string& idirname, const string& odirname);
-     void prep_weighted_rmat(const string& graph_file, const string& action_file);
     
      void recover_graph_adj(const string& idirname, const string& odirname);
      void prep_graph_serial_scompute(const string& idirname, const string& odirname, sstream_t<T>* sstreamh);
@@ -155,7 +151,7 @@ void plaingraph_manager_t<T>::schema_plaingraphd()
 }
 
 template <class T>
-void plaingraph_manager_t<T>::schema_weightedgraphu()
+void plaingraph_manager_t<T>::schema_plaingraphuni()
 {
     g->cf_info = new cfinfo_t*[2];
     g->p_info = new pinfo_t[2];
@@ -179,40 +175,7 @@ void plaingraph_manager_t<T>::schema_weightedgraphu()
     shortname = "friend";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    info = new ugraph<T>;
-    g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
-    ++p_info;
-    set_pgraph(info);
-}
-
-template <class T>
-void plaingraph_manager_t<T>::schema_weightedgraphd()
-{
-    g->cf_info = new cfinfo_t*[2];
-    g->p_info = new pinfo_t[2];
-    
-    pinfo_t*    p_info    = g->p_info;
-    cfinfo_t*   info      = 0;
-    const char* longname  = 0;
-    const char* shortname = 0;
-    
-    longname = "gtype";
-    shortname = "gtype";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
-    info = new typekv_t;
-    g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
-    ++p_info;
-    
-    longname = "friend";
-    shortname = "friend";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
-    info = new dgraph<T>;
+    info = new unigraph<T>;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
@@ -236,22 +199,7 @@ void plaingraph_manager_t<T>::setup_graph(vid_t v_count)
 }
 
 template <class T>
-void plaingraph_manager_t<T>::setup_weightedgraph(vid_t v_count)
-{
-    //do some setup for plain graphs
-    pgraph_t<T>* graph = (pgraph_t<T>*)get_plaingraph();
-    graph->flag1 = 1;
-    graph->flag2 = 1;
-    typekv_t* typekv = g->get_typekv();
-    typekv->manual_setup(v_count);
-    g->prep_graph_baseline();
-    g->file_open(true);
-    g->make_graph_baseline();
-    g->store_graph_baseline(); 
-}
-
-template <class T>
-void plaingraph_manager_t<T>::setup_weightedgraph_memory(vid_t v_count)
+void plaingraph_manager_t<T>::setup_graph_memory(vid_t v_count)
 {
     //do some setup for plain graphs
     pgraph_t<T>* graph = (pgraph_t<T>*)get_plaingraph();

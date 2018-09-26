@@ -32,30 +32,53 @@ struct wls_t {
     string     failure_reason;
 };
 
-struct wls_dst_t {
+struct wls_weight_t {
     uint32_t time;
     uint16_t event_id;
     uint16_t logon_id;
 };
 
-inline index_t parse_wls_line(char* line, edgeT_t<netflow_dst_t>& netflow)
+typedef dst_weight_t<wls_weight_t> wls_dst_t;
+
+inline index_t parse_wls_line(char* line, edgeT_t<wls_dst_t>& netflow)
 {
     if (line[0] == '%') {
-        return 0;
+        return eNotValid;
     }
     
     Document d;
     d.Parse(line);
+    
+    Value::ConstMemberIterator itr = d.FindMember("ProcessID");
+    if (itr != d.MemberEnd()) {
+        string proc_id = itr->value.GetString();
+        netflow.dst_id.first = strtol(proc_id.c_str(), NULL, 0); 
+    } else {
+        return eNotValid;
+    }
 
-    //string user_name = d["UserName"].getString();
-    //user_name += "@" + d["DomainName"];
-
+    string user_name = d["UserName"].GetString();
+    user_name += "@";
+    
+    itr = d.FindMember("DomainName");
+    if (itr != d.MemberEnd()) {
+        user_name += d["DomainName"].GetString();
+        netflow.src_id = g->type_update(user_name.c_str());
+    } else {
+        return eNotValid;
+    }
+    
 
     //Value& s = d["Time"];
     //int i = s.GetInt();
     
-    return 0;
+    netflow.dst_id.second.time = d["Time"].GetInt();
+    netflow.dst_id.second.event_id = d["EventID"].GetInt();
 
+    string logon_id = d["LogonID"].GetString();
+    netflow.dst_id.second.logon_id = strtol(logon_id.c_str(), NULL, 0); 
+    
+    return eOK;
 }
 
 //--------------- netflow functions ------------------
@@ -63,7 +86,7 @@ inline index_t parse_wls_line(char* line, edgeT_t<netflow_dst_t>& netflow)
 inline index_t parse_netflow_line(char* line, edgeT_t<netflow_dst_t>& netflow) 
 {
     if (line[0] == '%') {
-        return 0;
+        return eNotValid;
     }
     
     //const char* del = ",\n";
@@ -104,7 +127,7 @@ inline index_t parse_netflow_line(char* line, edgeT_t<netflow_dst_t>& netflow)
     token = strtok_r(line, ",\n", &line);
     netflow.dst_id.second.dst_bytes = atoi(token);
         
-    return 0;
+    return eOK;
 }
 //---------------netflow functions done---------
 
@@ -123,8 +146,10 @@ index_t parsefile_and_insert(const string& textfile, const string& ofile, pgraph
 
     while (fgets(sss, sizeof(sss), file)) {
         line = sss;
-        parse_netflow_line(line, netflow);
-        pgraph->batch_edge(netflow);
+        //parse_netflow_line(line, netflow);
+        if (eOK == parse_wls_line(line, netflow)) {
+            pgraph->batch_edge(netflow);
+        }
         icount++;
     }
     

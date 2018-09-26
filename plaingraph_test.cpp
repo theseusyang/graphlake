@@ -549,32 +549,18 @@ void split_graph(const string& idirname, const string& odirname)
     cout << "Make graph time = " << end - start << endl;
 }
 
-void weight_dtest0(const string& idir, const string& odir)
-{
-    plaingraph_manager.schema_weightedgraphd();
-    plaingraph_manager.setup_weightedgraph(v_count);    
-}
-
-void weight_dtest1(const string& odir)
-{
-    plaingraph_manager.schema_weightedgraphu();
-    plaingraph_manager.setup_weightedgraph(v_count);    
-}
 
 //template <class T>
 void weighted_dtest0(const string& idir, const string& odir)
 {
+    plaingraph_manager_t<lite_edge_t> manager;
     
-    plaingraph_manager.schema_weightedgraphu();
-    
-    //Is called from below function
-    //plaingraph_manager.setup_weightedgraph(v_count);    
+    manager.schema_plaingraph();
     
     //string graph_file = idir + "g.bin";
     //string action_file = idir + "a.bin"; 
     string graph_file = idir + "small_basegraph";
     string action_file = idir + "small_action"; 
-    //plaingraph_manager.prep_weighted_rmat(graph_file, action_file);
     
     int fd = open(graph_file.c_str(), O_RDONLY);
     assert(fd != -1);
@@ -598,7 +584,7 @@ void weighted_dtest0(const string& idir, const string& odir)
 
     //Create number of vertex
     v_count = nv;
-    plaingraph_manager.setup_weightedgraph(v_count);
+    manager.setup_graph(v_count);
     
     //Do ingestion
     /*
@@ -1283,6 +1269,19 @@ void test_ingestion_memoryd(const string& idir, const string& odir)
 }
 
 template <class T>
+void update_fromtext_uni(const string& idir, const string& odir,
+                     typename callback<T>::parse_fn_t parsefile_fn)
+{
+    plaingraph_manager_t<T> manager;
+    THD_COUNT = omp_get_max_threads() - 1;
+    manager.schema_plaingraphuni();
+    //do some setup for plain graphs
+    manager.setup_graph(v_count);    
+    manager.prep_graph_fromtext(idir, odir, parsefile_fn); 
+    manager.run_bfs();    
+}
+
+template <class T>
 void update_fromtext(const string& idir, const string& odir,
                      typename callback<T>::parse_fn_t parsefile_fn)
 {
@@ -1369,12 +1368,8 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
         case 4:
             split_graph<lite_edge_t>(idir, odir);
             break;
-        
-        case 5:
-            weight_dtest0(idir, odir);
-            break;
-        case 6:
-            weight_dtest1(odir);
+        case 5://text to our format
+            update_fromtext_uni<wls_dst_t>(idir, odir, parsefile_and_insert);
             break;
         
         case 9:
@@ -1462,7 +1457,7 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             recover_test0d<netflow_dst_t>(idir, odir);
             break;
         case 35://text to our format
-            update_fromtext<netflow_dst_t>(idir, odir, parsefile_and_insert);
+            update_fromtext<wls_dst_t>(idir, odir, parsefile_and_insert);
             break;
         case 36://text to binary file
             update_fromtext<netflow_dst_t>(idir, odir, parsefile_to_bin);

@@ -152,6 +152,7 @@ enum status_t {
     eOOM,
     eDelete,
     eNoWork,
+    eNotValid,
     eUnknown        
 };
 

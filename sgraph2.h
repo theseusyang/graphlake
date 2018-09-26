@@ -31,6 +31,26 @@ void pgraph_t<T>::estimate_classify(vid_t* vid_range, vid_t* vid_range_in, vid_t
     }
 }
 
+template <class T>
+void pgraph_t<T>::estimate_classify_uni(vid_t* vid_range, vid_t bit_shift) 
+{
+    sid_t src;
+    vid_t vert1_id;
+    vid_t range;
+    edgeT_t<T>* edges = blog->blog_beg;
+    index_t index;
+
+    #pragma omp for
+    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
+        index = (i & blog->blog_mask);
+        src = edges[index].src_id;
+        vert1_id = TO_VID(src);
+
+        //gather high level info for 1
+        range = (vert1_id >> bit_shift);
+        vid_range[range]++;
+    }
+}
 
 template <class T>
 void pgraph_t<T>::prefix_sum(global_range_t<T>* global_range, thd_local_t* thd_local,
@@ -126,6 +146,29 @@ void pgraph_t<T>::classify(vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shif
 }
 
 template <class T>
+void pgraph_t<T>::classify_uni(vid_t* vid_range, vid_t bit_shift, global_range_t<T>* global_range)
+{
+    sid_t src;
+    vid_t vert1_id;
+    vid_t range = 0;
+    edgeT_t<T>* edge;
+    edgeT_t<T>* edges = blog->blog_beg;
+    index_t index;
+
+    #pragma omp for
+    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
+        index = (i & blog->blog_mask);
+        src = edges[index].src_id;
+        vert1_id = TO_VID(src);
+        
+        range = (vert1_id >> bit_shift);
+        edge = global_range[range].edges + vid_range[range]++;
+        edge->src_id = src;
+        edge->dst_id = edges[index].dst_id;
+    }
+}
+
+template <class T>
 void pgraph_t<T>::calc_degree_noatomic(onegraph_t<T>** sgraph, global_range_t<T>* global_range, vid_t j_start, vid_t j_end) 
 {
     index_t total = 0;
@@ -187,6 +230,93 @@ inline void print(const char* str, double start_time)
 	//	double end = mywtime();
 	//	cout << str << end - start_time << endl;
 	//}
+}
+
+template <class T>
+void pgraph_t<T>::make_graph_uni() 
+{
+    if (blog->blog_tail >= blog->blog_marker) return;
+    
+    vid_t v_count = sgraph_out[0]->get_vcount();
+    vid_t range_count = 1024;
+    vid_t thd_count = THD_COUNT;
+    vid_t  base_vid = ((v_count -1)/range_count);
+    
+    //find the number of bits to do shift to find the range
+#if B32    
+    vid_t bit_shift = __builtin_clz(base_vid);
+    bit_shift = 32 - bit_shift; 
+#else
+    vid_t bit_shift = __builtin_clzl(base_vid);
+    bit_shift = 64 - bit_shift; 
+#endif
+
+    global_range_t<T>* global_range = (global_range_t<T>*)calloc(
+                            sizeof(global_range_t<T>), range_count);
+    
+    thd_local_t* thd_local = (thd_local_t*) calloc(sizeof(thd_local_t), thd_count);  
+   
+    index_t total_edge_count = blog->blog_marker - blog->blog_tail;
+    //alloc_edge_buf(total_edge_count);
+    
+    index_t edge_count = (total_edge_count*1.15)/(thd_count);
+    
+
+    #pragma omp parallel num_threads (thd_count) 
+    {
+        vid_t tid = omp_get_thread_num();
+        vid_t* vid_range = (vid_t*)calloc(sizeof(vid_t), range_count); 
+        thd_local[tid].vid_range = vid_range;
+
+        //double start = mywtime();
+
+        //Get the count for classification
+        this->estimate_classify_uni(vid_range, bit_shift);
+        
+        this->prefix_sum(global_range, thd_local, range_count, thd_count, edge_buf_out);
+        #pragma omp barrier 
+        
+        //Classify
+        this->classify_uni(vid_range, bit_shift, global_range);
+        
+        #pragma omp master 
+        {
+            //double end = mywtime();
+            //cout << " classify " << end - start << endl;
+            this->work_division(global_range, thd_local, range_count, thd_count, edge_count);
+        }
+        
+        #pragma omp barrier 
+        
+        //Now get the division of work
+        vid_t     j_start;
+        vid_t     j_end;
+        
+        if (tid == 0) { 
+            j_start = 0; 
+        } else { 
+            j_start = thd_local[tid - 1].range_end;
+        }
+        j_end = thd_local[tid].range_end;
+        
+        //actual work
+        make_on_classify(sgraph_out, global_range, j_start, j_end, bit_shift); 
+        
+        free(vid_range);
+        #pragma omp barrier 
+        
+        //free the memory
+        #pragma omp for schedule (static)
+        for (vid_t i = 0; i < range_count; ++i) {
+            if (global_range[i].edges)
+                free(global_range[i].edges);
+        }
+    }
+
+    free(global_range);
+    free(thd_local);
+    
+    //blog->blog_tail = blog->blog_marker;  
 }
 
 template <class T>
