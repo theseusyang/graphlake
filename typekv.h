@@ -101,6 +101,7 @@ class typekv_t : public cfinfo_t {
     }
     
     sid_t type_update(const string& src, const string& dst);
+    sid_t type_update(const string& src, tid_t tid);
     
     void make_graph_baseline();
     virtual void store_graph_baseline(bool clean = false); 

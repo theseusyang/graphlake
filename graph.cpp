@@ -171,9 +171,14 @@ tid_t graph::get_total_types()
     return typekv->get_total_types();
 }
 
-sid_t graph::type_update(const string& src, const string& dst/*="gtype"*/)
+sid_t graph::type_update(const string& src, const string& dst)
 {
     return get_typekv()->type_update(src, dst);
+}
+
+sid_t graph::type_update(const string& src, tid_t tid/*=0*/)
+{
+    return get_typekv()->type_update(src, tid);
 }
 
 void graph::type_done()

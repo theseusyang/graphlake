@@ -53,7 +53,8 @@ inline index_t parse_wls_line(char* line, edgeT_t<wls_dst_t>& wls)
     if (itr != d.MemberEnd()) {
         string proc_id = itr->value.GetString();
         //wls.dst_id.first = strtol(proc_id.c_str(), NULL, 0); 
-        wls.dst_id.first = g->type_update(proc_id.c_str(), "process");
+        //wls.dst_id.first = g->type_update(proc_id.c_str(), "process");
+        wls.dst_id.first = g->type_update(proc_id.c_str(), 0);//"process" are type id 0.
     } else {
         return eNotValid;
     }
@@ -64,7 +65,8 @@ inline index_t parse_wls_line(char* line, edgeT_t<wls_dst_t>& wls)
     itr = d.FindMember("DomainName");
     if (itr != d.MemberEnd()) {
         user_name += d["DomainName"].GetString();
-        wls.src_id = g->type_update(user_name.c_str(), "user");
+        //wls.src_id = g->type_update(user_name.c_str(), "user");
+        wls.src_id = g->type_update(user_name.c_str(), 1);//"user" are type id 1.
     } else {
         return eNotValid;
     }
@@ -88,7 +90,8 @@ inline index_t parse_wls_line(char* line, edgeT_t<wls_dst_t>& wls)
     if (itr != d.MemberEnd()) {
         string proc_id = itr->value.GetString();
         //edge.dst_id = strtol(proc_id.c_str(), NULL, 0); 
-        edge.dst_id = g->type_update(proc_id.c_str(), "process");
+        //edge.dst_id = g->type_update(proc_id.c_str(), "process");
+        edge.dst_id = g->type_update(proc_id.c_str(), 0);//"process" are type id 0.
         edge.src_id = wls.dst_id.first;
 
         //insert

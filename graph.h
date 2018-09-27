@@ -37,7 +37,6 @@ void* alloc_buf();
 class graph;
 extern graph* g;
 
-class vgraph_t;
 class typekv_t;
 
 typedef cfinfo_t* (*get_graph_instance)();
@@ -102,7 +101,8 @@ class graph {
     sid_t get_type_scount(tid_t type = 0);
     tid_t get_total_types();
 	tid_t get_tid(const char* type);
-    sid_t type_update(const string& src, const string& dst = "gtype");
+    sid_t type_update(const string& src, const string& dst);
+    sid_t type_update(const string& src, tid_t tid = 0);
     void  type_done();
     sid_t get_sid(const char* src);
     void  type_store(const string& odir);

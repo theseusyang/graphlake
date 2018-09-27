@@ -61,7 +61,50 @@ sid_t typekv_t::type_update(const string& src, const string& dst)
             return INVALID_SID;
         }
     }
+    return src_id;
+}
 
+sid_t typekv_t::type_update(const string& src, tid_t type_id)
+{
+    sid_t       src_id = 0;
+    sid_t       super_id = 0;
+    vid_t       vid = 0;
+
+    assert(type_id < t_count);
+
+    super_id = t_info[type_id].vert_id;
+
+    //allocate class specific ids.
+    map<string, vid_t>::iterator str2vid_iter = str2vid.find(src);
+    if (str2vid.end() == str2vid_iter) {
+        src_id = super_id++;
+        t_info[type_id].vert_id = super_id;
+        ++g->vert_count;
+        str2vid[src] = src_id;
+
+        vid     = TO_VID(super_id); 
+        assert(super_id < t_info[type_id].max_vcount);
+        t_info[type_id].vid2name[vid] = gstrdup(src.c_str());
+
+    } else {
+        //dublicate entry 
+        //If type mismatch, delete original //XXX
+        src_id = str2vid_iter->second;
+        tid_t old_tid = TO_TID(src_id);
+
+        if (old_tid != type_id) {
+            /*
+            //Different types, delete
+            str2vid.erase(str2vid_iter);
+            cout << "Duplicate unique Id: " << src << " Deleting both. " ;
+            cout << "Existing Type: " << (char*)(log_beg + t_info[old_tid].type_name) << "\t";
+            cout << "New Type: " << (char*)(log_beg + t_info[type_id].type_name) << endl;
+            //assert(0);
+            */
+            assert(0);
+            return INVALID_SID;
+        }
+    }
     return src_id;
 }
 
