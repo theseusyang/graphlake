@@ -97,14 +97,16 @@ class graph {
     void add_columnfamily(cfinfo_t* cf);
     //void create_columnfamilies(propid_t a_cf_count);
     
+    inline cfinfo_t* get_sgraph(propid_t cfid) { return cf_info[cfid];}
     inline typekv_t* get_typekv() { return (typekv_t*)cf_info[0]; }
     sid_t get_type_scount(tid_t type = 0);
     tid_t get_total_types();
 	tid_t get_tid(const char* type);
     sid_t type_update(const string& src, const string& dst = "gtype");
-    void type_done();
+    void  type_done();
     sid_t get_sid(const char* src);
-    void type_store(const string& odir);
+    void  type_store(const string& odir);
+
 
     propid_t get_cfid(propid_t pid);
     propid_t get_cfid(const char* property);

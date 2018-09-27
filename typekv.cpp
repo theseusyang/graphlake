@@ -39,7 +39,7 @@ sid_t typekv_t::type_update(const string& src, const string& dst)
         str2vid[src] = src_id;
 
         vid     = TO_VID(super_id); 
-        assert(vid < t_info[type_id].max_vcount);
+        assert(super_id < t_info[type_id].max_vcount);
         t_info[type_id].vid2name[vid] = gstrdup(src.c_str());
 
     } else {
@@ -57,6 +57,7 @@ sid_t typekv_t::type_update(const string& src, const string& dst)
             cout << "New Type: " << (char*)(log_beg + t_info[type_id].type_name) << endl;
             //assert(0);
             */
+            assert(0);
             return INVALID_SID;
         }
     }
@@ -218,6 +219,17 @@ void typekv_t::manual_setup(sid_t  vert_count)
     //t_info[0].vert_id = vert_count;
     t_info[0].max_vcount = vert_count;
     t_info[0].vid2name = (char**)calloc(sizeof(char*), vert_count);
+}
+
+//Required to be called as we need to have a guess for max v_count
+tid_t typekv_t::manual_setup(sid_t vert_count, const string& type_name)
+{
+    str2enum[type_name.c_str()] = t_count;
+    t_info[t_count].vert_id = TO_SUPER(t_count);
+    //t_info[0].vert_id = vert_count;
+    t_info[t_count].max_vcount = TO_SUPER(t_count) + vert_count;
+    t_info[t_count].vid2name = (char**)calloc(sizeof(char*), vert_count);
+    return t_count++;//return the tid of this type
 }
 
 cfinfo_t*

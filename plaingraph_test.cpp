@@ -3,6 +3,7 @@
 #include <dirent.h>
 
 #include "plain_to_edge.h"
+#include "multi_graph.h"
 #include "all.h"
 #include "util.h"
 
@@ -1272,13 +1273,12 @@ template <class T>
 void update_fromtext_uni(const string& idir, const string& odir,
                      typename callback<T>::parse_fn_t parsefile_fn)
 {
-    plaingraph_manager_t<T> manager;
+    multi_graph_t manager;
     THD_COUNT = omp_get_max_threads() - 1;
-    manager.schema_plaingraphuni();
+    manager.schema();
     //do some setup for plain graphs
-    manager.setup_graph(v_count);    
     manager.prep_graph_fromtext(idir, odir, parsefile_fn); 
-    manager.run_bfs();    
+    //manager.run_bfs();    
 }
 
 template <class T>
@@ -1369,7 +1369,7 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             split_graph<lite_edge_t>(idir, odir);
             break;
         case 5://text to our format
-            update_fromtext_uni<wls_dst_t>(idir, odir, parsefile_and_insert);
+            update_fromtext_uni<wls_dst_t>(idir, odir, parsefile_and_multi_insert);
             break;
         
         case 9:
@@ -1457,7 +1457,7 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             recover_test0d<netflow_dst_t>(idir, odir);
             break;
         case 35://text to our format
-            update_fromtext<wls_dst_t>(idir, odir, parsefile_and_insert);
+            update_fromtext<netflow_dst_t>(idir, odir, parsefile_and_insert);
             break;
         case 36://text to binary file
             update_fromtext<netflow_dst_t>(idir, odir, parsefile_to_bin);

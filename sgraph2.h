@@ -237,7 +237,8 @@ void pgraph_t<T>::make_graph_uni()
 {
     if (blog->blog_tail >= blog->blog_marker) return;
     
-    vid_t v_count = sgraph_out[0]->get_vcount();
+    tid_t src_index = TO_TID(blog->blog_beg[0].src_id);
+    vid_t v_count = sgraph_out[src_index]->get_vcount();
     vid_t range_count = 1024;
     vid_t thd_count = THD_COUNT;
     vid_t  base_vid = ((v_count -1)/range_count);
@@ -323,19 +324,28 @@ template <class T>
 void pgraph_t<T>::make_graph_d() 
 {
     if (blog->blog_tail >= blog->blog_marker) return;
-    
-    vid_t v_count = sgraph_out[0]->get_vcount();
-    vid_t range_count = 1024;
     vid_t thd_count = THD_COUNT;
+    vid_t range_count = 1024;
+    
+    tid_t src_index = TO_TID(blog->blog_beg[0].src_id);
+    vid_t v_count = sgraph_out[src_index]->get_vcount();
     vid_t  base_vid = ((v_count -1)/range_count);
+    
+    tid_t dst_index = TO_TID(get_dst(&blog->blog_beg[0]));
+    vid_t v_count_in = sgraph_out[dst_index]->get_vcount();
+    vid_t  base_vid_in = ((v_count_in -1)/range_count);
     
     //find the number of bits to do shift to find the range
 #if B32    
     vid_t bit_shift = __builtin_clz(base_vid);
     bit_shift = 32 - bit_shift; 
+    vid_t bit_shift_in = __builtin_clz(base_vid_in);
+    bit_shift_in = 32 - bit_shift_in; 
 #else
     vid_t bit_shift = __builtin_clzl(base_vid);
     bit_shift = 64 - bit_shift; 
+    vid_t bit_shift_in = __builtin_clzl(base_vid_in);
+    bit_shift_in = 64 - bit_shift_in; 
 #endif
 
     global_range_t<T>* global_range = (global_range_t<T>*)calloc(
@@ -404,7 +414,7 @@ void pgraph_t<T>::make_graph_d()
 
         //actual work
         make_on_classify(sgraph_out, global_range, j_start, j_end, bit_shift); 
-        make_on_classify(sgraph_in, global_range_in, j_start_in, j_end_in, bit_shift); 
+        make_on_classify(sgraph_in, global_range_in, j_start_in, j_end_in, bit_shift_in); 
         
         free(vid_range);
         free(vid_range_in);
@@ -453,7 +463,9 @@ void pgraph_t<T>::make_graph_u()
 {
     if (blog->blog_tail >= blog->blog_marker) return;
     
-    vid_t v_count = sgraph[0]->get_vcount();
+    tid_t src_index = TO_TID(blog->blog_beg[0].src_id);
+    vid_t v_count = sgraph_out[src_index]->get_vcount();
+    
     vid_t range_count = 1024;
     vid_t thd_count = THD_COUNT;
     vid_t  base_vid = ((v_count -1)/range_count);

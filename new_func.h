@@ -40,7 +40,7 @@ struct wls_weight_t {
 
 typedef dst_weight_t<wls_weight_t> wls_dst_t;
 
-inline index_t parse_wls_line(char* line, edgeT_t<wls_dst_t>& netflow)
+inline index_t parse_wls_line(char* line, edgeT_t<wls_dst_t>& wls)
 {
     if (line[0] == '%') {
         return eNotValid;
@@ -52,7 +52,8 @@ inline index_t parse_wls_line(char* line, edgeT_t<wls_dst_t>& netflow)
     Value::ConstMemberIterator itr = d.FindMember("ProcessID");
     if (itr != d.MemberEnd()) {
         string proc_id = itr->value.GetString();
-        netflow.dst_id.first = strtol(proc_id.c_str(), NULL, 0); 
+        //wls.dst_id.first = strtol(proc_id.c_str(), NULL, 0); 
+        wls.dst_id.first = g->type_update(proc_id.c_str(), "process");
     } else {
         return eNotValid;
     }
@@ -63,7 +64,7 @@ inline index_t parse_wls_line(char* line, edgeT_t<wls_dst_t>& netflow)
     itr = d.FindMember("DomainName");
     if (itr != d.MemberEnd()) {
         user_name += d["DomainName"].GetString();
-        netflow.src_id = g->type_update(user_name.c_str());
+        wls.src_id = g->type_update(user_name.c_str(), "user");
     } else {
         return eNotValid;
     }
@@ -72,13 +73,52 @@ inline index_t parse_wls_line(char* line, edgeT_t<wls_dst_t>& netflow)
     //Value& s = d["Time"];
     //int i = s.GetInt();
     
-    netflow.dst_id.second.time = d["Time"].GetInt();
-    netflow.dst_id.second.event_id = d["EventID"].GetInt();
+    wls.dst_id.second.time = d["Time"].GetInt();
+    wls.dst_id.second.event_id = d["EventID"].GetInt();
 
     string logon_id = d["LogonID"].GetString();
-    netflow.dst_id.second.logon_id = strtol(logon_id.c_str(), NULL, 0); 
+    wls.dst_id.second.logon_id = strtol(logon_id.c_str(), NULL, 0); 
+    
+    //insert
+    pgraph_t<wls_dst_t>* pgraph = (pgraph_t<wls_dst_t>*)g->get_sgraph(2);
+    pgraph->batch_edge(wls);
+
+    edge_t edge;
+    itr = d.FindMember("ParentProcessID");
+    if (itr != d.MemberEnd()) {
+        string proc_id = itr->value.GetString();
+        //edge.dst_id = strtol(proc_id.c_str(), NULL, 0); 
+        edge.dst_id = g->type_update(proc_id.c_str(), "process");
+        edge.src_id = wls.dst_id.first;
+
+        //insert
+        pgraph_t<sid_t>* pgraph = (pgraph_t<sid_t>*)g->get_sgraph(1);
+        pgraph->batch_edge(edge);
+    }
     
     return eOK;
+}
+
+template <class T>
+index_t parsefile_and_multi_insert(const string& textfile, const string& ofile, pgraph_t<T>* pgraph) 
+{
+    FILE* file = fopen(textfile.c_str(), "r");
+    assert(file);
+    
+    edgeT_t<T> netflow;
+    index_t icount = 0;
+	char sss[512];
+    char* line = sss;
+
+    while (fgets(sss, sizeof(sss), file)) {
+        line = sss;
+        if (eOK == parse_wls_line(line, netflow)) {
+            icount++;
+        }
+    }
+    
+    fclose(file);
+    return 0;
 }
 
 //--------------- netflow functions ------------------
@@ -146,8 +186,7 @@ index_t parsefile_and_insert(const string& textfile, const string& ofile, pgraph
 
     while (fgets(sss, sizeof(sss), file)) {
         line = sss;
-        //parse_netflow_line(line, netflow);
-        if (eOK == parse_wls_line(line, netflow)) {
+        if (eOK == parse_netflow_line(line, netflow)) {
             pgraph->batch_edge(netflow);
         }
         icount++;
