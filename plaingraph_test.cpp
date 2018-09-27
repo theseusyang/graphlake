@@ -1,9 +1,6 @@
-#include <getopt.h>
 #include <iostream>
-#include <dirent.h>
 
 #include "plain_to_edge.h"
-#include "multi_graph.h"
 #include "all.h"
 #include "util.h"
 
@@ -1269,17 +1266,6 @@ void test_ingestion_memoryd(const string& idir, const string& odir)
     manager.run_bfsd();    
 }
 
-template <class T>
-void update_fromtext_uni(const string& idir, const string& odir,
-                     typename callback<T>::parse_fn_t parsefile_fn)
-{
-    multi_graph_t manager;
-    THD_COUNT = omp_get_max_threads() - 1;
-    manager.schema();
-    //do some setup for plain graphs
-    manager.prep_graph_fromtext(idir, odir, parsefile_fn); 
-    //manager.run_bfs();    
-}
 
 template <class T>
 void update_fromtext(const string& idir, const string& odir,
@@ -1367,9 +1353,6 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             break;
         case 4:
             split_graph<lite_edge_t>(idir, odir);
-            break;
-        case 5://text to our format
-            update_fromtext_uni<wls_dst_t>(idir, odir, parsefile_and_multi_insert);
             break;
         
         case 9:

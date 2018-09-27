@@ -99,6 +99,9 @@ int main(int argc, char* argv[])
         case 0:
         plain_test(v_count, idir, odir, job);
             break;
+        case 1:
+        multigraph_test(v_count, idir, odir, job);
+            break;
 #ifdef B64
         case 2:
         lubm_test(typefile, idir, odir, job);

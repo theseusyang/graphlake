@@ -22,6 +22,7 @@ SRC=main.cpp \
 	rset.cpp\
 	propkv.cpp\
 	plaingraph_test.cpp\
+	multigraph_test.cpp\
 	llama_test.cpp\
 	
 #weight_graph.cpp\

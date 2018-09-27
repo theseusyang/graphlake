@@ -80,50 +80,14 @@ class pgraph_t: public cfinfo_t {
         }
     }
     
-    inline void alloc_edge_buf(index_t total) {
-        index_t total_edge_count = 0;
-        if (0 == sgraph_in) {
-            total_edge_count = (total << 1);
-            if (0 == edge_buf_count) {
-                edge_buf_out = (edgeT_t<T>*)malloc(total_edge_count*sizeof(edgeT_t<T>));
-                edge_buf_count = total_edge_count;
-            } else if (edge_buf_count < total_edge_count) {
-                free(edge_buf_out);
-                edge_buf_out = (edgeT_t<T>*)malloc(total_edge_count*sizeof(edgeT_t<T>));
-                edge_buf_count = total_edge_count;
-            }
-        } else {
-            total_edge_count = total;
-            if (0 == edge_buf_count) {
-                edge_buf_out = (edgeT_t<T>*)malloc(total_edge_count*sizeof(edgeT_t<T>));
-                edge_buf_in = (edgeT_t<T>*)malloc(total_edge_count*sizeof(edgeT_t<T>));
-                edge_buf_count = total_edge_count;
-            } else if (edge_buf_count < total_edge_count) {
-                free(edge_buf_out);
-                free(edge_buf_in);
-                edge_buf_out = (edgeT_t<T>*)malloc(total_edge_count*sizeof(edgeT_t<T>));
-                edge_buf_in = (edgeT_t<T>*)malloc(total_edge_count*sizeof(edgeT_t<T>));
-                edge_buf_count = total_edge_count;
-            }
-        }
-    }
-
-    inline void free_edge_buf() {
-        if (edge_buf_out) {    
-            free(edge_buf_out);
-            edge_buf_out = 0;
-        }
-        if (edge_buf_in) {
-            free(edge_buf_in);
-            edge_buf_in = 0;
-        }
-        edge_buf_count = 0;
-    }
+    void alloc_edge_buf(index_t total); 
+    void free_edge_buf();
+    status_t write_edgelog(); 
 
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0) {
         return eOK;
     }
-    status_t batch_edge(edgeT_t<T>& edge) {
+    inline status_t batch_edge(edgeT_t<T>& edge) {
         status_t ret = eOK;
 
         index_t index = __sync_fetch_and_add(&blog->blog_head, 1L);
@@ -147,24 +111,8 @@ class pgraph_t: public cfinfo_t {
             //ret = eEndBatch;
         } 
         
-        /*
-        else if ((index - blog->blog_tail) == blog->blog_count - 1000) {
-            blog->blog_beg[index1] = edge;
-            create_marker(index + 1);
-            cout << "About OOM" << endl;
-            return eOOM;
-        } else if ((index - blog->blog_tail) >= blog->blog_count) {
-            //block
-            assert(0);
-            return eOOM;
-        }*/
-
         blog->blog_beg[index1] = edge;
         
-        //if (ret != eEndBatch) {
-        //    blog->blog_beg[index1] = edge;
-        //}
-            
         //----
         //Make the edge log durable
         //if ((index != blog->blog_wmarker) && 
@@ -174,60 +122,6 @@ class pgraph_t: public cfinfo_t {
     
         return ret; 
     }
-    
-    //called from w thread 
-    status_t write_edgelog() {
-        index_t w_marker = blog->blog_head;
-        index_t w_tail = blog->blog_wtail;
-        index_t w_count = w_marker - w_tail;
-        if (w_count == 0) return eNoWork;
-
-        index_t actual_tail = w_tail & blog->blog_mask;
-        index_t actual_marker = w_marker & blog->blog_mask;
-        
-        if (actual_tail < actual_marker) {
-            //write and update tail
-            //fwrite(blog->blog_beg + w_tail, sizeof(edgeT_t<T>), w_count, wtf);
-            write(wtf, blog->blog_beg + actual_tail, sizeof(edgeT_t<T>)*w_count);
-        }
-        else {
-            write(wtf, blog->blog_beg + actual_tail, sizeof(edgeT_t<T>)*(blog->blog_count - actual_tail));
-            write(wtf, blog->blog_beg, sizeof(edgeT_t<T>)*actual_marker);
-        }
-        blog->blog_wtail = w_marker;
-        //fsync();
-        return eOK;
-    }
-    
-    //Called from front end thread
-   // void create_wmarker(index_t marker) {
-   //     pthread_mutex_lock(&g->w_mutex);
-   //     if (marker > blog->blog_wmarker) {
-   //         blog->blog_wmarker = marker;
-   //     }
-   //     pthread_cond_signal(&g->w_condition);
-   //     pthread_mutex_unlock(&g->w_mutex);
-   //     cout << "WMarker queued." << endl;
-   // }
-    
-   // status_t write_edgelog() {
-   //     index_t w_marker = 0;
-   //     index_t w_tail = 0;
-   //     index_t w_count = 0;
-   //     pthread_mutex_lock(&g->w_mutex);
-   //     w_marker = blog->blog_wmarker;
-   //     pthread_mutex_unlock(&g->w_mutex);
-   //     w_tail = blog->blog_wtail;
-   //     w_count = w_marker - w_tail;
-   //     if (w_count) {
-   //         //write and update tail
-   //         //fwrite(blog->blog_beg + w_tail, sizeof(edgeT_t<T>), w_count, wtf);
-   //         write(wtf, blog->blog_beg + w_tail, sizeof(edgeT_t<T>)*w_count);
-   //         blog->blog_wtail = w_marker;
-   //         return eOK;
-   //     }
-   //     return eNoWork;
-   // }
     
     void create_marker(index_t marker) {
         pthread_mutex_lock(&g->snap_mutex);
@@ -318,7 +212,13 @@ class pgraph_t: public cfinfo_t {
     void fill_adj_list_in(onekv_t<T>** skv_out, onegraph_t<T>** sgraph_in); 
     void fill_adj_list_out(onegraph_t<T>** sgraph_out, onekv_t<T>** skv_in); 
     void fill_skv(onekv_t<T>** skv_out, onekv_t<T>** skv_in);
-    
+   
+    //Making Queries easy
+    degree_t get_degree_out(sid_t sid);
+    degree_t get_degree_in(sid_t sid);
+    degree_t get_nebrs_out(sid_t sid, T* ptr);
+    degree_t get_nebrs_in(sid_t sid, T* ptr);
+
     status_t query_adjlist_td(onegraph_t<T>** sgraph, srset_t* iset, srset_t* oset);
     status_t query_kv_td(onekv_t<T>** skv, srset_t* iset, srset_t* oset);
     status_t query_adjlist_bu(onegraph_t<T>** sgraph, srset_t* iset, srset_t* oset);
@@ -326,8 +226,110 @@ class pgraph_t: public cfinfo_t {
     
     status_t extend_adjlist_td(onegraph_t<T>** skv, srset_t* iset, srset_t* oset);
     status_t extend_kv_td(onekv_t<T>** skv, srset_t* iset, srset_t* oset);
-
 };
+
+template <class T>
+void pgraph_t<T>::alloc_edge_buf(index_t total) 
+{
+    index_t total_edge_count = 0;
+    if (0 == sgraph_in) {
+        total_edge_count = (total << 1);
+        if (0 == edge_buf_count) {
+            edge_buf_out = (edgeT_t<T>*)malloc(total_edge_count*sizeof(edgeT_t<T>));
+            edge_buf_count = total_edge_count;
+        } else if (edge_buf_count < total_edge_count) {
+            free(edge_buf_out);
+            edge_buf_out = (edgeT_t<T>*)malloc(total_edge_count*sizeof(edgeT_t<T>));
+            edge_buf_count = total_edge_count;
+        }
+    } else {
+        total_edge_count = total;
+        if (0 == edge_buf_count) {
+            edge_buf_out = (edgeT_t<T>*)malloc(total_edge_count*sizeof(edgeT_t<T>));
+            edge_buf_in = (edgeT_t<T>*)malloc(total_edge_count*sizeof(edgeT_t<T>));
+            edge_buf_count = total_edge_count;
+        } else if (edge_buf_count < total_edge_count) {
+            free(edge_buf_out);
+            free(edge_buf_in);
+            edge_buf_out = (edgeT_t<T>*)malloc(total_edge_count*sizeof(edgeT_t<T>));
+            edge_buf_in = (edgeT_t<T>*)malloc(total_edge_count*sizeof(edgeT_t<T>));
+            edge_buf_count = total_edge_count;
+        }
+    }
+}
+
+template <class T>
+void pgraph_t<T>::free_edge_buf() 
+{
+    if (edge_buf_out) {    
+        free(edge_buf_out);
+        edge_buf_out = 0;
+    }
+    if (edge_buf_in) {
+        free(edge_buf_in);
+        edge_buf_in = 0;
+    }
+    edge_buf_count = 0;
+}
+
+//called from w thread 
+template <class T>
+status_t pgraph_t<T>::write_edgelog() 
+{
+    index_t w_marker = blog->blog_head;
+    index_t w_tail = blog->blog_wtail;
+    index_t w_count = w_marker - w_tail;
+    if (w_count == 0) return eNoWork;
+
+    index_t actual_tail = w_tail & blog->blog_mask;
+    index_t actual_marker = w_marker & blog->blog_mask;
+    
+    if (actual_tail < actual_marker) {
+        //write and update tail
+        //fwrite(blog->blog_beg + w_tail, sizeof(edgeT_t<T>), w_count, wtf);
+        write(wtf, blog->blog_beg + actual_tail, sizeof(edgeT_t<T>)*w_count);
+    }
+    else {
+        write(wtf, blog->blog_beg + actual_tail, sizeof(edgeT_t<T>)*(blog->blog_count - actual_tail));
+        write(wtf, blog->blog_beg, sizeof(edgeT_t<T>)*actual_marker);
+    }
+    blog->blog_wtail = w_marker;
+    //fsync();
+    return eOK;
+}
+    
+//Called from front end thread
+//template <class T>
+//void pgraph_t<T>::create_wmarker(index_t marker) 
+//{
+   //     pthread_mutex_lock(&g->w_mutex);
+   //     if (marker > blog->blog_wmarker) {
+   //         blog->blog_wmarker = marker;
+   //     }
+   //     pthread_cond_signal(&g->w_condition);
+   //     pthread_mutex_unlock(&g->w_mutex);
+   //     cout << "WMarker queued." << endl;
+   // }
+    
+   // status_t write_edgelog() {
+   //     index_t w_marker = 0;
+   //     index_t w_tail = 0;
+   //     index_t w_count = 0;
+   //     pthread_mutex_lock(&g->w_mutex);
+   //     w_marker = blog->blog_wmarker;
+   //     pthread_mutex_unlock(&g->w_mutex);
+   //     w_tail = blog->blog_wtail;
+   //     w_count = w_marker - w_tail;
+   //     if (w_count) {
+   //         //write and update tail
+   //         //fwrite(blog->blog_beg + w_tail, sizeof(edgeT_t<T>), w_count, wtf);
+   //         write(wtf, blog->blog_beg + w_tail, sizeof(edgeT_t<T>)*w_count);
+   //         blog->blog_wtail = w_marker;
+   //         return eOK;
+   //     }
+   //     return eNoWork;
+   // }
+
 template <class T>
 class ugraph: public pgraph_t<T> {
  public:
@@ -737,6 +739,40 @@ void pgraph_t<T>::fill_adj_list_out(onegraph_t<T>** sgraph_out, onekv_t<T>** skv
 }
 
 template <class T>
+degree_t pgraph_t<T>::get_degree_out(sid_t sid)
+{
+    vid_t vid = TO_VID(sid);
+    tid_t src_index = TO_TID(sid);
+    return sgraph_out[src_index]->get_degree(vid);
+}
+
+template <class T>
+degree_t pgraph_t<T>::get_degree_in(sid_t sid)
+{
+    vid_t vid = TO_VID(sid);
+    tid_t src_index = TO_TID(sid);
+    return sgraph_in[src_index]->get_degree(vid);
+}
+
+template <class T>
+degree_t pgraph_t<T>::get_nebrs_out(sid_t sid, T* ptr)
+{
+    vid_t vid = TO_VID(sid);
+    tid_t src_index = TO_TID(sid);
+    return sgraph_out[src_index]->get_nebrs(vid, ptr);
+}
+
+template <class T>
+degree_t pgraph_t<T>::get_nebrs_in(sid_t sid, T* ptr)
+{
+    vid_t vid = TO_VID(sid);
+    tid_t src_index = TO_TID(sid);
+    return sgraph_in[src_index]->get_nebrs(vid, ptr);
+}
+
+
+/******************** super kv *************************/
+template <class T>
 void pgraph_t<T>::fill_skv(onekv_t<T>** skv_out, onekv_t<T>** skv_in)
 {
     sid_t src, dst2;
@@ -764,9 +800,6 @@ void pgraph_t<T>::fill_skv(onekv_t<T>** skv_out, onekv_t<T>** skv_in)
         skv_in[dst_index]->set_value(vert2_id, src2); 
     }
 }
-
-
-/******************** super kv *************************/
 template <class T>
 void pgraph_t<T>::read_skv(onekv_t<T>** skv)
 {

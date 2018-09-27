@@ -75,12 +75,11 @@ inline void* alloc_huge(index_t size)
 //One vertex's neighbor information
 template <class T>
 class vert_table_t {
- private:
+ public:
     //nebr list of one vertex. First member is a spl member
     //count, flag for snapshot, XXX: smart pointer count
     snapT_t<T>*   snap_blob;
 
- public:
 	vunit_t<T>*   v_unit;
 
  public:   
@@ -315,13 +314,19 @@ public:
         etf = -1;
         stf = 0;
         nebr_count = 0;
-
     }
     
+    inline vid_t get_degree(vid_t vid) {
+        return beg_pos[vid].get_nebrcount();
+    }
+    
+    degree_t get_nebrs(vid_t vid, T* ptr);
     void setup(tid_t tid);
+
     //void setup_adjlist(vid_t vid_start, vid_t vid_end);
     void setup_adjlist();
     void setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end);
+
 	#ifdef BULK
     void increment_count_noatomic(vid_t vid) {
         ++nebr_count[vid].add_count;
@@ -576,55 +581,6 @@ typedef vert_table_t<lite_edge_t> lite_vtable_t;
 typedef onegraph_t<sid_t> sgraph_t;
 typedef onegraph_t<lite_edge_t>lite_sgraph_t;
 
-
-
-/*
-class lite_skv_t {
- private:
-    sid_t  super_id;
-    vid_t  max_vcount;
-    lite_edge_t* kv;
-
-    disk_kvlite_t* dvt;
-    vid_t dvt_count;
-    vid_t dvt_max_count;
-
-    FILE* vtf;
-
- public:
-    inline lite_skv_t() {
-        super_id = 0;
-        max_vcount = 0;
-        kv = 0;
-        
-        dvt_count = 0;
-        dvt_max_count = (1L << 20);
-        if (posix_memalign((void**) &dvt, 2097152, 
-                           dvt_max_count*sizeof(disk_kvlite_t*))) {
-            perror("posix memalign vertex log");    
-        }
-        vtf = 0;
-    }
-
-    void setup(tid_t tid);
-
-    inline lite_edge_t* get_kv() { return kv; }
-    inline tid_t get_tid() { return TO_TID(super_id);}
-    inline vid_t get_vcount() { return TO_VID(super_id); }
-    
-    inline void set_value_lite(vid_t vert1_id, sid_t dst, univ_t value) {
-        kv[vert1_id].first = dst;
-        kv[vert1_id].second = value;
-        dvt[dvt_count].vid = vert1_id;
-        dvt[dvt_count].dst = dst;
-        dvt[dvt_count].univ = value;
-        ++dvt_count;
-    }
-    void persist_kvlog(const string& kvfile);
-    void read_kv(const string& kvfile); 
-};
-*/
-
 template <class T>
 class disk_kvT_t {
     public:
@@ -635,14 +591,6 @@ class disk_kvT_t {
 typedef disk_kvT_t<sid_t> disk_kv_t;
 typedef disk_kvT_t<lite_edge_t> disk_kvlite_t;
 
-/*
-class disk_kvlite_t {
-    public:
-    vid_t    vid;
-    sid_t    dst;
-    univ_t   univ; 
-};
-*/
 //one type's key-value store
 template <class T>
 class onekv_t {

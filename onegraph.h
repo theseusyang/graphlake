@@ -1,4 +1,7 @@
 #pragma once
+#include <algorithm>
+
+using std::min;
 
 #ifndef BULK
 template <class T>
@@ -58,6 +61,33 @@ void onegraph_t<T>::decrement_count_noatomic(vid_t vid) {
 	curr->del_count++;
 }
 #endif
+
+template <class T>
+degree_t onegraph_t<T>::get_nebrs(vid_t vid, T* ptr)
+{
+    vunit_t<T>* v_unit = beg_pos[vid].get_vunit();
+    delta_adjlist_t<T>* delta_adjlist = v_unit->delta_adjlist;
+    T* local_adjlist = 0;
+    degree_t nebr_count = get_degree[vid];
+    degree_t local_degree = 0;
+    degree_t i_count = 0;
+    degree_t total_count = 0;
+            
+    //traverse the delta adj list
+    degree_t delta_degree = nebr_count; 
+    
+    while (delta_adjlist != 0 && delta_degree > 0) {
+        local_adjlist = delta_adjlist->get_adjlist();
+        local_degree = delta_adjlist->get_nebrcount();
+        i_count = min(local_degree, delta_degree);
+        memcpy(ptr+total_count, local_adjlist, sizeof(T)*i_count);
+        total_count+=i_count;
+        
+        delta_adjlist = delta_adjlist->get_next();
+        delta_degree -= local_degree;
+    }
+    return total_count;
+}
 
 template <class T>
 void onegraph_t<T>::setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end)

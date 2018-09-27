@@ -1,4 +1,5 @@
 #pragma once
+#include <dirent.h>
 #include "type.h"
 #include "new_func.h"
 
