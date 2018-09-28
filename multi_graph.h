@@ -14,15 +14,16 @@
 
 using namespace std;
 
-class multi_graph_t {
+typedef index_t (parse_fn_t)(const string& textfile, const string& ofile); 
 
+class multi_graph_t {
  public:
      multi_graph_t();
      void schema();
-     void setup_graph();     
      void prep_graph_fromtext(const string& idirname, const string& odirname, 
-                              typename callback<wls_dst_t>::parse_fn_t);
-
-
+                              parse_fn_t);
 
 };
+
+index_t parsefile_and_multi_insert(const string& textfile, const string& ofile); 
+void  wls_schema();
