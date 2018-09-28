@@ -99,6 +99,11 @@ class typekv_t : public cfinfo_t {
         }
         return str2vid_iter->second;
     }
+    inline string get_vertex_name(sid_t sid) {
+        tid_t tid = TO_TID(sid);
+        vid_t vid = TO_VID(sid);
+        return t_info[tid].vid2name[vid];
+    }
     
     sid_t type_update(const string& src, const string& dst);
     sid_t type_update(const string& src, tid_t tid);

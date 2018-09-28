@@ -82,7 +82,7 @@ sid_t typekv_t::type_update(const string& src, tid_t type_id)
         ++g->vert_count;
         str2vid[src] = src_id;
 
-        vid     = TO_VID(super_id); 
+        vid     = TO_VID(src_id); 
         assert(super_id < t_info[type_id].max_vcount);
         t_info[type_id].vid2name[vid] = gstrdup(src.c_str());
 

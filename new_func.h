@@ -48,12 +48,16 @@ inline index_t parse_wls_line(char* line, edgeT_t<wls_dst_t>& wls)
     
     Document d;
     d.Parse(line);
-    
+    string log_host;
+
     Value::ConstMemberIterator itr = d.FindMember("ProcessID");
     if (itr != d.MemberEnd()) {
         string proc_id = itr->value.GetString();
+        log_host = d["LogHost"].GetString();
+        proc_id += "@";
+        proc_id += log_host + "@";
+        proc_id += d["LogonID"].GetString();
         //wls.dst_id.first = strtol(proc_id.c_str(), NULL, 0); 
-        //wls.dst_id.first = g->type_update(proc_id.c_str(), "process");
         wls.dst_id.first = g->type_update(proc_id.c_str(), 0);//"process" are type id 0.
     } else {
         return eNotValid;
@@ -65,7 +69,6 @@ inline index_t parse_wls_line(char* line, edgeT_t<wls_dst_t>& wls)
     itr = d.FindMember("DomainName");
     if (itr != d.MemberEnd()) {
         user_name += d["DomainName"].GetString();
-        //wls.src_id = g->type_update(user_name.c_str(), "user");
         wls.src_id = g->type_update(user_name.c_str(), 1);//"user" are type id 1.
     } else {
         return eNotValid;
@@ -89,8 +92,10 @@ inline index_t parse_wls_line(char* line, edgeT_t<wls_dst_t>& wls)
     itr = d.FindMember("ParentProcessID");
     if (itr != d.MemberEnd()) {
         string proc_id = itr->value.GetString();
+        proc_id += "@";
+        proc_id += log_host;
+        proc_id += logon_id;
         //edge.dst_id = strtol(proc_id.c_str(), NULL, 0); 
-        //edge.dst_id = g->type_update(proc_id.c_str(), "process");
         edge.dst_id = g->type_update(proc_id.c_str(), 0);//"process" are type id 0.
         edge.src_id = wls.dst_id.first;
 

@@ -25,7 +25,7 @@ void multi_graph_t::schema()
     ++p_info;
     
     typekv_t* typekv = g->get_typekv();
-    typekv->manual_setup(1<<20, "process");//processes are tid 0
+    typekv->manual_setup(1<<28, "process");//processes are tid 0
     typekv->manual_setup(1<<20, "user");//users are tid 1
     
     longname = "proc2parent";

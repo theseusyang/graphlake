@@ -68,7 +68,7 @@ degree_t onegraph_t<T>::get_nebrs(vid_t vid, T* ptr)
     vunit_t<T>* v_unit = beg_pos[vid].get_vunit();
     delta_adjlist_t<T>* delta_adjlist = v_unit->delta_adjlist;
     T* local_adjlist = 0;
-    degree_t nebr_count = get_degree[vid];
+    degree_t nebr_count = get_degree(vid);
     degree_t local_degree = 0;
     degree_t i_count = 0;
     degree_t total_count = 0;
