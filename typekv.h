@@ -6,8 +6,16 @@ class tinfo_t {
  public:
     sid_t   max_vcount;
     sid_t   vert_id;
-    sid_t   type_name;
-    char**  vid2name;
+    char*   type_name;
+    sid_t*  vid2name;
+    
+    //edgetable file related log
+    char*    log_beg;  //memory log pointer
+    sid_t    log_count;//size of memory log
+    sid_t    log_head; // current log write position
+    sid_t    log_tail; //current log cleaning position
+    sid_t    log_wpos; //Write this pointer for write persistency
+    int      etf;   //edge table file
 };
 
 class inference_tinfo_t {
@@ -44,28 +52,20 @@ class typekv_t : public cfinfo_t {
 
     tid_t       max_count;
 
-    //edgetable file related log
-    char*    log_beg;  //memory log pointer
-    sid_t    log_count;//size of memory log
-    sid_t    log_head; // current log write position
-    sid_t    log_tail; //current log cleaning position
-    sid_t    log_wpos; //Write this pointer for write persistency
 
     //vertex table file related log
     disk_typekv_t* dvt;
     vid_t    dvt_count; 
     vid_t    dvt_max_count;
 
-    int    vtf;   //vertex table file
-    int    etf;   //edge table file
+    FILE*   vtf;   //vertex table file
 
   public:
 
     typekv_t();
 
-    //used by plain graph
-    void manual_setup(sid_t vert_count);
-    tid_t manual_setup(sid_t vert_count, const string& type_name);
+    void alloc_edgelog(tid_t t);
+    tid_t manual_setup(sid_t vert_count, const string& type_name="gtype");
     inline void init_enum(int enumcount) {
         max_count = enumcount;
         t_count = 0;
@@ -86,7 +86,7 @@ class typekv_t : public cfinfo_t {
         return t_info[type].max_vcount;
     }
     inline const char* get_type_name(tid_t type) {
-        return log_beg + t_info[type].type_name;
+        return t_info[type].type_name;
     }
     inline tid_t get_total_types() {
         return t_count;
@@ -102,7 +102,7 @@ class typekv_t : public cfinfo_t {
     inline string get_vertex_name(sid_t sid) {
         tid_t tid = TO_TID(sid);
         vid_t vid = TO_VID(sid);
-        return t_info[tid].vid2name[vid];
+        return t_info[tid].log_beg + t_info[tid].vid2name[vid];
     }
     
     sid_t type_update(const string& src, const string& dst);

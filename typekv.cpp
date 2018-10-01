@@ -17,13 +17,12 @@ sid_t typekv_t::type_update(const string& src, const string& dst)
         
         str2enum[dst] = type_id;
         t_info[type_id].vert_id = super_id; 
+        t_info[t_count].type_name = strdup(dst.c_str());
         
-        t_info[type_id].type_name = log_head; 
-        memcpy(log_beg + log_head, dst.c_str(), strlen(dst.c_str()) + 1);
-        log_head += strlen(dst.c_str()) + 1;
-    
         t_info[type_id].max_vcount = (1<<20);//guess
-        t_info[type_id].vid2name   = (char**)calloc(sizeof(char*), t_info[type_id].max_vcount);
+        t_info[type_id].vid2name   = (sid_t*)calloc(sizeof(sid_t), 
+                                                    t_info[type_id].max_vcount);
+        alloc_edgelog(type_id);
 
     } else { //existing type, get the last vertex id allocated
         type_id = str2enum_iter->second;
@@ -40,7 +39,13 @@ sid_t typekv_t::type_update(const string& src, const string& dst)
 
         vid     = TO_VID(super_id); 
         assert(super_id < t_info[type_id].max_vcount);
-        t_info[type_id].vid2name[vid] = gstrdup(src.c_str());
+        //t_info[type_id].vid2name[vid] = gstrdup(src.c_str());
+    
+        t_info[type_id].vid2name[vid] = t_info[type_id].log_head;
+        memcpy(t_info[type_id].log_beg + t_info[type_id].log_head, src.c_str(), 
+               strlen(src.c_str()) + 1);
+        t_info[type_id].log_head += strlen(src.c_str()) + 1;
+        
 
     } else {
         //dublicate entry 
@@ -84,7 +89,12 @@ sid_t typekv_t::type_update(const string& src, tid_t type_id)
 
         vid     = TO_VID(src_id); 
         assert(super_id < t_info[type_id].max_vcount);
-        t_info[type_id].vid2name[vid] = gstrdup(src.c_str());
+        //t_info[type_id].vid2name[vid] = gstrdup(src.c_str());
+        
+        t_info[type_id].vid2name[vid] = t_info[type_id].log_head;
+        memcpy(t_info[type_id].log_beg + t_info[type_id].log_head, src.c_str(), 
+               strlen(src.c_str()) + 1);
+        t_info[type_id].log_head += strlen(src.c_str()) + 1;
 
     } else {
         //dublicate entry 
@@ -163,115 +173,143 @@ void typekv_t::make_graph_baseline()
 
 void typekv_t::file_open(const string& dir, bool trunc) 
 {
-    string vtfile, etfile;
+    string vtfile;
     vtfile = dir + "typekv.vtable";
-    etfile = dir + "typekv.etable";
+    //string etfile = dir + "typekv.etable";
 
     if(trunc) {
-		etf = open(etfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
-		vtf = open(vtfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
-		//vtf = fopen(vtfile.c_str(), "wb");
+		//etf = open(etfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
         //etf = fopen(etfile.c_str(), "wb");
-		assert(vtf != -1); 
-		assert(etf != -1); 
+		//assert(etf != -1); 
+		//vtf = open(vtfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
+		vtf = fopen(vtfile.c_str(), "wb");
+		assert(vtf != 0); 
     } else {
-		etf = open(etfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
-		vtf = open(vtfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
-		//vtf = fopen(vtfile.c_str(), "r+b");
+		//etf = open(etfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
         //etf = fopen(etfile.c_str(), "r+b");
-		assert(vtf != -1); 
-		assert(etf != -1); 
+		//assert(etf != -1); 
+		//vtf = open(vtfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
+		vtf = fopen(vtfile.c_str(), "r+b");
+		assert(vtf != 0); 
     }
 }
 
 void typekv_t::store_graph_baseline(bool clean)
 {
-    //write down the type info, t_info
-    write(vtf, t_info, sizeof(tinfo_t)*t_count);
+    index_t total_size = 0;
 
-    //Make a copy
-    sid_t wpos = log_wpos;
-
-    //Update the mark
-    log_wpos = log_head;
+    for (tid_t t = 0; t < t_count; ++t) {
+        total_size += 8 + 8 + strlen(t_info[t].type_name) + 4; 
+        //sprintf(type_text, "%ld %ld %s\n", max_vcount, vert_id, type_name);
+    }
     
-    write(etf, log_beg + wpos, sizeof(char)*(log_head-wpos));
+    //write down the type info, t_info
+    char* type_text = (char*)calloc(sizeof(char), total_size);
+    for (tid_t t = 0; t < t_count; ++t) {
+#ifdef B32
+        sprintf(type_text, "%u %u %s\n", t_info[t].max_vcount, t_info[t].vert_id, 
+                t_info[t].type_name);
+#elif B64
+        sprintf(type_text, "%lu %lu %s\n", t_info[t].max_vcount, t_info[t].vert_id, 
+                t_info[t].type_name);
+#endif        
+        //Make a copy
+        sid_t wpos = t_info[t].log_wpos;
+        //Update the mark
+        t_info[t].log_wpos = t_info[t].log_head;
+        write(t_info[t].etf, t_info[t].log_beg + wpos, t_info[t].log_head-wpos);
+    }
 
+    fwrite(type_text, sizeof(char), total_size, vtf);
     //str2enum: No need to write. We make it from disk during initial read.
     //XXX: write down the deleted id list
-    
 }
 
 void typekv_t::read_graph_baseline()
 {
-    off_t size = fsize(etf);
-    if (size == -1L) {
-        assert(0);
-    }
-    
-    sid_t edge_count = size/sizeof(char);
-    read(etf, log_beg, sizeof(char)*edge_count);
-
-    log_head = edge_count;
-    log_wpos = log_head;
-
     //read vtable
-    size = fsize(vtf);
+    /*
+    index_t size = fsize(vtf);
     if (size == -1L) {
         assert(0);
+    }*/
+    char  line[1024];
+    char* token = 0;
+    tid_t t = 0;
+    char* saveptr = 0;
+    char  file_ext[16];
+
+    while (fgets(line, sizeof(line), vtf)) {
+        token = strtok_r(line, " \n", &saveptr);
+        t_info[t].max_vcount = strtol(token, NULL, 0);
+        token = strtok_r(line, " \n", &saveptr);
+        t_info[t].vert_id = strtol(token, NULL, 0);
+        token = strtok_r(line, " \n", &saveptr);
+        t_info[t].type_name = strdup(token);
+
+        //read etf
+        sprintf(file_ext,"%u",t);
+        string etfile = g->odirname + "typekv.etable" + file_ext;
+		t_info[t].etf = open(etfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
+        off_t size = fsize(t_info[t].etf);
+        if (size == -1L) {
+            assert(0);
+        }
+        
+        sid_t edge_count = size/sizeof(char);
+
+        read(t_info[t].etf, t_info[t].log_beg, sizeof(char)*edge_count);
+
+        t_info[t].log_head = edge_count;
+        t_info[t].log_wpos = t_info[t].log_head;
+        ++t;
     }
-    t_count = size/sizeof(tinfo_t);
-    read(vtf, t_info, sizeof(tinfo_t)*t_count);
 
     //Populate str2enum now.
-    string dst;
+    /*string dst;
     for (tid_t t = 0; t < t_count; ++t) {
         dst = log_beg + t_info[t].type_name;
         str2enum[dst] = TO_TID(t_info[t].vert_id);
+    }*/
+}
+
+void typekv_t::alloc_edgelog(tid_t t) 
+{
+    //XXX everything is in memory
+    t_info[t].log_count = (1L << 9);//32*8 MB
+    if (posix_memalign((void**)&t_info[t].log_beg, 2097152, t_info[t].log_count)) {
+        //log_beg = (sid_t*)calloc(sizeof(sid_t), log_count);
+        perror("posix memalign type edge log");
     }
+    t_info[t].log_head = 0;
+    t_info[t].log_tail = 0;
+    t_info[t].log_wpos = 0;
+    //t_info[t].etf = -1;
+    char  file_ext[16];
+    sprintf(file_ext,"%u",t);
+    string etfile = g->odirname + "typekv.etable" + file_ext;
+	t_info[t].etf = open(etfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
+	t_info[t].etf = open(etfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
 }
 
 typekv_t::typekv_t()
 {
     init_enum(256);
-    //XXX everything is in memory
-    log_count = (1L << 9);//32*8 MB
-    if (posix_memalign((void**)&log_beg, 2097152, log_count*sizeof(char))) {
-        //log_beg = (sid_t*)calloc(sizeof(sid_t), log_count);
-        perror("posix memalign edge log");
-    }
-    log_head = 0;
-    log_tail = 0;
-    log_wpos = 0;
-    
-    dvt_count = 0;
-    dvt_max_count = (1L << 9);
-    if (posix_memalign((void**) &dvt, 2097152, 
-                       dvt_max_count*sizeof(disk_typekv_t*))) {
-        perror("posix memalign vertex log");    
-    }
-    vtf = -1;
-    etf = -1;
-}
-
-void typekv_t::manual_setup(sid_t  vert_count)
-{
-    str2enum["gtype"] = 0;
-    t_count = 1;
-    t_info[0].vert_id = 0;
-    //t_info[0].vert_id = vert_count;
-    t_info[0].max_vcount = vert_count;
-    t_info[0].vid2name = (char**)calloc(sizeof(char*), vert_count);
+    vtf = 0;
 }
 
 //Required to be called as we need to have a guess for max v_count
-tid_t typekv_t::manual_setup(sid_t vert_count, const string& type_name)
+tid_t typekv_t::manual_setup(sid_t vert_count, const string& type_name/*="gtype"*/)
 {
     str2enum[type_name.c_str()] = t_count;
+    t_info[t_count].type_name = strdup(type_name.c_str());
+
+
     t_info[t_count].vert_id = TO_SUPER(t_count);
     //t_info[0].vert_id = vert_count;
     t_info[t_count].max_vcount = TO_SUPER(t_count) + vert_count;
-    t_info[t_count].vid2name = (char**)calloc(sizeof(char*), vert_count);
+    t_info[t_count].vid2name = (sid_t*)calloc(sizeof(sid_t), vert_count);
+    alloc_edgelog(t_count);
     return t_count++;//return the tid of this type
 }
 
