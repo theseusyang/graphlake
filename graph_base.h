@@ -558,7 +558,7 @@ public:
 
     void prepare_dvt(write_seg_t* seg, vid_t& last_vid, bool clean = false);
 	void adj_prep(write_seg_t* seg);
-	void adj_update(write_seg_t* seg);
+	//void adj_update(write_seg_t* seg);
     void handle_write(bool clean = false);
     
     void update_count();
@@ -567,10 +567,10 @@ public:
 	void persist_elog(const string& etfile);
     void persist_vlog(const string& vtfile);
     void persist_slog(const string& stfile);
+    void read_etable();
     void read_stable(const string& stfile);
     */
     void read_vtable();
-    void read_etable();
     void file_open(const string& filename, bool trunc);
 };
 

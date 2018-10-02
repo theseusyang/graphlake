@@ -899,15 +899,20 @@ void plain_test2(const string& odir)
 {
     plaingraph_manager_t<sid_t> manager;
     manager.schema_plaingraph();
+    manager.restore_graph(v_count);
+/*
     //do some setup for plain graphs
     //plaingraph_manager.setup_graph(v_count);    
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
     ugraph->flag1 = 1;
     ugraph->flag2 = 1;
+    typekv_t* typekv = g->get_typekv();
+    typekv->manual_setup(v_count);
+    g->prep_graph_baseline();
     
     g->read_graph_baseline();
-
+*/
     manager.run_bfs();
 
    /*

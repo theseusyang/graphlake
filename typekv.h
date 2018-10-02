@@ -71,7 +71,9 @@ class typekv_t : public cfinfo_t {
         t_count = 0;
         it_count = 0;
         t_info = new tinfo_t [enumcount];
+        memset(t_info, 0, sizeof(tinfo_t)*enumcount);
         it_info = new inference_tinfo_t[enumcount];
+        memset(it_info, 0, sizeof(tinfo_t)*enumcount);
     };
     
     inline void populate_inference_type(const char* e, tid_t count, tid_t* tlist) {

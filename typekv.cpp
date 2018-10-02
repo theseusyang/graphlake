@@ -182,14 +182,14 @@ void typekv_t::file_open(const string& dir, bool trunc)
         //etf = fopen(etfile.c_str(), "wb");
 		//assert(etf != -1); 
 		//vtf = open(vtfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
-		vtf = fopen(vtfile.c_str(), "wb");
+		vtf = fopen(vtfile.c_str(), "w");
 		assert(vtf != 0); 
     } else {
 		//etf = open(etfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
         //etf = fopen(etfile.c_str(), "r+b");
 		//assert(etf != -1); 
 		//vtf = open(vtfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
-		vtf = fopen(vtfile.c_str(), "r+b");
+		vtf = fopen(vtfile.c_str(), "r+");
 		assert(vtf != 0); 
     }
 }
@@ -199,7 +199,8 @@ void typekv_t::store_graph_baseline(bool clean)
     index_t total_size = 0;
 
     for (tid_t t = 0; t < t_count; ++t) {
-        total_size += 8 + 8 + strlen(t_info[t].type_name) + 4; 
+        total_size += sizeof(t_info[t].max_vcount) + sizeof(t_info[t].vert_id) 
+                      + strlen(t_info[t].type_name) + 4;//for space, string null char and new line
         //sprintf(type_text, "%ld %ld %s\n", max_vcount, vert_id, type_name);
     }
     
@@ -220,7 +221,7 @@ void typekv_t::store_graph_baseline(bool clean)
         write(t_info[t].etf, t_info[t].log_beg + wpos, t_info[t].log_head-wpos);
     }
 
-    fwrite(type_text, sizeof(char), total_size, vtf);
+    fwrite(type_text, sizeof(char), strlen(type_text), vtf);
     //str2enum: No need to write. We make it from disk during initial read.
     //XXX: write down the deleted id list
 }
@@ -233,18 +234,19 @@ void typekv_t::read_graph_baseline()
     if (size == -1L) {
         assert(0);
     }*/
-    char  line[1024];
+    char  line[1024] = {0};
     char* token = 0;
     tid_t t = 0;
-    char* saveptr = 0;
+    char* saveptr = line;
     char  file_ext[16];
+    
 
-    while (fgets(line, sizeof(line), vtf)) {
-        token = strtok_r(line, " \n", &saveptr);
+    while (fgets(saveptr, sizeof(line), vtf)) {
+        token = strtok_r(saveptr, " \n", &saveptr);
         t_info[t].max_vcount = strtol(token, NULL, 0);
-        token = strtok_r(line, " \n", &saveptr);
-        t_info[t].vert_id = strtol(token, NULL, 0);
-        token = strtok_r(line, " \n", &saveptr);
+        token = strtok_r(saveptr, " \n", &saveptr);
+        t_info[t].vert_id = strtol(saveptr, NULL, 0);
+        token = strtok_r(saveptr, " \n", &saveptr);
         t_info[t].type_name = strdup(token);
 
         //read etf
@@ -255,13 +257,13 @@ void typekv_t::read_graph_baseline()
         if (size == -1L) {
             assert(0);
         }
-        
-        sid_t edge_count = size/sizeof(char);
+        if (size != 0) {
+            sid_t edge_count = size/sizeof(char);
+            read(t_info[t].etf, t_info[t].log_beg, sizeof(char)*edge_count);
 
-        read(t_info[t].etf, t_info[t].log_beg, sizeof(char)*edge_count);
-
-        t_info[t].log_head = edge_count;
-        t_info[t].log_wpos = t_info[t].log_head;
+            t_info[t].log_head = edge_count;
+            t_info[t].log_wpos = t_info[t].log_head;
+        }
         ++t;
     }
 

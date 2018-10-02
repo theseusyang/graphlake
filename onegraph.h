@@ -729,86 +729,6 @@ void onegraph_t<T>::prepare_dvt (write_seg_t* seg, vid_t& last_vid, bool clean /
 	//seg->my_vunit_head = new_vunit_bulk2(seg->dvt_count);
     return;
 }
-/*
-template <class T>
-void onegraph_t<T>::adj_write(write_seg_t* seg)
-{
-	vid_t vid;
-	disk_vtable_t* dvt1 = 0;
-	vunit_t<T>* v_unit = 0;
-	vunit_t<T>* prev_v_unit = 0;
-	index_t  prev_offset;
-    degree_t total_count = 0;
-    degree_t prev_total_count;
-
-	delta_adjlist_t<T>* delta_adjlist = 0;
-	durable_adjlist_t<T>* durable_adjlist = 0;
-    T* adj_list1 = 0;
-
-    #pragma omp for schedule(dynamic, 256) nowait
-	for (vid_t v = 0; v < seg->dvt_count; ++v) {
-		dvt1 = seg->dvt + v;
-		vid = dvt1->vid;
-		if (0 == nebr_count[vid].adj_list) continue;
-		prev_v_unit       = beg_pos[vid].get_vunit();
-		prev_total_count  = prev_v_unit->count;
-		prev_offset       = prev_v_unit->offset;
-        total_count       = dvt1->count + dvt1->del_count;
-		
-		//Find the allocated durable adj list
-		durable_adjlist = (durable_adjlist_t<T>*)(seg->log_beg + dvt1->file_offset - log_tail);
-        adj_list1 = durable_adjlist->get_adjlist();
-	   
-        //Copy the Old durable adj list
-		if (prev_total_count) {
-			//Read the old adj list from disk
-            index_t sz_to_read = sizeof(durable_adjlist_t<T>) + prev_total_count*sizeof(T);
-			pread(etf, durable_adjlist , sz_to_read, prev_offset);
-			adj_list1 += prev_total_count;
-        }
-        
-        durable_adjlist->set_nebrcount(total_count);
-
-        //Copy the new in-memory adj-list
-		delta_adjlist = prev_v_unit->delta_adjlist;
-        while(delta_adjlist) {
-			memcpy(adj_list1, delta_adjlist->get_adjlist(),
-				   delta_adjlist->get_nebrcount()*sizeof(T));
-			adj_list1 += delta_adjlist->get_nebrcount();
-			delta_adjlist = delta_adjlist->get_next();
-		}
-
-		v_unit = new_vunit();
-		v_unit->count = total_count;
-		v_unit->offset = dvt1->file_offset;// + log_tail;
-		v_unit->delta_adjlist = 0;
-		//beg_pos[vid].set_vunit(v_unit);
-		nebr_count[vid].v_unit = v_unit;
-            
-		nebr_count[vid].add_count = 0;
-        nebr_count[vid].del_count = 0;
-        //nebr_count[vid].adj_list = 0;
-    }
-}
-*/
-
-template <class T>
-void onegraph_t<T>::adj_update(write_seg_t* seg)
-{
-	vid_t vid;
-	disk_vtable_t* dvt1 = 0;
-	vunit_t<T>* v_unit = 0;
-	vunit_t<T>* v_unit1 = 0;
-
-    #pragma omp for nowait 
-	for (vid_t v = 0; v < seg->dvt_count; ++v) {
-		dvt1 = seg->dvt + v;
-		vid = dvt1->vid;
-		v_unit =   new_vunit(seg, v);
-		v_unit1 = beg_pos[vid].set_vunit(v_unit);
-        vunit_ind[(seg->my_vunit_head + v) % vunit_count] = v_unit1 - vunit_beg;
-	}
-}
 
 template <class T>
 void onegraph_t<T>::adj_prep(write_seg_t* seg)
@@ -893,8 +813,6 @@ void onegraph_t<T>::adj_prep(write_seg_t* seg)
 	//fwrite(seg->dvt, sizeof(disk_vtable_t), seg->dvt_count, vtf);
 }
 
-
-
 template <class T>
 void onegraph_t<T>::read_vtable()
 {
@@ -903,44 +821,177 @@ void onegraph_t<T>::read_vtable()
         assert(0);
     }
     vid_t count = (size/sizeof(disk_vtable_t));
+    
+    index_t adj_size = 0;
+    index_t offset = 0;
+    char* adj_list;
+    //durable_adjlist_t<T>* durable_adjlist = 0;
+    delta_adjlist_t<T>*   delta_adjlist = 0;
+
+    index_t sz_read = 0;
 	vid_t vid = 0;
 	vunit_t<T>* v_unit = 0;
     disk_vtable_t* dvt = write_seg[0].dvt;
 	snapT_t<T>* next ; 
     snapid_t snap_id = 1;
-
+     
     //read in batches
     while (count != 0 ) {
         //vid_t read_count = read(dvt, sizeof(disk_vtable_t), dvt_max_count, vtf);
         vid_t read_count = read(vtf, dvt, sizeof(disk_vtable_t)*dvt_max_count);
         read_count /= sizeof(disk_vtable_t); 
+        
+        //read edge file
+        adj_size = dvt[read_count -1].file_offset + sizeof(durable_adjlist_t<T>)
+                +(dvt[read_count-1].count + dvt[read_count-1].del_count)*sizeof(T);
+        offset = dvt[0].file_offset;
+        adj_list = (char*)malloc(adj_size);
+        sz_read = pread(etf, adj_list, adj_size, offset);
+        assert(sz_read == adj_size);
 
         for (vid_t v = 0; v < read_count; ++v) {
 			vid = dvt[v].vid;
 			v_unit = beg_pos[vid].get_vunit();
 			if (v_unit) {
 				v_unit->offset = dvt[v].file_offset;
-				v_unit->count = dvt[v].count + dvt[v].del_count;
+				v_unit->count = 0;//dvt[v].count + dvt[v].del_count;
 			} else {
-				v_unit = new_vunit();
+			    v_unit = new_vunit_local();
 				v_unit->offset = dvt[v].file_offset;
-				v_unit->count = dvt[v].count + dvt->del_count;
+				v_unit->count = 0; //dvt[v].count + dvt->del_count;
 				beg_pos[vid].set_vunit(v_unit);
 			}
             //allocate new snapshot for degree, and initialize
-			next                = new_snapdegree(); 
+			next = new_snapdegree_local();
             next->del_count     = dvt[v].del_count;
             next->snap_id       = snap_id;
             //next->next          = 0;
             next->degree        = dvt[v].count;
             beg_pos[vid].set_snapblob1(next);
+
+            //assign delta adjlist
+            delta_adjlist = (delta_adjlist_t<T>*)(adj_list + dvt[v].file_offset);
+            delta_adjlist->add_next(0);
+            v_unit->delta_adjlist = delta_adjlist;
+            v_unit->adj_list = delta_adjlist;
         }
         count -= read_count;
     }
 }
-
-
 /*****************************/
+/*
+template <class T>
+void onegraph_t<T>::read_etable()
+{
+    if (etf == -1) {
+		etf = open(etfile.c_str(), O_RDWR);
+        //etf = fopen(etfile.c_str(), "r+b");//append/write + binary
+    }
+    assert(etf != 0);
+
+    
+    
+    index_t size = fsize(etf);
+    if (size == -1L) {
+        assert(0);
+    }
+    sid_t edge_count = size/sizeof(T);
+    //fread(log_beg, sizeof(T), edge_count, etf);
+    //while ( 0!= (sz_read = read(etf, log_beg, size, 0))) {//offset as 0 }
+    
+    log_head = edge_count;
+    log_wtail = log_head;
+    log_whead = log_head;
+
+    for(sid_t vid = 0; vid < v_count; vid++) {
+        //set the in-memory adj-list 
+    }
+}
+    */
+
+/*
+template <class T>
+void onegraph_t<T>::adj_write(write_seg_t* seg)
+{
+	vid_t vid;
+	disk_vtable_t* dvt1 = 0;
+	vunit_t<T>* v_unit = 0;
+	vunit_t<T>* prev_v_unit = 0;
+	index_t  prev_offset;
+    degree_t total_count = 0;
+    degree_t prev_total_count;
+
+	delta_adjlist_t<T>* delta_adjlist = 0;
+	durable_adjlist_t<T>* durable_adjlist = 0;
+    T* adj_list1 = 0;
+
+    #pragma omp for schedule(dynamic, 256) nowait
+	for (vid_t v = 0; v < seg->dvt_count; ++v) {
+		dvt1 = seg->dvt + v;
+		vid = dvt1->vid;
+		if (0 == nebr_count[vid].adj_list) continue;
+		prev_v_unit       = beg_pos[vid].get_vunit();
+		prev_total_count  = prev_v_unit->count;
+		prev_offset       = prev_v_unit->offset;
+        total_count       = dvt1->count + dvt1->del_count;
+		
+		//Find the allocated durable adj list
+		durable_adjlist = (durable_adjlist_t<T>*)(seg->log_beg + dvt1->file_offset - log_tail);
+        adj_list1 = durable_adjlist->get_adjlist();
+	   
+        //Copy the Old durable adj list
+		if (prev_total_count) {
+			//Read the old adj list from disk
+            index_t sz_to_read = sizeof(durable_adjlist_t<T>) + prev_total_count*sizeof(T);
+			pread(etf, durable_adjlist , sz_to_read, prev_offset);
+			adj_list1 += prev_total_count;
+        }
+        
+        durable_adjlist->set_nebrcount(total_count);
+
+        //Copy the new in-memory adj-list
+		delta_adjlist = prev_v_unit->delta_adjlist;
+        while(delta_adjlist) {
+			memcpy(adj_list1, delta_adjlist->get_adjlist(),
+				   delta_adjlist->get_nebrcount()*sizeof(T));
+			adj_list1 += delta_adjlist->get_nebrcount();
+			delta_adjlist = delta_adjlist->get_next();
+		}
+
+		v_unit = new_vunit();
+		v_unit->count = total_count;
+		v_unit->offset = dvt1->file_offset;// + log_tail;
+		v_unit->delta_adjlist = 0;
+		//beg_pos[vid].set_vunit(v_unit);
+		nebr_count[vid].v_unit = v_unit;
+            
+		nebr_count[vid].add_count = 0;
+        nebr_count[vid].del_count = 0;
+        //nebr_count[vid].adj_list = 0;
+    }
+}
+
+template <class T>
+void onegraph_t<T>::adj_update(write_seg_t* seg)
+{
+	vid_t vid;
+	disk_vtable_t* dvt1 = 0;
+	vunit_t<T>* v_unit = 0;
+	vunit_t<T>* v_unit1 = 0;
+
+    #pragma omp for nowait 
+	for (vid_t v = 0; v < seg->dvt_count; ++v) {
+		dvt1 = seg->dvt + v;
+		vid = dvt1->vid;
+		v_unit =   new_vunit(seg, v);
+		v_unit1 = beg_pos[vid].set_vunit(v_unit);
+        vunit_ind[(seg->my_vunit_head + v) % vunit_count] = v_unit1 - vunit_beg;
+	}
+}
+
+*/
+
+
     /*
 template <class T>
 void onegraph_t<T>::update_count() 
@@ -1149,31 +1200,3 @@ void onegraph_t<T>::read_stable(const string& stfile)
     dlog_head = read_count;
 }
 */
-
-template <class T>
-void onegraph_t<T>::read_etable()
-{
-    /*if (etf == -1) {
-		etf = open(etfile.c_str(), O_RDWR);
-        //etf = fopen(etfile.c_str(), "r+b");//append/write + binary
-    }*/
-    assert(etf != 0);
-
-    /*
-    index_t size = fsize(etfile.c_str());
-    if (size == -1L) {
-        assert(0);
-    }
-    sid_t edge_count = size/sizeof(T);
-    //fread(log_beg, sizeof(T), edge_count, etf);
-    //read(etf, log_beg, size, 0);//offset as 0
-    
-    log_head = edge_count;
-    log_wtail = log_head;
-    log_whead = log_head;
-
-    for(sid_t vid = 0; vid < v_count; vid++) {
-        //set the in-memory adj-list 
-    }*/
-}
-

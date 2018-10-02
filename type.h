@@ -345,7 +345,10 @@ class delta_adjlist_t {
 
 template <class T>
 class durable_adjlist_t {
-    sid_t sid;
+    union {
+        sid_t sid;
+        durable_adjlist_t<T>* next;
+    };
 	sid_t count;
 	//T  adj_list;
 

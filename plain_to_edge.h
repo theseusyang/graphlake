@@ -43,6 +43,7 @@ class plaingraph_manager_t {
     
      void setup_graph(vid_t v_count);
      void setup_graph_memory(vid_t v_count);
+     void restore_graph(vid_t v_count);
 
      void prep_graph_fromtext(const string& idirname, const string& odirname, typename callback<T>::parse_fn_t);
      void prep_graph_edgelog(const string& idirname, const string& odirname);
@@ -194,8 +195,21 @@ void plaingraph_manager_t<T>::setup_graph(vid_t v_count)
     typekv->manual_setup(v_count);
     g->prep_graph_baseline();
     g->file_open(true);
-    g->make_graph_baseline();
-    g->store_graph_baseline(); 
+    //g->make_graph_baseline();
+    //g->store_graph_baseline(); 
+}
+
+template <class T>
+void plaingraph_manager_t<T>::restore_graph(vid_t v_count)
+{
+    //do some setup for plain graphs
+    pgraph_t<T>* graph = (pgraph_t<T>*)get_plaingraph();
+    graph->flag1 = 1;
+    graph->flag2 = 1;
+    typekv_t* typekv = g->get_typekv();
+    typekv->manual_setup(v_count);
+    g->prep_graph_baseline();
+    g->read_graph_baseline();
 }
 
 template <class T>
@@ -1334,7 +1348,11 @@ void plaingraph_manager_t<T>::create_static_view(bool simple, bool priv, bool st
     
     //need to copy it
     snaph->edges     = blog->blog_beg;
-    snaph->edge_count = marker - old_marker;
+    if (stale) {
+        snaph->edge_count = 0;
+    } else {
+        snaph->edge_count = marker - old_marker;
+    }
     
     snaph->v_count    = v_count;
     snaph->graph_out  = graph;
