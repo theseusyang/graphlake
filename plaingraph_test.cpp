@@ -897,7 +897,8 @@ void plain_test1(const string& idir, const string& odir)
 
 void plain_test2(const string& odir)
 {
-    plaingraph_manager.schema_plaingraph();
+    plaingraph_manager_t<sid_t> manager;
+    manager.schema_plaingraph();
     //do some setup for plain graphs
     //plaingraph_manager.setup_graph(v_count);    
     propid_t cf_id = g->get_cfid("friend");
@@ -906,10 +907,10 @@ void plain_test2(const string& odir)
     ugraph->flag2 = 1;
     
     g->read_graph_baseline();
-   
-/*
-    propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];*/
+
+    manager.run_bfs();
+
+   /*
     onegraph_t<sid_t>* sgraph = ugraph->sgraph[0];
     vert_table_t<sid_t>* graph = sgraph->get_begpos();
     blog_t<sid_t>* blog = ugraph->blog;
@@ -938,7 +939,7 @@ void plain_test2(const string& odir)
     ext_bfs<sid_t>(sgraph, degree_array, sgraph, degree_array, 
                    snapshot, marker, blog->blog_beg,
                    v_count, level_array, 1);
-    
+   */ 
 /*
     index_t edge_count = (v_count << 5);
     propid_t cf_id = g->get_cfid("friend");
@@ -1192,6 +1193,8 @@ void test_archive(const string& idir, const string& odir)
     for (int i = 0; i < 1; i++){
         manager.run_bfs();
     }
+
+    g->store_graph_baseline();
     /*
     //Run PageRank
     for (int i = 0; i < 1; i++){

@@ -345,12 +345,12 @@ class delta_adjlist_t {
 
 template <class T>
 class durable_adjlist_t {
-    sid_t vid;
+    sid_t sid;
 	sid_t count;
 	//T  adj_list;
 
  public:
-	inline durable_adjlist_t<T>() {count = 0;}
+	inline durable_adjlist_t<T>() {sid = 0; count = 0;}
 	inline degree_t get_nebrcount() { return count;}
 	void set_nebrcount(degree_t degree) {count = degree;}
 	inline T* get_adjlist() { return (T*)(&count + 1); }

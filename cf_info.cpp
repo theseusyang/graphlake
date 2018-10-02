@@ -18,10 +18,10 @@ index_t  BLOG_SHIFT = 27;
 index_t  SNAP_COUNT  = (2);
 index_t  LOCAL_VUNIT_COUNT = 22;
 index_t  LOCAL_DELTA_SIZE = 28;
+index_t  DURABLE_SIZE = (1L << 28);//Durable adj-list
 
 #ifdef BULK
 index_t  DELTA_SIZE = (1L << 37) ;//(32 + sizeof(T));  //sizeo of delta adj-list
-index_t  DURABLE_SIZE = (1L << 30);//Durable adj-list
 #endif
 
 //durable data structure buffer size

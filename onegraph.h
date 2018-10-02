@@ -209,6 +209,31 @@ void onegraph_t<T>::setup(tid_t tid)
         } else {
             memset(thd_mem, 0, THD_COUNT*sizeof(thd_mem_t<T>));
         } 
+        
+        dvt_max_count = DVT_SIZE;
+        log_count = DURABLE_SIZE;
+        
+        //durable vertex log and adj list log
+        if (posix_memalign((void**) &write_seg[0].dvt, 2097152, 
+                           dvt_max_count*sizeof(disk_vtable_t))) {
+            perror("posix memalign vertex log");    
+        }
+        if (posix_memalign((void**) &write_seg[1].dvt, 2097152, 
+                           dvt_max_count*sizeof(disk_vtable_t))) {
+            perror("posix memalign vertex log");    
+        }
+        if (posix_memalign((void**) &write_seg[2].dvt, 2097152, 
+                           dvt_max_count*sizeof(disk_vtable_t))) {
+            perror("posix memalign vertex log");    
+        }
+        if (posix_memalign((void**)&write_seg[0].log_beg, 2097152, log_count)) {
+            //log_beg = (index_t*)calloc(sizeof(index_t), log_count);
+            perror("posix memalign edge log");
+        }
+        if (posix_memalign((void**)&write_seg[1].log_beg, 2097152, log_count)) {
+            //log_beg = (index_t*)calloc(sizeof(index_t), log_count);
+            perror("posix memalign edge log");
+        }
 
 #ifdef BULK
         nebr_count = (nebrcount_t*)calloc(sizeof(nebrcount_t), max_vcount);
@@ -255,29 +280,6 @@ void onegraph_t<T>::setup(tid_t tid)
         total_memory += dlog_count*sizeof(snapT_t<T>);
         cout << "Total Memory 2 = " << total_memory << endl;
         
-        //durable vertex log and adj list log
-        dvt_max_count = DVT_SIZE;
-        log_count = DURABLE_SIZE;
-        if (posix_memalign((void**) &write_seg[0].dvt, 2097152, 
-                           dvt_max_count*sizeof(disk_vtable_t))) {
-            perror("posix memalign vertex log");    
-        }
-        if (posix_memalign((void**) &write_seg[1].dvt, 2097152, 
-                           dvt_max_count*sizeof(disk_vtable_t))) {
-            perror("posix memalign vertex log");    
-        }
-        if (posix_memalign((void**) &write_seg[2].dvt, 2097152, 
-                           dvt_max_count*sizeof(disk_vtable_t))) {
-            perror("posix memalign vertex log");    
-        }
-        if (posix_memalign((void**)&write_seg[0].log_beg, 2097152, log_count)) {
-            //log_beg = (index_t*)calloc(sizeof(index_t), log_count);
-            perror("posix memalign edge log");
-        }
-        if (posix_memalign((void**)&write_seg[1].log_beg, 2097152, log_count)) {
-            //log_beg = (index_t*)calloc(sizeof(index_t), log_count);
-            perror("posix memalign edge log");
-        }
 
         total_memory += dvt_max_count*sizeof(disk_vtable_t)*3 + log_count*2;
         cout << "Total Memory 2 = " << total_memory << endl;
@@ -638,7 +640,7 @@ void onegraph_t<T>::handle_write(bool clean /* = false */)
 				}
             }
 
-			adj_update(seg3);
+			//adj_update(seg3);
             adj_prep(seg2);
         }
 
@@ -664,7 +666,7 @@ void onegraph_t<T>::handle_write(bool clean /* = false */)
                 }
             }
 		}
-	    adj_update(seg3);
+	    //adj_update(seg3);
 	}
 
     //Rename the files
@@ -706,7 +708,7 @@ void onegraph_t<T>::prepare_dvt (write_seg_t* seg, vid_t& last_vid, bool clean /
             (seg->dvt_count >= dvt_max_count)) {
             last_vid = vid;
             log_tail += seg->log_head;
-			seg->my_vunit_head = new_vunit_bulk2(seg->dvt_count);
+			//seg->my_vunit_head = new_vunit_bulk2(seg->dvt_count);
             return;
 		}
         
@@ -724,7 +726,7 @@ void onegraph_t<T>::prepare_dvt (write_seg_t* seg, vid_t& last_vid, bool clean /
 
     last_vid = v_count;
     log_tail += seg->log_head;
-	seg->my_vunit_head = new_vunit_bulk2(seg->dvt_count);
+	//seg->my_vunit_head = new_vunit_bulk2(seg->dvt_count);
     return;
 }
 /*
@@ -813,7 +815,7 @@ void onegraph_t<T>::adj_prep(write_seg_t* seg)
 {
 	vid_t vid;
 	disk_vtable_t* dvt1 = 0;
-	vunit_t<T>* v_unit = 0;
+	//vunit_t<T>* v_unit = 0;
 	vunit_t<T>* prev_v_unit = 0;
 	index_t  prev_offset;
     degree_t total_count = 0;
@@ -861,6 +863,7 @@ void onegraph_t<T>::adj_prep(write_seg_t* seg)
         //index_t sz_to_write = total_count*sizeof(T) + sizeof(durable_adjlist_t<T>);
 		//pwrite (etf, durable_adjlist, sz_to_write, dvt1->file_offset);
 
+        /*
 		v_unit =   new_vunit(seg, v);
 		v_unit->reset();
 		v_unit->count = total_count;
@@ -869,9 +872,9 @@ void onegraph_t<T>::adj_prep(write_seg_t* seg)
         v_unit->adj_list = 0;
 		//beg_pos[vid].set_vunit(v_unit);
             
-		nebr_count[vid].add_count = 0;
-        nebr_count[vid].del_count = 0;
-        //nebr_count[vid].adj_list = 0;
+		//nebr_count[vid].add_count = 0;
+        //nebr_count[vid].del_count = 0;
+        */
     }
 		
 	//Write new adj list
@@ -1146,16 +1149,17 @@ void onegraph_t<T>::read_stable(const string& stfile)
     dlog_head = read_count;
 }
 */
-/*
+
 template <class T>
-void onegraph_t<T>::read_etable(const string& etfile)
+void onegraph_t<T>::read_etable()
 {
-    if (etf == -1) {
+    /*if (etf == -1) {
 		etf = open(etfile.c_str(), O_RDWR);
         //etf = fopen(etfile.c_str(), "r+b");//append/write + binary
-        assert(etf != 0);
-    }
+    }*/
+    assert(etf != 0);
 
+    /*
     index_t size = fsize(etfile.c_str());
     if (size == -1L) {
         assert(0);
@@ -1163,9 +1167,13 @@ void onegraph_t<T>::read_etable(const string& etfile)
     sid_t edge_count = size/sizeof(T);
     //fread(log_beg, sizeof(T), edge_count, etf);
     //read(etf, log_beg, size, 0);//offset as 0
-
+    
     log_head = edge_count;
     log_wtail = log_head;
     log_whead = log_head;
+
+    for(sid_t vid = 0; vid < v_count; vid++) {
+        //set the in-memory adj-list 
+    }*/
 }
-*/
+

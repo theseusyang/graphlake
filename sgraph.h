@@ -560,7 +560,7 @@ void pgraph_t<T>::read_sgraph(onegraph_t<T>** sgraph)
         if (sgraph[i] == 0) continue;
         sgraph[i]->read_vtable();
         //sgraph[i]->read_stable(stfile);
-        //sgraph[i]->read_etable(etfile);
+        sgraph[i]->read_etable();
     }
 }
 
