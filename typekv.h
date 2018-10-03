@@ -16,6 +16,7 @@ class tinfo_t {
     sid_t    log_tail; //current log cleaning position
     sid_t    log_wpos; //Write this pointer for write persistency
     int      etf;   //edge table file
+    int      vtf;   //vid2name file
 };
 
 class inference_tinfo_t {

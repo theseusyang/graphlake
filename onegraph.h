@@ -573,6 +573,7 @@ void onegraph_t<T>::file_open(const string& filename, bool trunc)
 		etf = open(etfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
 		vtf = open(vtfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
         //vtf = fopen(vtfile.c_str(), "wb");
+        log_tail = 0;
     } else {
 		etf = open(etfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
 		vtf = open(vtfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
@@ -842,9 +843,10 @@ void onegraph_t<T>::read_vtable()
         read_count /= sizeof(disk_vtable_t); 
         
         //read edge file
-        adj_size = dvt[read_count -1].file_offset + sizeof(durable_adjlist_t<T>)
-                +(dvt[read_count-1].count + dvt[read_count-1].del_count)*sizeof(T);
         offset = dvt[0].file_offset;
+        adj_size = dvt[read_count -1].file_offset + sizeof(durable_adjlist_t<T>)
+                +(dvt[read_count-1].count + dvt[read_count-1].del_count)*sizeof(T)
+                - offset;
         adj_list = (char*)malloc(adj_size);
         sz_read = pread(etf, adj_list, adj_size, offset);
         assert(sz_read == adj_size);

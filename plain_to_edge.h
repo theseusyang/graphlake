@@ -206,9 +206,9 @@ void plaingraph_manager_t<T>::restore_graph(vid_t v_count)
     pgraph_t<T>* graph = (pgraph_t<T>*)get_plaingraph();
     graph->flag1 = 1;
     graph->flag2 = 1;
-    typekv_t* typekv = g->get_typekv();
-    typekv->manual_setup(v_count);
-    g->prep_graph_baseline();
+    //typekv_t* typekv = g->get_typekv();
+    //typekv->manual_setup(v_count);
+    //g->prep_graph_baseline();
     g->read_graph_baseline();
 }
 

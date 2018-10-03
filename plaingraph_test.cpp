@@ -895,81 +895,25 @@ void plain_test1(const string& idir, const string& odir)
     return ;
 }
 
-void plain_test2(const string& odir)
+template <class T>
+void recover_testu(const string& odir)
 {
-    plaingraph_manager_t<sid_t> manager;
+    plaingraph_manager_t<T> manager;
     manager.schema_plaingraph();
     manager.restore_graph(v_count);
-/*
-    //do some setup for plain graphs
-    //plaingraph_manager.setup_graph(v_count);    
-    propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
-    ugraph->flag1 = 1;
-    ugraph->flag2 = 1;
-    typekv_t* typekv = g->get_typekv();
-    typekv->manual_setup(v_count);
-    g->prep_graph_baseline();
-    
-    g->read_graph_baseline();
-*/
     manager.run_bfs();
 
-   /*
-    onegraph_t<sid_t>* sgraph = ugraph->sgraph[0];
-    vert_table_t<sid_t>* graph = sgraph->get_begpos();
-    blog_t<sid_t>* blog = ugraph->blog;
-   
-    uint8_t* level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, 
-                            PROT_READ|PROT_WRITE,
-                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
-    if (MAP_FAILED == level_array) {
-        cout << "Huge page alloc failed for level array" << endl;
-        level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
-    }
+    return ;
+}
 
-    snapshot_t* snapshot = g->get_snapshot();
-    index_t marker = blog->blog_head;
-    index_t old_marker = 0;
-    degree_t* degree_array = 0;
-    degree_array = (degree_t*) calloc(v_count, sizeof(degree_t));
+template <class T>
+void recover_testuni(const string& odir)
+{
+    plaingraph_manager_t<T> manager;
+    manager.schema_plaingraphuni();
+    manager.restore_graph(v_count);
+    manager.run_bfs();
 
-    if (snapshot) {
-        old_marker = snapshot->marker;
-        create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg, degree_array);
-    }
-
-    cout << "old marker = " << old_marker << " New marker = " << marker << endl;
-
-    ext_bfs<sid_t>(sgraph, degree_array, sgraph, degree_array, 
-                   snapshot, marker, blog->blog_beg,
-                   v_count, level_array, 1);
-   */ 
-/*
-    index_t edge_count = (v_count << 5);
-    propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
-    bfs<sid_t>(ugraph->sgraph, ugraph->sgraph, 1); 
-    
-    snapid_t snap_id = g->get_snapid();
-    cout << "multi-snap BFS" << endl;
-    cout << "snap id = " << snap_id << endl;
-    cout << "durable marker = " <<g->get_snapshot()->durable_marker << endl;
-    vert_table_t<sid_t>* graph = ugraph->sgraph[0]->get_begpos();
-    multisnap_bfs<sid_t>(graph, graph, v_count, edge_count, snap_id - 1, snap_id , 1);
-    
-    snapshot_t* snapshot = g->get_snapshot();
-    index_t marker = snapshot->marker;
-    snapshot = snapshot->next;
-    snap_id = snapshot->snap_id;
-    uint8_t* level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
-    cout << "BFS on snap id = " << snap_id << endl; 
-    cout << "old marker = " << snapshot->marker << " New marker = " << marker << endl;
-    degree_t* degree_array = create_degreesnap(graph, v_count, snapshot, marker, blog->blog_beg);
-    mem_bfs<sid_t>(graph, degree_array, graph, degree_array, 
-                   snapshot, marker, blog->blog_beg,
-                   v_count, level_array, 1);
-*/
     return ;
 }
 
@@ -1281,11 +1225,12 @@ void update_fromtext(const string& idir, const string& odir,
 {
     plaingraph_manager_t<T> manager;
     THD_COUNT = omp_get_max_threads() - 1;
-    manager.schema_plaingraphd();
+    manager.schema_plaingraphuni();
     //do some setup for plain graphs
     manager.setup_graph(v_count);    
     manager.prep_graph_fromtext(idir, odir, parsefile_fn); 
-    manager.run_bfsd();    
+    //manager.run_bfsd();
+    g->store_graph_baseline();    
 }
 
 template <class T>
@@ -1354,12 +1299,15 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             plain_test1(idir, odir);
             break;
         case 2:
-            plain_test2(odir);
+            recover_testu<sid_t>(odir);
             break;
         case 3:
-            split_graph<sid_t>(idir, odir);
+            recover_testuni<netflow_dst_t>(odir);
             break;
         case 4:
+            split_graph<sid_t>(idir, odir);
+            break;
+        case 5:
             split_graph<lite_edge_t>(idir, odir);
             break;
         
