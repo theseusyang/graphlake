@@ -593,12 +593,34 @@ public:
 
     degree_t get_nebrs_out(vid_t vid, T*& ptr);
     degree_t get_nebrs_in (vid_t vid, T*& ptr);
-    degree_t get_nebrs_length_out(vid_t vid);
-    degree_t get_nebrs_length_in (vid_t vid);
+    degree_t get_degree_out(vid_t vid);
+    degree_t get_degree_in (vid_t vid);
      
     //Raw access, low level APIs
     nebrcount_t get_nebrs_archived_out(vid_t, T*& ptr);
     nebrcount_t get_nebrs_archived_in(vid_t, T*& ptr);
+};
+
+template <class T>
+struct prior_snap_t {
+    degree_t*        degree_out;
+    degree_t*        degree_in;
+    degree_t*        degree_out1;
+    degree_t*        degree_in1;
+
+    pgraph_t<T>*     pgraph;  
+    vid_t            v_count;
+public:
+    prior_snap_t() {
+        degree_out = 0;
+        degree_in  = 0;
+        degree_out1= 0;
+        degree_in1 = 0;
+    }
+    degree_t get_nebrs_out(vid_t vid, T* ptr);
+    degree_t get_nebrs_in (vid_t vid, T* ptr);
+    degree_t get_degree_out(vid_t vid);
+    degree_t get_degree_in (vid_t vid);
 };
 
 template <class T>
@@ -666,10 +688,12 @@ class wsstream_t {
     typename callback<T>::wsfunc   wsstream_func;
     
     //ending marker of the window
-    vert_table_t<T>* graph_out;
-    vert_table_t<T>* graph_in;
     degree_t*        degree_out;
     degree_t*        degree_in;
+    
+    //starting marker of the window
+    degree_t*        degree_out1;
+    degree_t*        degree_in1;
     
     edgeT_t<T>*      edges; //new edges
     
@@ -679,21 +703,19 @@ class wsstream_t {
     //last few edges of above data-structure, 0 for stale
     index_t          non_archived_count;
     
-    //starting marker of the window
-    degree_t*        degree_out1;
-    degree_t*        degree_in1;
     
     edgeT_t<T>*      edges1; //old edges
     index_t          edge_count1; //their count
 
  public:
     wsstream_t(){
-        graph_out = 0;
-        graph_in = 0;
         degree_out = 0;
         degree_in = 0;
+        degree_out1 = 0;
+        degree_in1 = 0;
         snapshot = 0;
         edges = 0;
+        edges1=0;
         edge_count = 0;
         algo_meta = 0;
         pgraph = 0;
@@ -704,8 +726,8 @@ class wsstream_t {
     
     degree_t get_nebrs_out(vid_t vid, T*& ptr);
     degree_t get_nebrs_in (vid_t vid, T*& ptr);
-    degree_t get_nebrs_length_out(vid_t vid);
-    degree_t get_nebrs_length_in (vid_t vid);
+    degree_t get_degree_out(vid_t vid);
+    degree_t get_degree_in (vid_t vid);
     
     nebrcount_t get_nebrs_archived_out(wsstream_t<T>* snaph, vid_t, T*& ptr);
     nebrcount_t get_nebrs_archived_in(wsstream_t<T>* snaph, vid_t, T*& ptr);

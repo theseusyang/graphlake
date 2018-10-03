@@ -861,6 +861,94 @@ void mem_bfs(snap_t<T>* snaph,
         snaph->v_count, status, root);
 }
 
+template <class T>
+void mem_wbfs(prior_snap_t<T>* snaph, uint8_t* status, sid_t root)
+{
+	int				level      = 1;
+	int				top_down   = 1;
+	sid_t			frontier   = 0;
+
+	double start1 = mywtime();
+    if(snaph->get_degree_out(root) == 0) { root = 0;}
+
+	status[root] = level;
+    vid_t v_count = snaph->v_count; 
+	do {
+		frontier = 0;
+		//double start = mywtime();
+		#pragma omp parallel reduction(+:frontier)
+		{
+            sid_t sid;
+            degree_t nebr_count = 0;
+            T* local_adjlist = 0;
+		    
+            if (top_down) {
+				
+                #pragma omp for nowait
+				for (vid_t v = 0; v < v_count; v++) {
+					if (status[v] != level) continue;
+                    nebr_count = snaph->get_degree_out(v);
+                    local_adjlist = (T*)calloc(nebr_count, sizeof(T));
+                    snaph->get_nebrs_out(v, local_adjlist);
+                
+                    for (degree_t i = 0; i < nebr_count; ++i) {
+                        sid = get_nebr(local_adjlist, i);
+                        if (status[sid] == 0) {
+                            status[sid] = level + 1;
+                            ++frontier;
+                            //cout << " " << sid << endl;
+                        }
+                    }
+                    free(local_adjlist);
+				}
+			} else {//bottom up
+				
+				#pragma omp for nowait
+				for (vid_t v = 0; v < v_count; v++) {
+					if (status[v] != 0 ) continue;
+                    
+                    nebr_count = snaph->get_degree_in(v);
+                    if (nebr_count == 0) 
+                        continue;
+                    local_adjlist = (T*)calloc(nebr_count, sizeof(T));
+                    snaph->get_nebrs_in(v, local_adjlist);
+					
+                    //traverse the delta adj list
+                    for (degree_t i = 0; i < nebr_count; ++i) {
+                        sid = get_nebr(local_adjlist, i);
+                        if (status[sid] == level) {
+                            status[v] = level + 1;
+                            ++frontier;
+                            break;
+                        }
+                    }
+                    free(local_adjlist);
+				}
+		    }
+        }
+
+        //Point is to simulate bottom up bfs, and measure the trade-off    
+		if ((frontier >= 0.002*v_count) || level == 2) {
+			top_down = false;
+		} else {
+            top_down = true;
+        }
+		++level;
+	} while (frontier);
+		
+    double end1 = mywtime();
+    cout << "BFS Time = " << end1 - start1 << endl;
+
+    for (int l = 1; l < level; ++l) {
+        vid_t vid_count = 0;
+        #pragma omp parallel for reduction (+:vid_count) 
+        for (vid_t v = 0; v < v_count; ++v) {
+            if (status[v] == l) ++vid_count;
+        }
+        cout << " Level = " << l << " count = " << vid_count << endl;
+    }
+}
+
 template<class T>
 void 
 mem_pagerank_push(vert_table_t<T>* graph_out, degree_t* degree_out, 

@@ -321,6 +321,7 @@ public:
     }
     
     degree_t get_nebrs(vid_t vid, T* ptr);
+    degree_t get_wnebrs(vid_t vid, T* ptr, degree_t start, degree_t count);
     void setup(tid_t tid);
 
     //void setup_adjlist(vid_t vid_start, vid_t vid_end);

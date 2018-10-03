@@ -896,6 +896,24 @@ void plain_test1(const string& idir, const string& odir)
 }
 
 template <class T>
+void prior_snap_testu(const string& odir)
+{
+    plaingraph_manager_t<T> manager;
+    manager.schema_plaingraph();
+    manager.restore_graph(v_count);
+    manager.run_bfs();
+    
+    //Run using prior static view.
+    prior_snap_t<T>* snap;
+    manager.create_prior_static_view(&snap, 0, 33554432);
+    uint8_t* level_array = (uint8_t*)calloc(sizeof(uint8_t), v_count);
+    mem_wbfs(snap, level_array, 1);
+
+    return ;
+
+}
+
+template <class T>
 void recover_testu(const string& odir)
 {
     plaingraph_manager_t<T> manager;
@@ -1192,6 +1210,7 @@ void test_ingestiond(const string& idir, const string& odir)
     manager.setup_graph(v_count);    
     manager.prep_graph_durable(idir, odir); 
     manager.run_bfsd();    
+    g->store_graph_baseline();
 }
 
 template <class T>
@@ -1242,6 +1261,7 @@ void test_ingestion(const string& idir, const string& odir)
     manager.setup_graph(v_count);    
     manager.prep_graph_durable(idir, odir); 
     manager.run_bfs();    
+    g->store_graph_baseline();
 }
 
 void stream_wcc(const string& idir, const string& odir)
@@ -1302,12 +1322,15 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             recover_testu<sid_t>(odir);
             break;
         case 3:
+            prior_snap_testu<sid_t>(odir);
+            break;
+        case 6:
             recover_testuni<netflow_dst_t>(odir);
             break;
-        case 4:
+        case 7:
             split_graph<sid_t>(idir, odir);
             break;
-        case 5:
+        case 8:
             split_graph<lite_edge_t>(idir, odir);
             break;
         

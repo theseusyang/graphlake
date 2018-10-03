@@ -58,7 +58,6 @@ class pgraph_t: public cfinfo_t {
         edge_buf_count = 0;
         
         blog = new blog_t<T>;
-    
     }
 
     inline void alloc_edgelog(index_t count) {
@@ -201,6 +200,7 @@ class pgraph_t: public cfinfo_t {
     void read_sgraph(onegraph_t<T>** sgraph);
     void read_skv(onekv_t<T>** skv);
     
+    void file_open_edge(const string& dir, bool trunc);
     void file_open_sgraph(onegraph_t<T>** sgraph, const string& odir, const string& postfix, bool trunc);
     void file_open_skv(onekv_t<T>** skv, const string& odir, const string& postfix, bool trunc);
    
@@ -218,6 +218,11 @@ class pgraph_t: public cfinfo_t {
     degree_t get_degree_in(sid_t sid);
     degree_t get_nebrs_out(sid_t sid, T* ptr);
     degree_t get_nebrs_in(sid_t sid, T* ptr);
+    degree_t get_wnebrs_out(sid_t sid, T* ptr, index_t start_offset, index_t end_offset);
+    degree_t get_wnebrs_in(sid_t sid, T* ptr, index_t start_offset, index_t end_offset);
+
+    //making historic views
+    void create_degree(degree_t* degree_in, degree_t* degree_out, index_t start_offset, index_t end_offset);
 
     status_t query_adjlist_td(onegraph_t<T>** sgraph, srset_t* iset, srset_t* oset);
     status_t query_kv_td(onekv_t<T>** skv, srset_t* iset, srset_t* oset);
@@ -534,19 +539,24 @@ void pgraph_t<T>::file_open_sgraph(onegraph_t<T>** sgraph, const string& dir, co
     tid_t    t_count = g->get_total_types();
     for (tid_t i = 0; i < t_count; ++i) {
         if (0 == sgraph[i]) continue;
-
         sprintf(name, "%d", i);
         filename = basefile + name + postfix ; 
         sgraph[i]->file_open(filename, trunc);
-        
-        wtfile = filename + ".elog";
-		if (trunc) {
-            wtf = open(wtfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
-        } else {
-		    wtf = open(wtfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
-        }
     }
 }
+
+template <class T>
+void pgraph_t<T>::file_open_edge(const string& dir, bool trunc)
+{
+    string filename = dir + col_info[0]->p_name; 
+    string wtfile = filename + ".elog";
+    if (trunc) {
+        wtf = open(wtfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
+    } else {
+        wtf = open(wtfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
+    }
+}
+
 
 template <class T>
 void pgraph_t<T>::read_sgraph(onegraph_t<T>** sgraph)
@@ -768,6 +778,61 @@ degree_t pgraph_t<T>::get_nebrs_in(sid_t sid, T* ptr)
     vid_t vid = TO_VID(sid);
     tid_t src_index = TO_TID(sid);
     return sgraph_in[src_index]->get_nebrs(vid, ptr);
+}
+
+template <class T>
+degree_t pgraph_t<T>::get_wnebrs_out(sid_t sid, T* ptr, index_t start_offset, index_t end_offset)
+{
+    vid_t vid = TO_VID(sid);
+    tid_t src_index = TO_TID(sid);
+    return sgraph_out[src_index]->get_wnebrs(vid, ptr, start_offset, end_offset);
+}
+
+template <class T>
+degree_t pgraph_t<T>::get_wnebrs_in(sid_t sid, T* ptr, index_t start_offset, index_t end_offset)
+{
+    vid_t vid = TO_VID(sid);
+    tid_t src_index = TO_TID(sid);
+    return sgraph_in[src_index]->get_wnebrs(vid, ptr, start_offset, end_offset);
+}
+    
+//making historic views
+template <class T>
+void pgraph_t<T>::create_degree(degree_t* degree_in, degree_t* degree_out, index_t start_offset, index_t end_offset)
+{
+    assert(wtf != -1);
+    
+    index_t size = (end_offset - start_offset)*sizeof(edgeT_t<T>);
+    index_t offset = start_offset*sizeof(edgeT_t<T>);
+    index_t  total_read = 0;
+    index_t  sz_read= 0; 
+    //read the file
+    edgeT_t<T>* edges;
+    index_t fixed_size = (1L<<28);
+
+    if (size <= fixed_size) {
+        edges = (edgeT_t<T>*)malloc(size);
+        sz_read = pread(wtf, edges, size, offset);
+        assert(size == sz_read);
+        
+        index_t count = end_offset - start_offset;
+        for (index_t i = 0; i < count; i++) {
+            __sync_fetch_and_add(degree_out + edges[i].src_id, 1);
+            __sync_fetch_and_add(degree_in  + get_dst(edges + i), 1);
+        }
+    } else {
+        edges = (edgeT_t<T>*)malloc(fixed_size);
+        index_t sz_read = fixed_size;;
+        while (total_read < size){
+            if (sz_read != pread(wtf, edges, sz_read, offset)) {
+                assert(0);
+            }
+            offset += sz_read;
+            total_read += sz_read;
+        }
+    }
+
+    free(edges);
 }
 
 
@@ -1128,6 +1193,7 @@ void dgraph<T>::store_graph_baseline(bool clean)
 template <class T> 
 void dgraph<T>::file_open(const string& odir, bool trunc)
 {
+    this->file_open_edge(odir, trunc);
     string postfix = "out";
     file_open_sgraph(sgraph_out, odir, postfix, trunc);
     postfix = "in";
@@ -1221,6 +1287,7 @@ void ugraph<T>::store_graph_baseline(bool clean)
 template <class T> 
 void ugraph<T>::file_open(const string& odir, bool trunc)
 {
+    this->file_open_edge(odir, trunc);
     string postfix = "";
     file_open_sgraph(sgraph, odir, postfix, trunc);
 }
@@ -1357,6 +1424,7 @@ void unigraph<T>::store_graph_baseline(bool clean)
 template <class T> 
 void unigraph<T>::file_open(const string& odir, bool trunc)
 {
+    this->file_open_edge(odir, trunc);
     string postfix = "out";
     file_open_sgraph(sgraph_out, odir, postfix, trunc);
 }

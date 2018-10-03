@@ -74,6 +74,8 @@ class plaingraph_manager_t {
 
      void create_static_view(bool simple, bool priv, bool stale, snap_t<T>** a_snaph);
      void delete_static_view(snap_t<T>* snaph);
+     void create_prior_static_view(prior_snap_t<T>** a_prior_snaph, index_t start_offset, index_t end_offset);
+     void delete_prior_static_view(prior_snap_t<T>** a_prior_snaph);
     
      void run_pr();
      void run_prd();
@@ -921,12 +923,6 @@ void plaingraph_manager_t<T>::prep_graph_durable(const string& idirname, const s
         }
         usleep(1);
     }
-    //while (blog->blog_tail != blog->blog_head) {
-    //    usleep(10);
-    //}
-    //end = mywtime();
-    //cout << "Make graph time = " << end - start << endl;
-    //---------
 }
 
 #include "iterative_analytics.h"
@@ -1386,13 +1382,13 @@ void plaingraph_manager_t<T>::delete_static_view(snap_t<T>* snaph)
 }
 
 template <class T>
-degree_t snap_t<T>::get_nebrs_length_out(vid_t v)
+degree_t snap_t<T>::get_degree_out(vid_t v)
 {
     return degree_out[v];
 }
 
 template <class T>
-degree_t snap_t<T>::get_nebrs_length_in(vid_t v)
+degree_t snap_t<T>::get_degree_in(vid_t v)
 {
     return degree_in[v];
 }
@@ -1410,7 +1406,7 @@ degree_t snap_t<T>::get_nebrs_out(vid_t v, T*& adj_list)
 
     delta_adjlist_t<T>* delta_adjlist;
     delta_adjlist           = v_unit->delta_adjlist;
-    degree_t nebr_count     = get_nebrs_length_out[v];
+    degree_t nebr_count     = get_degree_out[v];
     degree_t delta_degree   = nebr_count;
 
     //cout << "delta adjlist " << delta_degree << endl;	
@@ -1442,7 +1438,7 @@ degree_t snap_t<T>::get_nebrs_in(vid_t v, T*& adj_list)
 
     delta_adjlist_t<T>* delta_adjlist;
     delta_adjlist           = v_unit->delta_adjlist;
-    degree_t nebr_count     = get_nebrs_length_in[v];
+    degree_t nebr_count     = get_degree_in[v];
     degree_t delta_degree   = nebr_count;
 
     //cout << "delta adjlist " << delta_degree << endl;	
@@ -1460,6 +1456,69 @@ degree_t snap_t<T>::get_nebrs_in(vid_t v, T*& adj_list)
         total_degree += i_count;
     }
     return nebr_count;
+}
+     
+template <class T>
+void plaingraph_manager_t<T>::create_prior_static_view(prior_snap_t<T>** a_prior_snaph, index_t start_offset, index_t end_offset)
+{
+    pgraph_t<T>* pgraph = (pgraph_t<T>*)get_plaingraph();
+    
+    prior_snap_t<T>* snaph = new prior_snap_t<T>;
+    
+    snaph->v_count  = v_count;
+    snaph->pgraph    = pgraph;
+    snaph->degree_out = (degree_t*) calloc(v_count, sizeof(degree_t));
+    snaph->degree_out1= (degree_t*) calloc(v_count, sizeof(degree_t));
+    
+    if (pgraph->sgraph_in == 0) {
+        snaph->degree_in  = snaph->degree_out;
+        snaph->degree_in1 = snaph->degree_out1;
+    } else {
+        snaph->degree_in  = (degree_t*) calloc(v_count, sizeof(degree_t));
+        snaph->degree_in1 = (degree_t*) calloc(v_count, sizeof(degree_t));
+    }
+
+    if (0 != start_offset) {
+        pgraph->create_degree(snaph->degree_out1, snaph->degree_in1, 0, start_offset);
+        memcpy(snaph->degree_out, snaph->degree_out1, sizeof(degree_t)*v_count);
+        if (pgraph->sgraph_in !=0) {
+            memcpy(snaph->degree_in, snaph->degree_in1, sizeof(degree_t)*v_count);
+        }
+    }
+        
+    pgraph->create_degree(snaph->degree_out, snaph->degree_in, start_offset, end_offset);
+    
+    *a_prior_snaph = snaph;
+
+    return;
+}
+
+template <class T>
+degree_t prior_snap_t<T>::get_degree_out(vid_t vid)
+{
+    return degree_out[vid] - degree_out1[vid];
+}
+
+template <class T>
+degree_t prior_snap_t<T>::get_degree_in(vid_t vid)
+{
+    return degree_in[vid] - degree_in1[vid];
+}
+
+template <class T>
+degree_t prior_snap_t<T>::get_nebrs_out(vid_t vid, T* ptr)
+{
+    return pgraph->get_wnebrs_out(vid, ptr, degree_out1[vid], get_degree_out(vid));
+}
+
+template <class T>
+degree_t prior_snap_t<T>::get_nebrs_in(vid_t vid, T* ptr)
+{
+    if (degree_out == degree_in) {
+        return pgraph->get_wnebrs_out(vid, ptr, degree_in1[vid], get_degree_in(vid));
+    } else {
+        return pgraph->get_wnebrs_in(vid, ptr, degree_in1[vid], get_degree_in(vid));
+    }
 }
 
 extern plaingraph_manager_t<sid_t> plaingraph_manager; 
