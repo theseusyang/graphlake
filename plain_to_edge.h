@@ -43,7 +43,7 @@ class plaingraph_manager_t {
     
      void setup_graph(vid_t v_count);
      void setup_graph_memory(vid_t v_count);
-     void restore_graph(vid_t v_count);
+     void restore_graph();
 
      void prep_graph_fromtext(const string& idirname, const string& odirname, typename callback<T>::parse_fn_t);
      void prep_graph_edgelog(const string& idirname, const string& odirname);
@@ -195,6 +195,7 @@ void plaingraph_manager_t<T>::setup_graph(vid_t v_count)
     graph->flag2 = 1;
     typekv_t* typekv = g->get_typekv();
     typekv->manual_setup(v_count);
+    g->type_done();
     g->prep_graph_baseline();
     g->file_open(true);
     //g->make_graph_baseline();
@@ -202,15 +203,12 @@ void plaingraph_manager_t<T>::setup_graph(vid_t v_count)
 }
 
 template <class T>
-void plaingraph_manager_t<T>::restore_graph(vid_t v_count)
+void plaingraph_manager_t<T>::restore_graph()
 {
     //do some setup for plain graphs
     pgraph_t<T>* graph = (pgraph_t<T>*)get_plaingraph();
     graph->flag1 = 1;
     graph->flag2 = 1;
-    //typekv_t* typekv = g->get_typekv();
-    //typekv->manual_setup(v_count);
-    //g->prep_graph_baseline();
     g->read_graph_baseline();
 }
 
@@ -1004,7 +1002,7 @@ void plaingraph_manager_t<T>::run_bfs()
     //cout << "old marker = " << old_marker << " New marker = " << marker << endl;
     
     uint8_t* level_array = 0;
-    level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
+    level_array = (uint8_t*) calloc(snaph->v_count, sizeof(uint8_t));
     mem_bfs<T>(snaph, level_array, 1);
     free(level_array);
     delete_static_view(snaph);
@@ -1350,20 +1348,20 @@ void plaingraph_manager_t<T>::create_static_view(bool simple, bool priv, bool st
         snaph->edge_count = marker - old_marker;
     }
     
-    snaph->v_count    = v_count;
+    snaph->v_count    = g->get_type_scount();
     snaph->graph_out  = graph;
-    snaph->degree_out = (degree_t*) calloc(v_count, sizeof(degree_t));
+    snaph->degree_out = (degree_t*) calloc(snaph->v_count, sizeof(degree_t));
     
     if (ugraph1->sgraph_in == 0) {
         snaph->graph_in   = snaph->graph_out;
         snaph->degree_in  = snaph->degree_out;
-        create_degreesnap(snaph->graph_out, v_count, snapshot, marker, 
+        create_degreesnap(snaph->graph_out, snaph->v_count, snapshot, marker, 
                           snaph->edges, snaph->degree_out);
     } else {
         snaph->graph_in  = ugraph1->sgraph_in[0]->get_begpos();
-        snaph->degree_in = (degree_t*) calloc(v_count, sizeof(degree_t));
+        snaph->degree_in = (degree_t*) calloc(snaph->v_count, sizeof(degree_t));
         create_degreesnapd(snaph->graph_out, snaph->graph_in, snapshot, marker, 
-                           snaph->edges, snaph->degree_out, snaph->degree_in, v_count);
+                           snaph->edges, snaph->degree_out, snaph->degree_in, snaph->v_count);
     }
     *a_snaph = snaph;
 }
@@ -1465,24 +1463,25 @@ void plaingraph_manager_t<T>::create_prior_static_view(prior_snap_t<T>** a_prior
     
     prior_snap_t<T>* snaph = new prior_snap_t<T>;
     
-    snaph->v_count  = v_count;
+    snaph->v_count  = g->get_type_scount();
+    //v_count = g->get_type_scount;
     snaph->pgraph    = pgraph;
-    snaph->degree_out = (degree_t*) calloc(v_count, sizeof(degree_t));
-    snaph->degree_out1= (degree_t*) calloc(v_count, sizeof(degree_t));
+    snaph->degree_out = (degree_t*) calloc(snaph->v_count, sizeof(degree_t));
+    snaph->degree_out1= (degree_t*) calloc(snaph->v_count, sizeof(degree_t));
     
     if (pgraph->sgraph_in == 0) {
         snaph->degree_in  = snaph->degree_out;
         snaph->degree_in1 = snaph->degree_out1;
     } else {
-        snaph->degree_in  = (degree_t*) calloc(v_count, sizeof(degree_t));
-        snaph->degree_in1 = (degree_t*) calloc(v_count, sizeof(degree_t));
+        snaph->degree_in  = (degree_t*) calloc(snaph->v_count, sizeof(degree_t));
+        snaph->degree_in1 = (degree_t*) calloc(snaph->v_count, sizeof(degree_t));
     }
 
     if (0 != start_offset) {
         pgraph->create_degree(snaph->degree_out1, snaph->degree_in1, 0, start_offset);
-        memcpy(snaph->degree_out, snaph->degree_out1, sizeof(degree_t)*v_count);
+        memcpy(snaph->degree_out, snaph->degree_out1, sizeof(degree_t)*snaph->v_count);
         if (pgraph->sgraph_in !=0) {
-            memcpy(snaph->degree_in, snaph->degree_in1, sizeof(degree_t)*v_count);
+            memcpy(snaph->degree_in, snaph->degree_in1, sizeof(degree_t)*snaph->v_count);
         }
     }
         
@@ -1522,4 +1521,3 @@ degree_t prior_snap_t<T>::get_nebrs_in(vid_t vid, T* ptr)
 }
 
 extern plaingraph_manager_t<sid_t> plaingraph_manager; 
-extern plaingraph_manager_t<lite_edge_t> weightedgraph_manager; 

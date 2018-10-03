@@ -20,7 +20,6 @@ extern index_t residue;
 
 vid_t v_count = 0;
 plaingraph_manager_t<sid_t> plaingraph_manager; 
-plaingraph_manager_t<lite_edge_t> weightedgraph_manager; 
 
 struct estimate_t {
     degree_t durable_degree;
@@ -504,50 +503,6 @@ void estimate_IO(const string& idirname, const string& odirname)
     cout << "total_hub_vertex =" << total_hub_vertex << endl;
 }
 
-template <class T>
-void split_graph(const string& idirname, const string& odirname)
-{
-    propid_t          cf_id = g->get_cfid("friend");
-    pgraph_t<T>* ugraph = (pgraph_t<T>*)g->cf_info[cf_id];
-    blog_t<T>*     blog = ugraph->blog;
-    
-    blog->blog_head  += read_idir<T>(idirname, &blog->blog_beg, false);
-    
-    cout << "Creating " << residue << " graphs of equal size" << endl;
-
-    double start = mywtime();
-
-    index_t marker = blog->blog_head/residue;
-    index_t old_marker = 0;
-    index_t new_marker = 0;
-    index_t edge_count = 0;
-    string filename;
-    FILE* file = 0;
-    char  suffix[8];
-
-    for (index_t i = 1; i <= residue; ++i) {
-        sprintf(suffix, "%ld",i);
-          
-        new_marker = marker*i;
-        cout << "graph marker = " << new_marker << endl;
-        filename = odirname + "part" + suffix + ".dat";
-        cout << "Filename = " << filename << endl;
-        file = fopen(filename.c_str(), "wb");
-        assert(file  != 0);
-        edge_count = new_marker - old_marker;
-        if (edge_count != fwrite(blog->blog_beg + old_marker, 
-                                 sizeof(edgeT_t<T>), edge_count, file)) {
-            assert(0);
-        }
-        fclose(file);
-        old_marker = new_marker;
-    }
-
-    double end = mywtime ();
-    cout << "Make graph time = " << end - start << endl;
-}
-
-
 //template <class T>
 void weighted_dtest0(const string& idir, const string& odir)
 {
@@ -900,14 +855,14 @@ void prior_snap_testu(const string& odir)
 {
     plaingraph_manager_t<T> manager;
     manager.schema_plaingraph();
-    manager.restore_graph(v_count);
+    manager.restore_graph();
     manager.run_bfs();
     
     //Run using prior static view.
-    prior_snap_t<T>* snap;
-    manager.create_prior_static_view(&snap, 0, 33554432);
-    uint8_t* level_array = (uint8_t*)calloc(sizeof(uint8_t), v_count);
-    mem_wbfs(snap, level_array, 1);
+    prior_snap_t<T>* snaph;
+    manager.create_prior_static_view(&snaph, 0, 33554432);
+    uint8_t* level_array = (uint8_t*)calloc(sizeof(uint8_t), snaph->v_count);
+    mem_wbfs(snaph, level_array, 1);
 
     return ;
 
@@ -918,7 +873,7 @@ void recover_testu(const string& odir)
 {
     plaingraph_manager_t<T> manager;
     manager.schema_plaingraph();
-    manager.restore_graph(v_count);
+    manager.restore_graph();
     manager.run_bfs();
 
     return ;
@@ -929,7 +884,7 @@ void recover_testuni(const string& odir)
 {
     plaingraph_manager_t<T> manager;
     manager.schema_plaingraphuni();
-    manager.restore_graph(v_count);
+    manager.restore_graph();
     manager.run_bfs();
 
     return ;
@@ -942,23 +897,6 @@ void plain_test3(const string& idir, const string& odir)
     plaingraph_manager.setup_graph(v_count);    
     plaingraph_manager.prep_graph_adj(idir, odir);
     //plaingraph_manager.prep_graph(idir, odir);
-    
-    propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
-    verification<sid_t>(ugraph->sgraph, ugraph->sgraph, 1); 
-    return ;
-}
-
-void plain_test4(const string& idir, const string& odir)
-{
-    plaingraph_manager.schema_plaingraph();
-    //do some setup for plain graphs
-    plaingraph_manager.setup_graph(v_count);    
-    
-    plaingraph_manager.prep_graph(idir, odir);
-    
-    string idir1 = "/mnt/disk_huge_1/pradeepk/pradeep_graph/kron_21_16_incr/"; 
-    plaingraph_manager.prep_graph(idir1, odir);
     
     propid_t cf_id = g->get_cfid("friend");
     ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
@@ -1327,12 +1265,6 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
         case 6:
             recover_testuni<netflow_dst_t>(odir);
             break;
-        case 7:
-            split_graph<sid_t>(idir, odir);
-            break;
-        case 8:
-            split_graph<lite_edge_t>(idir, odir);
-            break;
         
         case 9:
             //stinger test
@@ -1445,7 +1377,6 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             break; 
         case 100:
             plain_test3(idir, odir);
-            //plain_test4(odir);
             //plain_test6(odir);
             break;
         case 101:

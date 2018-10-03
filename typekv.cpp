@@ -210,9 +210,9 @@ void typekv_t::store_graph_baseline(bool clean)
         t_info[t].log_wpos = t_info[t].log_head;
         write(t_info[t].etf, t_info[t].log_beg + wpos, t_info[t].log_head-wpos);
 
-        write(t_info[t].vtf, t_info[t].vid2name, t_info[t].vert_id*sizeof(sid_t));
+        pwrite(t_info[t].vtf, t_info[t].vid2name, t_info[t].vert_id*sizeof(sid_t), 0);
     }
-
+    fseek(vtf, 0, SEEK_SET);
     fwrite(type_text, sizeof(char), strlen(type_text), vtf);
     //str2enum: No need to write. We make it from disk during initial read.
     //XXX: write down the deleted id list
