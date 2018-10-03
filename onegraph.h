@@ -848,7 +848,11 @@ void onegraph_t<T>::read_vtable()
                 +(dvt[read_count-1].count + dvt[read_count-1].del_count)*sizeof(T)
                 - offset;
         adj_list = (char*)malloc(adj_size);
-        sz_read = pread(etf, adj_list, adj_size, offset);
+
+        while (sz_read != adj_size) {
+           sz_read += pread(etf, adj_list, adj_size - sz_read, offset);
+           offset += sz_read;
+        }
         assert(sz_read == adj_size);
 
         for (vid_t v = 0; v < read_count; ++v) {
