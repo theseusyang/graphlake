@@ -132,7 +132,7 @@ degree_t onegraph_t<T>::get_wnebrs(vid_t vid, T* ptr, degree_t start, degree_t c
     }
     return total_count;
 }
-
+#ifdef BULK
 template <class T>
 void onegraph_t<T>::setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end)
 {
@@ -237,6 +237,7 @@ void onegraph_t<T>::setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end)
         reset_count(vid);
     }
 }
+#endif
 
 template <class T>
 void onegraph_t<T>::setup(tid_t tid)
@@ -387,13 +388,14 @@ degree_t onegraph_t<T>::find_nebr(vid_t vid, sid_t sid)
     }
 
     local_adjlist = delta_adjlist->get_adjlist();
-    local_degree = nebr_count[vid].add_count;
+    local_degree  = delta_adjlist->get_nebrcount();
     for (degree_t i = 0; i < local_degree; ++i) {
         nebr = get_nebr(local_adjlist, i);
         if (nebr == sid) {
             return i + degree + durable_degree;
         }
     }
+    /*
     //Durable adj list 
     if (durable_degree == 0) return INVALID_DEGREE;
 
@@ -407,10 +409,11 @@ degree_t onegraph_t<T>::find_nebr(vid_t vid, sid_t sid)
         if (nebr == sid) {
             return i;
         }
-    }
+    }*/
     return INVALID_DEGREE;
 }
 
+#ifdef BULK
 template <class T>
 void onegraph_t<T>::setup_adjlist()
 {
@@ -472,7 +475,7 @@ void onegraph_t<T>::setup_adjlist()
         reset_count(vid);
     }
 }
-
+#endif
 template <class T>
 void onegraph_t<T>::file_open(const string& filename, bool trunc)
 {
@@ -597,7 +600,7 @@ void onegraph_t<T>::handle_write(bool clean /* = false */)
         rename(etfile_new.c_str(), etfile.c_str());
     }
 
-    adjlog_tail = adjlog_head;
+    //adjlog_tail = adjlog_head;
 	//adjlog_head = 0;
 }
 

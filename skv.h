@@ -174,6 +174,7 @@ void many2one<T>::make_graph_baseline()
 {
     if (blog->blog_tail >= blog->blog_marker) return;
     
+#ifdef BULK
     calc_edge_count_in(sgraph_in);
     
     //prefix sum then reset the count
@@ -183,7 +184,8 @@ void many2one<T>::make_graph_baseline()
     //handle kv_out as well.
     fill_adj_list_in(skv_out, sgraph_in);
     //update_count(sgraph_in);
-    blog->blog_tail = blog->blog_marker;  
+    blog->blog_tail = blog->blog_marker;
+#endif
 }
 
 template <class T> 
@@ -245,7 +247,7 @@ template <class T>
 void one2many<T>::make_graph_baseline()
 {
     if (blog->blog_tail >= blog->blog_marker) return;
-    
+#ifdef BULK 
     calc_edge_count_out(sgraph_out);
     
     //prefix sum then reset the count
@@ -256,6 +258,7 @@ void one2many<T>::make_graph_baseline()
     fill_adj_list_out(sgraph_out, skv_in);
     //update_count(sgraph_out);
     blog->blog_tail = blog->blog_marker;  
+#endif
     
 }
 

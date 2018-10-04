@@ -447,6 +447,9 @@ void pgraph_t<T>::make_on_classify(onegraph_t<T>** sgraph, global_range_t<T>* gl
 
     //Adj list
     #ifdef BULK 
+    tid_t src_index = TO_TID(blog->blog_beg[0].src_id);
+    vid_t v_count = sgraph_out[src_index]->get_vcount();
+    
     vid_t vid_start = (j_start << bit_shift);
     vid_t vid_end = (j_end << bit_shift);
     if (vid_end > v_count) vid_end = v_count;

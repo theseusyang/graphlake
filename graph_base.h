@@ -113,22 +113,6 @@ class vert_table_t {
 
 	inline snapT_t<T>* get_snapblob() { return snap_blob; } 
     
-    /*
-    //The incoming is composite or simple, depends on if/else
-    inline void set_snapblob(snapT_t<T>* snap_blob1) { 
-        if (0 == snap_blob) {
-            snap_blob = snap_blob1; 
-        } else {
-            snap_blob1->prev->prev = snap_blob->prev;
-            if (snap_blob->prev) {
-                snap_blob->prev->next = snap_blob1->prev;
-            }
-            snapT_t<T>* old_blob = snap_blob;
-            snap_blob = snap_blob1;
-            free(old_blob);
-        }
-    }*/ 
-    
     //The incoming is simple, called from read_stable
     inline void set_snapblob1(snapT_t<T>* snap_blob1) { 
         if (0 == snap_blob) {
@@ -207,7 +191,11 @@ private:
 	//Thread local memory data structures
 	thd_mem_t<T>* thd_mem;
 
+#ifdef BULK
 	//---------Global memory data structures
+public:
+    nebrcount_t*   nebr_count;//Only being used in BULK, remove it in future
+private:
     //delta adj list
     char*      adjlog_beg;  //memory log pointer
     index_t    adjlog_count;//size of memory log
@@ -229,6 +217,7 @@ private:
 	index_t     vunit_count;
 	index_t     vunit_tail;
 	//-----------
+#endif
 
     //vertex table file related log
     write_seg_t  write_seg[3];
@@ -243,7 +232,6 @@ private:
     string   file;
 public:
     int    etf;   //edge table file
-    nebrcount_t*   nebr_count;//Only being used in BULK, remove it in future
 
 private:    
     inline void del_nebr(vid_t vid, T sid) {
@@ -268,7 +256,8 @@ public:
         beg_pos = 0;
         max_vcount = 0;
 
-
+#ifdef BULK
+        nebr_count = 0;
 	    vunit_beg	= 0;
 		vunit_count = 0;
 		vunit_head  = 0;
@@ -287,11 +276,11 @@ public:
 		write_seg[0].reset();
 		write_seg[1].reset();
 		write_seg[2].reset();
+#endif
 
         vtf = -1;
         etf = -1;
         stf = 0;
-        nebr_count = 0;
     }
     
     inline vid_t get_degree(vid_t vid) {
@@ -303,21 +292,16 @@ public:
     void setup(tid_t tid);
 
     //void setup_adjlist(vid_t vid_start, vid_t vid_end);
-    void setup_adjlist();
     void setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end);
 
 	#ifdef BULK
+    void setup_adjlist();
     void increment_count_noatomic(vid_t vid) {
         ++nebr_count[vid].add_count;
     }
     void decrement_count_noatomic(vid_t vid) {
         ++nebr_count[vid].del_count;
     }
-	#else
-	void increment_count_noatomic(vid_t vid);
-    void decrement_count_noatomic(vid_t vid);
-	#endif
-
     inline void increment_count(vid_t vid) { 
         __sync_fetch_and_add(&nebr_count[vid].add_count, 1L);
     }
@@ -329,6 +313,11 @@ public:
         nebr_count[vid].add_count = 0;
         nebr_count[vid].del_count = 0;
     }
+	#else
+	void increment_count_noatomic(vid_t vid);
+    void decrement_count_noatomic(vid_t vid);
+	#endif
+
 
     inline void add_nebr(vid_t vid, T sid) {
         if (IS_DEL(get_sid(sid))) { 
@@ -382,7 +371,7 @@ public:
 
     degree_t find_nebr(vid_t vid, sid_t sid); 
     
-    
+#ifdef BULK    
     // -------------------- global data structure ------------------    
     //delta adj list allocation
 	inline delta_adjlist_t<T>* new_delta_adjlist(degree_t count) {
@@ -427,6 +416,7 @@ public:
 		assert(index_dlog   < dlog_count);
 		return (dlog_beg + index_dlog);
 	}
+#endif
 
     //------------------------ local allocation-------
 	inline vunit_t<T>* new_vunit_local() {

@@ -205,9 +205,11 @@ class pgraph_t: public cfinfo_t {
     void file_open_skv(onekv_t<T>** skv, const string& odir, const string& postfix, bool trunc);
    
     void update_count(onegraph_t<T>** sgraph);
+
     void calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in); 
     void calc_edge_count_out(onegraph_t<T>** p_sgraph_out);
     void calc_edge_count_in(onegraph_t<T>** sgraph_in);
+
     void fill_adj_list(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in);
     void fill_adj_list_in(onekv_t<T>** skv_out, onegraph_t<T>** sgraph_in); 
     void fill_adj_list_out(onegraph_t<T>** sgraph_out, onekv_t<T>** skv_in); 
@@ -476,6 +478,7 @@ onegraph_t<T>** pgraph_t<T>::prep_sgraph(sflag_t ori_flag, onegraph_t<T>** sgrap
     return sgraph;
 }
 
+#ifdef BULK
 //prefix sum, allocate adj list memory then reset the count
 template <class T>
 void pgraph_t<T>::prep_sgraph_internal(onegraph_t<T>** sgraph)
@@ -505,6 +508,7 @@ void pgraph_t<T>::prep_sgraph_internal(onegraph_t<T>** sgraph)
         #pragma omp barrier
     }
 }
+#endif
 
 template <class T>
 void pgraph_t<T>::store_sgraph(onegraph_t<T>** sgraph, bool clean /*= false*/)
@@ -517,11 +521,6 @@ void pgraph_t<T>::store_sgraph(onegraph_t<T>** sgraph, bool clean /*= false*/)
     for (tid_t i = 0; i < t_count; ++i) {
         if (sgraph[i] == 0) continue;
 		sgraph[i]->handle_write(clean);
-        /*
-		sgraph[i]->persist_elog(etfile);
-        sgraph[i]->persist_slog(stfile);
-        sgraph[i]->persist_vlog(vtfile);
-		*/
     }
 }
 
@@ -574,6 +573,7 @@ void pgraph_t<T>::read_sgraph(onegraph_t<T>** sgraph)
     }
 }
 
+#ifdef BULK
 //estimate edge count
 template <class T>
 void pgraph_t<T>::calc_edge_count(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in) 
@@ -636,14 +636,6 @@ void pgraph_t<T>::calc_edge_count_in(onegraph_t<T>** sgraph_in)
     tid_t     dst_index;
     edgeT_t<T>* edges = blog->blog_beg;
     
-    /*
-    edgeT_t<T>*  edges;
-    index_t   count;
-    for (int j = 0; j <= batch_count; ++j) { 
-        edges = (edgeT_t<T>*)batch_info[j].buf;
-        count = batch_info[j].count;
-    }*/
-    
     index_t index = 0;
     for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
         index = (i & blog->blog_mask);
@@ -658,7 +650,7 @@ void pgraph_t<T>::calc_edge_count_in(onegraph_t<T>** sgraph_in)
         }
     }
 }
-
+#endif
 template <class T>
 void pgraph_t<T>::fill_adj_list(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in)
 {
@@ -1162,9 +1154,10 @@ void dgraph<T>::prep_graph_baseline()
 template <class T> 
 void dgraph<T>::make_graph_baseline()
 {
+#ifndef BULK
     this->make_graph_d();
+#else
     
-    /*
     if (blog->blog_tail >= blog->blog_marker) return;
     double start, end;
     start = mywtime(); 
@@ -1195,7 +1188,7 @@ void dgraph<T>::make_graph_baseline()
     cout << "fill  time = " << end-start << endl;
     
     //blog->blog_tail = blog->blog_marker;
-    */
+#endif
 }
 
 template <class T> 
@@ -1258,9 +1251,11 @@ void ugraph<T>::prep_graph_baseline()
 template <class T> 
 void ugraph<T>::make_graph_baseline()
 {
+
+#ifndef BULK   
     this->make_graph_u();
-    
-    /*
+#else 
+ 
     if (blog->blog_tail >= blog->blog_marker) return;
    
     double start, end;
@@ -1290,7 +1285,8 @@ void ugraph<T>::make_graph_baseline()
     end = mywtime();
     cout << "Make graph time = " << end - start << endl;
     //blog->blog_tail = blog->blog_marker;  
-   */ 
+   
+#endif
 }
 
 template <class T> 
