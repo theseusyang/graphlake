@@ -886,8 +886,9 @@ void mem_wbfs(prior_snap_t<T>* snaph, uint8_t* status, sid_t root)
 				
                 #pragma omp for nowait
 				for (vid_t v = 0; v < v_count; v++) {
-					if (status[v] != level) continue;
                     nebr_count = snaph->get_degree_out(v);
+					if (status[v] != level || (0 == nebr_count)) continue;
+                    
                     local_adjlist = (T*)calloc(nebr_count, sizeof(T));
                     snaph->get_nebrs_out(v, local_adjlist);
                 
@@ -905,11 +906,9 @@ void mem_wbfs(prior_snap_t<T>* snaph, uint8_t* status, sid_t root)
 				
 				#pragma omp for nowait
 				for (vid_t v = 0; v < v_count; v++) {
-					if (status[v] != 0 ) continue;
-                    
                     nebr_count = snaph->get_degree_in(v);
-                    if (nebr_count == 0) 
-                        continue;
+					if (status[v] != 0 || 0 == nebr_count) continue;
+                    
                     local_adjlist = (T*)calloc(nebr_count, sizeof(T));
                     snaph->get_nebrs_in(v, local_adjlist);
 					

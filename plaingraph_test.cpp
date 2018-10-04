@@ -856,7 +856,7 @@ void prior_snap_testu(const string& odir)
     plaingraph_manager_t<T> manager;
     manager.schema_plaingraph();
     manager.restore_graph();
-    manager.run_bfs();
+    //manager.run_bfs();
     
     //Run using prior static view.
     prior_snap_t<T>* snaph;
@@ -865,7 +865,24 @@ void prior_snap_testu(const string& odir)
     mem_wbfs(snaph, level_array, 1);
 
     return ;
+}
 
+template <class T>
+void prior_snap_testuni(const string& odir)
+{
+    plaingraph_manager_t<T> manager;
+    manager.schema_plaingraphuni();
+    manager.restore_graph();
+    //manager.run_bfs();
+    
+    //Run using prior static view.
+    
+    prior_snap_t<T>* snaph;
+    manager.create_prior_static_view(&snaph, 0, 33554432);
+    uint8_t* level_array = (uint8_t*)calloc(sizeof(uint8_t), snaph->v_count);
+    mem_wbfs(snaph, level_array, 1);
+
+    return ;
 }
 
 template <class T>
@@ -888,6 +905,28 @@ void recover_testuni(const string& odir)
     manager.run_bfs();
 
     return ;
+}
+
+template <class T>
+void ingestion_fulluni(const string& idir, const string& odir,
+                     typename callback<T>::parse_fn_t parsefile_fn)
+{
+    plaingraph_manager_t<T> manager;
+    manager.schema_plaingraphuni();
+    //do some setup for plain graphs
+    manager.setup_graph(v_count);    
+    manager.prep_graph_fromtext(idir, odir, parsefile_fn); 
+    g->store_graph_baseline();
+    cout << "stroing done" << endl;
+    //manager.run_bfsd();    
+    
+    /*
+    //Run using prior static view.
+    prior_snap_t<T>* snaph;
+    manager.create_prior_static_view(&snaph, 0, 33554432);
+    uint8_t* level_array = (uint8_t*)calloc(sizeof(uint8_t), snaph->v_count);
+    mem_wbfs(snaph, level_array, 1);
+    */
 }
 
 void plain_test3(const string& idir, const string& odir)
@@ -1152,6 +1191,18 @@ void test_ingestiond(const string& idir, const string& odir)
 }
 
 template <class T>
+void test_ingestionuni(const string& idir, const string& odir)
+{
+    plaingraph_manager_t<T> manager;
+    manager.schema_plaingraphuni();
+    //do some setup for plain graphs
+    manager.setup_graph(v_count);    
+    manager.prep_graph_durable(idir, odir); 
+    manager.run_bfsd();    
+    g->store_graph_baseline();
+}
+
+template <class T>
 void test_ingestion_memory(const string& idir, const string& odir)
 {
     THD_COUNT = omp_get_max_threads() - 1;
@@ -1355,6 +1406,12 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
             break;
         case 36://text to binary file
             update_fromtext<netflow_dst_t>(idir, odir, parsefile_to_bin);
+            break;
+        case 37://text to our format
+            ingestion_fulluni<netflow_dst_t>(idir, odir, parsefile_and_insert);
+            break;
+        case 38:
+            prior_snap_testuni<netflow_dst_t>(odir);
             break;
         
         case 94:

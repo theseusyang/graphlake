@@ -782,9 +782,9 @@ void onegraph_t<T>::adj_prep(write_seg_t* seg)
 	disk_vtable_t* dvt1 = 0;
 	//vunit_t<T>* v_unit = 0;
 	vunit_t<T>* prev_v_unit = 0;
-	index_t  prev_offset;
+	//index_t  prev_offset;
     degree_t total_count = 0;
-    degree_t prev_total_count;
+    //degree_t prev_total_count;
 
 	delta_adjlist_t<T>* delta_adjlist = 0;
 	durable_adjlist_t<T>* durable_adjlist = 0;
@@ -796,22 +796,22 @@ void onegraph_t<T>::adj_prep(write_seg_t* seg)
 		vid = dvt1->vid;
 
 		prev_v_unit       = beg_pos[vid].get_vunit();
-		prev_total_count  = prev_v_unit->count;
-		prev_offset       = prev_v_unit->offset;
+		//prev_total_count  = prev_v_unit->count;
+		//prev_offset       = prev_v_unit->offset;
         total_count       = dvt1->count + dvt1->del_count;
 		
 		//Find the allocated durable adj list
 		durable_adjlist = (durable_adjlist_t<T>*)(seg->log_beg + dvt1->file_offset 
 												  - seg->log_tail);
         adj_list1 = durable_adjlist->get_adjlist();
-	   
+	    /*
         //Copy the Old durable adj list
 		if (prev_total_count) {
 			//Read the old adj list from disk
             index_t sz_to_read = sizeof(durable_adjlist_t<T>) + prev_total_count*sizeof(T);
 			pread(etf, durable_adjlist , sz_to_read, prev_offset);
 			adj_list1 += prev_total_count;
-        }
+        }*/
         
         durable_adjlist->set_nebrcount(total_count);
 
@@ -894,7 +894,7 @@ void onegraph_t<T>::read_vtable()
         adj_list = (char*)malloc(adj_size);
 
         while (sz_read != adj_size) {
-           sz_read += pread(etf, adj_list, adj_size - sz_read, offset);
+           sz_read += pread(etf, adj_list+offset, adj_size - sz_read, offset);
            offset += sz_read;
         }
         assert(sz_read == adj_size);

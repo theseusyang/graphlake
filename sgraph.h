@@ -806,6 +806,7 @@ void pgraph_t<T>::create_degree(degree_t* degree_in, degree_t* degree_out, index
     index_t offset = start_offset*sizeof(edgeT_t<T>);
     index_t  total_read = 0;
     index_t  sz_read= 0; 
+    index_t  count = 0;
     //read the file
     edgeT_t<T>* edges;
     index_t fixed_size = (1L<<28);
@@ -815,17 +816,23 @@ void pgraph_t<T>::create_degree(degree_t* degree_in, degree_t* degree_out, index
         sz_read = pread(wtf, edges, size, offset);
         assert(size == sz_read);
         
-        index_t count = end_offset - start_offset;
+        count = end_offset - start_offset;
         for (index_t i = 0; i < count; i++) {
             __sync_fetch_and_add(degree_out + edges[i].src_id, 1);
             __sync_fetch_and_add(degree_in  + get_dst(edges + i), 1);
         }
     } else {
+        fixed_size = (fixed_size/sizeof(edgeT_t<T>))*sizeof(edgeT_t<T>);
         edges = (edgeT_t<T>*)malloc(fixed_size);
-        index_t sz_read = fixed_size;;
+        index_t sz_read = fixed_size;
         while (total_read < size){
             if (sz_read != pread(wtf, edges, sz_read, offset)) {
                 assert(0);
+            }
+            count = sz_read/sizeof(edgeT_t<T>);
+            for (index_t i = 0; i < count; i++) {
+                __sync_fetch_and_add(degree_out + edges[i].src_id, 1);
+                __sync_fetch_and_add(degree_in  + get_dst(edges + i), 1);
             }
             offset += sz_read;
             total_read += sz_read;
