@@ -201,7 +201,7 @@ typedef edgeT_t<sid_t> edge_t;
 typedef dst_weight_t<univ_t> lite_edge_t;
 typedef edgeT_t<lite_edge_t> ledge_t;
 
-
+// Functions on edgeT_t
 inline sid_t get_dst(edge_t* edge) {
     return edge->dst_id;
 }
@@ -224,7 +224,7 @@ inline void set_weight(edgeT_t<T>* edge, T dst_id) {
     edge->dst_id.second = dst_id.second;
 }
 
-////
+////function on dst_weight_t
 template <class T> sid_t get_sid(T dst);
 template <class T> void set_sid(T& edge, sid_t sid1);
 template <class T> void set_weight(T& edge, T& dst);
@@ -377,8 +377,8 @@ class vunit_t {
 
 	inline void reset() {
 		vflag = 0;
-		count = 0;
-		offset = -1L;
+		//count = 0;
+		//offset = -1L;
 		delta_adjlist = 0;
         adj_list = 0;
 	}

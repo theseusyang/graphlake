@@ -100,14 +100,7 @@ sid_t typekv_t::type_update(const string& src, tid_t type_id)
         tid_t old_tid = TO_TID(src_id);
 
         if (old_tid != type_id) {
-            /*
             //Different types, delete
-            str2vid.erase(str2vid_iter);
-            cout << "Duplicate unique Id: " << src << " Deleting both. " ;
-            cout << "Existing Type: " << (char*)(log_beg + t_info[old_tid].type_name) << "\t";
-            cout << "New Type: " << (char*)(log_beg + t_info[type_id].type_name) << endl;
-            //assert(0);
-            */
             assert(0);
             return INVALID_SID;
         }
@@ -256,7 +249,8 @@ void typekv_t::read_graph_baseline()
             t_info[t].vid2name = (sid_t*)calloc(sizeof(sid_t), t_info[t].max_vcount);
             read(t_info[t].vtf, t_info[t].vid2name, sizeof(sid_t)*vcount);
             char* type_name = 0;
-            sid_t super_id = TO_TID(t);
+            //sid_t super_id = TO_TID(t);
+            sid_t super_id = TO_THIGH(t);
             //create the str2vid now
             for (vid_t vid = 0; vid < vcount; ++vid) {
                 type_name = t_info[t].log_beg + t_info[t].vid2name[vid];

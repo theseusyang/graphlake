@@ -15,52 +15,6 @@ using std::cout;
 using std::endl;
 using std::max;
 
-////
-inline void add_nebr1(sid_t* adj_list, vid_t index, sid_t value) {
-    //degree_t index = __sync_fetch_and_add(adj_list, 1L);
-    adj_list[index] = value;
-}
-
-inline void add_nebr1(lite_edge_t* adj_list, vid_t index, sid_t value) {
-    adj_list[index].first = value;
-}
-
-inline void add_nebr2(lite_edge_t* adj_list, vid_t index, sid_t value, univ_t univ)
-{
-    adj_list[index].first = value;
-    adj_list[index].second = univ;
-}
-
-
-////
-inline void set_nebrcount1(sid_t* adj_list, vid_t count) {
-    adj_list[0] = count;
-}
-
-inline void set_nebrcount1(lite_edge_t* adj_list, vid_t count) {
-    adj_list[0].first = count;
-}
-
-inline vid_t get_nebrcount1(sid_t* adj_list) {
-    return adj_list[0];
-}
-
-inline vid_t get_nebrcount1(lite_edge_t* adj_list) {
-    return adj_list[0].first;
-}
-
-
-
-////
-inline void set_value1(sid_t* kv, vid_t vid, sid_t value) {
-    kv[vid] = value;
-}
-
-inline void set_value1(lite_edge_t* kv, vid_t vid, sid_t value, univ_t univ) {
-    kv[vid].first = value;
-    kv[vid].second = univ;
-}
-
 inline void* alloc_huge(index_t size)
 {   
     //void* buf = mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0);
@@ -167,7 +121,9 @@ class thd_mem_t {
     index_t    	delta_size1;
 	uint32_t    vunit_count;
 	uint32_t    dsnap_count;
-	index_t     degree_count;
+#ifdef BULK
+    index_t     degree_count;
+#endif
 	index_t    	delta_size;
     
     char*       adjlog_beg1;
@@ -291,10 +247,10 @@ public:
     degree_t get_wnebrs(vid_t vid, T* ptr, degree_t start, degree_t count);
     void setup(tid_t tid);
 
-    //void setup_adjlist(vid_t vid_start, vid_t vid_end);
-    void setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end);
 
 	#ifdef BULK
+    //void setup_adjlist(vid_t vid_start, vid_t vid_end);
+    void setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end);
     void setup_adjlist();
     void increment_count_noatomic(vid_t vid) {
         ++nebr_count[vid].add_count;
@@ -342,7 +298,7 @@ public:
             
             if (new_count >= HUB_COUNT || max_count >= 256) {
                 max_count = TO_MAXCOUNT1(max_count);
-			    adj_list = new_delta_adjlist_local1(max_count);
+			    adj_list = new_delta_adjlist_local(max_count);
             } else {
 			    max_count = TO_MAXCOUNT(max_count);
 			    adj_list = new_delta_adjlist_local(max_count);
@@ -466,7 +422,7 @@ public:
 		thd_mem_t<T>* my_thd_mem = thd_mem + omp_get_thread_num();
 		index_t size = count*sizeof(T) + sizeof(delta_adjlist_t<T>);
 		if (size > my_thd_mem->delta_size1) {
-			my_thd_mem->delta_size1 = max(1UL << 32, size);
+			my_thd_mem->delta_size1 = max(1UL << 28, size);
 			my_thd_mem->adjlog_beg1 = (char*)malloc(my_thd_mem->delta_size1);
 		}
 		delta_adjlist_t<T>* adj_list = (delta_adjlist_t<T>*)my_thd_mem->adjlog_beg1;

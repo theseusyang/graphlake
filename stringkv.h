@@ -10,9 +10,8 @@ class disk_strkv_t {
 
 class strkv_t {
  public:
-    char** kv;
-    sid_t super_id;
-    vid_t max_vcount;
+    sid_t* kv;
+    tid_t  tid;
     
     //edgetable file related log
     char*    log_beg;  //memory log pointer
@@ -22,12 +21,13 @@ class strkv_t {
     sid_t    log_wpos; //Write this pointer for write persistency
 
     //vertex table file related log
-    disk_strkv_t* dvt;
+    /*disk_strkv_t* dvt;
     vid_t    dvt_count; 
     vid_t    dvt_max_count;
+    */
 
-    FILE*    vtf;   //vertex table file
-    FILE*    etf;   //edge table file
+    int    vtf;   //vertex table file
+    int    etf;   //edge table file
     
     friend class stringkv_t;
 
@@ -37,6 +37,7 @@ class strkv_t {
  public: 
     void setup(tid_t tid); 
     void set_value(vid_t vid, char* value); 
+    const char* get_value(vid_t vid);
     void persist_vlog();
     void persist_elog();
     void read_vtable();
@@ -70,7 +71,7 @@ class stringkv_t : public cfinfo_t {
     void fill_kv_out();
 
     inline const char* get_value(tid_t tid, vid_t vid) {
-        return strkv_out[tid]->kv[vid];
+        return strkv_out[tid]->get_value(vid);
     }
 
     inline void print_raw_dst(tid_t tid, vid_t vid, propid_t pid = 0) {
@@ -78,17 +79,3 @@ class stringkv_t : public cfinfo_t {
     }
 };
 
-/*---------------vinfo--------------------*/
-class vgraph_t: public stringkv_t 
-{
-
- public:    
-    void id2name(vid_t src_id, const string& src); 
-    void prep_str2sid(map<string, sid_t>& str2sid);
- public:
-    const char* get_value(tid_t tid, vid_t vid);
-
- public:
-    vgraph_t();
-    ~vgraph_t();
-};
