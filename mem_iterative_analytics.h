@@ -928,7 +928,7 @@ void mem_wbfs(prior_snap_t<T>* snaph, uint8_t* status, sid_t root)
 
         //Point is to simulate bottom up bfs, and measure the trade-off    
 		if ((frontier >= 0.002*v_count) || level == 2) {
-			top_down = false;
+			//top_down = false;
 		} else {
             top_down = true;
         }

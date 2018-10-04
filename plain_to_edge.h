@@ -1231,10 +1231,10 @@ void plaingraph_manager_t<T>::reg_sstream_view(typename callback<T>::sfunc func,
     sstreamh->graph_out  = sgraph_out->get_begpos();
     sstreamh->degree_out = (degree_t*) calloc(v_count, sizeof(degree_t));
     
-    if (ugraph->sgraph_in == 0) {
+    if (ugraph->sgraph_in == ugraph->sgraph_out) {
         sstreamh->graph_in   = sstreamh->graph_out;
         sstreamh->degree_in  = sstreamh->degree_out;
-    } else {
+    } else if (ugraph->sgraph_in != 0){
         sstreamh->graph_in  = ugraph->sgraph_in[0]->get_begpos();
         sstreamh->degree_in = (degree_t*) calloc(v_count, sizeof(degree_t));
     }
@@ -1353,12 +1353,12 @@ void plaingraph_manager_t<T>::create_static_view(bool simple, bool priv, bool st
     snaph->graph_out  = graph;
     snaph->degree_out = (degree_t*) calloc(snaph->v_count, sizeof(degree_t));
     
-    if (ugraph1->sgraph_in == 0) {
+    if (ugraph1->sgraph_in == ugraph1->sgraph_out) {
         snaph->graph_in   = snaph->graph_out;
         snaph->degree_in  = snaph->degree_out;
         create_degreesnap(snaph->graph_out, snaph->v_count, snapshot, marker, 
                           snaph->edges, snaph->degree_out);
-    } else {
+    } else if (ugraph1->sgraph_in != 0) {
         snaph->graph_in  = ugraph1->sgraph_in[0]->get_begpos();
         snaph->degree_in = (degree_t*) calloc(snaph->v_count, sizeof(degree_t));
         create_degreesnapd(snaph->graph_out, snaph->graph_in, snapshot, marker, 
@@ -1470,10 +1470,10 @@ void plaingraph_manager_t<T>::create_prior_static_view(prior_snap_t<T>** a_prior
     snaph->degree_out = (degree_t*) calloc(snaph->v_count, sizeof(degree_t));
     snaph->degree_out1= (degree_t*) calloc(snaph->v_count, sizeof(degree_t));
     
-    if (pgraph->sgraph_in == 0) {
+    if (pgraph->sgraph_in == pgraph->sgraph_out) {
         snaph->degree_in  = snaph->degree_out;
         snaph->degree_in1 = snaph->degree_out1;
-    } else {
+    } else if (pgraph->sgraph_in != 0) {
         snaph->degree_in  = (degree_t*) calloc(snaph->v_count, sizeof(degree_t));
         snaph->degree_in1 = (degree_t*) calloc(snaph->v_count, sizeof(degree_t));
     }
@@ -1481,7 +1481,8 @@ void plaingraph_manager_t<T>::create_prior_static_view(prior_snap_t<T>** a_prior
     if (0 != start_offset) {
         pgraph->create_degree(snaph->degree_out1, snaph->degree_in1, 0, start_offset);
         memcpy(snaph->degree_out, snaph->degree_out1, sizeof(degree_t)*snaph->v_count);
-        if (pgraph->sgraph_in !=0) {
+        
+        if (pgraph->sgraph_out != pgraph->sgraph_in && pgraph->sgraph_in != 0) {
             memcpy(snaph->degree_in, snaph->degree_in1, sizeof(degree_t)*snaph->v_count);
         }
     }

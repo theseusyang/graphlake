@@ -222,7 +222,7 @@ class pgraph_t: public cfinfo_t {
     degree_t get_wnebrs_in(sid_t sid, T* ptr, index_t start_offset, index_t end_offset);
 
     //making historic views
-    void create_degree(degree_t* degree_in, degree_t* degree_out, index_t start_offset, index_t end_offset);
+    void create_degree(degree_t* degree_out, degree_t* degree_in, index_t start_offset, index_t end_offset);
 
     status_t query_adjlist_td(onegraph_t<T>** sgraph, srset_t* iset, srset_t* oset);
     status_t query_kv_td(onekv_t<T>** skv, srset_t* iset, srset_t* oset);
@@ -798,7 +798,7 @@ degree_t pgraph_t<T>::get_wnebrs_in(sid_t sid, T* ptr, index_t start_offset, ind
     
 //making historic views
 template <class T>
-void pgraph_t<T>::create_degree(degree_t* degree_in, degree_t* degree_out, index_t start_offset, index_t end_offset)
+void pgraph_t<T>::create_degree(degree_t* degree_out, degree_t* degree_in, index_t start_offset, index_t end_offset)
 {
     assert(wtf != -1);
     
@@ -817,9 +817,15 @@ void pgraph_t<T>::create_degree(degree_t* degree_in, degree_t* degree_out, index
         assert(size == sz_read);
         
         count = end_offset - start_offset;
-        for (index_t i = 0; i < count; i++) {
-            __sync_fetch_and_add(degree_out + edges[i].src_id, 1);
-            __sync_fetch_and_add(degree_in  + get_dst(edges + i), 1);
+        if (degree_in == 0) {
+            for (index_t i = 0; i < count; i++) {
+                __sync_fetch_and_add(degree_out + edges[i].src_id, 1);
+            }
+        } else {
+            for (index_t i = 0; i < count; i++) {
+                __sync_fetch_and_add(degree_out + edges[i].src_id, 1);
+                __sync_fetch_and_add(degree_in  + get_dst(edges + i), 1);
+            }
         }
     } else {
         fixed_size = (fixed_size/sizeof(edgeT_t<T>))*sizeof(edgeT_t<T>);
@@ -830,15 +836,20 @@ void pgraph_t<T>::create_degree(degree_t* degree_in, degree_t* degree_out, index
                 assert(0);
             }
             count = sz_read/sizeof(edgeT_t<T>);
-            for (index_t i = 0; i < count; i++) {
-                __sync_fetch_and_add(degree_out + edges[i].src_id, 1);
-                __sync_fetch_and_add(degree_in  + get_dst(edges + i), 1);
+            if (degree_in == 0) {
+                for (index_t i = 0; i < count; i++) {
+                    __sync_fetch_and_add(degree_out + edges[i].src_id, 1);
+                }
+            } else {
+                for (index_t i = 0; i < count; i++) {
+                    __sync_fetch_and_add(degree_out + edges[i].src_id, 1);
+                    __sync_fetch_and_add(degree_in  + get_dst(edges + i), 1);
+                }
             }
             offset += sz_read;
             total_read += sz_read;
         }
     }
-
     free(edges);
 }
 
@@ -1240,7 +1251,8 @@ void ugraph<T>::prep_graph_baseline()
     if (0 == sgraph) {
         sgraph  = (onegraph_t<T>**) calloc (sizeof(onegraph_t<T>*), t_count);
     }
-    prep_sgraph(flag1, sgraph); 
+    prep_sgraph(flag1, sgraph);
+    this->sgraph_in = sgraph; 
 }
 
 template <class T> 
@@ -1409,7 +1421,7 @@ void unigraph<T>::prep_graph_baseline()
     if (0 == sgraph_out) {
         sgraph_out  = (onegraph_t<T>**) calloc (sizeof(onegraph_t<T>*), t_count);
     }
-    prep_sgraph(flag1, sgraph_out);    
+    prep_sgraph(flag1, sgraph_out);
 }
 
 //We assume that no new vertex type is defined
