@@ -5,7 +5,6 @@
 #include "util.h"
 
 /*
-#include "iterative_analytics.h"
 #include "mem_iterative_analytics.h"
 */
 
@@ -919,37 +918,6 @@ void ingestion_fulluni(const string& idir, const string& odir,
     */
 }
 
-void plain_test3(const string& idir, const string& odir)
-{
-    plaingraph_manager.schema_plaingraph();
-    //do some setup for plain graphs
-    plaingraph_manager.setup_graph(v_count);    
-    plaingraph_manager.prep_graph_adj(idir, odir);
-    //plaingraph_manager.prep_graph(idir, odir);
-    
-    propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
-    verification<sid_t>(ugraph->sgraph, ugraph->sgraph, 1); 
-    return ;
-}
-
-void plain_test5(const string& odir)
-{
-    plaingraph_manager.schema_plaingraph();
-    //do some setup for plain graphs
-    //plaingraph_manager.setup_graph(v_count);    
-    
-    propid_t cf_id = g->get_cfid("friend");
-    ugraph_t* ugraph = (ugraph_t*)g->cf_info[cf_id];
-    
-    ugraph->flag1 = 1;
-    ugraph->flag2 = 1;
-    g->read_graph_baseline();
-    
-    verification<sid_t>(ugraph->sgraph, ugraph->sgraph, 1); 
-    return ;
-}
-
 void plain_test6(const string& odir)
 {
     plaingraph_manager.schema_plaingraph();
@@ -1422,13 +1390,6 @@ void plain_test(vid_t v_count1, const string& idir, const string& odir, int job)
         case 99:
             estimate_IO<sid_t>(idir, odir);
             break; 
-        case 100:
-            plain_test3(idir, odir);
-            //plain_test6(odir);
-            break;
-        case 101:
-            plain_test5(odir);
-            break;
         default:
             break;
     }

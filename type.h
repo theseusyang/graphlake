@@ -372,8 +372,6 @@ class vunit_t {
  public:
 	//Durable adj list, and num of nebrs in that
 	uint32_t      vflag;
-	degree_t      count;
-    index_t       offset;
 	delta_adjlist_t<T>* delta_adjlist;
 	delta_adjlist_t<T>* adj_list;//Last chain
 
@@ -389,18 +387,13 @@ class vunit_t {
 template <class T>
 class vunit_t {
  public:
-	//Durable adj list, and num of nebrs in that
 	uint16_t      vflag;
 	uint16_t      max_size; //max count in delta adj list
-    degree_t      count;  //durable degree count
-    index_t       offset; //file offset at which it was written
 	delta_adjlist_t<T>* delta_adjlist;
 	delta_adjlist_t<T>* adj_list;//Last chain
 
 	inline void reset() {
 		vflag = 0;
-		count = 0;
-		offset = -1L;
 		delta_adjlist = 0;
         adj_list = 0;
 	}

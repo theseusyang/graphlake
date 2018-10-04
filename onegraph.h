@@ -365,7 +365,7 @@ degree_t onegraph_t<T>::find_nebr(vid_t vid, sid_t sid)
     vunit_t<T>* v_unit = beg_pos[vid].get_vunit();
     if (0 == v_unit) return INVALID_DEGREE;
 
-    degree_t  durable_degree = v_unit->count;
+    //degree_t  durable_degree = v_unit->count;
     degree_t    local_degree = 0;
     degree_t          degree = 0;
     sid_t               nebr = 0;
@@ -379,7 +379,7 @@ degree_t onegraph_t<T>::find_nebr(vid_t vid, sid_t sid)
         for (degree_t i = 0; i < local_degree; ++i) {
             nebr = get_nebr(local_adjlist, i);
             if (nebr == sid) {
-                return i + degree + durable_degree;
+                return i + degree;
             }
         }
         degree += local_degree;
@@ -392,7 +392,7 @@ degree_t onegraph_t<T>::find_nebr(vid_t vid, sid_t sid)
     for (degree_t i = 0; i < local_degree; ++i) {
         nebr = get_nebr(local_adjlist, i);
         if (nebr == sid) {
-            return i + degree + durable_degree;
+            return i + degree;
         }
     }
     /*
@@ -738,16 +738,7 @@ void onegraph_t<T>::read_vtable()
 
         for (vid_t v = 0; v < read_count; ++v) {
 			vid = dvt[v].vid;
-			v_unit = beg_pos[vid].get_vunit();
-			if (v_unit) {
-				v_unit->offset = dvt[v].file_offset;
-				v_unit->count = 0;//dvt[v].count + dvt[v].del_count;
-			} else {
-			    v_unit = new_vunit_local();
-				v_unit->offset = dvt[v].file_offset;
-				v_unit->count = 0; //dvt[v].count + dvt->del_count;
-				beg_pos[vid].set_vunit(v_unit);
-			}
+			
             //allocate new snapshot for degree, and initialize
 			next = new_snapdegree_local();
             next->del_count     = dvt[v].del_count;
@@ -759,6 +750,9 @@ void onegraph_t<T>::read_vtable()
             //assign delta adjlist
             delta_adjlist = (delta_adjlist_t<T>*)(adj_list + dvt[v].file_offset);
             delta_adjlist->add_next(0);
+            
+            v_unit = new_vunit_local();
+            beg_pos[vid].set_vunit(v_unit);
             v_unit->delta_adjlist = delta_adjlist;
             v_unit->adj_list = delta_adjlist;
         }

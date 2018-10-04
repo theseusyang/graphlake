@@ -771,7 +771,6 @@ void* serial_sstream_func(void* arg)
         {
             sid_t sid;
             degree_t      delta_degree = 0;
-            degree_t    durable_degree = 0;
             degree_t        nebr_count = 0;
             degree_t      local_degree = 0;
 
@@ -788,14 +787,13 @@ void* serial_sstream_func(void* arg)
                 v_unit = graph[v].get_vunit();
                 if (0 == v_unit) continue;
 
-                durable_degree = v_unit->count;
                 delta_adjlist = v_unit->delta_adjlist;
                 
                 nebr_count = degree_in[v];
                 rank = 0.0;
                 
                 //traverse the delta adj list
-                delta_degree = nebr_count - durable_degree;
+                delta_degree = nebr_count;
                 while (delta_adjlist != 0 && delta_degree > 0) {
                     local_adjlist = delta_adjlist->get_adjlist();
                     local_degree = delta_adjlist->get_nebrcount();
@@ -924,7 +922,6 @@ void plaingraph_manager_t<T>::prep_graph_durable(const string& idirname, const s
     }
 }
 
-#include "iterative_analytics.h"
 #include "mem_iterative_analytics.h"
 
 template <class T>

@@ -5,7 +5,7 @@
 #include "wtime.h"
 #include "mem_iterative_analytics.h"
 #include "sgraph.h"
-
+#include "io_driver.h"
 using std::min;
 
 //use direct AIO for BFS to compare against 

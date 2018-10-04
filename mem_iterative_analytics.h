@@ -169,7 +169,6 @@ mem_hop1(vert_table_t<T>* graph_out, degree_t* degree_out,
     //#pragma omp parallel
     {
     degree_t      delta_degree = 0;
-    degree_t    durable_degree = 0;
     degree_t        nebr_count = 0;
     degree_t      local_degree = 0;
 
@@ -187,12 +186,11 @@ mem_hop1(vert_table_t<T>* graph_out, degree_t* degree_out,
         v_unit = graph[v].get_vunit();
         
         if (0 != v_unit) {
-            durable_degree = v_unit->count;
             delta_adjlist = v_unit->delta_adjlist;
             nebr_count = degree_out[v];
             
             //traverse the delta adj list
-            delta_degree = nebr_count - durable_degree;
+            delta_degree = nebr_count;
             
             while (delta_adjlist != 0 && delta_degree > 0) {
                 local_adjlist = delta_adjlist->get_adjlist();
@@ -544,7 +542,6 @@ mem_hop2(vert_table_t<T>* graph_out, degree_t* degree_out,
 
         
     degree_t      delta_degree = 0;
-    degree_t    durable_degree = 0;
     degree_t        nebr_count = 0;
     degree_t      local_degree = 0;
 
@@ -567,11 +564,10 @@ mem_hop2(vert_table_t<T>* graph_out, degree_t* degree_out,
         v_unit = graph[v].get_vunit();
         if (0 == v_unit) continue;
 
-        durable_degree = v_unit->count;
         delta_adjlist = v_unit->delta_adjlist;
         
         //traverse the delta adj list
-        delta_degree = nebr_count - durable_degree;
+        delta_degree = nebr_count;
         
         while (delta_adjlist != 0 && delta_degree > 0) {
             local_adjlist = delta_adjlist->get_adjlist();
@@ -617,7 +613,6 @@ mem_hop2(vert_table_t<T>* graph_out, degree_t* degree_out,
         #pragma omp parallel
         {
         degree_t      delta_degree = 0;
-        degree_t    durable_degree = 0;
         degree_t        nebr_count = 0;
         degree_t      local_degree = 0;
         sid_t sid = 0;
@@ -638,12 +633,11 @@ mem_hop2(vert_table_t<T>* graph_out, degree_t* degree_out,
             v_unit = graph[v].get_vunit();
             if (0 == v_unit) continue;
 
-            durable_degree = v_unit->count;
             delta_adjlist = v_unit->delta_adjlist;
             nebr_count = degree_out[v];
             
             //traverse the delta adj list
-            delta_degree = nebr_count - durable_degree;
+            delta_degree = nebr_count;
             
             while (delta_adjlist != 0 && delta_degree > 0) {
                 local_adjlist = delta_adjlist->get_adjlist();
@@ -656,7 +650,6 @@ mem_hop2(vert_table_t<T>* graph_out, degree_t* degree_out,
                 delta_adjlist = delta_adjlist->get_next();
                 delta_degree -= local_degree;
             }
-            assert(durable_degree == 0);
         }
 
         //on-the-fly snapshots should process this
@@ -714,7 +707,6 @@ void mem_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
 		#pragma omp parallel reduction(+:frontier)
 		{
             sid_t sid;
-            degree_t durable_degree = 0;
             degree_t nebr_count = 0;
             degree_t local_degree = 0;
             degree_t delta_degree = 0;
@@ -734,8 +726,7 @@ void mem_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
                     if (0 == v_unit) continue;
 
 					nebr_count     = degree_out[v];
-                    durable_degree = v_unit->count;
-                    delta_degree   = nebr_count - durable_degree;
+                    delta_degree   = nebr_count;
                     delta_adjlist  = v_unit->delta_adjlist;
 				    //cout << "delta adjlist " << delta_degree << endl;	
 				    //cout << "Nebr list of " << v <<" degree = " << nebr_count << endl;	
@@ -767,14 +758,13 @@ void mem_bfs(vert_table_t<T>* graph_out, degree_t* degree_out,
 					v_unit = graph[v].get_vunit();
                     if (0 == v_unit) continue;
 
-                    durable_degree = v_unit->count;
                     delta_adjlist = v_unit->delta_adjlist;
 					
 					nebr_count = degree_in[v];
                     done = 0;
 
                     //traverse the delta adj list
-                    delta_degree = nebr_count - durable_degree;
+                    delta_degree = nebr_count;
                     while (delta_adjlist != 0 && delta_degree > 0) {
                         local_adjlist = delta_adjlist->get_adjlist();
                         local_degree = delta_adjlist->get_nebrcount();
@@ -1014,7 +1004,6 @@ mem_pagerank_push(vert_table_t<T>* graph_out, degree_t* degree_out,
         {
             sid_t sid;
             degree_t      delta_degree = 0;
-            degree_t durable_degree = 0;
             degree_t nebr_count = 0;
             degree_t local_degree = 0;
 
@@ -1031,14 +1020,13 @@ mem_pagerank_push(vert_table_t<T>* graph_out, degree_t* degree_out,
                 v_unit = graph[v].get_vunit();
                 if (0 == v_unit) continue;
 
-                durable_degree = v_unit->count;
                 delta_adjlist = v_unit->delta_adjlist;
                 
                 nebr_count = degree_out[v];
                 rank = prior_rank_array[v];
                 
                 //traverse the delta adj list
-                delta_degree = nebr_count - durable_degree;
+                delta_degree = nebr_count;
                 while (delta_adjlist != 0 && delta_degree > 0) {
                     local_adjlist = delta_adjlist->get_adjlist();
                     local_degree = delta_adjlist->get_nebrcount();
@@ -1050,7 +1038,6 @@ mem_pagerank_push(vert_table_t<T>* graph_out, degree_t* degree_out,
                     delta_adjlist = delta_adjlist->get_next();
                     delta_degree -= local_degree;
                 }
-                assert(durable_degree == 0); 
             }
         
 
@@ -1155,7 +1142,6 @@ mem_pagerank(vert_table_t<T>* graph_in, degree_t* degree_in, degree_t* degree_ou
         {
             sid_t sid;
             degree_t      delta_degree = 0;
-            degree_t durable_degree = 0;
             degree_t nebr_count = 0;
             degree_t local_degree = 0;
 
@@ -1172,14 +1158,13 @@ mem_pagerank(vert_table_t<T>* graph_in, degree_t* degree_in, degree_t* degree_ou
                 v_unit = graph[v].get_vunit();
                 if (0 == v_unit) continue;
 
-                durable_degree = v_unit->count;
                 delta_adjlist = v_unit->delta_adjlist;
                 
                 nebr_count = degree_in[v];
                 rank = 0.0f;
                 
                 //traverse the delta adj list
-                delta_degree = nebr_count - durable_degree;
+                delta_degree = nebr_count;
                 while (delta_adjlist != 0 && delta_degree > 0) {
                     local_adjlist = delta_adjlist->get_adjlist();
                     local_degree = delta_adjlist->get_nebrcount();
@@ -1191,7 +1176,6 @@ mem_pagerank(vert_table_t<T>* graph_in, degree_t* degree_in, degree_t* degree_ou
                     delta_adjlist = delta_adjlist->get_next();
                     delta_degree -= local_degree;
                 }
-                assert(durable_degree == 0); 
                 //rank_array[v] = rank;
                 qthread_dincr(rank_array + v, rank);
             }
@@ -1283,7 +1267,6 @@ mem_pagerank_epsilon(vert_table_t<T>* graph_in, degree_t* degree_in, degree_t* d
         {
             sid_t sid;
             degree_t      delta_degree = 0;
-            degree_t durable_degree = 0;
             degree_t nebr_count = 0;
             degree_t local_degree = 0;
 
@@ -1300,14 +1283,13 @@ mem_pagerank_epsilon(vert_table_t<T>* graph_in, degree_t* degree_in, degree_t* d
                 v_unit = graph[v].get_vunit();
                 if (0 == v_unit) continue;
 
-                durable_degree = v_unit->count;
                 delta_adjlist = v_unit->delta_adjlist;
                 
                 nebr_count = degree_in[v];
                 rank = 0.0;
                 
                 //traverse the delta adj list
-                delta_degree = nebr_count - durable_degree;
+                delta_degree = nebr_count;
                 while (delta_adjlist != 0 && delta_degree > 0) {
                     local_adjlist = delta_adjlist->get_adjlist();
                     local_degree = delta_adjlist->get_nebrcount();
@@ -1399,7 +1381,6 @@ stream_pagerank_epsilon(sstream_t<T>* sstreamh)
         {
             sid_t sid;
             degree_t      delta_degree = 0;
-            degree_t    durable_degree = 0;
             degree_t        nebr_count = 0;
             degree_t      local_degree = 0;
 
@@ -1416,14 +1397,13 @@ stream_pagerank_epsilon(sstream_t<T>* sstreamh)
                 v_unit = graph[v].get_vunit();
                 if (0 == v_unit) continue;
 
-                durable_degree = v_unit->count;
                 delta_adjlist = v_unit->delta_adjlist;
                 
                 nebr_count = degree_in[v];
                 rank = 0.0;
                 
                 //traverse the delta adj list
-                delta_degree = nebr_count - durable_degree;
+                delta_degree = nebr_count;
                 while (delta_adjlist != 0 && delta_degree > 0) {
                     local_adjlist = delta_adjlist->get_adjlist();
                     local_degree = delta_adjlist->get_nebrcount();

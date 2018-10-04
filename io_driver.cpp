@@ -7,6 +7,7 @@
 #include "type.h"
 #include "graph.h"
 #include "graph_base.h"
+#include "io_driver.h"
 
 #ifdef B64
 propid_t INVALID_PID = 0xFFFF;

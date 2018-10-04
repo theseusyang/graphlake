@@ -18,7 +18,7 @@ SRC=main.cpp \
 	csv_to_edge.cpp\
 	query_triple.cpp\
 	graph_query.cpp\
-	graph_base.cpp\
+	io_driver.cpp\
 	rset.cpp\
 	propkv.cpp\
 	plaingraph_test.cpp\
@@ -52,11 +52,11 @@ HEADER=graph.h\
 	query_triple.h\
 	type.h\
 	graph_base.h\
+	io_driver.h\
 	onegraph.h\
 	onekv.h\
 	rset.h\
     query_clause.h\
-	iterative_analytics.h\
 	ext_iterative_analytics.h\
 	ext2_iterative_analytics.h\
 	mem_iterative_analytics.h\
