@@ -506,6 +506,7 @@ void estimate_IO(const string& idirname, const string& odirname)
 //template <class T>
 void weighted_dtest0(const string& idir, const string& odir)
 {
+#ifdef BULK
     plaingraph_manager_t<lite_edge_t> manager;
     
     manager.schema_plaingraph();
@@ -617,17 +618,6 @@ void weighted_dtest0(const string& idir, const string& odir)
     //-------Run bfs and PR------
     uint8_t* level_array = 0;
     level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
-    
-    /*
-    level_array = (uint8_t*)mmap(NULL, sizeof(uint8_t)*v_count, 
-                            PROT_READ|PROT_WRITE,
-                            MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0 );
-    
-    if (MAP_FAILED == level_array) {
-        cout << "Huge page alloc failed for level array" << endl;
-        level_array = (uint8_t*) calloc(v_count, sizeof(uint8_t));
-    }*/
-    
     
     vert_table_t<lite_edge_t>* beg_pos = sgraph->get_begpos();
     degree_t* degree_snap = 0;
@@ -761,7 +751,7 @@ void weighted_dtest0(const string& idir, const string& odir)
 
     free(degree_snap);
 */
-
+#endif
     return ;
 }
 

@@ -476,8 +476,6 @@ class write_seg_t {
      index_t        log_head;
 	 //This is file offset at which to start writing
 	 index_t        log_tail;
-	 //allocated from main vunit
-	 index_t        my_vunit_head;
 
      inline write_seg_t() {
         dvt = 0;
@@ -485,7 +483,6 @@ class write_seg_t {
         log_beg = 0;
         log_head = 0;
 		log_tail = 0;
-		my_vunit_head = 0;
      }
 	 inline void reset() {
         dvt = 0;
@@ -493,7 +490,6 @@ class write_seg_t {
         log_beg = 0;
         log_head = 0;
 		log_tail = 0;
-		my_vunit_head = 0;
 	 }
 };
 

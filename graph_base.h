@@ -214,10 +214,6 @@ private:
     index_t    adjlog_head; // current log write position
     index_t    adjlog_tail; //current log cleaning position
 
-    //durable adj list, for writing to disk
-    index_t    log_tail; //current log cleaning position
-    index_t    log_count;//size of memory log
-    
     //degree array related log, in-memory, fixed size logs
 	//indirection will help better cleaning.
     snapT_t<T>* dlog_beg;  //memory log pointer
@@ -229,17 +225,17 @@ private:
 	//v_unit log, in-memory, fixed size log
 	//indirection will help better cleaning
 	vunit_t<T>* vunit_beg;
-    index_t     vunit_head1;
-	vid_t*		vunit_ind; //The indirection table
+    index_t     vunit_head;
 	index_t     vunit_count;
-	index_t     vunit_head;
 	index_t     vunit_tail;
-	index_t     vunit_wtail;
 	//-----------
 
     //vertex table file related log
     write_seg_t  write_seg[3];
     vid_t    dvt_max_count;
+    //durable adj list, for writing to disk
+    index_t    log_tail; //current log cleaning position
+    index_t    log_count;//size of memory log
 
     int      vtf;   //vertex table file
     FILE*    stf;   //snapshot table file
@@ -275,36 +271,18 @@ public:
 
 	    vunit_beg	= 0;
 		vunit_count = 0;
-		vunit_ind	= 0;
-		vunit_head1  = 0;
 		vunit_head  = 0;
 		vunit_tail  = 0;
-		vunit_wtail = 0;
-
 
         adjlog_count = 0;
         adjlog_head  = 0;
         adjlog_tail = 0;
 
-        log_count = 0;
-        /*
-        log_head  = 0;
-        log_tail  = 0;
-        log_tail  = 0;
-        log_whead = 0;
-        log_wtail = 0;
-        */
         dlog_count = 0;
         dlog_head = 0;
         dlog_tail = 0;
        
-       /* 
-        snap_count = 0;
-        snap_whead = 0;
-        snap_wtail = 0;
-       */
-        
-        //dvt_count = 0;
+        log_count = 0;
         dvt_max_count = 0;
 		write_seg[0].reset();
 		write_seg[1].reset();
@@ -404,29 +382,8 @@ public:
 
     degree_t find_nebr(vid_t vid, sid_t sid); 
     
-    /* don't use. free yourself
-	inline void set_vunit(vid_t vid, vunit_t<T>* v_unit1) {
-        //prev value will be cleaned later
-		vunit_t<T>* v_unit2 = beg_pos[vid].set_vunit(v_unit1);
-		if (0 != v_unit2) {
-			index_t index  = __sync_fetch_and_add(&vunit_tail, 1L);
-			vid_t index1 = index % vunit_count;
-			vunit_ind[index1] = v_unit2 - vunit_beg;
-		}
-	}*/
-   
-    //durable adj list	
-	inline durable_adjlist_t<T>* new_adjlist(write_seg_t* seg,  degree_t count) {
-        degree_t new_count = count*sizeof(T)+sizeof(durable_adjlist_t<T>);
-        //index_t index_log = __sync_fetch_and_add(&seg->log_head, new_count);
-        //assert(index_log  < log_count); 
-        index_t index_log = seg->log_head;
-        seg->log_head += new_count;
-        assert(seg->log_head  <= log_count); 
-        return  (durable_adjlist_t<T>*)(seg->log_beg + index_log);
-	}
-	
     
+    // -------------------- global data structure ------------------    
     //delta adj list allocation
 	inline delta_adjlist_t<T>* new_delta_adjlist(degree_t count) {
         degree_t new_count = count*sizeof(T) + sizeof(delta_adjlist_t<T>);
@@ -435,50 +392,28 @@ public:
 		return (delta_adjlist_t<T>*)(adjlog_beg + index_adjlog);
 	}
     
-    
 	//in-memory snap degree
 	inline snapT_t<T>* new_snapdegree() {
 		index_t index_dlog  = __sync_fetch_and_add(&dlog_head, 1L);
 		assert(index_dlog   < dlog_count);
 		return (dlog_beg + index_dlog);
 	}
-
-	inline disk_vtable_t* new_dvt(write_seg_t* seg) {
-        //index_t j = __sync_fetch_and_add(&seg->dvt_count, 1L);
-        index_t j = seg->dvt_count;
-        ++seg->dvt_count;
-		//assert();
-		return seg->dvt + j;
-	}
 	
     //Used during read from disk
 	inline vunit_t<T>* new_vunit() {
-		index_t index = __sync_fetch_and_add(&vunit_head1, 1L);
+		index_t index = __sync_fetch_and_add(&vunit_head, 1L);
         assert(index < get_vcount());
 		vunit_t<T>* v_unit = vunit_beg + index;
 		v_unit->reset();
 		return v_unit;
 	}	
 
-    //don't reset    
-    inline vunit_t<T>* new_vunit(write_seg_t* seg, vid_t v) {
-		vid_t index1 = (seg->my_vunit_head + v) % vunit_count;
-		return  (vunit_beg + vunit_ind[index1]);
-	}	
-    
-    // -------------------- BULK ------------------    
     inline vunit_t<T>* new_vunit_bulk(vid_t count) {
-		index_t index = __sync_fetch_and_add(&vunit_head1, count);
+		index_t index = __sync_fetch_and_add(&vunit_head, count);
 		assert(index < get_vcount());
 		vunit_t<T>* v_unit = vunit_beg + index;
 		return v_unit;
 	}	
-
-	inline index_t new_vunit_bulk2(vid_t count) {
-		index_t index = vunit_head;
-        vunit_head += count; 
-		return index;
-	}
 
 	inline char* new_delta_adjlist_bulk(index_t count) {
 		index_t index_adjlog = __sync_fetch_and_add(&adjlog_head, count);
@@ -493,7 +428,7 @@ public:
 		return (dlog_beg + index_dlog);
 	}
 
-	//------------------------ local allocation-------
+    //------------------------ local allocation-------
 	inline vunit_t<T>* new_vunit_local() {
 		thd_mem_t<T>* my_thd_mem = thd_mem + omp_get_thread_num();
 		if (my_thd_mem->vunit_count == 0) {
@@ -550,6 +485,26 @@ public:
 		my_thd_mem->delta_size1 -= size;
 		return adj_list;
 	}
+    
+    //-----------durability thing------------
+    //durable adj list	
+	inline durable_adjlist_t<T>* new_adjlist(write_seg_t* seg,  degree_t count) {
+        degree_t new_count = count*sizeof(T)+sizeof(durable_adjlist_t<T>);
+        //index_t index_log = __sync_fetch_and_add(&seg->log_head, new_count);
+        //assert(index_log  < log_count); 
+        index_t index_log = seg->log_head;
+        seg->log_head += new_count;
+        assert(seg->log_head  <= log_count); 
+        return  (durable_adjlist_t<T>*)(seg->log_beg + index_log);
+	}
+
+	inline disk_vtable_t* new_dvt(write_seg_t* seg) {
+        //index_t j = __sync_fetch_and_add(&seg->dvt_count, 1L);
+        index_t j = seg->dvt_count;
+        ++seg->dvt_count;
+		//assert();
+		return seg->dvt + j;
+	}
 	//------------------
     
     inline vert_table_t<T>* get_begpos() { return beg_pos;}
@@ -559,18 +514,10 @@ public:
 
     void prepare_dvt(write_seg_t* seg, vid_t& last_vid, bool clean = false);
 	void adj_prep(write_seg_t* seg);
-	//void adj_update(write_seg_t* seg);
     void handle_write(bool clean = false);
     
-    void update_count();
-    /*
-    void prepare_vlog();
-	void persist_elog(const string& etfile);
-    void persist_vlog(const string& vtfile);
-    void persist_slog(const string& stfile);
-    void read_etable();
-    void read_stable(const string& stfile);
-    */
+	//void adj_update(write_seg_t* seg);
+    //void update_count();
     void read_vtable();
     void file_open(const string& filename, bool trunc);
 };

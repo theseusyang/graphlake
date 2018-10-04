@@ -1,5 +1,9 @@
 
 #include <algorithm>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #include "cf_info.h"
 
 
@@ -241,4 +245,24 @@ status_t cfinfo_t::extend(srset_t* iset, srset_t* oset, direction_t direction)
 {
     assert(0);
     return eOK;
+}
+
+off_t fsize(const string& fname)
+{
+    struct stat st;
+    if (0 == stat(fname.c_str(), &st)) {
+        return st.st_size;
+    }
+    perror("stat issue");
+    return -1L;
+}
+
+off_t fsize(int fd)
+{
+    struct stat st;
+    if (0 == fstat(fd, &st)) {
+        return st.st_size;
+    }
+    perror("stat issue");
+    return -1L;
 }
