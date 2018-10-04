@@ -1,12 +1,14 @@
 #pragma once
-
-#include "graph.h"
+#include "stringkv.h" 
+//#include "graph.h"
 
 class tinfo_t {
  public:
     sid_t   max_vcount;
     sid_t   vert_id;
     char*   type_name;
+    strkv_t strkv;
+/*
     sid_t*  vid2name;
     
     //edgetable file related log
@@ -17,6 +19,7 @@ class tinfo_t {
     sid_t    log_wpos; //Write this pointer for write persistency
     int      etf;   //edge table file
     int      vtf;   //vid2name file
+*/
 };
 
 class inference_tinfo_t {
@@ -53,19 +56,13 @@ class typekv_t : public cfinfo_t {
 
     tid_t       max_count;
 
-
-    //vertex table file related log
-    disk_typekv_t* dvt;
-    vid_t    dvt_count; 
-    vid_t    dvt_max_count;
-
     FILE*   vtf;   //vertex table file
 
   public:
 
     typekv_t();
 
-    void alloc_edgelog(tid_t t);
+    //void alloc_edgelog(tid_t t);
     tid_t manual_setup(sid_t vert_count, const string& type_name="gtype");
     inline void init_enum(int enumcount) {
         max_count = enumcount;
@@ -105,7 +102,8 @@ class typekv_t : public cfinfo_t {
     inline string get_vertex_name(sid_t sid) {
         tid_t tid = TO_TID(sid);
         vid_t vid = TO_VID(sid);
-        return t_info[tid].log_beg + t_info[tid].vid2name[vid];
+        return t_info[tid].strkv.get_value(vid);
+        //return t_info[tid].log_beg + t_info[tid].vid2name[vid];
     }
     
     sid_t type_update(const string& src, const string& dst);

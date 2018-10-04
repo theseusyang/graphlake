@@ -175,7 +175,7 @@ strkv_t::strkv_t()
     //dvt_max_count = (1L << 9);
 }
 
-void strkv_t::set_value(vid_t vid, char* value)
+void strkv_t::set_value(vid_t vid, const char* value)
 {
     kv[vid] = log_head;
     char* ptr = log_beg + log_head;
@@ -199,6 +199,7 @@ void strkv_t::setup(tid_t t)
 {
     tid = t;
     vid_t v_count = g->get_type_scount(tid);
+    
     kv = (sid_t*)calloc(sizeof(sid_t), v_count);
     
     //everything is in memory
@@ -234,14 +235,19 @@ void strkv_t::persist_vlog()
     dvt_count = 0;
 
     fwrite(dvt, sizeof(disk_strkv_t), count, vtf);*/
-    vid_t v_count = g->get_type_scount();    
-    pwrite(vtf, kv, v_count*sizeof(sid_t), 0);
+    vid_t v_count = g->get_type_scount();
+    if (log_head != 0) {    
+        pwrite(vtf, kv, v_count*sizeof(sid_t), 0);
+    }
 }
 
 void strkv_t::file_open(const string& filename, bool trunc)
 {
-    string vtfile = filename + ".vtable";
-    string etfile = filename + ".etable";
+    char  file_ext[16];
+    sprintf(file_ext,"%u",tid);
+    
+    string vtfile = filename + ".vtable" + file_ext;
+    string etfile = filename + ".etable" + file_ext;
     if (trunc) {
 		etf = open(etfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
         //etf = fopen(etfile.c_str(), "wb");//append/write + binary

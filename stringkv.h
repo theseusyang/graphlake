@@ -36,7 +36,7 @@ class strkv_t {
  
  public: 
     void setup(tid_t tid); 
-    void set_value(vid_t vid, char* value); 
+    void set_value(vid_t vid, const char* value); 
     const char* get_value(vid_t vid);
     void persist_vlog();
     void persist_elog();
