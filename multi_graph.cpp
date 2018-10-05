@@ -1,4 +1,5 @@
 #include "multi_graph.h"
+#include "stringkv.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"

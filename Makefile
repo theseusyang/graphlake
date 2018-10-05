@@ -3,15 +3,17 @@ EXE1=graphone32
 EXE2=graphone64
 EXE3=graphlake32
 EXE4=graphlake64
-#CFLAGS=-g -Wall -std=gnu++11 -march=native -fopenmp -lpthread -DOVER_COMMIT
-CFLAGS=-O3 -g -Wall -std=gnu++11  -march=native -fopenmp -lpthread -DOVER_COMMIT
-#CFLAGS=-O3 -Wall -std=gnu++11  -march=native -fopenmp -lpthread -DBULK
+CFLAGS=-g -Wall -std=gnu++11 -march=native -fopenmp -lpthread -DOVER_COMMIT
+#CFLAGS=-O3 -g -Wall -std=gnu++11  -march=native -fopenmp -lpthread -DOVER_COMMIT
+#CFLAGS=-O3 -g -Wall -std=gnu++11  -march=native -fopenmp -lpthread -DBULK
 
 SRC=main.cpp \
 	cf_info.cpp\
 	graph.cpp\
 	sgraph.cpp\
+	str.cpp\
 	stringkv.cpp\
+	enumkv.cpp\
 	typekv.cpp\
 	multi_graph.cpp\
 	nt_to_edge.cpp\
@@ -45,7 +47,9 @@ HEADER=graph.h\
 	wgraph.h\
 	prop_encoder.h\
 	propkv.h\
+	str.h\
 	stringkv.h\
+	enumkv.h\
 	mlabel.h\
 	typekv.h\
 	query_node.h\

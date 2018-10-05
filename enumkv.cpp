@@ -1,0 +1,103 @@
+#include "graph.h"
+#include "enumkv.h"
+
+
+status_t enumkv_t::batch_update(const string& src, const string& dst, propid_t pid /*= 0*/)
+{
+    return eOK;
+}
+
+status_t enumkv_t::batch_edge(edgeT_t<char*>& edge)
+{
+    sid_t       src_id = edge.src_id;
+    string      dst = edge.dst_id;
+    tid_t       tid = TO_TID(src_id);
+    vid_t       vid = TO_VID(src_id);
+    uint8_t     eid = 0;
+    
+    map<string, uint8_t>::iterator str2enum_iter = str2enum.find(dst);
+    
+    //Have not see this enum, create one
+    if (str2enum.end() == str2enum_iter) {
+        assert(eid <= max_ecount);
+        eid = ecount++;
+        str2enum[dst] = eid;
+        enum2str[eid] = gstrdup(dst.c_str());
+    } else { //existing type, get the last vertex id allocated
+        eid = str2enum_iter->second;
+    }
+    numkv_out[tid][vid] = eid;
+    return eOK;
+}
+
+void enumkv_t::make_graph_baseline()
+{
+}
+
+void enumkv_t::read_graph_baseline()
+{
+}
+
+void enumkv_t::init_enum(int enumcount)
+{
+    max_ecount = enumcount;
+    ecount = 0;
+    enum2str = new char*[enumcount];
+}
+
+enumkv_t::enumkv_t()
+{
+    init_enum(256);
+}
+
+void enumkv_t::file_open(const string& odir, bool trunc)
+{
+    string vtfile;
+    vtfile = odir + col_info[0]->p_name + ".vtable";
+
+    if(trunc) {
+		//vtf = open(vtfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
+		vtf = fopen(vtfile.c_str(), "w");
+		assert(vtf != 0); 
+    } else {
+		//vtf = open(vtfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
+		vtf = fopen(vtfile.c_str(), "r+");
+		assert(vtf != 0); 
+    }
+}
+
+void enumkv_t::prep_graph_baseline()
+{
+    sflag_t    flag = flag1;
+    tid_t      pos  = 0;
+    tid_t   t_count = g->get_total_types();
+    vid_t    v_count;
+    
+    if (0 == numkv_out) {
+        numkv_out = (uint8_t**) calloc (sizeof(uint8_t*), t_count);
+    }
+    flag1_count = __builtin_popcountll(flag);
+
+    for(tid_t i = 0; i < flag1_count; i++) {
+        pos = __builtin_ctzll(flag);
+        flag ^= (1L << pos);//reset that position
+        if (0 == numkv_out[pos]) {
+            v_count = g->get_type_scount(pos);
+            numkv_out[pos] = (uint8_t*)calloc(sizeof(uint8_t), v_count);
+        }
+    }
+}
+
+void enumkv_t::store_graph_baseline(bool clean /*=false*/)
+{
+    if (numkv_out == 0) return;
+    
+    tid_t       t_count = g->get_total_types();
+    
+    // For each file.
+    for (tid_t i = 0; i < t_count; ++i) {
+        if (numkv_out[i] == 0) continue;
+        // fwrite();
+    }
+}
+

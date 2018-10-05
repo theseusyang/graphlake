@@ -1,5 +1,5 @@
 #pragma once
-#include "stringkv.h" 
+#include "str.h" 
 
 class tinfo_t {
  public:

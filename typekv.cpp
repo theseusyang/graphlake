@@ -1,6 +1,5 @@
 #include "graph.h"
 #include "typekv.h"
-//#include "stringkv.h"
 
 sid_t typekv_t::type_update(const string& src, const string& dst)
 {
