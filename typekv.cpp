@@ -48,7 +48,7 @@ sid_t typekv_t::type_update(const string& src, const string& dst)
         assert(super_id < t_info[type_id].max_vcount);
         //t_info[type_id].vid2name[vid] = gstrdup(src.c_str());
     
-        t_info[type_id].strkv.set_value(vid,src.c_str());
+        t_info[type_id].strkv.set_value(vid, src.c_str());
         /*
         t_info[type_id].vid2name[vid] = t_info[type_id].log_head;
         memcpy(t_info[type_id].log_beg + t_info[type_id].log_head, src.c_str(), 

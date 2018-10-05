@@ -7,8 +7,17 @@ cfinfo_t* stringkv_t::create_instance()
     return new stringkv_t;
 }
 
+status_t stringkv_t::batch_edge(edgeT_t<char*>& edge)
+{
+    vid_t vid = TO_VID(edge.src_id);
+    tid_t tid = TO_TID(edge.src_id);
+    strkv_out[tid]->set_value(vid, edge.dst_id);
+    return eOK;
+}
+
 status_t stringkv_t::batch_update(const string& src, const string& dst, propid_t pid /* = 0*/)
 {
+    /*
     vid_t src_id;
     char* dst_id;
     index_t index = 0;
@@ -35,11 +44,13 @@ status_t stringkv_t::batch_update(const string& src, const string& dst, propid_t
     edges = (edgeT_t<char*>*) batch_info1[batch_count1].buf;
     edges[index].src_id = src_id; 
     edges[index].dst_id = dst_id;
+    */
     return eOK;
 }
 
 void stringkv_t::make_graph_baseline()
 {
+    /*
     if (batch_info[batch_count].count == 0) return;
 
     flag1_count = __builtin_popcountll(flag1);
@@ -52,6 +63,7 @@ void stringkv_t::make_graph_baseline()
     fill_kv_out();
 
     cleanup();
+    */
 }
 
 strkv_t** stringkv_t::prep_strkv()
@@ -77,6 +89,7 @@ strkv_t** stringkv_t::prep_strkv()
 
 void stringkv_t::fill_kv_out()
 {
+    /*
     sid_t src;
     char* dst;
     vid_t     vert1_id;
@@ -96,19 +109,17 @@ void stringkv_t::fill_kv_out()
             src_index = TO_TID(src);
             strkv_out[src_index]->set_value(vert1_id, dst);
         }
-    }
+    }*/
 }
 
 void stringkv_t::file_open(const string& dir, bool trunc)
 {
     if (strkv_out == 0) return;
     
-    char name[8];
-    string postfix = "out";
     tid_t       t_count = g->get_total_types();
     
     //base name using relationship type
-    string basefile, filename;
+    string basefile;
     if (col_count) {
         basefile = dir + col_info[0]->p_name;
     } else {
@@ -118,11 +129,7 @@ void stringkv_t::file_open(const string& dir, bool trunc)
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
         if (strkv_out[i] == 0) continue;
-        //name = typekv->get_type_name(i);
-        sprintf(name, "%d", i);
-        filename = basefile + name + postfix;
-
-        strkv_out[i]->file_open(filename, trunc);
+        strkv_out[i]->file_open(basefile, trunc);
     }
 }
 
@@ -150,11 +157,10 @@ void stringkv_t::read_graph_baseline()
     
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
-
         strkv_out[i] = new strkv_t;
         strkv_out[i]->setup(i);
         strkv_out[i]->read_vtable();
-        strkv_out[i]->read_etable();
+        //strkv_out[i]->read_etable();
     }
 }
 
