@@ -62,10 +62,20 @@ void update_fromtext_multi(const string& idir, const string& odir,
     multi_graph_t manager;
     THD_COUNT = omp_get_max_threads() - 1;
     wls_schema();
+    wls_setup();
     //do some setup for plain graphs
     manager.prep_graph_fromtext(idir, odir, parsefile_and_multi_insert); 
     run_sample_wls_query();    
     g->store_graph_baseline();
+}
+
+void read_fromtext_multi(const string& idir, const string& odir)
+{
+    multi_graph_t manager;
+    THD_COUNT = omp_get_max_threads() - 1;
+    wls_schema();
+    g->read_graph_baseline();
+    run_sample_wls_query();    
 }
 
 void multigraph_test(vid_t v_count1, const string& idir, const string& odir, int job)
@@ -74,6 +84,8 @@ void multigraph_test(vid_t v_count1, const string& idir, const string& odir, int
         case 0://text to our format
             update_fromtext_multi(idir, odir, parsefile_and_multi_insert);
             break;
+        case 1://text to our format
+            read_fromtext_multi(idir, odir);
         default:
             break;
     }

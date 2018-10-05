@@ -1,6 +1,5 @@
 #pragma once
 #include "stringkv.h" 
-//#include "graph.h"
 
 class tinfo_t {
  public:
@@ -15,12 +14,6 @@ class inference_tinfo_t {
     char* type_name;
     tid_t count;
     tid_t* tlist;
-};
-
-class disk_typekv_t {
-    public:
-    sid_t sid;
-    sid_t offset;
 };
 
 //type class

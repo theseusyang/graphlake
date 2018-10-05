@@ -30,9 +30,6 @@ void wls_schema()
     info->add_column(p_info);
     ++p_info;
     
-    typekv_t* typekv = g->get_typekv();
-    typekv->manual_setup(1<<28, "process");//processes are tid 0
-    typekv->manual_setup(1<<20, "user");//users are tid 1
     
     longname = "proc2parent";
     shortname = "proc2parent";
@@ -70,11 +67,15 @@ void wls_schema()
     //info->flag2 = 1;
     ++p_info;
     
-    
+}
+
+void wls_setup()
+{
+    typekv_t* typekv = g->get_typekv();
+    typekv->manual_setup(1<<28, "process");//processes are tid 0
+    typekv->manual_setup(1<<20, "user");//users are tid 1
     g->prep_graph_baseline();
     g->file_open(true);
-   // g->make_graph_baseline();
-   // g->store_graph_baseline(); 
 }
 
 inline index_t parse_wls_line(char* line) 

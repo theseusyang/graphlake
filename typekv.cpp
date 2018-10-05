@@ -15,19 +15,11 @@ sid_t typekv_t::type_update(const string& src, const string& dst)
     if (str2enum.end() == str2enum_iter) {
         type_id = t_count++;
         super_id = TO_SUPER(type_id);
-        
         str2enum[dst] = type_id;
         t_info[type_id].vert_id = super_id; 
         t_info[t_count].type_name = strdup(dst.c_str());
-        
         t_info[type_id].max_vcount = (1<<20);//guess
-
-        /*
-        t_info[type_id].vid2name   = (sid_t*)calloc(sizeof(sid_t), 
-                                                    t_info[type_id].max_vcount);
-        alloc_edgelog(type_id);
-        */
-        string filename = g->odirname + "typekv";
+        string filename = g->odirname + col_info[0]->p_name;
         t_info[type_id].strkv.setup(type_id);
         t_info[type_id].strkv.file_open(filename, true);
 
@@ -46,15 +38,7 @@ sid_t typekv_t::type_update(const string& src, const string& dst)
 
         vid     = TO_VID(super_id); 
         assert(super_id < t_info[type_id].max_vcount);
-        //t_info[type_id].vid2name[vid] = gstrdup(src.c_str());
-    
         t_info[type_id].strkv.set_value(vid, src.c_str());
-        /*
-        t_info[type_id].vid2name[vid] = t_info[type_id].log_head;
-        memcpy(t_info[type_id].log_beg + t_info[type_id].log_head, src.c_str(), 
-               strlen(src.c_str()) + 1);
-        t_info[type_id].log_head += strlen(src.c_str()) + 1;
-        */
     } else {
         //dublicate entry 
         //If type mismatch, delete original //XXX
@@ -96,16 +80,8 @@ sid_t typekv_t::type_update(const string& src, tid_t type_id)
 
         vid     = TO_VID(src_id); 
         assert(super_id < t_info[type_id].max_vcount);
-        //t_info[type_id].vid2name[vid] = gstrdup(src.c_str());
         
         t_info[type_id].strkv.set_value(vid, src.c_str());
-        /*
-        t_info[type_id].vid2name[vid] = t_info[type_id].log_head;
-        memcpy(t_info[type_id].log_beg + t_info[type_id].log_head, src.c_str(), 
-               strlen(src.c_str()) + 1);
-        t_info[type_id].log_head += strlen(src.c_str()) + 1;
-        */
-
     } else {
         //dublicate entry 
         //If type mismatch, delete original //XXX
@@ -143,7 +119,6 @@ status_t typekv_t::get_encoded_value(const char* value, univ_t* univ)
 
     univ->value_tid = str2enum_iter->second;
     return eOK;
-    
 }
     
 status_t typekv_t::get_encoded_values(const char* value, tid_t** tids, qid_t* counts)
@@ -177,7 +152,7 @@ void typekv_t::make_graph_baseline()
 void typekv_t::file_open(const string& dir, bool trunc) 
 {
     string vtfile;
-    vtfile = dir + "typekv.vtable";
+    vtfile = dir + col_info[0]->p_name + ".vtable";
 
     if(trunc) {
 		//vtf = open(vtfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
@@ -192,16 +167,10 @@ void typekv_t::file_open(const string& dir, bool trunc)
 
 void typekv_t::store_graph_baseline(bool clean)
 {
-    index_t total_size = 0;
+    fseek(vtf, 0, SEEK_SET);
 
-    for (tid_t t = 0; t < t_count; ++t) {
-        total_size += sizeof(t_info[t].max_vcount) + sizeof(t_info[t].vert_id) 
-                      + strlen(t_info[t].type_name) + 4;//for space, string null char and new line
-        //sprintf(type_text, "%ld %ld %s\n", max_vcount, vert_id, type_name);
-    }
-    
     //write down the type info, t_info
-    char* type_text = (char*)calloc(sizeof(char), total_size);
+    char type_text[512];
     for (tid_t t = 0; t < t_count; ++t) {
 #ifdef B32
         sprintf(type_text, "%u %u %s\n", t_info[t].max_vcount, t_info[t].vert_id, 
@@ -210,20 +179,10 @@ void typekv_t::store_graph_baseline(bool clean)
         sprintf(type_text, "%lu %lu %s\n", t_info[t].max_vcount, t_info[t].vert_id, 
                 t_info[t].type_name);
 #endif    
+        fwrite(type_text, sizeof(char), strlen(type_text), vtf);
         t_info[t].strkv.persist_elog();
         t_info[t].strkv.persist_vlog();
-        /*    
-        //Make a copy
-        sid_t wpos = t_info[t].log_wpos;
-        //Update the mark
-        t_info[t].log_wpos = t_info[t].log_head;
-        write(t_info[t].etf, t_info[t].log_beg + wpos, t_info[t].log_head-wpos);
-
-        pwrite(t_info[t].vtf, t_info[t].vid2name, t_info[t].vert_id*sizeof(sid_t), 0);
-        */
     }
-    fseek(vtf, 0, SEEK_SET);
-    fwrite(type_text, sizeof(char), strlen(type_text), vtf);
     //str2enum: No need to write. We make it from disk during initial read.
     //XXX: write down the deleted id list
 }
@@ -244,10 +203,10 @@ void typekv_t::read_graph_baseline()
         t_info[t].type_name = strdup(token);
         t_info[t].strkv.setup(t);
     
-        string filename = g->odirname + "typekv";
+        string filename = g->odirname + col_info[0]->p_name;
         t_info[t].strkv.file_open(filename, false);
         t_info[t].strkv.read_vtable();
-
+        t_info[t].strkv.prep_str2sid(str2vid);
         ++t;
     }
 
@@ -267,7 +226,7 @@ typekv_t::typekv_t()
 //Required to be called as we need to have a guess for max v_count
 tid_t typekv_t::manual_setup(sid_t vert_count, const string& type_name/*="gtype"*/)
 {
-    string filename = g->odirname + "typekv";
+    string filename = g->odirname + col_info[0]->p_name;
     
     str2enum[type_name.c_str()] = t_count;
     t_info[t_count].type_name = strdup(type_name.c_str());

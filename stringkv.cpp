@@ -157,8 +157,7 @@ void stringkv_t::read_graph_baseline()
     
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
-        strkv_out[i] = new strkv_t;
-        strkv_out[i]->setup(i);
+        if (strkv_out[i] == 0) continue;
         strkv_out[i]->read_vtable();
         //strkv_out[i]->read_etable();
     }
@@ -176,9 +175,6 @@ strkv_t::strkv_t()
     log_wpos = 0;
     vtf = -1;
     etf = -1;
-    
-    //dvt_count = 0;
-    //dvt_max_count = (1L << 9);
 }
 
 void strkv_t::set_value(vid_t vid, const char* value)
@@ -248,7 +244,7 @@ void strkv_t::persist_vlog()
     dvt_count = 0;
 
     fwrite(dvt, sizeof(disk_strkv_t), count, vtf);*/
-    vid_t v_count = g->get_type_vcount();
+    vid_t v_count = g->get_type_vcount(tid);
     if (v_count != 0) {
         pwrite(vtf, kv, v_count*sizeof(sid_t), 0);
     }
@@ -312,11 +308,11 @@ void strkv_t::read_vtable()
     if (size == -1L) { assert(0); }
     
     if (size != 0) {
-        sid_t vcount = size/sizeof(sid_t);
-        assert(vcount == g->get_type_scount(tid));
-        kv = (sid_t*)calloc(sizeof(sid_t), vcount);
+        vid_t vcount = size/sizeof(sid_t);
+        assert(vcount == g->get_type_vcount(tid));
+        vid_t max_vcount = g->get_type_scount(tid);
+        kv = (sid_t*)calloc(sizeof(sid_t), max_vcount);
         read(vtf, kv, sizeof(sid_t)*vcount);
-        
     }
 
     /*
@@ -342,8 +338,8 @@ void strkv_t::prep_str2sid(map<string, sid_t>& str2sid)
 {
     
     char* type_name = 0;
-    sid_t super_id = TO_THIGH(tid);
-    vid_t v_count = g->get_type_scount();
+    sid_t super_id = TO_SUPER(tid);
+    vid_t v_count = g->get_type_vcount(tid);
     
     //create the str2vid now
     for (vid_t vid = 0; vid < v_count; ++vid) {

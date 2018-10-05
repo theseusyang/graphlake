@@ -99,7 +99,7 @@ class graph {
     inline cfinfo_t* get_sgraph(propid_t cfid) { return cf_info[cfid];}
     inline typekv_t* get_typekv() { return (typekv_t*)cf_info[0]; }
     vid_t get_type_scount(tid_t type = 0);
-    vid_t get_type_vcount(tid_t type = 0);
+    vid_t get_type_vcount(tid_t type);
     tid_t get_total_types();
 	tid_t get_tid(const char* type);
     sid_t type_update(const string& src, const string& dst);

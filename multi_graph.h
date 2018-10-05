@@ -27,3 +27,4 @@ class multi_graph_t {
 
 index_t parsefile_and_multi_insert(const string& textfile, const string& ofile); 
 void  wls_schema();
+void  wls_setup();
