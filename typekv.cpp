@@ -247,38 +247,6 @@ void typekv_t::read_graph_baseline()
         string filename = g->odirname + "typekv";
         t_info[t].strkv.file_open(filename, false);
         t_info[t].strkv.read_vtable();
-        /*
-        //read etf
-        alloc_edgelog(t);
-        off_t size = fsize(t_info[t].etf);
-        if (size == -1L) { assert(0); }
-        
-        if (size != 0) {
-            sid_t edge_count = size/sizeof(char);
-            read(t_info[t].etf, t_info[t].log_beg, sizeof(char)*edge_count);
-
-            t_info[t].log_head = edge_count;
-            t_info[t].log_wpos = t_info[t].log_head;
-        }
-        
-        //read vtf 
-        size = fsize(t_info[t].vtf);
-        if (size == -1L) { assert(0); }
-        
-        if (size != 0) {
-            sid_t vcount = size/sizeof(sid_t);
-            assert(vcount == t_info[t].vert_id);
-            t_info[t].vid2name = (sid_t*)calloc(sizeof(sid_t), t_info[t].max_vcount);
-            read(t_info[t].vtf, t_info[t].vid2name, sizeof(sid_t)*vcount);
-            char* type_name = 0;
-            //sid_t super_id = TO_TID(t);
-            sid_t super_id = TO_THIGH(t);
-            //create the str2vid now
-            for (vid_t vid = 0; vid < vcount; ++vid) {
-                type_name = t_info[t].log_beg + t_info[t].vid2name[vid];
-                str2vid[type_name] = super_id + vid;
-            }
-        }*/
 
         ++t;
     }
@@ -305,12 +273,9 @@ tid_t typekv_t::manual_setup(sid_t vert_count, const string& type_name/*="gtype"
     t_info[t_count].type_name = strdup(type_name.c_str());
 
     t_info[t_count].vert_id = TO_SUPER(t_count);
-    //t_info[0].vert_id = vert_count;
     t_info[t_count].max_vcount = TO_SUPER(t_count) + vert_count;
-    //t_info[t_count].vid2name = (sid_t*)calloc(sizeof(sid_t), vert_count);
     t_info[t_count].strkv.setup(t_count);
     t_info[t_count].strkv.file_open(filename, true);
-    //alloc_edgelog(t_count);
     return t_count++;//return the tid of this type
 }
 

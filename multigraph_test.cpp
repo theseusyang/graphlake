@@ -10,6 +10,7 @@ void run_sample_wls_query()
 {
     //0th index is: See schema
     typekv_t* typekv = g->get_typekv();
+    stringkv_t* stringkv = (stringkv_t*)g->get_sgraph(3);
     
     //First graph is 
     pgraph_t<sid_t>* proc2parent = (pgraph_t<sid_t>*) g->get_sgraph(1);
@@ -48,6 +49,7 @@ void run_sample_wls_query()
 
     for(degree_t i = 0; i < parent_count; i++) {
         cout << typekv->get_vertex_name(parent_procs[i]) << ", ";
+        cout << stringkv->get_value(parent_procs[i]) << endl;
     }
     cout << endl;
    
@@ -63,6 +65,7 @@ void update_fromtext_multi(const string& idir, const string& odir,
     //do some setup for plain graphs
     manager.prep_graph_fromtext(idir, odir, parsefile_and_multi_insert); 
     run_sample_wls_query();    
+    g->store_graph_baseline();
 }
 
 void multigraph_test(vid_t v_count1, const string& idir, const string& odir, int job)

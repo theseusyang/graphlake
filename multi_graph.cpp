@@ -12,8 +12,8 @@ multi_graph_t::multi_graph_t()
 
 void wls_schema()
 {
-    g->cf_info = new cfinfo_t*[3];
-    g->p_info = new pinfo_t[3];
+    g->cf_info = new cfinfo_t*[4];
+    g->p_info = new pinfo_t[4];
     
     pinfo_t*    p_info    = g->p_info;
     cfinfo_t*   info      = 0;
@@ -56,6 +56,18 @@ void wls_schema()
     info->add_column(p_info);
     info->flag1 = 2;
     info->flag2 = 1;
+    ++p_info;
+    
+    longname = "vlabel";
+    shortname = "vlabel";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new stringkv_t;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    info->flag1 = 3;
+    //info->flag2 = 1;
     ++p_info;
     
     
@@ -115,6 +127,8 @@ inline index_t parse_wls_line(char* line)
     //insert
     pgraph_t<wls_dst_t>* pgraph = (pgraph_t<wls_dst_t>*)g->get_sgraph(2);
     pgraph->batch_edge(wls);
+        
+    pgraph_t<sid_t>* pgraph1 = (pgraph_t<sid_t>*)g->get_sgraph(1);
 
     itr = d.FindMember("ParentProcessID");
     if (itr != d.MemberEnd()) {
@@ -127,10 +141,19 @@ inline index_t parse_wls_line(char* line)
         edge.src_id = wls.dst_id.first;
 
         //insert
-        pgraph_t<sid_t>* pgraph = (pgraph_t<sid_t>*)g->get_sgraph(1);
-        pgraph->batch_edge(edge);
+        pgraph1->batch_edge(edge);
     }
+   
+    stringkv_t* vlabel = (stringkv_t*)g->get_sgraph(3);
+    edgeT_t<char*> str_edge;
+    str_edge.src_id = edge.src_id;
+    str_edge.dst_id = const_cast<char*>(logon_id.c_str());
+    vlabel->batch_edge(str_edge);
     
+    str_edge.src_id = wls.src_id;
+    str_edge.dst_id = const_cast<char*>(logon_id.c_str());
+    vlabel->batch_edge(str_edge);
+
     return eOK;
 }
 
@@ -170,8 +193,8 @@ void read_idir_text(const string& idirname, const string& odirname,
         if (ptr->d_name[0] == '.') continue;
         filename = idirname + "/" + string(ptr->d_name);
         ofilename = odirname + "/" + string(ptr->d_name);
-        cout << "ifile= "  << filename << endl 
-                <<" ofile=" << ofilename << endl;
+        cout << "ifile= "  << filename << endl;
+                //<<" ofile=" << ofilename << endl;
 
         file_count++;
         parsefile_and_insert(filename, ofilename);
@@ -187,6 +210,7 @@ void multi_graph_t::prep_graph_fromtext(const string& idirname, const string& od
                                         parse_fn_t parsefile_fn)
 {
     //-----
+    g->create_wthread();
     g->create_snapthread();
     usleep(1000);
     //-----

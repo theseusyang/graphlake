@@ -62,16 +62,19 @@ class stringkv_t : public cfinfo_t {
     }
     static cfinfo_t* create_instance();
     status_t batch_edge(edgeT_t<char*>& edge);
-    status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
+    status_t batch_update(const string& src, const string& dst, propid_t pid = 1);
     void make_graph_baseline();
-    void store_graph_baseline();
+    void store_graph_baseline(bool clean = false);
     void read_graph_baseline();
     void file_open(const string& dir, bool trunc);
 
-    strkv_t** prep_strkv();
+    void prep_graph_baseline();
     void fill_kv_out();
 
-    inline const char* get_value(tid_t tid, vid_t vid) {
+    //inline const char* get_value(tid_t tid, vid_t vid) 
+    inline const char* get_value(sid_t sid) {
+        vid_t vid = TO_VID(sid);
+        tid_t tid = TO_TID(sid);
         return strkv_out[tid]->get_value(vid);
     }
 

@@ -66,7 +66,7 @@ void stringkv_t::make_graph_baseline()
     */
 }
 
-strkv_t** stringkv_t::prep_strkv()
+void stringkv_t::prep_graph_baseline()
 {
     sflag_t    flag = flag1;
     tid_t      pos  = 0;
@@ -75,16 +75,16 @@ strkv_t** stringkv_t::prep_strkv()
     if (0 == strkv_out) {
         strkv_out = (strkv_t**) calloc (sizeof(strkv_t*), t_count);
     }
-
+    flag1_count = __builtin_popcountll(flag);
     for(tid_t i = 0; i < flag1_count; i++) {
-        pos = __builtin_ctz(flag);
+        pos = __builtin_ctzll(flag);
         flag ^= (1L << pos);//reset that position
         if (0 == strkv_out[pos]) {
             strkv_out[pos] = new strkv_t;
             strkv_out[pos]->setup(pos);
         }
     }
-    return strkv_out;
+    //return strkv_out;
 }
 
 void stringkv_t::fill_kv_out()
@@ -133,7 +133,7 @@ void stringkv_t::file_open(const string& dir, bool trunc)
     }
 }
 
-void stringkv_t::store_graph_baseline()
+void stringkv_t::store_graph_baseline(bool clean /*=false*/)
 {
     if (strkv_out == 0) return;
     
@@ -183,10 +183,14 @@ strkv_t::strkv_t()
 
 void strkv_t::set_value(vid_t vid, const char* value)
 {
-    kv[vid] = log_head;
-    char* ptr = log_beg + log_head;
-    log_head += strlen(value) + 1;
-    memcpy(ptr, value, strlen(value) + 1);
+    //Check if values are same;
+    if (0 != strncmp(log_beg + kv[vid], value, strlen(value))) {
+        kv[vid] = log_head;
+        char* ptr = log_beg + log_head;
+        log_head += strlen(value) + 1;
+        assert(log_head < log_count);
+        memcpy(ptr, value, strlen(value) + 1);
+    }
 
     /*
     kv[vid] = ptr;
@@ -209,11 +213,14 @@ void strkv_t::setup(tid_t t)
     kv = (sid_t*)calloc(sizeof(sid_t), v_count);
     
     //everything is in memory
-    log_count = (1L << 25);//256*8 MB
+    log_count = (1L << 28);//256*8 MB
     if (posix_memalign((void**)&log_beg, 2097152, log_count*sizeof(char))) {
         //log_beg = (sid_t*)calloc(sizeof(sid_t), log_count);
         perror("posix memalign edge log");
     }
+    log_head = 0;
+    log_tail = 0;
+    log_wpos = 0;
     
     /*
     if (posix_memalign((void**) &dvt, 2097152, dvt_max_count*sizeof(disk_strkv_t*))) {
@@ -241,8 +248,8 @@ void strkv_t::persist_vlog()
     dvt_count = 0;
 
     fwrite(dvt, sizeof(disk_strkv_t), count, vtf);*/
-    vid_t v_count = g->get_type_scount();
-    if (log_head != 0) {    
+    vid_t v_count = g->get_type_vcount();
+    if (v_count != 0) {
         pwrite(vtf, kv, v_count*sizeof(sid_t), 0);
     }
 }
@@ -252,8 +259,8 @@ void strkv_t::file_open(const string& filename, bool trunc)
     char  file_ext[16];
     sprintf(file_ext,"%u",tid);
     
-    string vtfile = filename + ".vtable" + file_ext;
-    string etfile = filename + ".etable" + file_ext;
+    string vtfile = filename + file_ext + ".vtable";
+    string etfile = filename + file_ext + ".etable";
     if (trunc) {
 		etf = open(etfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
         //etf = fopen(etfile.c_str(), "wb");//append/write + binary

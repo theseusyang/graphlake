@@ -8,18 +8,6 @@ class tinfo_t {
     sid_t   vert_id;
     char*   type_name;
     strkv_t strkv;
-/*
-    sid_t*  vid2name;
-    
-    //edgetable file related log
-    char*    log_beg;  //memory log pointer
-    sid_t    log_count;//size of memory log
-    sid_t    log_head; // current log write position
-    sid_t    log_tail; //current log cleaning position
-    sid_t    log_wpos; //Write this pointer for write persistency
-    int      etf;   //edge table file
-    int      vtf;   //vid2name file
-*/
 };
 
 class inference_tinfo_t {
@@ -82,8 +70,11 @@ class typekv_t : public cfinfo_t {
         it_info[id].count = count;
     };
 
-    inline  sid_t get_type_scount(tid_t type) {
-        return t_info[type].max_vcount;
+    inline  vid_t get_type_scount(tid_t type) {
+        return TO_VID(t_info[type].max_vcount);
+    }
+    inline vid_t get_type_vcount(tid_t type) {
+        return TO_VID(t_info[type].vert_id);
     }
     inline const char* get_type_name(tid_t type) {
         return t_info[type].type_name;

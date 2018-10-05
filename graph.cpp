@@ -159,10 +159,16 @@ void graph::create_schema(propid_t count, const string& conf_file)
     }
 }
 
-sid_t graph::get_type_scount(tid_t type/*=0*/)
+vid_t graph::get_type_scount(tid_t type/*=0*/)
 {
     typekv_t* typekv = dynamic_cast<typekv_t*>(cf_info[0]);
     return typekv->get_type_scount(type);
+}
+
+vid_t graph::get_type_vcount(tid_t type/*=0*/)
+{
+    typekv_t* typekv = dynamic_cast<typekv_t*>(cf_info[0]);
+    return typekv->get_type_vcount(type);
 }
 
 tid_t graph::get_total_types()
