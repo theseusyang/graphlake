@@ -34,9 +34,6 @@ void enumkv_t::make_graph_baseline()
 {
 }
 
-void enumkv_t::read_graph_baseline()
-{
-}
 
 void enumkv_t::init_enum(int enumcount)
 {
@@ -52,17 +49,36 @@ enumkv_t::enumkv_t()
 
 void enumkv_t::file_open(const string& odir, bool trunc)
 {
-    string vtfile;
-    vtfile = odir + col_info[0]->p_name + ".vtable";
+    string base = odir + col_info[0]->p_name; 
+    string vtfile = base + ".vtable";
+    tid_t t_count = g->get_total_types();
+    
+    char ext[16];
+    string etfile;
+
 
     if(trunc) {
 		//vtf = open(vtfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
 		vtf = fopen(vtfile.c_str(), "w");
-		assert(vtf != 0); 
+		assert(vtf != 0);
+        for (tid_t i = 0; i < t_count; ++i) {
+            if (numkv_out[i] != 0) {
+                sprintf(ext, "%d",i);
+                etfile = base + ext + ".etable";
+                etf[i] = fopen(etfile.c_str(), "w");
+            }
+        } 
     } else {
 		//vtf = open(vtfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
 		vtf = fopen(vtfile.c_str(), "r+");
 		assert(vtf != 0); 
+        for (tid_t i = 0; i < t_count; ++i) {
+            if (numkv_out[i] != 0) {
+                sprintf(ext, "%d",i);
+                etfile = base + ext + ".etable";
+                etf[i] = fopen(etfile.c_str(), "r+");
+            }
+        } 
     }
 }
 
@@ -93,11 +109,40 @@ void enumkv_t::store_graph_baseline(bool clean /*=false*/)
     if (numkv_out == 0) return;
     
     tid_t       t_count = g->get_total_types();
+    vid_t       v_count = 0;
+    char        text[512];
+
+    for (int i = 0; i < ecount; ++i) {
+        sprintf(text, "%s\n", enum2str[i]);
+        fwrite(text, sizeof(char), strlen(text), vtf);
+    }
     
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
         if (numkv_out[i] == 0) continue;
-        // fwrite();
+        v_count = g->get_type_vcount(i);
+        fwrite(numkv_out[i], sizeof(uint8_t), v_count, etf[i]);
+    }
+}
+
+void enumkv_t::read_graph_baseline()
+{
+    vid_t    v_count = 0;
+    char  line[1024] = {0};
+    tid_t    t_count = g->get_total_types();
+    char*    saveptr = line;
+    tid_t          i = 0; 
+
+    while (fgets(saveptr, sizeof(line), vtf)) {
+        enum2str[i] = gstrdup(saveptr);
+        str2enum[saveptr] = i;
+        ++i;
+    }
+
+    for (i = 0; i < t_count; ++i) {
+        if (numkv_out[i] == 0) continue;
+        v_count = g->get_type_vcount(i);
+        fread(numkv_out[i], sizeof(uint8_t), v_count, etf[i]);
     }
 }
 

@@ -20,6 +20,7 @@ class enumkv_t : public cfinfo_t  {
     uint8_t**      numkv_out;
 
     FILE* vtf;
+    FILE** etf;
   
  public:
     enumkv_t();
