@@ -48,7 +48,9 @@ HEADER=graph.h\
 	prop_encoder.h\
 	propkv.h\
 	str.h\
+	num.h\
 	stringkv.h\
+	numberkv.h\
 	enumkv.h\
 	mlabel.h\
 	typekv.h\

@@ -26,7 +26,8 @@ status_t enumkv_t::batch_edge(edgeT_t<char*>& edge)
     } else { //existing type, get the last vertex id allocated
         eid = str2enum_iter->second;
     }
-    numkv_out[tid][vid] = eid;
+    numkv_out[tid]->set_value(vid, eid);
+    //numkv_out[tid][vid] = eid;
     return eOK;
 }
 
@@ -53,19 +54,13 @@ void enumkv_t::file_open(const string& odir, bool trunc)
     string vtfile = base + ".vtable";
     tid_t t_count = g->get_total_types();
     
-    char ext[16];
-    string etfile;
-
-
     if(trunc) {
 		//vtf = open(vtfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
 		vtf = fopen(vtfile.c_str(), "w");
 		assert(vtf != 0);
         for (tid_t i = 0; i < t_count; ++i) {
             if (numkv_out[i] != 0) {
-                sprintf(ext, "%d",i);
-                etfile = base + ext + ".etable";
-                etf[i] = fopen(etfile.c_str(), "w");
+                numkv_out[i]->file_open(base, trunc);
             }
         } 
     } else {
@@ -74,9 +69,7 @@ void enumkv_t::file_open(const string& odir, bool trunc)
 		assert(vtf != 0); 
         for (tid_t i = 0; i < t_count; ++i) {
             if (numkv_out[i] != 0) {
-                sprintf(ext, "%d",i);
-                etfile = base + ext + ".etable";
-                etf[i] = fopen(etfile.c_str(), "r+");
+                numkv_out[i]->file_open(base, trunc);
             }
         } 
     }
@@ -87,10 +80,9 @@ void enumkv_t::prep_graph_baseline()
     sflag_t    flag = flag1;
     tid_t      pos  = 0;
     tid_t   t_count = g->get_total_types();
-    vid_t    v_count;
     
     if (0 == numkv_out) {
-        numkv_out = (uint8_t**) calloc (sizeof(uint8_t*), t_count);
+        numkv_out = (numkv_t<uint8_t>**) calloc (sizeof(numkv_t<uint8_t>*), t_count);
     }
     flag1_count = __builtin_popcountll(flag);
 
@@ -98,8 +90,7 @@ void enumkv_t::prep_graph_baseline()
         pos = __builtin_ctzll(flag);
         flag ^= (1L << pos);//reset that position
         if (0 == numkv_out[pos]) {
-            v_count = g->get_type_scount(pos);
-            numkv_out[pos] = (uint8_t*)calloc(sizeof(uint8_t), v_count);
+            numkv_out[pos]->setup(pos);
         }
     }
 }
@@ -109,7 +100,6 @@ void enumkv_t::store_graph_baseline(bool clean /*=false*/)
     if (numkv_out == 0) return;
     
     tid_t       t_count = g->get_total_types();
-    vid_t       v_count = 0;
     char        text[512];
 
     for (int i = 0; i < ecount; ++i) {
@@ -120,14 +110,12 @@ void enumkv_t::store_graph_baseline(bool clean /*=false*/)
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
         if (numkv_out[i] == 0) continue;
-        v_count = g->get_type_vcount(i);
-        fwrite(numkv_out[i], sizeof(uint8_t), v_count, etf[i]);
+        numkv_out[i]->persist_vlog();
     }
 }
 
 void enumkv_t::read_graph_baseline()
 {
-    vid_t    v_count = 0;
     char  line[1024] = {0};
     tid_t    t_count = g->get_total_types();
     char*    saveptr = line;
@@ -141,8 +129,7 @@ void enumkv_t::read_graph_baseline()
 
     for (i = 0; i < t_count; ++i) {
         if (numkv_out[i] == 0) continue;
-        v_count = g->get_type_vcount(i);
-        fread(numkv_out[i], sizeof(uint8_t), v_count, etf[i]);
+        numkv_out[i]->read_vtable();
     }
 }
 

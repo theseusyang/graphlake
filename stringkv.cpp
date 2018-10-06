@@ -44,31 +44,6 @@ void stringkv_t::prep_graph_baseline()
     }
 }
 
-void stringkv_t::fill_kv_out()
-{
-    /*
-    sid_t src;
-    char* dst;
-    vid_t     vert1_id;
-    tid_t     src_index;
-    edgeT_t<char*>*   edges;
-    index_t   count;
-
-    for (int j = 0; j <= batch_count; ++j) { 
-        edges = (edgeT_t<char*>*)batch_info[j].buf;
-        count = batch_info[j].count;
-    
-        for (index_t i = 0; i < count; ++i) {
-            src = edges[i].src_id;
-            dst = edges[i].dst_id;
-            
-            vert1_id = TO_VID(src);
-            src_index = TO_TID(src);
-            strkv_out[src_index]->set_value(vert1_id, dst);
-        }
-    }*/
-}
-
 void stringkv_t::file_open(const string& dir, bool trunc)
 {
     if (strkv_out == 0) return;
@@ -116,7 +91,5 @@ void stringkv_t::read_graph_baseline()
     for (tid_t i = 0; i < t_count; ++i) {
         if (strkv_out[i] == 0) continue;
         strkv_out[i]->read_vtable();
-        //strkv_out[i]->read_etable();
     }
 }
-

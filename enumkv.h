@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include <string>
+#include "num.h"
 #include "cf_info.h"
 #include "type.h"
 
@@ -17,10 +18,9 @@ class enumkv_t : public cfinfo_t  {
     uint8_t        ecount;
     uint8_t        max_ecount;
   
-    uint8_t**      numkv_out;
+    numkv_t<uint8_t>** numkv_out;
 
     FILE* vtf;
-    FILE** etf;
   
  public:
     enumkv_t();

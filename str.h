@@ -32,8 +32,6 @@ class strkv_t {
     int    vtf;   //vertex table file
     int    etf;   //edge table file
     
-    friend class stringkv_t;
-
  public:
     strkv_t(); 
  
