@@ -173,8 +173,90 @@ template <class T>
 void many2one<T>::make_graph_baseline()
 {
     if (blog->blog_tail >= blog->blog_marker) return;
+
+#ifndef BULK
+    vid_t range_count = 1024;
+    vid_t thd_count = THD_COUNT;
     
-#ifdef BULK
+    tid_t src_index = TO_TID(get_dst(&blog->blog_beg[0]));
+    vid_t v_count = sgraph_in[src_index]->get_vcount();
+    vid_t  base_vid = ((v_count -1)/range_count);
+    
+    //find the number of bits to do shift to find the range
+#if B32    
+    vid_t bit_shift = __builtin_clz(base_vid);
+    bit_shift = 32 - bit_shift; 
+#else
+    vid_t bit_shift = __builtin_clzl(base_vid);
+    bit_shift = 64 - bit_shift; 
+#endif
+
+    global_range_t<T>* global_range = (global_range_t<T>*)calloc(
+                            sizeof(global_range_t<T>), range_count);
+    
+    thd_local_t* thd_local = (thd_local_t*) calloc(sizeof(thd_local_t), thd_count);  
+   
+    index_t total_edge_count = blog->blog_marker - blog->blog_tail;
+    //alloc_edge_buf(total_edge_count);
+    
+    index_t edge_count = (total_edge_count*1.15)/(thd_count);
+    
+
+    #pragma omp parallel num_threads (thd_count) 
+    {
+        vid_t tid = omp_get_thread_num();
+        vid_t* vid_range = (vid_t*)calloc(sizeof(vid_t), range_count); 
+        thd_local[tid].vid_range = vid_range;
+
+        //double start = mywtime();
+
+        //Get the count for classification
+        this->estimate_classify_runi(vid_range, bit_shift);
+        
+        this->prefix_sum(global_range, thd_local, range_count, thd_count, this->edge_buf_out);
+        #pragma omp barrier 
+        
+        //Classify
+        this->classify_runi(vid_range, bit_shift, global_range);
+        
+        #pragma omp master 
+        {
+            //double end = mywtime();
+            //cout << " classify " << end - start << endl;
+            this->work_division(global_range, thd_local, range_count, thd_count, edge_count);
+        }
+        
+        #pragma omp barrier 
+        
+        //Now get the division of work
+        vid_t     j_start;
+        vid_t     j_end;
+        
+        if (tid == 0) { 
+            j_start = 0; 
+        } else { 
+            j_start = thd_local[tid - 1].range_end;
+        }
+        j_end = thd_local[tid].range_end;
+        
+        //actual work
+        this->make_on_classify(sgraph_in, global_range, j_start, j_end, bit_shift); 
+        this->fill_skv_in(skv_out, global_range, j_start, j_end); 
+        free(vid_range);
+        #pragma omp barrier 
+        
+        //free the memory
+        #pragma omp for schedule (static)
+        for (vid_t i = 0; i < range_count; ++i) {
+            if (global_range[i].edges)
+                free(global_range[i].edges);
+        }
+    }
+
+    free(global_range);
+    free(thd_local);
+    
+#else
     calc_edge_count_in(sgraph_in);
     
     //prefix sum then reset the count
@@ -183,7 +265,6 @@ void many2one<T>::make_graph_baseline()
     //populate and get the original count back
     //handle kv_out as well.
     fill_adj_list_in(skv_out, sgraph_in);
-    //update_count(sgraph_in);
     blog->blog_tail = blog->blog_marker;
 #endif
 }
@@ -247,19 +328,99 @@ template <class T>
 void one2many<T>::make_graph_baseline()
 {
     if (blog->blog_tail >= blog->blog_marker) return;
-#ifdef BULK 
+
+#ifndef BULK
+    tid_t src_index = TO_TID(blog->blog_beg[0].src_id);
+    vid_t v_count = sgraph_out[src_index]->get_vcount();
+    vid_t range_count = 1024;
+    vid_t thd_count = THD_COUNT;
+    vid_t  base_vid = ((v_count -1)/range_count);
+    
+    //find the number of bits to do shift to find the range
+#if B32    
+    vid_t bit_shift = __builtin_clz(base_vid);
+    bit_shift = 32 - bit_shift; 
+#else
+    vid_t bit_shift = __builtin_clzl(base_vid);
+    bit_shift = 64 - bit_shift; 
+#endif
+
+    global_range_t<T>* global_range = (global_range_t<T>*)calloc(
+                            sizeof(global_range_t<T>), range_count);
+    
+    thd_local_t* thd_local = (thd_local_t*) calloc(sizeof(thd_local_t), thd_count);  
+   
+    index_t total_edge_count = blog->blog_marker - blog->blog_tail;
+    //alloc_edge_buf(total_edge_count);
+    
+    index_t edge_count = (total_edge_count*1.15)/(thd_count);
+    
+
+    #pragma omp parallel num_threads (thd_count) 
+    {
+        vid_t tid = omp_get_thread_num();
+        vid_t* vid_range = (vid_t*)calloc(sizeof(vid_t), range_count); 
+        thd_local[tid].vid_range = vid_range;
+
+        //double start = mywtime();
+
+        //Get the count for classification
+        this->estimate_classify_uni(vid_range, bit_shift);
+        
+        this->prefix_sum(global_range, thd_local, range_count, thd_count, this->edge_buf_out);
+        #pragma omp barrier 
+        
+        //Classify
+        this->classify_uni(vid_range, bit_shift, global_range);
+        
+        #pragma omp master 
+        {
+            //double end = mywtime();
+            //cout << " classify " << end - start << endl;
+            this->work_division(global_range, thd_local, range_count, thd_count, edge_count);
+        }
+        
+        #pragma omp barrier 
+        
+        //Now get the division of work
+        vid_t     j_start;
+        vid_t     j_end;
+        
+        if (tid == 0) { 
+            j_start = 0; 
+        } else { 
+            j_start = thd_local[tid - 1].range_end;
+        }
+        j_end = thd_local[tid].range_end;
+        
+        //actual work
+        this->make_on_classify(sgraph_out, global_range, j_start, j_end, bit_shift); 
+        this->fill_skv_in(skv_in, global_range, j_start, j_end); 
+        free(vid_range);
+        #pragma omp barrier 
+        
+        //free the memory
+        #pragma omp for schedule (static)
+        for (vid_t i = 0; i < range_count; ++i) {
+            if (global_range[i].edges)
+                free(global_range[i].edges);
+        }
+    }
+
+    free(global_range);
+    free(thd_local);
+    
+#else 
     calc_edge_count_out(sgraph_out);
     
     //prefix sum then reset the count
     prep_sgraph_internal(sgraph_out);
 
     //populate and get the original count back
-    //handle kv_in as well.
     fill_adj_list_out(sgraph_out, skv_in);
     //update_count(sgraph_out);
     blog->blog_tail = blog->blog_marker;  
 #endif
-    
 }
 
 template <class T> 
@@ -361,25 +522,25 @@ void one2one<T>::read_graph_baseline()
 template <class T> 
 cfinfo_t* ugraph<T>::create_instance()
 {
-    return new ugraph_t;
+    return new ugraph<T>;
 }
 
 template <class T> 
 cfinfo_t* dgraph<T>::create_instance()
 {
-    return new dgraph_t;
+    return new dgraph<T>;
 }
 
 template <class T> 
 cfinfo_t* one2one<T>::create_instance()
 {
-    return new one2one_t;
+    return new one2one<T>;
 }
 
 template <class T> 
 cfinfo_t* one2many<T>::create_instance()
 {
-    return new one2many_t;
+    return new one2many<T>;
 }
 
 template <class T> 

@@ -53,6 +53,27 @@ void pgraph_t<T>::estimate_classify_uni(vid_t* vid_range, vid_t bit_shift)
 }
 
 template <class T>
+void pgraph_t<T>::estimate_classify_runi(vid_t* vid_range, vid_t bit_shift) 
+{
+    sid_t dst;
+    vid_t vert_id;
+    vid_t range;
+    edgeT_t<T>* edges = blog->blog_beg;
+    index_t index;
+
+    #pragma omp for
+    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
+        index = (i & blog->blog_mask);
+        dst = get_sid(edges[index].dst_id);
+        vert_id = TO_VID(dst);
+
+        //gather high level info for 1
+        range = (vert_id >> bit_shift);
+        vid_range[range]++;
+    }
+}
+
+template <class T>
 void pgraph_t<T>::prefix_sum(global_range_t<T>* global_range, thd_local_t* thd_local,
                              vid_t range_count, vid_t thd_count, edgeT_t<T>* edge_buf)
 {
@@ -139,6 +160,32 @@ void pgraph_t<T>::classify(vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shif
         
         range = (vert2_id >> bit_shift);
         edge = global_range_in[range].edges + vid_range_in[range]++;
+        edge->src_id = dst;
+        set_dst(edge, src);
+        set_weight(edge, edges[index].dst_id);
+    }
+}
+
+template <class T>
+void pgraph_t<T>::classify_runi(vid_t* vid_range, vid_t bit_shift, global_range_t<T>* global_range)
+{
+    sid_t src, dst;
+    vid_t vert_id;
+    vid_t range = 0;
+    edgeT_t<T>* edge;
+    edgeT_t<T>* edges = blog->blog_beg;
+    index_t index;
+
+    #pragma omp for
+    for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
+        index = (i & blog->blog_mask);
+        src = edges[index].src_id;
+        dst = get_sid(edges[index].dst_id);
+        vert_id = TO_VID(dst);
+        
+        range = (vert_id >> bit_shift);
+        edge = global_range[range].edges + vid_range[range]++;
+        
         edge->src_id = dst;
         set_dst(edge, src);
         set_weight(edge, edges[index].dst_id);

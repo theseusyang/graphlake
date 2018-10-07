@@ -468,6 +468,36 @@ public:
     void file_open(const string& filename, bool trunc);
 };
 
+
+//one type's key-value store
+template <class T>
+class onekv_t {
+ private:
+    T* kv;
+    tid_t  tid;
+    int  vtf;
+
+ public:
+    inline onekv_t() {
+        tid = 0;
+        kv = 0;
+        vtf = -1;
+    }
+
+    void setup(tid_t tid);
+
+    inline T* get_kv() { return kv; }
+    inline tid_t get_tid() { return tid;}
+    
+    inline void set_value(vid_t vert1_id, T dst) {
+        kv[vert1_id] = dst;
+    }
+    
+    void handle_write(bool clean = false);
+    void read_vtable(); 
+    void file_open(const string& filename, bool trunc);
+};
+
 typedef vert_table_t<sid_t> beg_pos_t;
 typedef beg_pos_t  lgraph_t;
 typedef vert_table_t<lite_edge_t> lite_vtable_t;
@@ -475,71 +505,13 @@ typedef vert_table_t<lite_edge_t> lite_vtable_t;
 typedef onegraph_t<sid_t> sgraph_t;
 typedef onegraph_t<lite_edge_t>lite_sgraph_t;
 
+/*
 template <class T>
 class disk_kvT_t {
     public:
     vid_t    vid;
     T       dst;
-};
-
-typedef disk_kvT_t<sid_t> disk_kv_t;
-typedef disk_kvT_t<lite_edge_t> disk_kvlite_t;
-
-//one type's key-value store
-template <class T>
-class onekv_t {
- private:
-    sid_t  super_id;
-    vid_t  max_vcount;
-    T* kv;
-
-    disk_kvT_t<T>* dvt;
-    vid_t dvt_count;
-    vid_t dvt_max_count;
-
-    int  vtf;
-
- public:
-    inline onekv_t() {
-        super_id = 0;
-        max_vcount = 0;
-        kv = 0;
-        
-        dvt_count = 0;
-        dvt_max_count = (1L << 9);
-        if (posix_memalign((void**) &dvt, 2097152, 
-                           dvt_max_count*sizeof(disk_kvT_t<T>*))) {
-            perror("posix memalign vertex log");    
-        }
-        vtf = -1;
-    }
-
-    void setup(tid_t tid);
-
-    inline T* get_kv() { return kv; }
-    inline tid_t get_tid() { return TO_TID(super_id);}
-    inline vid_t get_vcount() { return TO_VID(super_id); }
-    
-    inline void set_value(vid_t vert1_id, T dst) {
-        //set_value1(kv, vert1_id, dst);
-        kv[vert1_id] = dst;
-        dvt[dvt_count].vid = vert1_id;
-        dvt[dvt_count].dst = dst; 
-        ++dvt_count;
-    }
-    
-    inline void del_value(vid_t vert1_id, T dst) {
-        //set_value1(kv, vert1_id, dst);
-        kv[vert1_id] = dst;
-        dvt[dvt_count].vid = vert1_id;
-        dvt[dvt_count].dst = dst; 
-        ++dvt_count;
-    }
-    
-    void persist_kvlog();
-    void read_kv(); 
-    void file_open(const string& filename, bool trunc);
-};
+};*/
 
 typedef onekv_t<sid_t> skv_t; 
 typedef onekv_t<lite_edge_t> lite_skv_t;

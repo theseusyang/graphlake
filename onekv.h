@@ -2,20 +2,12 @@
 #pragma once
 /**************** SKV ******************/
 template <class T>
-void onekv_t<T>::setup(tid_t tid)
+void onekv_t<T>::setup(tid_t t)
 {
-    if (0 == super_id) {
-        super_id = g->get_type_scount(tid);
-        vid_t v_count = TO_VID(super_id);
-        max_vcount = (v_count << 2);
-        kv = (T*)calloc(sizeof(T), max_vcount);
-    } else {
-        super_id = g->get_type_scount(tid);
-        vid_t v_count = TO_VID(super_id);
-        if (max_vcount < v_count) {
-            assert(0);
-        }
-    }
+        tid = t;
+        vid_t max_vcount = g->get_type_scount(tid);
+        kv = (T*)malloc(sizeof(T)*max_vcount);
+        memset(kv, INVALID_SID, sizeof(T)*max_vcount);
 }
 
 template <class T>
@@ -33,37 +25,33 @@ void onekv_t<T>::file_open(const string& vtfile, bool trunc)
 }
 
 template <class T>
-void onekv_t<T>::persist_kvlog()
+void onekv_t<T>::handle_write(bool clean /* = false*/)
 {
     //Make a copy
-    sid_t count =  dvt_count;
-
-    //update the mark
-    dvt_count = 0;
-
+    vid_t v_count = g->get_type_vcount(tid);
+    index_t count = v_count*sizeof(T);
     //Write the file
     //fwrite(dvt, sizeof(disk_kvT_t<T>), count, vtf);
-    write(vtf, dvt, sizeof(disk_kvT_t<T>)*count);
+    //write(vtf, kv, sizeof(T)*v_count);
+    while (count != 0) {
+       count -= write(vtf, kv, count);
+    }
 }
 
 template <class T>
-void onekv_t<T>::read_kv()
+void onekv_t<T>::read_vtable()
 {
     off_t size = fsize(vtf);
     if (size == -1L) {
         assert(0);
     }
-    vid_t count = (size/sizeof(disk_kvT_t<T>));
+    vid_t count = (size/sizeof(T));
 
     //read in batches
     while (count !=0) {
         //vid_t read_count = fread(dvt, sizeof(disk_kvT_t<T>), dvt_max_count, vtf);
-        vid_t read_count = read(vtf, dvt, sizeof(disk_kvT_t<T>)*dvt_max_count);
-        read_count /= sizeof(disk_kvT_t<T>);
-        for (vid_t v = 0; v < read_count; ++v) {
-            kv[dvt[v].vid] = dvt[v].dst;
-        }
+        vid_t read_count = read(vtf, kv, sizeof(T)*count);
+        read_count /= sizeof(T);
         count -= read_count;
     }
-    dvt_count = 0;
 }

@@ -179,6 +179,7 @@ class pgraph_t: public cfinfo_t {
 
     void estimate_classify (vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift);
     void estimate_classify_uni (vid_t* vid_range, vid_t bit_shift);
+    void estimate_classify_runi (vid_t* vid_range, vid_t bit_shift);
     void prefix_sum (global_range_t<T>* global_range, thd_local_t* thd_local,
                     vid_t range_count, vid_t thd_count, edgeT_t<T>* edge_buf);
     void work_division (global_range_t<T>* global_range, thd_local_t* thd_local,
@@ -186,7 +187,8 @@ class pgraph_t: public cfinfo_t {
     
     void classify (vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift, 
             global_range_t<T>* global_range, global_range_t<T>* global_range_in);
-    void classify_uni (vid_t* vid_range, vid_t bit_shift, global_range_t<T>* global_range);
+    void classify_uni(vid_t* vid_range, vid_t bit_shift, global_range_t<T>* global_range);
+    void classify_runi(vid_t* vid_range, vid_t bit_shift, global_range_t<T>* global_range);
     
     
     void calc_degree_noatomic (onegraph_t<T>** sgraph, global_range_t<T>* global_range, 
@@ -213,6 +215,7 @@ class pgraph_t: public cfinfo_t {
     void fill_adj_list(onegraph_t<T>** sgraph_out, onegraph_t<T>** sgraph_in);
     void fill_adj_list_in(onekv_t<T>** skv_out, onegraph_t<T>** sgraph_in); 
     void fill_adj_list_out(onegraph_t<T>** sgraph_out, onekv_t<T>** skv_in); 
+    void fill_skv_in(onekv_t<T>** skv, global_range_t<T>* global_range, vid_t j_start, vid_t j_end);
     void fill_skv(onekv_t<T>** skv_out, onekv_t<T>** skv_in);
    
     //Making Queries easy
@@ -854,7 +857,7 @@ void pgraph_t<T>::fill_skv(onekv_t<T>** skv_out, onekv_t<T>** skv_in)
     T     src2, dst;
     vid_t     vert1_id, vert2_id;
     tid_t     src_index, dst_index;
-    edge_t*   edges = blog->blog_beg;
+    edgeT_t<T>*   edges = blog->blog_beg;
     
     index_t index = 0;
     for (index_t i = blog->blog_tail; i < blog->blog_marker; ++i) {
@@ -875,6 +878,32 @@ void pgraph_t<T>::fill_skv(onekv_t<T>** skv_out, onekv_t<T>** skv_in)
         skv_in[dst_index]->set_value(vert2_id, src2); 
     }
 }
+
+template <class T>
+void pgraph_t<T>::fill_skv_in(onekv_t<T>** skv, global_range_t<T>* global_range, vid_t j_start, vid_t j_end)
+{
+    index_t total = 0;
+    edgeT_t<T>* edges = 0;
+    tid_t src_index;
+    sid_t src;
+    T dst;
+    vid_t vert1_id;
+    
+    for (vid_t j = j_start; j < j_end; ++j) {
+        total = global_range[j].count;
+        edges = global_range[j].edges;
+        
+        for (index_t i = 0; i < total; ++ i) {
+            src = edges[i].src_id;
+            dst = edges[i].dst_id;
+            src_index = TO_TID(src);
+            vert1_id = TO_VID(src);
+
+            skv[src_index]->set_value(vert1_id, dst);
+        }
+    }
+}
+
 template <class T>
 void pgraph_t<T>::read_skv(onekv_t<T>** skv)
 {
@@ -885,7 +914,7 @@ void pgraph_t<T>::read_skv(onekv_t<T>** skv)
     // For each file.
     for (tid_t i = 0; i < t_count; ++i) {
         if (skv[i] == 0) continue;
-        skv[i]->read_kv();
+        skv[i]->read_vtable();
     }
 }
 
@@ -924,7 +953,7 @@ void pgraph_t<T>::store_skv(onekv_t<T>** skv)
     for (tid_t i = 0; i < t_count; ++i) {
         if (skv[i] == 0) continue;
 
-        skv[i]->persist_kvlog();
+        skv[i]->handle_write();
     }
 }
 
