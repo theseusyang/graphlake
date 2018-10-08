@@ -84,6 +84,10 @@ class pgraph_t: public cfinfo_t {
     status_t write_edgelog(); 
 
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0) {
+        edgeT_t<T> edge; 
+        edge.src_id = g->get_sid(src.c_str());
+        set_dst(&edge, g->get_sid(dst.c_str()));
+        batch_edge(edge);
         return eOK;
     }
     inline status_t batch_edge(edgeT_t<T>& edge) {
@@ -465,9 +469,20 @@ typedef dgraph<lite_edge_t> p_dgraph_t;
 template <class T>
 onegraph_t<T>** pgraph_t<T>::prep_sgraph(sflag_t ori_flag, onegraph_t<T>** sgraph)
 {
-    tid_t   pos = 0;//it is tid
-    
     sflag_t      flag = ori_flag;
+    
+    if (flag == 0) {
+        flag1_count = g->get_total_types();
+        for(tid_t i = 0; i < flag1_count; i++) {
+            if (0 == sgraph[i]) {
+                sgraph[i] = new onegraph_t<T>;
+                sgraph[i]->setup(i);
+            }
+        } 
+        return sgraph;
+    } 
+    
+    tid_t   pos = 0;//it is tid
     tid_t  flag_count = __builtin_popcountll(flag);
     
     for(tid_t i = 0; i < flag_count; i++) {
@@ -961,8 +976,20 @@ void pgraph_t<T>::store_skv(onekv_t<T>** skv)
 template <class T>
 onekv_t<T>** pgraph_t<T>::prep_skv(sflag_t ori_flag, onekv_t<T>** skv)
 {
-    tid_t   pos  = 0;
     sflag_t flag       = ori_flag;
+    
+    if (flag == 0) {
+        flag1_count = g->get_total_types();
+        for(tid_t i = 0; i < flag1_count; i++) {
+            if (0 == skv[i]) {
+                skv[i] = new onekv_t<T>;
+                skv[i]->setup(i);
+            }
+        } 
+        return skv;
+    } 
+    
+    tid_t   pos  = 0;
     tid_t   flag_count = __builtin_popcountll(flag);
 
     for(tid_t i = 0; i < flag_count; i++) {

@@ -48,6 +48,7 @@ void ntriple_manager::prep_graph(const string& idirname, const string& odirname)
     int file_count = 0;
     
     g->prep_graph_baseline();
+    g->file_open(true);
     
     //Read graph file
     dir = opendir(idirname.c_str());
@@ -66,11 +67,8 @@ void ntriple_manager::prep_graph(const string& idirname, const string& odirname)
         }
     }
     closedir(dir);
+    g->store_graph_baseline();
     
-    g->swap_log_buffer();
-    g->calc_degree();
-    g->make_graph_baseline();
-    //g->store_graph_baseline();
 }
 
 status_t ntriple_manager::remove_edge(const string& idirname, const string& odirname)

@@ -7,55 +7,60 @@ sid_t typekv_t::type_update(const string& src, const string& dst)
     sid_t       super_id = 0;
     vid_t       vid = 0;
     tid_t       type_id;
-
-    map<string, tid_t>::iterator str2enum_iter = str2enum.find(dst);
-
-    //Have not see this type, create one
-    if (str2enum.end() == str2enum_iter) {
-        type_id = t_count++;
-        super_id = TO_SUPER(type_id);
-        str2enum[dst] = type_id;
-        t_info[type_id].vert_id = super_id; 
-        t_info[t_count].type_name = strdup(dst.c_str());
-        t_info[type_id].max_vcount = (1<<20);//guess
-        string filename = g->odirname + col_info[0]->p_name;
-        t_info[type_id].strkv.setup(type_id);
-        t_info[type_id].strkv.file_open(filename, true);
-
-    } else { //existing type, get the last vertex id allocated
-        type_id = str2enum_iter->second;
-        super_id = t_info[type_id].vert_id;
-    }
-
+    
     //allocate class specific ids.
     map<string, vid_t>::iterator str2vid_iter = str2vid.find(src);
-    if (str2vid.end() == str2vid_iter) {
+    if (str2vid.end() != str2vid_iter) {
+        src_id = str2vid_iter->second;
+        
+        /*
+        //dublicate entry 
+        //If type mismatch, delete original //XXX
+        tid_t old_tid = TO_TID(src_id);
+
+        if (old_tid != type_id) {
+            / *
+            //Different types, delete
+            str2vid.erase(str2vid_iter);
+            cout << "Duplicate unique Id: " << src << " Deleting both. " ;
+            cout << "Existing Type: " << (char*)(log_beg + t_info[old_tid].type_name) << "\t";
+            cout << "New Type: " << (char*)(log_beg + t_info[type_id].type_name) << endl;
+            * /
+            assert(0);
+            return INVALID_SID;
+        }*/
+    } else {
+        //create new type
+        map<string, tid_t>::iterator str2enum_iter = str2enum.find(dst);
+
+        //Have not see this type, create one
+        if (str2enum.end() == str2enum_iter) {
+            type_id = t_count++;
+            super_id = TO_SUPER(type_id);
+            str2enum[dst] = type_id;
+            t_info[type_id].vert_id = super_id; 
+            t_info[type_id].type_name = strdup(dst.c_str());
+            t_info[type_id].max_vcount = (1<<20);//guess
+            string filename = g->odirname + col_info[0]->p_name;
+            t_info[type_id].strkv.setup(type_id);
+            t_info[type_id].strkv.file_open(filename, true);
+
+        } else { //existing type, get the last vertex id allocated
+            type_id = str2enum_iter->second;
+            super_id = t_info[type_id].vert_id;
+        }
+
         src_id = super_id++;
         t_info[type_id].vert_id = super_id;
         ++g->vert_count;
         str2vid[src] = src_id;
 
         vid     = TO_VID(super_id); 
-        assert(super_id < t_info[type_id].max_vcount);
+        assert(vid < t_info[type_id].max_vcount);
         t_info[type_id].strkv.set_value(vid, src.c_str());
-    } else {
-        //dublicate entry 
-        //If type mismatch, delete original //XXX
-        src_id = str2vid_iter->second;
-        tid_t old_tid = TO_TID(src_id);
-
-        if (old_tid != type_id) {
-            /*
-            //Different types, delete
-            str2vid.erase(str2vid_iter);
-            cout << "Duplicate unique Id: " << src << " Deleting both. " ;
-            cout << "Existing Type: " << (char*)(log_beg + t_info[old_tid].type_name) << "\t";
-            cout << "New Type: " << (char*)(log_beg + t_info[type_id].type_name) << endl;
-            */
-            assert(0);
-            return INVALID_SID;
-        }
     }
+
+
     return src_id;
 }
 
@@ -78,7 +83,7 @@ sid_t typekv_t::type_update(const string& src, tid_t type_id)
         str2vid[src] = src_id;
 
         vid     = TO_VID(src_id); 
-        assert(super_id < t_info[type_id].max_vcount);
+        assert(vid < t_info[type_id].max_vcount);
         
         t_info[type_id].strkv.set_value(vid, src.c_str());
     } else {
@@ -223,7 +228,7 @@ typekv_t::typekv_t()
 }
 
 //Required to be called as we need to have a guess for max v_count
-tid_t typekv_t::manual_setup(sid_t vert_count, const string& type_name/*="gtype"*/)
+tid_t typekv_t::manual_setup(vid_t vert_count, const string& type_name/*="gtype"*/)
 {
     string filename = g->odirname + col_info[0]->p_name;
     
@@ -231,7 +236,7 @@ tid_t typekv_t::manual_setup(sid_t vert_count, const string& type_name/*="gtype"
     t_info[t_count].type_name = strdup(type_name.c_str());
 
     t_info[t_count].vert_id = TO_SUPER(t_count);
-    t_info[t_count].max_vcount = TO_SUPER(t_count) + vert_count;
+    t_info[t_count].max_vcount = vert_count;
     t_info[t_count].strkv.setup(t_count);
     t_info[t_count].strkv.file_open(filename, true);
     return t_count++;//return the tid of this type

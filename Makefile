@@ -21,6 +21,7 @@ SRC=main.cpp \
 	query_triple.cpp\
 	graph_query.cpp\
 	io_driver.cpp\
+	util.cpp\
 	rset.cpp\
 	propkv.cpp\
 	plaingraph_test.cpp\
@@ -86,7 +87,7 @@ HEADER=graph.h\
 INCLUDES=-Iinclude 
 LIBDIRS=
 
-DEPS=$(SRC) $(HEADER)
+DEPS=$(SRC) $(SRC64) $(HEADER)
 
 all:${EXE1} ${EXE2}
 

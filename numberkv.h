@@ -1,20 +1,20 @@
 #pragma once
-
+#include "num.h"
 #include "graph.h"
 
 //generic number class
 //
 template <class T>
-class numberkv_t  
+class numberkv_t : public cfinfo_t 
 {
     numkv_t<T>** kv_out; 
     
   public:
-    inline stringkv_t() {
-        strkv_out = 0;
+    inline numberkv_t() {
+        kv_out = 0;
     }
     static cfinfo_t* create_instance();
-    status_t batch_edge(edgeT_t<char*>& edge);
+    status_t batch_edge(edgeT_t<T>& edge);
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
     void make_graph_baseline();
     void store_graph_baseline(bool clean = false);
@@ -28,11 +28,11 @@ class numberkv_t
     inline const char* get_value(sid_t sid) {
         vid_t vid = TO_VID(sid);
         tid_t tid = TO_TID(sid);
-        return strkv_out[tid]->get_value(vid);
+        return kv_out[tid]->get_value(vid);
     }
 
     inline void print_raw_dst(tid_t tid, vid_t vid, propid_t pid = 0) {
-        cout << strkv_out[tid]->kv[vid];
+        cout << kv_out[tid]->kv[vid];
     }
 
 };
@@ -40,20 +40,16 @@ class numberkv_t
 template<class T>
 status_t numberkv_t<T>::batch_update(const string& src, const string& dst, propid_t pid /*= 0*/)
 {
-}
-
-template<class T>
-status_t numberkv_t<T>::batch_edge(edgeT_t<char*>& edge)
-{
-    vid_t vid = TO_VID(edge.src_id);
-    tid_t tid = TO_TID(edge.src_id);
-    kv_out[tid]->set_value(vid, edge.dst_id);
+    assert(0);
     return eOK;
 }
 
 template<class T>
-status_t numberkv_t<T>::batch_update(const string& src, const string& dst, propid_t pid /* = 0*/)
+status_t numberkv_t<T>::batch_edge(edgeT_t<T>& edge)
 {
+    vid_t vid = TO_VID(edge.src_id);
+    tid_t tid = TO_TID(edge.src_id);
+    kv_out[tid]->set_value(vid, edge.dst_id);
     return eOK;
 }
 
@@ -66,18 +62,28 @@ template<class T>
 void numberkv_t<T>::prep_graph_baseline()
 {
     sflag_t    flag = flag1;
-    tid_t      pos  = 0;
     tid_t   t_count = g->get_total_types();
     
     if (0 == kv_out) {
-        kv_out = (**) calloc (sizeof(numkv_t<T>*), t_count);
+        kv_out = (numkv_t<T>**) calloc (sizeof(numkv_t<T>*), t_count);
     }
+    if (flag == 0) {
+        flag1_count = g->get_total_types();
+        for(tid_t i = 0; i < flag1_count; i++) {
+            if (0 == kv_out[i]) {
+                kv_out[i] = new numkv_t<T>;
+                kv_out[i]->setup(i);
+            }
+        } 
+        return;
+    } 
+    tid_t      pos  = 0;
     flag1_count = __builtin_popcountll(flag);
     for(tid_t i = 0; i < flag1_count; i++) {
         pos = __builtin_ctzll(flag);
         flag ^= (1L << pos);//reset that position
         if (0 == kv_out[pos]) {
-            kv_out[pos] = new ;
+            kv_out[pos] = new numkv_t<T>;
             kv_out[pos]->setup(pos);
         }
     }
@@ -92,7 +98,7 @@ void numberkv_t<T>::file_open(const string& dir, bool trunc)
     
     //base name using relationship type
     string basefile;
-    if (col_count) {
+    if (this->*col_count) {
         basefile = dir + col_info[0]->p_name;
     } else {
         basefile = dir;

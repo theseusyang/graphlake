@@ -3,7 +3,7 @@
 
 class tinfo_t {
  public:
-    sid_t   max_vcount;
+    vid_t   max_vcount;
     sid_t   vert_id;
     char*   type_name;
     strkv_t strkv;
@@ -44,7 +44,7 @@ class typekv_t : public cfinfo_t {
     typekv_t();
 
     //void alloc_edgelog(tid_t t);
-    tid_t manual_setup(sid_t vert_count, const string& type_name="gtype");
+    tid_t manual_setup(vid_t vert_count, const string& type_name="gtype");
     inline void init_enum(int enumcount) {
         max_count = enumcount;
         t_count = 0;

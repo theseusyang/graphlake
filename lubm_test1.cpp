@@ -358,10 +358,11 @@ void ontology_lubm()
     shortname = "name";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    //info = new stringkv_t;
-    info = new manykv_t;
+    info = new stringkv_t;
+    //info = new manykv_t;
     g->add_columnfamily(info);
-    info->create_columns(3);
+    info->create_columns();
+    //info->create_columns(3);
     info->add_column(p_info);
     ++p_info;
     
@@ -370,9 +371,9 @@ void ontology_lubm()
     shortname = "emailAddress";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    //info = new stringkv_t;
-    //g->add_columnfamily(info);
-    //info->create_columns();
+    info = new stringkv_t;
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
     
@@ -381,9 +382,9 @@ void ontology_lubm()
     shortname =  "telephone";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
-    //info = new stringkv_t;
-    //g->add_columnfamily(info);
-    //info->create_columns();
+    info = new stringkv_t;
+    g->add_columnfamily(info);
+    info->create_columns();
     info->add_column(p_info);
     ++p_info;
 }

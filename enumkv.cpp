@@ -4,6 +4,10 @@
 
 status_t enumkv_t::batch_update(const string& src, const string& dst, propid_t pid /*= 0*/)
 {
+    edgeT_t<char*> edge; 
+    edge.src_id = g->get_sid(src.c_str());
+    edge.dst_id = const_cast<char*>(src.c_str());
+    batch_edge(edge);
     return eOK;
 }
 
@@ -78,14 +82,24 @@ void enumkv_t::file_open(const string& odir, bool trunc)
 void enumkv_t::prep_graph_baseline()
 {
     sflag_t    flag = flag1;
-    tid_t      pos  = 0;
     tid_t   t_count = g->get_total_types();
     
     if (0 == numkv_out) {
         numkv_out = (numkv_t<uint8_t>**) calloc (sizeof(numkv_t<uint8_t>*), t_count);
     }
-    flag1_count = __builtin_popcountll(flag);
+    if (flag == 0) {
+        flag1_count = g->get_total_types();
+        for(tid_t i = 0; i < flag1_count; i++) {
+            if (0 == numkv_out[i]) {
+                numkv_out[i] = new numkv_t<uint8_t>;
+                numkv_out[i]->setup(i);
+            }
+        } 
+        return;
+    } 
 
+    tid_t      pos  = 0;
+    flag1_count = __builtin_popcountll(flag);
     for(tid_t i = 0; i < flag1_count; i++) {
         pos = __builtin_ctzll(flag);
         flag ^= (1L << pos);//reset that position

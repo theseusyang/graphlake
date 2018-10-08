@@ -1,11 +1,17 @@
 #pragma once
 
+#include <string>
+#include "type.h"
+#include "graph.h"
+
+using std::string;
+
+
 template <class T>
 class numkv_t {
  public:
     T* kv;
     tid_t  tid;
-    
     int    vtf;   //vertex table file
 
  public:
@@ -21,8 +27,6 @@ class numkv_t {
     void read_etable();
     void file_open(const string& filename, bool trunc);
 };
-#include <string.h>
-#include "graph.h"
 
 template <class T>
 numkv_t<T>::numkv_t()
