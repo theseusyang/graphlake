@@ -198,8 +198,6 @@ void plaingraph_manager_t<T>::setup_graph(vid_t v_count)
     g->type_done();
     g->prep_graph_baseline();
     g->file_open(true);
-    //g->make_graph_baseline();
-    //g->store_graph_baseline(); 
 }
 
 template <class T>
@@ -221,10 +219,9 @@ void plaingraph_manager_t<T>::setup_graph_memory(vid_t v_count)
     graph->flag2 = 1;
     typekv_t* typekv = g->get_typekv();
     typekv->manual_setup(v_count);
+    //g->file_open(true);
     //g->prep_graph_baseline();
     //g->file_open(true);
-    //g->make_graph_baseline();
-    //g->store_graph_baseline(); 
 }
 
 extern vid_t v_count;
@@ -355,9 +352,7 @@ void plaingraph_manager_t<T>::prep_graph_adj(const string& idirname, const strin
             assert(0);
         }
         ugraph->make_graph_baseline();
-        //ugraph->store_graph_baseline();
         g->incr_snapid(snap_marker, snap_marker);
-        //blog->marker = marker;
         ugraph->update_marker();
         //cout << marker << endl;
     }
