@@ -297,8 +297,14 @@ void graph::calc_degree()
 void graph::make_graph_baseline()
 {
     //make graph
+    index_t snap_marker = 0;
     for (int i = 0; i < cf_count; i++) {
-        cf_info[i]->make_graph_baseline();
+        cf_info[i]->create_marker(0);
+        if (eOK == cf_info[i]->move_marker(snap_marker)) {
+            cf_info[i]->make_graph_baseline();
+            cf_info[i]->update_marker();
+        }
+        //cf_info[i]->make_graph_baseline();
     }
 }
 

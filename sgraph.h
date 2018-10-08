@@ -127,6 +127,9 @@ class pgraph_t: public cfinfo_t {
     }
     
     void create_marker(index_t marker) {
+        if (marker ==0) {
+            marker = blog->blog_head;
+        }
         pthread_mutex_lock(&g->snap_mutex);
         index_t m_index = __sync_fetch_and_add(&q_head, 1L);
         q_beg[m_index % q_count] = marker;

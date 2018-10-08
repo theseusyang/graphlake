@@ -11,8 +11,9 @@ void onekv_t<T>::setup(tid_t t)
 }
 
 template <class T>
-void onekv_t<T>::file_open(const string& vtfile, bool trunc)
+void onekv_t<T>::file_open(const string& filename, bool trunc)
 {
+    string  vtfile = filename + ".kv";
     if(trunc) {
         //vtf = fopen(vtfile.c_str(), "wb");
 		vtf = open(vtfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);

@@ -4,7 +4,8 @@
 class tinfo_t {
  public:
     vid_t   max_vcount;
-    sid_t   vert_id;
+    vid_t   vert_id;
+    tid_t   tid;
     char*   type_name;
     strkv_t strkv;
 };

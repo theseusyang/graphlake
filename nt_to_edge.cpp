@@ -46,9 +46,12 @@ void ntriple_manager::prep_graph(const string& idirname, const string& odirname)
     DIR *dir;
     string subject, predicate, object, useless_dot;
     int file_count = 0;
-    
     g->prep_graph_baseline();
     g->file_open(true);
+    
+    //g->create_snapthread();
+    //usleep(1000);
+    
     
     //Read graph file
     dir = opendir(idirname.c_str());
@@ -67,6 +70,7 @@ void ntriple_manager::prep_graph(const string& idirname, const string& odirname)
         }
     }
     closedir(dir);
+    g->make_graph_baseline();
     g->store_graph_baseline();
     
 }

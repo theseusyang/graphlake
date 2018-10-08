@@ -177,10 +177,10 @@ void typekv_t::store_graph_baseline(bool clean)
     char type_text[512];
     for (tid_t t = 0; t < t_count; ++t) {
 #ifdef B32
-        sprintf(type_text, "%u %u %s\n", t_info[t].max_vcount, t_info[t].vert_id, 
+        sprintf(type_text, "%u %u %s\n", t_info[t].max_vcount, TO_VID(t_info[t].vert_id), 
                 t_info[t].type_name);
 #elif B64
-        sprintf(type_text, "%lu %lu %s\n", t_info[t].max_vcount, t_info[t].vert_id, 
+        sprintf(type_text, "%lu %lu %s\n", t_info[t].max_vcount, TO_VID(t_info[t].vert_id), 
                 t_info[t].type_name);
 #endif    
         fwrite(type_text, sizeof(char), strlen(type_text), vtf);
@@ -202,7 +202,7 @@ void typekv_t::read_graph_baseline()
         token = strtok_r(saveptr, " \n", &saveptr);
         t_info[t].max_vcount = strtol(token, NULL, 0);
         token = strtok_r(saveptr, " \n", &saveptr);
-        t_info[t].vert_id = strtol(token, NULL, 0);
+        t_info[t].vert_id = strtol(token, NULL, 0) + TO_SUPER(t);
         token = strtok_r(saveptr, " \n", &saveptr);
         t_info[t].type_name = strdup(token);
         t_info[t].strkv.setup(t);

@@ -32,6 +32,7 @@ class cfinfo_t {
 
     batchinfo_t* batch_info;
     batchinfo_t* batch_info1;
+    index_t     MAXX_ECOUNT;
     
     sflag_t     flag1;
     sflag_t     flag2;
@@ -42,7 +43,6 @@ class cfinfo_t {
     
     uint8_t     flag1_count;
     uint8_t     flag2_count;
-    index_t     MAXX_ECOUNT;
         
     //queue
     index_t*   q_beg;
@@ -83,11 +83,12 @@ class cfinfo_t {
     virtual status_t batch_update(const string& src, const string& dst, propid_t pid, 
                           propid_t count, prop_pair_t* prop_pair, int del = 0);
     
+    virtual void create_marker(index_t marker) {return ;};    
     virtual index_t update_marker() {return 0;};    
+    virtual status_t move_marker(index_t& snap_marker);
     virtual void prep_graph_baseline();
     virtual void calc_degree();
     virtual void make_graph_baseline();
-    virtual status_t move_marker(index_t& snap_marker);
     virtual status_t write_edgelog();
     virtual void store_graph_baseline(bool clean = false);
     virtual void read_graph_baseline();
