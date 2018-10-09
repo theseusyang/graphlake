@@ -8,14 +8,14 @@ using std::string;
 
 
 template <class T>
-class numkv_t {
+class kvT_t {
  public:
     T* kv;
     tid_t  tid;
     int    vtf;   //vertex table file
 
  public:
-    numkv_t(); 
+    kvT_t(); 
  
  public: 
     void setup(tid_t tid); 
@@ -29,7 +29,7 @@ class numkv_t {
 };
 
 template <class T>
-numkv_t<T>::numkv_t()
+kvT_t<T>::kvT_t()
 {
     kv = 0;
     tid = 0;
@@ -37,19 +37,19 @@ numkv_t<T>::numkv_t()
 }
 
 template <class T>
-void numkv_t<T>::set_value(vid_t vid, T& value)
+void kvT_t<T>::set_value(vid_t vid, T& value)
 {
     kv[vid] = value;
 }
 
 template <class T>
-T numkv_t<T>::get_value(vid_t vid)
+T kvT_t<T>::get_value(vid_t vid)
 {
     return kv[vid];
 }
 
 template <class T>
-void numkv_t<T>::setup(tid_t t) 
+void kvT_t<T>::setup(tid_t t) 
 {
     tid = t;
     vid_t v_count = g->get_type_scount(tid);
@@ -57,7 +57,7 @@ void numkv_t<T>::setup(tid_t t)
 }
 
 template <class T>
-void numkv_t<T>::persist_vlog()
+void kvT_t<T>::persist_vlog()
 {
     vid_t v_count = g->get_type_vcount(tid);
     if (v_count != 0) {
@@ -66,7 +66,7 @@ void numkv_t<T>::persist_vlog()
 }
 
 template <class T>
-void numkv_t<T>::file_open(const string& filename, bool trunc)
+void kvT_t<T>::file_open(const string& filename, bool trunc)
 {
     char  file_ext[16];
     sprintf(file_ext,"%u",tid);
@@ -85,7 +85,7 @@ void numkv_t<T>::file_open(const string& filename, bool trunc)
 }
 
 template <class T>
-void numkv_t<T>::read_vtable()
+void kvT_t<T>::read_vtable()
 {
     //read vtf 
     index_t size = fsize(vtf);

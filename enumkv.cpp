@@ -85,13 +85,13 @@ void enumkv_t::prep_graph_baseline()
     tid_t   t_count = g->get_total_types();
     
     if (0 == numkv_out) {
-        numkv_out = (numkv_t<uint8_t>**) calloc (sizeof(numkv_t<uint8_t>*), t_count);
+        numkv_out = (kvT_t<uint8_t>**) calloc (sizeof(kvT_t<uint8_t>*), t_count);
     }
     if (flag == 0) {
         flag1_count = g->get_total_types();
         for(tid_t i = 0; i < flag1_count; i++) {
             if (0 == numkv_out[i]) {
-                numkv_out[i] = new numkv_t<uint8_t>;
+                numkv_out[i] = new kvT_t<uint8_t>;
                 numkv_out[i]->setup(i);
             }
         } 

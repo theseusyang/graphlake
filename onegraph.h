@@ -930,4 +930,35 @@ void onegraph_t<T>::update_count()
     log_whead = log_head;
     adjlog_head = 0;
 }
-    */
+*/
+
+template <class T>
+onegraph_t<T>::onegraph_t() 
+{
+    beg_pos = 0;
+    vtf = -1;
+    etf = -1;
+    stf = 0;
+
+#ifdef BULK
+    nebr_count = 0;
+    vunit_beg	= 0;
+    vunit_count = 0;
+    vunit_head  = 0;
+    vunit_tail  = 0;
+
+    adjlog_count = 0;
+    adjlog_head  = 0;
+    adjlog_tail = 0;
+
+    dlog_count = 0;
+    dlog_head = 0;
+    dlog_tail = 0;
+   
+    log_count = 0;
+    dvt_max_count = 0;
+    write_seg[0].reset();
+    write_seg[1].reset();
+    write_seg[2].reset();
+#endif
+}

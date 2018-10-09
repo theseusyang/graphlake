@@ -417,6 +417,15 @@ class disk_vtable_t {
     uint64_t file_offset;
 };
 
+/*
+template <class T>
+class disk_kvT_t {
+    public:
+    vid_t    vid;
+    T       dst;
+};*/
+
+
 //used for offline processing
 class ext_vunit_t {
     public:
@@ -540,22 +549,22 @@ class blog_t {
     
 template <class T>
 void blog_t<T>::alloc_edgelog(index_t count) {
-        if (blog_beg) {
-            free(blog_beg);
-            blog_beg = 0;
-        }
-
-        blog_count = count;
-        blog_mask = count - 1;
-        //blog->blog_beg = (edgeT_t<T>*)mmap(0, sizeof(edgeT_t<T>)*blog->blog_count, 
-        //PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0);
-        //if (MAP_FAILED == blog->blog_beg) {
-        //    cout << "Huge page alloc failed for edge log" << endl;
-        //}
-        if (posix_memalign((void**)&blog_beg, 2097152, blog_count*sizeof(edgeT_t<T>))) {
-            perror("posix memalign batch edge log");
-        }
+    if (blog_beg) {
+        free(blog_beg);
+        blog_beg = 0;
     }
+
+    blog_count = count;
+    blog_mask = count - 1;
+    //blog->blog_beg = (edgeT_t<T>*)mmap(0, sizeof(edgeT_t<T>)*blog->blog_count, 
+    //PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0);
+    //if (MAP_FAILED == blog->blog_beg) {
+    //    cout << "Huge page alloc failed for edge log" << endl;
+    //}
+    if (posix_memalign((void**)&blog_beg, 2097152, blog_count*sizeof(edgeT_t<T>))) {
+        perror("posix memalign batch edge log");
+    }
+}
 
 typedef struct __econf_t {
     string filename;
@@ -574,7 +583,25 @@ class nebrcount_t {
  public:
     degree_t    add_count;
     degree_t    del_count;
-	//delta_adjlist_t<T>* adj_list;
+};
+
+template <class T>
+class thd_mem_t {
+	public:
+    
+    vunit_t<T>* vunit_beg;
+    snapT_t<T>* dlog_beg;
+    char*       adjlog_beg;
+	
+    index_t    	delta_size1;
+	uint32_t    vunit_count;
+	uint32_t    dsnap_count;
+#ifdef BULK
+    index_t     degree_count;
+#endif
+	index_t    	delta_size;
+    
+    char*       adjlog_beg1;
 };
 
 template <class T>
@@ -793,4 +820,20 @@ class stream_t {
 
  public:   
     void update_stream_view();
+};
+
+//for each range
+template <class T>
+class global_range_t {
+  public:
+      index_t count;
+      edgeT_t<T>* edges;
+};
+
+//for each thread 
+class thd_local_t {
+  public:
+      //For each thread
+      vid_t* vid_range;
+      vid_t  range_end;
 };

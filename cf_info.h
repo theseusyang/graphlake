@@ -1,6 +1,7 @@
 #pragma once
 
 #include "type.h"
+#include "str.h"
 #include "rset.h"
 
 extern void* alloc_buf();
@@ -29,14 +30,16 @@ class cfinfo_t {
  public:
     pinfo_t**     col_info;
     propid_t      col_count;
-    propid_t    cf_id;
+    propid_t      cf_id;
+    str_t         mem;
 
+    
     batchinfo_t* batch_info;
     batchinfo_t* batch_info1;
     int         batch_count;
     int         batch_count1;
     index_t     MAXX_ECOUNT;
-    
+     
     sflag_t     flag1;
     sflag_t     flag2;
     
@@ -49,13 +52,14 @@ class cfinfo_t {
     index_t    q_count;
     index_t    q_head;
     index_t    q_tail;
+    
         
     int       wtf;   //edge log file
 
  public: 
     cfinfo_t();   
     void reset();
-    
+    /*
     inline status_t alloc_batch() {
         if (batch_info1[batch_count1].count == MAXX_ECOUNT) {
             void* mem = alloc_buf();
@@ -65,7 +69,7 @@ class cfinfo_t {
             batch_info1[batch_count1].buf = mem; 
         }
         return eOK;
-    } 
+    }*/ 
 
  public:
     void create_columns(propid_t prop_count = 1);
@@ -93,7 +97,17 @@ class cfinfo_t {
     virtual void store_graph_baseline(bool clean = false);
     virtual void read_graph_baseline();
     virtual void file_open(const string& filename, bool trunc);
+    
+    inline char* alloc_str(index_t size, index_t& offset) {
+        return mem.alloc_str(size, offset);
+    }
+    inline  char* get_ptr(index_t offset) {
+        return mem.get_ptr(offset);
+    }
 
+    void setup_str(index_t size) {
+        mem.setup(size);
+    }
 
     //Graph specific
     virtual void add_edge_property(const char* longname, prop_encoder_t* prop_encoder);

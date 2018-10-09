@@ -110,25 +110,6 @@ class vert_table_t {
     }
 };
 
-template <class T>
-class thd_mem_t {
-	public:
-    
-    vunit_t<T>* vunit_beg;
-    snapT_t<T>* dlog_beg;
-    char*       adjlog_beg;
-	
-    index_t    	delta_size1;
-	uint32_t    vunit_count;
-	uint32_t    dsnap_count;
-#ifdef BULK
-    index_t     degree_count;
-#endif
-	index_t    	delta_size;
-    
-    char*       adjlog_beg1;
-
-};
 
 //one type's graph
 template <class T>
@@ -186,40 +167,11 @@ public:
     int    etf;   //edge table file
 
 public:
-    inline onegraph_t() {
-        beg_pos = 0;
-
-#ifdef BULK
-        nebr_count = 0;
-	    vunit_beg	= 0;
-		vunit_count = 0;
-		vunit_head  = 0;
-		vunit_tail  = 0;
-
-        adjlog_count = 0;
-        adjlog_head  = 0;
-        adjlog_tail = 0;
-
-        dlog_count = 0;
-        dlog_head = 0;
-        dlog_tail = 0;
-       
-        log_count = 0;
-        dvt_max_count = 0;
-		write_seg[0].reset();
-		write_seg[1].reset();
-		write_seg[2].reset();
-#endif
-
-        vtf = -1;
-        etf = -1;
-        stf = 0;
-    }
+   onegraph_t(); 
     
     inline vid_t get_degree(vid_t vid) {
         return beg_pos[vid].get_nebrcount();
     }
-    
     degree_t get_nebrs(vid_t vid, T* ptr);
     degree_t get_wnebrs(vid_t vid, T* ptr, degree_t start, degree_t count);
     void setup(tid_t tid);
@@ -487,14 +439,6 @@ typedef vert_table_t<lite_edge_t> lite_vtable_t;
 
 typedef onegraph_t<sid_t> sgraph_t;
 typedef onegraph_t<lite_edge_t>lite_sgraph_t;
-
-/*
-template <class T>
-class disk_kvT_t {
-    public:
-    vid_t    vid;
-    T       dst;
-};*/
 
 typedef onekv_t<sid_t> skv_t; 
 typedef onekv_t<lite_edge_t> lite_skv_t;

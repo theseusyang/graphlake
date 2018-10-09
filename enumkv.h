@@ -18,7 +18,7 @@ class enumkv_t : public cfinfo_t  {
     uint8_t        ecount;
     uint8_t        max_ecount;
   
-    numkv_t<uint8_t>** numkv_out;
+    kvT_t<uint8_t>** numkv_out;
 
     FILE* vtf;
   

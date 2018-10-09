@@ -7,7 +7,7 @@
 template <class T>
 class numberkv_t : public cfinfo_t 
 {
-    numkv_t<T>** kv_out; 
+    kvT_t<T>** kv_out; 
     
   public:
     inline numberkv_t() {
@@ -65,13 +65,13 @@ void numberkv_t<T>::prep_graph_baseline()
     tid_t   t_count = g->get_total_types();
     
     if (0 == kv_out) {
-        kv_out = (numkv_t<T>**) calloc (sizeof(numkv_t<T>*), t_count);
+        kv_out = (kvT_t<T>**) calloc (sizeof(kvT_t<T>*), t_count);
     }
     if (flag == 0) {
         flag1_count = g->get_total_types();
         for(tid_t i = 0; i < flag1_count; i++) {
             if (0 == kv_out[i]) {
-                kv_out[i] = new numkv_t<T>;
+                kv_out[i] = new kvT_t<T>;
                 kv_out[i]->setup(i);
             }
         } 
@@ -83,7 +83,7 @@ void numberkv_t<T>::prep_graph_baseline()
         pos = __builtin_ctzll(flag);
         flag ^= (1L << pos);//reset that position
         if (0 == kv_out[pos]) {
-            kv_out[pos] = new numkv_t<T>;
+            kv_out[pos] = new kvT_t<T>;
             kv_out[pos]->setup(pos);
         }
     }
@@ -132,7 +132,7 @@ void numberkv_t<T>::read_graph_baseline()
 {
     tid_t   t_count = g->get_total_types();
     if (0 == kv_out) {
-        kv_out  = (numkv_t<T>*) calloc (sizeof(numkv_t<T>*), t_count);
+        kv_out  = (kvT_t<T>*) calloc (sizeof(kvT_t<T>*), t_count);
     }
     
     // For each file.

@@ -11,22 +11,6 @@
 #include "graph.h"
 #include "wtime.h"
 
-//for each range
-template <class T>
-class global_range_t {
-  public:
-      index_t count;
-      edgeT_t<T>* edges;
-};
-
-//for each thread 
-class thd_local_t {
-  public:
-      //For each thread
-      vid_t* vid_range;
-      vid_t  range_end;
-};
-
 template <class T>
 class pgraph_t: public cfinfo_t {
     public:
@@ -40,13 +24,14 @@ class pgraph_t: public cfinfo_t {
             onegraph_t<T>** sgraph_in;
         };
         
+        //circular edge log buffer
+        blog_t<T>*  blog;
+       
         //intermediate classification buffer
         edgeT_t<T>* edge_buf_out;
         edgeT_t<T>* edge_buf_in;
         index_t edge_buf_count;
 
-        //circular edge log buffer
-        blog_t<T>*  blog;
 
  public:    
     inline pgraph_t() { 
@@ -63,10 +48,10 @@ class pgraph_t: public cfinfo_t {
     inline void alloc_edgelog(index_t count) {
         blog->alloc_edgelog(count);
     }
+    status_t write_edgelog(); 
     
     void alloc_edge_buf(index_t total); 
     void free_edge_buf();
-    status_t write_edgelog(); 
 
     status_t batch_update(const string& src, const string& dst, propid_t pid = 0) {
         edgeT_t<T> edge; 
@@ -266,6 +251,10 @@ status_t pgraph_t<T>::write_edgelog()
         write(wtf, blog->blog_beg, sizeof(edgeT_t<T>)*actual_marker);
     }
     blog->blog_wtail = w_marker;
+
+    //Write the string weights if any
+    this->mem.handle_write();
+    
     //fsync();
     return eOK;
 }
@@ -496,6 +485,9 @@ void pgraph_t<T>::file_open_edge(const string& dir, bool trunc)
     } else {
         wtf = open(wtfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
     }
+    
+    string etfile = filename + ".str";
+    this->mem.file_open(etfile.c_str(), trunc);
 }
 
 
@@ -1194,17 +1186,9 @@ void dgraph<T>::file_open(const string& odir, bool trunc)
 template <class T> 
 void dgraph<T>::read_graph_baseline()
 {
-    tid_t   t_count    = g->get_total_types();
-    
-    if (0 == sgraph_out) {
-        sgraph_out  = (onegraph_t<T>**) calloc (sizeof(onegraph_t<T>*), t_count);
-    }
     read_sgraph(sgraph_out);
-    
-    if (0 == sgraph_in) {
-        sgraph_in  = (onegraph_t<T>**) calloc (sizeof(onegraph_t<T>*), t_count);
-    }
     read_sgraph(sgraph_in);
+    this->mem.handle_read();
 }
 
 /*******************************************/
@@ -1290,12 +1274,8 @@ void ugraph<T>::file_open(const string& odir, bool trunc)
 template <class T> 
 void ugraph<T>::read_graph_baseline()
 {
-    tid_t   t_count = g->get_total_types();
-    
-    if (0 == sgraph) {
-        sgraph  = (onegraph_t<T>**) calloc (sizeof(onegraph_t<T>*), t_count);
-    }
     read_sgraph(sgraph);
+    this->mem.handle_read();
 }
 
 
@@ -1427,12 +1407,8 @@ void unigraph<T>::file_open(const string& odir, bool trunc)
 template <class T> 
 void unigraph<T>::read_graph_baseline()
 {
-    tid_t   t_count    = g->get_total_types();
-    
-    if (0 == sgraph_out) {
-        sgraph_out  = (onegraph_t<T>**) calloc (sizeof(onegraph_t<T>*), t_count);
-    }
     read_sgraph(sgraph_out);
+    this->mem.handle_read();
 }
 
 
