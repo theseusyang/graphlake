@@ -166,7 +166,7 @@ void many2one<T>::prep_graph_baseline()
         skv_out  = (onekv_t<T>**) calloc (sizeof(onekv_t<T>*), t_count);
     }
 
-    skv_out  = prep_skv(flag1, skv_out);
+    prep_skv(flag1, skv_out);
 }
 
 template <class T> 
@@ -179,7 +179,7 @@ void many2one<T>::make_graph_baseline()
     vid_t thd_count = THD_COUNT;
     
     tid_t src_index = TO_TID(get_dst(&blog->blog_beg[0]));
-    vid_t v_count = sgraph_in[src_index]->get_vcount();
+    vid_t v_count = g->get_type_vcount(src_index);
     vid_t  base_vid = ((v_count -1)/range_count);
     
     //find the number of bits to do shift to find the range
@@ -321,7 +321,7 @@ void one2many<T>::prep_graph_baseline()
         skv_in  = (onekv_t<T>**) calloc (sizeof(onekv_t<T>*), t_count);
     }
     
-    skv_in   = prep_skv(flag2, skv_in);
+    prep_skv(flag2, skv_in);
 }
     
 template <class T> 
@@ -331,7 +331,7 @@ void one2many<T>::make_graph_baseline()
 
 #ifndef BULK
     tid_t src_index = TO_TID(blog->blog_beg[0].src_id);
-    vid_t v_count = sgraph_out[src_index]->get_vcount();
+    vid_t v_count = g->get_type_vcount(src_index);
     vid_t range_count = 1024;
     vid_t thd_count = THD_COUNT;
     vid_t  base_vid = ((v_count -1)/range_count);
@@ -469,12 +469,12 @@ void one2one<T>::prep_graph_baseline()
     if (0 == skv_in) {
         skv_in  = (onekv_t<T>**) calloc (sizeof(onekv_t<T>*), t_count);
     }
-    skv_in  = prep_skv(flag2, skv_in);
+    prep_skv(flag2, skv_in);
     
     if (0 == skv_out) {
         skv_out  = (onekv_t<T>**) calloc (sizeof(onekv_t<T>*), t_count);
     }
-    skv_out = prep_skv(flag1, skv_out);
+    prep_skv(flag1, skv_out);
 }
 
 template <class T> 

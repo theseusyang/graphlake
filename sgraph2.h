@@ -285,7 +285,7 @@ void pgraph_t<T>::make_graph_uni()
     if (blog->blog_tail >= blog->blog_marker) return;
     
     tid_t src_index = TO_TID(blog->blog_beg[0].src_id);
-    vid_t v_count = sgraph_out[src_index]->get_vcount();
+    vid_t v_count = g->get_type_vcount(src_index);
     vid_t range_count = 1024;
     vid_t thd_count = THD_COUNT;
     vid_t  base_vid = ((v_count -1)/range_count);
@@ -375,11 +375,11 @@ void pgraph_t<T>::make_graph_d()
     vid_t range_count = 1024;
     
     tid_t src_index = TO_TID(blog->blog_beg[0].src_id);
-    vid_t v_count = sgraph_out[src_index]->get_vcount();
+    vid_t v_count = g->get_type_vcount(src_index);
     vid_t  base_vid = ((v_count -1)/range_count);
     
     tid_t dst_index = TO_TID(get_dst(&blog->blog_beg[0]));
-    vid_t v_count_in = sgraph_out[dst_index]->get_vcount();
+    vid_t v_count_in = g->get_type_vcount(dst_index);
     vid_t  base_vid_in = ((v_count_in -1)/range_count);
     
     //find the number of bits to do shift to find the range
@@ -495,7 +495,7 @@ void pgraph_t<T>::make_on_classify(onegraph_t<T>** sgraph, global_range_t<T>* gl
     //Adj list
     #ifdef BULK 
     tid_t src_index = TO_TID(blog->blog_beg[0].src_id);
-    vid_t v_count = sgraph_out[src_index]->get_vcount();
+    vid_t v_count = g->get_type_vcount(src_index);
     
     vid_t vid_start = (j_start << bit_shift);
     vid_t vid_end = (j_end << bit_shift);
@@ -514,7 +514,7 @@ void pgraph_t<T>::make_graph_u()
     if (blog->blog_tail >= blog->blog_marker) return;
     
     tid_t src_index = TO_TID(blog->blog_beg[0].src_id);
-    vid_t v_count = sgraph_out[src_index]->get_vcount();
+    vid_t v_count = g->get_type_vcount(src_index);
     
     vid_t range_count = 1024;
     vid_t thd_count = THD_COUNT;

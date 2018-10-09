@@ -29,17 +29,17 @@ class cfinfo_t {
  public:
     pinfo_t**     col_info;
     propid_t      col_count;
+    propid_t    cf_id;
 
     batchinfo_t* batch_info;
     batchinfo_t* batch_info1;
+    int         batch_count;
+    int         batch_count1;
     index_t     MAXX_ECOUNT;
     
     sflag_t     flag1;
     sflag_t     flag2;
     
-    propid_t    cf_id;
-    int         batch_count;
-    int         batch_count1;
     
     uint8_t     flag1_count;
     uint8_t     flag2_count;

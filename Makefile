@@ -53,6 +53,7 @@ HEADER=graph.h\
 	stringkv.h\
 	numberkv.h\
 	enumkv.h\
+	mixkv.h\
 	mlabel.h\
 	typekv.h\
 	query_node.h\

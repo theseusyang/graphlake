@@ -61,22 +61,7 @@ class pgraph_t: public cfinfo_t {
     }
 
     inline void alloc_edgelog(index_t count) {
-        if (blog->blog_beg) {
-            free(blog->blog_beg);
-            blog->blog_beg = 0;
-        }
-
-        blog->blog_count = count;
-        blog->blog_mask = count - 1;
-        //blog->blog_beg = (edgeT_t<T>*)mmap(0, sizeof(edgeT_t<T>)*blog->blog_count, 
-        //PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0);
-        //if (MAP_FAILED == blog->blog_beg) {
-        //    cout << "Huge page alloc failed for edge log" << endl;
-        //}
-        if (posix_memalign((void**)&blog->blog_beg, 2097152, 
-                           blog->blog_count*sizeof(edgeT_t<T>))) {
-            perror("posix memalign batch edge log");
-        }
+        blog->alloc_edgelog(count);
     }
     
     void alloc_edge_buf(index_t total); 
@@ -92,37 +77,16 @@ class pgraph_t: public cfinfo_t {
     }
     inline status_t batch_edge(edgeT_t<T>& edge) {
         status_t ret = eOK;
-
-        index_t index = __sync_fetch_and_add(&blog->blog_head, 1L);
         
-        //Check if we are overwritting the unarchived data, if so sleep
-        while (index + 1 - blog->blog_tail >= blog->blog_count) {
-            //cout << "Sleeping for edge log" << endl;
-            //cout << index << " " << blog->blog_tail << " " << blog->blog_head << " " << blog->blog_count << endl;
-            usleep(10);
-        }
-        
+        index_t index = blog->log(edge);
         index_t size = ((index - blog->blog_marker) & BATCH_MASK);
-        index_t index1 = (index & blog->blog_mask);
         
         //inform archive thread about threshold being crossed
         if ((0 == size) && (index != blog->blog_marker)) {
-            blog->blog_beg[index1] = edge;
             create_marker(index + 1);
             //cout << "Will create a snapshot now " << endl;
-            return eEndBatch;
-            //ret = eEndBatch;
+            ret = eEndBatch;
         } 
-        
-        blog->blog_beg[index1] = edge;
-        
-        //----
-        //Make the edge log durable
-        //if ((index != blog->blog_wmarker) && 
-        //    ((index - blog->blog_wmarker) % W_SIZE) == 0) {
-        //    create_wmarker(index);
-        //}
-    
         return ret; 
     }
     
@@ -155,27 +119,18 @@ class pgraph_t: public cfinfo_t {
         blog->blog_marker = marker;
         snap_marker = blog->blog_marker;
         
-        /*
-        index_t m_index = __sync_fetch_and_add(&q_tail, 1L);
-        index_t marker = q_beg[m_index % q_count];
-        blog->blog_marker = marker;
-        snap_marker = blog->blog_marker;
-        */
-
         pthread_mutex_unlock(&g->snap_mutex);
-        //cout << "working on snapshot" << endl;
         //cout << "Marker dequeue. Position = " << m_index % q_count << " " << marker << endl;
         return eOK;
     }
 
     index_t update_marker() { 
-        blog->blog_tail = blog->blog_marker;
-        return blog->blog_tail;
+        return blog->update_marker();
     }
 
  public:
-    onegraph_t<T>** prep_sgraph(sflag_t ori_flag, onegraph_t<T>** a_sgraph);
-    onekv_t<T>**    prep_skv(sflag_t ori_flag, onekv_t<T>** a_skv);
+    void prep_sgraph(sflag_t ori_flag, onegraph_t<T>** a_sgraph);
+    void prep_skv(sflag_t ori_flag, onekv_t<T>** a_skv);
     void            prep_sgraph_internal(onegraph_t<T>** sgraph);
     
     void make_graph_d(); 
@@ -315,38 +270,6 @@ status_t pgraph_t<T>::write_edgelog()
     return eOK;
 }
     
-//Called from front end thread
-//template <class T>
-//void pgraph_t<T>::create_wmarker(index_t marker) 
-//{
-   //     pthread_mutex_lock(&g->w_mutex);
-   //     if (marker > blog->blog_wmarker) {
-   //         blog->blog_wmarker = marker;
-   //     }
-   //     pthread_cond_signal(&g->w_condition);
-   //     pthread_mutex_unlock(&g->w_mutex);
-   //     cout << "WMarker queued." << endl;
-   // }
-    
-   // status_t write_edgelog() {
-   //     index_t w_marker = 0;
-   //     index_t w_tail = 0;
-   //     index_t w_count = 0;
-   //     pthread_mutex_lock(&g->w_mutex);
-   //     w_marker = blog->blog_wmarker;
-   //     pthread_mutex_unlock(&g->w_mutex);
-   //     w_tail = blog->blog_wtail;
-   //     w_count = w_marker - w_tail;
-   //     if (w_count) {
-   //         //write and update tail
-   //         //fwrite(blog->blog_beg + w_tail, sizeof(edgeT_t<T>), w_count, wtf);
-   //         write(wtf, blog->blog_beg + w_tail, sizeof(edgeT_t<T>)*w_count);
-   //         blog->blog_wtail = w_marker;
-   //         return eOK;
-   //     }
-   //     return eNoWork;
-   // }
-
 template <class T>
 class ugraph: public pgraph_t<T> {
  public:
@@ -470,7 +393,7 @@ typedef dgraph<lite_edge_t> p_dgraph_t;
 #include "onegraph.h"
 
 template <class T>
-onegraph_t<T>** pgraph_t<T>::prep_sgraph(sflag_t ori_flag, onegraph_t<T>** sgraph)
+void pgraph_t<T>::prep_sgraph(sflag_t ori_flag, onegraph_t<T>** sgraph)
 {
     sflag_t      flag = ori_flag;
     
@@ -482,7 +405,6 @@ onegraph_t<T>** pgraph_t<T>::prep_sgraph(sflag_t ori_flag, onegraph_t<T>** sgrap
                 sgraph[i]->setup(i);
             }
         } 
-        return sgraph;
     } 
     
     tid_t   pos = 0;//it is tid
@@ -496,7 +418,6 @@ onegraph_t<T>** pgraph_t<T>::prep_sgraph(sflag_t ori_flag, onegraph_t<T>** sgrap
         }
         sgraph[pos]->setup(pos);
     }
-    return sgraph;
 }
 
 #ifdef BULK
@@ -977,7 +898,7 @@ void pgraph_t<T>::store_skv(onekv_t<T>** skv)
 
 //super bins memory allocation
 template <class T>
-onekv_t<T>** pgraph_t<T>::prep_skv(sflag_t ori_flag, onekv_t<T>** skv)
+void pgraph_t<T>::prep_skv(sflag_t ori_flag, onekv_t<T>** skv)
 {
     sflag_t flag       = ori_flag;
     
@@ -989,7 +910,7 @@ onekv_t<T>** pgraph_t<T>::prep_skv(sflag_t ori_flag, onekv_t<T>** skv)
                 skv[i]->setup(i);
             }
         } 
-        return skv;
+        return;
     } 
     
     tid_t   pos  = 0;
@@ -1003,7 +924,7 @@ onekv_t<T>** pgraph_t<T>::prep_skv(sflag_t ori_flag, onekv_t<T>** skv)
         }
         skv[pos]->setup(pos);
     }
-    return skv;
+    return;
 }
 
 /**********************************************************/

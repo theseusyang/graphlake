@@ -516,7 +516,46 @@ class blog_t {
         blog_wtail = 0;
         blog_wmarker = 0;
     }
+
+    void alloc_edgelog(index_t count);
+    inline index_t update_marker() {
+        blog_tail = blog_marker;
+        return blog_tail;
+    }
+
+    index_t log(edgeT_t<T>& edge) {
+        index_t index = __sync_fetch_and_add(&blog_head, 1L);
+
+        //Check if we are overwritting the unarchived data, if so sleep
+        while (index + 1 - blog_tail >= blog_count) {
+            //cout << "Sleeping for edge log" << endl;
+            usleep(10);
+        }
+        
+        index_t index1 = (index & blog_mask);
+        blog_beg[index1] = edge;
+        return index;
+    }
 };
+    
+template <class T>
+void blog_t<T>::alloc_edgelog(index_t count) {
+        if (blog_beg) {
+            free(blog_beg);
+            blog_beg = 0;
+        }
+
+        blog_count = count;
+        blog_mask = count - 1;
+        //blog->blog_beg = (edgeT_t<T>*)mmap(0, sizeof(edgeT_t<T>)*blog->blog_count, 
+        //PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_HUGETLB|MAP_HUGE_2MB, 0, 0);
+        //if (MAP_FAILED == blog->blog_beg) {
+        //    cout << "Huge page alloc failed for edge log" << endl;
+        //}
+        if (posix_memalign((void**)&blog_beg, 2097152, blog_count*sizeof(edgeT_t<T>))) {
+            perror("posix memalign batch edge log");
+        }
+    }
 
 typedef struct __econf_t {
     string filename;

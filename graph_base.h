@@ -135,14 +135,10 @@ template <class T>
 class onegraph_t {
 private:
     //type id and vertices count together
-    sid_t      super_id;
+    tid_t     tid;
 
     //array of adj list of vertices
     vert_table_t<T>* beg_pos;
-
-    //count in adj list. Used for book-keeping purpose during setup and update.
-
-    vid_t    max_vcount;
 	
 	//Thread local memory data structures
 	thd_mem_t<T>* thd_mem;
@@ -189,28 +185,9 @@ private:
 public:
     int    etf;   //edge table file
 
-private:    
-    inline void del_nebr(vid_t vid, T sid) {
-        sid_t actual_sid = TO_SID(get_sid(sid)); 
-        degree_t location = find_nebr(vid, actual_sid);
-        if (INVALID_DEGREE != location) {
-            beg_pos[vid].v_unit->adj_list->add_nebr(sid);
-        }
-    }
-    
-    inline void del_nebr_noatomic(vid_t vid, T sid) {
-        sid_t actual_sid = TO_SID(get_sid(sid)); 
-        degree_t location = find_nebr(vid, actual_sid);
-        if (INVALID_DEGREE != location) {
-            beg_pos[vid].v_unit->adj_list->add_nebr_noatomic(sid);
-        }
-    }
-
 public:
     inline onegraph_t() {
-        super_id = 0;
         beg_pos = 0;
-        max_vcount = 0;
 
 #ifdef BULK
         nebr_count = 0;
@@ -269,19 +246,32 @@ public:
         nebr_count[vid].add_count = 0;
         nebr_count[vid].del_count = 0;
     }
-	#else
-	void increment_count_noatomic(vid_t vid);
-    void decrement_count_noatomic(vid_t vid);
-	#endif
-
-
+    inline void del_nebr(vid_t vid, T sid) {
+        sid_t actual_sid = TO_SID(get_sid(sid)); 
+        degree_t location = find_nebr(vid, actual_sid);
+        if (INVALID_DEGREE != location) {
+            beg_pos[vid].v_unit->adj_list->add_nebr(sid);
+        }
+    }
     inline void add_nebr(vid_t vid, T sid) {
         if (IS_DEL(get_sid(sid))) { 
             return del_nebr(vid, sid);
         }
         beg_pos[vid].v_unit->adj_list->add_nebr(sid);
     }
+	#else
+	void increment_count_noatomic(vid_t vid);
+    void decrement_count_noatomic(vid_t vid);
+	#endif
     
+    inline void del_nebr_noatomic(vid_t vid, T sid) {
+        sid_t actual_sid = TO_SID(get_sid(sid)); 
+        degree_t location = find_nebr(vid, actual_sid);
+        if (INVALID_DEGREE != location) {
+            beg_pos[vid].v_unit->adj_list->add_nebr_noatomic(sid);
+        }
+    }
+
     inline void add_nebr_noatomic(vid_t vid, T sid) {
 		vunit_t<T>* v_unit = beg_pos[vid].v_unit; 
 		#ifndef BULK 
@@ -454,16 +444,9 @@ public:
 	//------------------
     
     inline vert_table_t<T>* get_begpos() { return beg_pos;}
-    inline vid_t get_vcount() { return TO_VID(super_id);}
-    inline tid_t get_tid() { return TO_TID(super_id);}
-
-
     void prepare_dvt(write_seg_t* seg, vid_t& last_vid, bool clean = false);
 	void adj_prep(write_seg_t* seg);
     void handle_write(bool clean = false);
-    
-	//void adj_update(write_seg_t* seg);
-    //void update_count();
     void read_vtable();
     void file_open(const string& filename, bool trunc);
 };

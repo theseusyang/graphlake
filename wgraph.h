@@ -9,56 +9,45 @@ template <class T>
 class weight_graph_t : public cfinfo_t {
  
  public: 
-    union {
+    
+     //graphs with edge id
+     union {
         onekv_t<lite_edge_t>** skv_out;
         onegraph_t<lite_edge_t>** sgraph_out;
-        onegraph_t<lite_edge_t>** sgraph; 
     };
     union {
         onekv_t<lite_edge_t>** skv_in;
         onegraph_t<lite_edge_t>** sgraph_in;
     };
     
+    //weight store, T is the weight structure
     onegraph_t<T>**  wgraph;
     
     //circular edge log buffer
     blog_t<dst_weight_t<T>>*  blog;
 
-    string edge_propname;
-    prop_encoder_t* encoder;
-
  public:
-    weight_graph_t();
+    weight_graph_t() {
+        sgraph_out = 0;
+        sgraph_in  = 0;
+        blog = new blog_t<T>;
+    }
+    
+    inline void alloc_edgelog(index_t count) {
+        blog->alloc_edgelog(count);
+    }
 
-    //For heavy weight edges.
-    status_t batch_update(const string& src, const string& dst, propid_t pid, 
-                          propid_t count, prop_pair_t* prop_pair, int del = 0);
-    //status_t batch_update(const string& src, const string& dst, propid_t pid = 0);
-    
-    void add_edge_property(const char* longname, prop_encoder_t* prop_encoder);
-    
     status_t batch_edge(edgeT_t<dst_weight_t<T> edge) {
         status_t ret = eOK;
-        index_t index = __sync_fetch_and_add(&blog->blog_head, 1L);
-        index_t index1 = (index & BLOG_MASK);
+        index_t index = blog->log(edge);
         index_t size = ((index - blog->blog_marker) & BATCH_MASK);
+        
+        //inform archive thread about threshold being crossed
         if ((0 == size) && (index != blog->blog_marker)) {
-            blog->blog_beg[index1] = edge;
             create_marker(index + 1);
-            return eEndBatch;
-            //ret = eEndBatch;
-        } else if ((index - blog->blog_tail) == blog->blog_count - 1000) {
-            blog->blog_beg[index1] = edge;
-            create_marker(index + 1);
-            cout << "About OOM" << endl;
-            return eOOM;
-        } else if ((index - blog->blog_tail) >= blog->blog_count) {
-            //block
-            assert(0);
-            return eOOM;
-        }
-        blog->blog_beg[index1] = edge;
-    
+            //cout << "Will create a snapshot now " << endl;
+            ret = eEndBatch;
+        } 
         return ret; 
     }
     
@@ -89,16 +78,15 @@ class weight_graph_t : public cfinfo_t {
         snap_marker = blog->blog_marker;
         
         pthread_mutex_unlock(&g->snap_mutex);
+        //cout << "Marker dequeue. Position = " << m_index % q_count << " " << marker << endl;
         return eOK;
     }
 
     index_t update_marker() { 
-        blog->blog_tail = blog->blog_marker;
-        return blog->blog_tail;
+        return blog->update_marker();
     }
  
  public:
-    
     void prep_sgraph(sflag_t ori_flag, onegraph_t<lite_edge_t>** a_sgraph);
     void prep_skv(sflag_t ori_flag, onekv_t<lite_edge_t>** a_skv);
     void prep_weight_store(sflag_t ori_flag);
@@ -125,6 +113,7 @@ class weight_graph_t : public cfinfo_t {
     void read_sgraph(onegraph_t<T>** sgraph);
     void read_skv(onekv_t<T>** skv);
     
+    void file_open_edge(const string& dir, bool trunc);
     void file_open_sgraph(onegraph_t<T>** sgraph, const string& odir, const string& postfix, bool trunc);
     void file_open_skv(onekv_t<T>** skv, const string& odir, const string& postfix, bool trunc);
 };
@@ -159,7 +148,7 @@ void weight_graph_t<T>::prep_sgraph(sflag_t ori_flag, onegraph_t<lite_edge_t>** 
         pos = __builtin_ctzll(flag);
         flag ^= (1L << pos);//reset that position
         if (0 == sgraph[pos]) {
-            sgraph[pos] = new onegraph_t<T>;
+            sgraph[pos] = new onegraph_t<lite_edge_t>;
         }
         sgraph[pos]->setup(pos);
     }
@@ -198,6 +187,18 @@ void weight_graph_t<T>::store_sgraph(onegraph_t<lite_edge_t>** sgraph, bool clea
 }
 
 template <class T>
+void weight_graph_t<T>::file_open_edge(const string& dir, bool trunc)
+{
+    string filename = dir + col_info[0]->p_name; 
+    string wtfile = filename + ".elog";
+    if (trunc) {
+        wtf = open(wtfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
+    } else {
+        wtf = open(wtfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
+    }
+}
+
+template <class T>
 void weight_graph_t<T>::file_open_sgraph(onegraph_t<lite_edge_t>** sgraph, const string& dir, const string& postfix, bool trunc)
 {
     if (sgraph == 0) return;
@@ -206,7 +207,7 @@ void weight_graph_t<T>::file_open_sgraph(onegraph_t<lite_edge_t>** sgraph, const
     string  basefile = dir + col_info[0]->p_name;
     string  filename;
     string  wtfile; 
-
+    
     // For each file.
     tid_t    t_count = g->get_total_types();
     for (tid_t i = 0; i < t_count; ++i) {
@@ -215,13 +216,9 @@ void weight_graph_t<T>::file_open_sgraph(onegraph_t<lite_edge_t>** sgraph, const
         sprintf(name, "%d", i);
         filename = basefile + name + postfix ; 
         sgraph[i]->file_open(filename, trunc);
-        
-        wtfile = filename + ".elog";
-		if (trunc) {
-            wtf = open(wtfile.c_str(), O_RDWR|O_CREAT|O_TRUNC, S_IRWXU);
-        } else {
-		    wtf = open(wtfile.c_str(), O_RDWR|O_CREAT, S_IRWXU);
-        }
+
+        filename = basefile + name + "w" + postfix;
+        wgraph[i]->file_open(filename, trunc);
     }
 }
 
@@ -364,7 +361,7 @@ void weight_graph_t<T>::classify(vid_t* vid_range, vid_t* vid_range_in, vid_t bi
 }
 
 template <class T>
-void weight_graph_t<T>::calc_degree_noatomic(onegraph_t<lite_edge_t>** sgraph, global_range_t<weight_dst_t<T>>* global_range, vid_t j_start, vid_t j_end) 
+void weight_graph_t<T>::calc_degree_noatomic(onegraph_t<T>** wgraph, global_range_t<weight_dst_t<T>>* global_range, vid_t j_start, vid_t j_end) 
 {
     index_t total = 0;
     edgeT_t<weight_dst_t<T>>* edges = 0;
@@ -553,7 +550,9 @@ void weight_graph_t<T>::make_graph_u()
 {
     if (blog->blog_tail >= blog->blog_marker) return;
     
-    vid_t v_count = sgraph[0]->get_vcount();
+    tid_t src_index = TO_TID(blog->blog_beg[0].src_id);
+    vid_t v_count = sgraph[src_index]->get_vcount();
+
     vid_t range_count = 1024;
     vid_t thd_count = THD_COUNT;
     vid_t  base_vid = ((v_count -1)/range_count);
@@ -610,6 +609,8 @@ void weight_graph_t<T>::make_graph_u()
         j_end = thd_local[tid].range_end;
         
         make_on_classify(sgraph, global_range, j_start, j_end, bit_shift); 
+        
+        //free the memory
         free(vid_range);
         #pragma omp barrier 
         print(" adj-list filled = ", start);
@@ -629,23 +630,14 @@ void weight_graph_t<T>::make_graph_u()
 }
 
 template <class T>
-void pgraph_t<T>::make_on_classify(onegraph_t<lite_edge_t>** sgraph, global_range_t<T>* global_range, vid_t j_start, vid_t j_end, vid_t bit_shift)
+void weight_graph_t<T>::make_on_classify(onegraph_t<T>** wgraph, global_range_t<weight_dst_t<T>>* global_range, vid_t j_start, vid_t j_end, vid_t bit_shift)
 {
     //degree count
-    this->calc_degree_noatomic(sgraph, global_range, j_start, j_end);
+    this->calc_degree_noatomic(wgraph, global_range, j_start, j_end);
     print(" Degree = ", start);
 
-    //Adj list
-    #ifdef BULK 
-    vid_t vid_start = (j_start << bit_shift);
-    vid_t vid_end = (j_end << bit_shift);
-    if (vid_end > v_count) vid_end = v_count;
-    sgraph[0]->setup_adjlist_noatomic(vid_start, vid_end);
-    print(" adj-list setup =", start);
-    #endif
-    
     //fill adj-list
-    this->fill_adjlist_noatomic(sgraph, global_range, j_start, j_end);
+    this->fill_adjlist_noatomic(wgraph, sgraph, global_range, j_start, j_end);
 }
 /*
 class p_many2one_t: public weight_graph_t {
@@ -747,6 +739,7 @@ void weight_dgraph<T>::store_graph_baseline(bool clean)
 template <class T> 
 void weight_dgraph<T>::file_open(const string& odir, bool trunc)
 {
+    this->file_open_edge(odir, trunc);
     string postfix = "out";
     file_open_sgraph(sgraph_out, odir, postfix, trunc);
     postfix = "in";
