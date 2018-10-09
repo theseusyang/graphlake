@@ -242,7 +242,7 @@ void onegraph_t<T>::setup_adjlist_noatomic(vid_t vid_start, vid_t vid_end)
 template <class T>
 void onegraph_t<T>::setup(tid_t t)
 {
-    tid = tid;
+    tid = t;
     vid_t max_vcount = g->get_type_scount(tid);;
     beg_pos = (vert_table_t<T>*)calloc(sizeof(vert_table_t<T>), max_vcount);
     

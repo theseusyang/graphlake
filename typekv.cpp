@@ -228,14 +228,18 @@ typekv_t::typekv_t()
 }
 
 //Required to be called as we need to have a guess for max v_count
-tid_t typekv_t::manual_setup(vid_t vert_count, const string& type_name/*="gtype"*/)
+tid_t typekv_t::manual_setup(vid_t vert_count, bool create_vert, const string& type_name/*="gtype"*/)
 {
     string filename = g->odirname + col_info[0]->p_name;
     
     str2enum[type_name.c_str()] = t_count;
     t_info[t_count].type_name = strdup(type_name.c_str());
 
-    t_info[t_count].vert_id = TO_SUPER(t_count);
+    if (create_vert) {
+        t_info[t_count].vert_id = TO_SUPER(t_count) + vert_count;
+    } else {
+        t_info[t_count].vert_id = TO_SUPER(t_count);
+    }
     t_info[t_count].max_vcount = vert_count;
     t_info[t_count].strkv.setup(t_count);
     t_info[t_count].strkv.file_open(filename, true);

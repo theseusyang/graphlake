@@ -45,7 +45,7 @@ class typekv_t : public cfinfo_t {
     typekv_t();
 
     //void alloc_edgelog(tid_t t);
-    tid_t manual_setup(vid_t vert_count, const string& type_name="gtype");
+    tid_t manual_setup(vid_t vert_count, bool create_vert, const string& type_name="gtype");
     inline void init_enum(int enumcount) {
         max_count = enumcount;
         t_count = 0;

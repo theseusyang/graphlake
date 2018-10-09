@@ -73,8 +73,8 @@ void wls_schema()
 void wls_setup()
 {
     typekv_t* typekv = g->get_typekv();
-    typekv->manual_setup(1<<28, "process");//processes are tid 0
-    typekv->manual_setup(1<<20, "user");//users are tid 1
+    typekv->manual_setup(1<<28, false, "process");//processes are tid 0
+    typekv->manual_setup(1<<20, false, "user");//users are tid 1
     g->prep_graph_baseline();
     g->file_open(true);
 }
