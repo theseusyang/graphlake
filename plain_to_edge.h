@@ -43,6 +43,7 @@ class plaingraph_manager_t {
     
      void setup_graph(vid_t v_count);
      void setup_graph_memory(vid_t v_count);
+     void setup_graph_vert_nocreate(vid_t v_count);
      void restore_graph();
 
      void prep_graph_fromtext(const string& idirname, const string& odirname, typename callback<T>::parse_fn_t);
@@ -195,6 +196,20 @@ void plaingraph_manager_t<T>::setup_graph(vid_t v_count)
     graph->flag2 = 1;
     typekv_t* typekv = g->get_typekv();
     typekv->manual_setup(v_count, true);
+    g->type_done();
+    g->prep_graph_baseline();
+    g->file_open(true);
+}
+
+template <class T>
+void plaingraph_manager_t<T>::setup_graph_vert_nocreate(vid_t v_count)
+{
+    //do some setup for plain graphs
+    pgraph_t<T>* graph = (pgraph_t<T>*)get_plaingraph();
+    graph->flag1 = 1;
+    graph->flag2 = 1;
+    typekv_t* typekv = g->get_typekv();
+    typekv->manual_setup(v_count, false);
     g->type_done();
     g->prep_graph_baseline();
     g->file_open(true);

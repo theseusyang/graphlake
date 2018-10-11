@@ -903,7 +903,7 @@ void ingestion_fulluni(const string& idir, const string& odir,
     plaingraph_manager_t<T> manager;
     manager.schema_plaingraphuni();
     //do some setup for plain graphs
-    manager.setup_graph(v_count);    
+    manager.setup_graph_vert_nocreate(v_count);    
     manager.prep_graph_fromtext(idir, odir, parsefile_fn); 
     g->store_graph_baseline();
     cout << "stroing done" << endl;

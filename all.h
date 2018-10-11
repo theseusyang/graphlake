@@ -10,6 +10,7 @@
 #include "typekv.h"
 #include "propkv.h"
 #include "stringkv.h"
+#include "numberkv.h"
 #ifdef B64
 #include "mlabel.h"
 #endif

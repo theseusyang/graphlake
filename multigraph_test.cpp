@@ -10,7 +10,8 @@ void run_sample_wls_query()
 {
     //0th index is: See schema
     typekv_t* typekv = g->get_typekv();
-    stringkv_t* stringkv = (stringkv_t*)g->get_sgraph(3);
+    //stringkv_t* stringkv = (stringkv_t*)g->get_sgraph(3);
+    numberkv_t<proc_label_t>* proc_label = (numberkv_t<proc_label_t>*)g->get_sgraph(4);
     
     //First graph is 
     pgraph_t<sid_t>* proc2parent = (pgraph_t<sid_t>*) g->get_sgraph(1);
@@ -31,6 +32,7 @@ void run_sample_wls_query()
 
     for(degree_t i = 0; i < proc_count; ++i) {
         cout << typekv->get_vertex_name(get_sid(procs[i])) << ", ";
+        cout << user2proc->get_ptr(procs[i].second.user_name) << endl;
     }
 
     cout << endl << endl;
@@ -46,10 +48,13 @@ void run_sample_wls_query()
     
     sid_t* parent_procs = (sid_t*)calloc(sizeof(sid_t), parent_count);
     proc2parent->get_nebrs_out(first_proc_id, parent_procs);
+    
 
     for(degree_t i = 0; i < parent_count; i++) {
         cout << typekv->get_vertex_name(parent_procs[i]) << ", ";
-        cout << stringkv->get_value(parent_procs[i]) << endl;
+        //cout << stringkv->get_value(parent_procs[i]) << endl;
+        cout << proc_label->get_value(parent_procs[i]).proc_id << ", ";
+        cout << proc_label->get_ptr(proc_label->get_value(parent_procs[i]).proc_name) << ", ";
     }
     cout << endl;
    

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <string.h>
 #include "type.h"
 
 using  std::map;
@@ -37,7 +38,8 @@ public:
             log_beg = (char*)calloc(sizeof(char), log_count);
             //perror("posix memalign edge log");
         }
-        log_head = 0;
+        log_head = 1;
+        log_beg[0] = 0;
         log_tail = 0;
         log_wpos = 0;
     }
@@ -72,6 +74,19 @@ public:
         log_head += size;
         assert(log_head < log_count);
         return ptr;
+    }
+    
+    inline index_t copy_str(const char* value) {
+        index_t size = strlen(value);
+        if (0 == size) {
+            return 0;
+        }
+        char* ptr = log_beg + log_head;
+        index_t offset = log_head;
+        log_head += strlen(value) +1;
+        assert(log_head < log_count);
+        memcpy(ptr, value, strlen(value)+1);
+        return offset;
     }
     inline char* get_ptr(index_t offset) {
         return log_beg + offset;

@@ -99,6 +99,12 @@ struct wls_weight_t {
     uint32_t time;
     uint16_t event_id;
     uint16_t logon_id;
+    index_t  user_name ;//To test
+};
+
+struct proc_label_t {
+    index_t proc_name;//string
+    index_t proc_id;
 };
 
 typedef dst_weight_t<wls_weight_t> wls_dst_t;

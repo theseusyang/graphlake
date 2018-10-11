@@ -22,7 +22,6 @@ class kvT_t {
     void set_value(vid_t vid, T& value); 
     T get_value(vid_t vid);
     void persist_vlog();
-    void persist_elog();
     void read_vtable();
     void read_etable();
     void file_open(const string& filename, bool trunc);

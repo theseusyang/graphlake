@@ -1,6 +1,5 @@
 #include "multi_graph.h"
-#include "stringkv.h"
-
+#include "all.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
@@ -52,19 +51,33 @@ void wls_schema()
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
+    info->setup_str(1<<30);
     info->flag1 = 2;
     info->flag2 = 1;
     ++p_info;
     
-    longname = "vlabel";
-    shortname = "vlabel";
+    longname = "userlabel";
+    shortname = "userlabel";
     g->add_property(longname);
     p_info->populate_property(longname, shortname);
     info = new stringkv_t;
     g->add_columnfamily(info);
     info->create_columns();
     info->add_column(p_info);
-    info->flag1 = 3;
+    info->flag1 = 2;
+    //info->flag2 = 1;
+    ++p_info;
+    
+    longname = "proclabel";
+    shortname = "proclabel";
+    g->add_property(longname);
+    p_info->populate_property(longname, shortname);
+    info = new numberkv_t<proc_label_t>;
+    g->add_columnfamily(info);
+    info->create_columns();
+    info->add_column(p_info);
+    info->setup_str(1<<30);
+    info->flag1 = 1;
     //info->flag2 = 1;
     ++p_info;
     
@@ -85,22 +98,34 @@ inline index_t parse_wls_line(char* line)
         return eNotValid;
     }
     
-    edgeT_t<wls_dst_t> wls;
     edgeT_t<sid_t> edge;
+    edgeT_t<wls_dst_t> wls;
+    edgeT_t<char*> str_edge;
+    edgeT_t<proc_label_t> proc_edge;
+    
+    pgraph_t<sid_t>* proc2parent = (pgraph_t<sid_t>*)g->get_sgraph(1);
+    pgraph_t<wls_dst_t>* user2proc = (pgraph_t<wls_dst_t>*)g->get_sgraph(2);
+    stringkv_t* vlabel = (stringkv_t*)g->get_sgraph(3);
+    numberkv_t<proc_label_t>* proc_label = (numberkv_t<proc_label_t>*)g->get_sgraph(4);
     
     Document d;
     d.Parse(line);
-    string log_host;
+    string log_host, proc_id;
+    string proc_name, parent_proc_name;
+    index_t process_id = 0, parent_process_id = 0;;
+
 
     Value::ConstMemberIterator itr = d.FindMember("ProcessID");
     if (itr != d.MemberEnd()) {
-        string proc_id = itr->value.GetString();
+        proc_id = itr->value.GetString();
+        process_id = strtol(proc_id.c_str(), NULL, 0); 
         log_host = d["LogHost"].GetString();
         proc_id += "@";
         proc_id += log_host + "@";
         proc_id += d["LogonID"].GetString();
-        //wls.dst_id.first = strtol(proc_id.c_str(), NULL, 0); 
         wls.dst_id.first = g->type_update(proc_id.c_str(), 0);//"process" are type id 0.
+
+        proc_name = d["ProcessName"].GetString();
     } else {
         return eNotValid;
     }
@@ -111,50 +136,62 @@ inline index_t parse_wls_line(char* line)
     itr = d.FindMember("DomainName");
     if (itr != d.MemberEnd()) {
         user_name += d["DomainName"].GetString();
-        wls.src_id = g->type_update(user_name.c_str(), 1);//"user" are type id 1.
     } else {
         return eNotValid;
     }
     
-
     //Value& s = d["Time"];
     //int i = s.GetInt();
-    
+     
+    wls.src_id = g->type_update(user_name.c_str(), 1);//"user" are type id 1.
     wls.dst_id.second.time = d["Time"].GetInt();
     wls.dst_id.second.event_id = d["EventID"].GetInt();
 
     string logon_id = d["LogonID"].GetString();
     wls.dst_id.second.logon_id = strtol(logon_id.c_str(), NULL, 0); 
     
-    //insert
-    pgraph_t<wls_dst_t>* pgraph = (pgraph_t<wls_dst_t>*)g->get_sgraph(2);
-    pgraph->batch_edge(wls);
-        
-    pgraph_t<sid_t>* pgraph1 = (pgraph_t<sid_t>*)g->get_sgraph(1);
+    //test the string value
+    index_t offset;
+    char* u_name = user2proc->alloc_str(strlen(user_name.c_str()) + 1, offset);
+    memcpy(u_name, user_name.c_str(), strlen(user_name.c_str())+1);
+    wls.dst_id.second.user_name = offset;
 
+        
     itr = d.FindMember("ParentProcessID");
     if (itr != d.MemberEnd()) {
-        string proc_id = itr->value.GetString();
-        proc_id += "@";
+        proc_id = itr->value.GetString();
+        parent_process_id = strtol(proc_id.c_str(), NULL, 0); 
+        proc_id = proc_id + "@";
         proc_id += log_host;
         proc_id += logon_id;
-        //edge.dst_id = strtol(proc_id.c_str(), NULL, 0); 
         edge.dst_id = g->type_update(proc_id.c_str(), 0);//"process" are type id 0.
         edge.src_id = wls.dst_id.first;
-
-        //insert
-        pgraph1->batch_edge(edge);
+        
+        parent_proc_name = d["ParentProcessName"].GetString();
+    } else {
+        return eNotValid;
     }
-   
-    stringkv_t* vlabel = (stringkv_t*)g->get_sgraph(3);
-    edgeT_t<char*> str_edge;
-    str_edge.src_id = edge.src_id;
-    str_edge.dst_id = const_cast<char*>(logon_id.c_str());
-    vlabel->batch_edge(str_edge);
     
+    //insert
+    user2proc->batch_edge(wls);
+    proc2parent->batch_edge(edge);
+   
+    //label for user
     str_edge.src_id = wls.src_id;
     str_edge.dst_id = const_cast<char*>(logon_id.c_str());
     vlabel->batch_edge(str_edge);
+    
+    //label for process
+    proc_edge.src_id = edge.src_id;
+    proc_edge.dst_id.proc_name = proc_label->copy_str(proc_name.c_str()); 
+    proc_edge.dst_id.proc_id = process_id;
+    proc_label->batch_edge(proc_edge);
+
+    //label for parent process 
+    proc_edge.src_id = edge.dst_id;
+    proc_edge.dst_id.proc_name = proc_label->copy_str(parent_proc_name.c_str()); 
+    proc_edge.dst_id.proc_id = parent_process_id;
+    proc_label->batch_edge(proc_edge);
 
     return eOK;
 }

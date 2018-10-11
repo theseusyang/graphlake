@@ -25,14 +25,14 @@ class numberkv_t : public cfinfo_t
     void fill_kv_out();
 
     //inline const char* get_value(tid_t tid, vid_t vid) 
-    inline const char* get_value(sid_t sid) {
+    inline T get_value(sid_t sid) {
         vid_t vid = TO_VID(sid);
         tid_t tid = TO_TID(sid);
         return kv_out[tid]->get_value(vid);
     }
 
     inline void print_raw_dst(tid_t tid, vid_t vid, propid_t pid = 0) {
-        cout << kv_out[tid]->kv[vid];
+        //cout << kv_out[tid]->kv[vid];
     }
 
 };
@@ -98,7 +98,7 @@ void numberkv_t<T>::file_open(const string& dir, bool trunc)
     
     //base name using relationship type
     string basefile;
-    if (this->*col_count) {
+    if (this->col_count) {
         basefile = dir + col_info[0]->p_name;
     } else {
         basefile = dir;
@@ -109,6 +109,8 @@ void numberkv_t<T>::file_open(const string& dir, bool trunc)
         if (kv_out[i] == 0) continue;
         kv_out[i]->file_open(basefile, trunc);
     }
+    string etfile = basefile + ".str";
+    this->mem.file_open(etfile.c_str(), trunc);
 }
 
 template<class T>
@@ -123,8 +125,8 @@ void numberkv_t<T>::store_graph_baseline(bool clean /*=false*/)
         if (kv_out[i] == 0) continue;
 
         kv_out[i]->persist_vlog();
-        kv_out[i]->persist_elog();
     }
+    this->mem.handle_write();
 }
 
 template<class T>
@@ -132,7 +134,7 @@ void numberkv_t<T>::read_graph_baseline()
 {
     tid_t   t_count = g->get_total_types();
     if (0 == kv_out) {
-        kv_out  = (kvT_t<T>*) calloc (sizeof(kvT_t<T>*), t_count);
+        kv_out  = (kvT_t<T>**) calloc (sizeof(kvT_t<T>*), t_count);
     }
     
     // For each file.
@@ -140,4 +142,5 @@ void numberkv_t<T>::read_graph_baseline()
         if (kv_out[i] == 0) continue;
         kv_out[i]->read_vtable();
     }
+    this->mem.handle_read();
 }

@@ -101,6 +101,10 @@ class cfinfo_t {
     inline char* alloc_str(index_t size, index_t& offset) {
         return mem.alloc_str(size, offset);
     }
+    
+    inline index_t copy_str(const char* value) {
+        return mem.copy_str(value);
+    }
     inline  char* get_ptr(index_t offset) {
         return mem.get_ptr(offset);
     }
