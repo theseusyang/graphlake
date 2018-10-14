@@ -25,10 +25,6 @@ using std::string;
 using std::swap;
 using std::pair;
 
-inline char* gstrdup(const char* str) 
-{
-    return strdup(str);
-}
     
 void* alloc_buf();
 
@@ -49,6 +45,7 @@ extern map<string, get_encoder_instance>  encoder_instance;
 class graph {
  public:
     //graphs and labels store.
+    map <string, propid_t> str2pid;
     cfinfo_t** cf_info;
     pinfo_t *  p_info;
     
@@ -63,7 +60,6 @@ class graph {
     snapshot_t*  snapshot;
     string       snapfile;
     FILE*        snap_f;
-    map <string, propid_t> str2pid;
 
     //Other information
     vid_t     vert_count;
@@ -93,8 +89,6 @@ class graph {
     void incr_snapid(index_t snap_marker, index_t durable_marker = 0);
     void read_snapshot();
 
-    void add_columnfamily(cfinfo_t* cf);
-    //void create_columnfamilies(propid_t a_cf_count);
     
     inline cfinfo_t* get_sgraph(propid_t cfid) { return cf_info[cfid];}
     inline typekv_t* get_typekv() { return (typekv_t*)cf_info[0]; }
@@ -109,12 +103,12 @@ class graph {
     void  type_store(const string& odir);
 
 
+    void add_columnfamily(cfinfo_t* cf, propid_t p_count = 1);
+    status_t add_property(const char* longname);
     propid_t get_cfid(propid_t pid);
     propid_t get_cfid(const char* property);
     propid_t get_pid(const char* property);
     
-    status_t add_property(const char* longname);
-     
     //queries
     void run_query(query_clause* q);
     

@@ -5,6 +5,11 @@
 #include "rset.h"
 
 extern void* alloc_buf();
+
+inline char* gstrdup(const char* str) 
+{
+    return strdup(str);
+}
 /////////////////////////////////
 //One relationship or label
 class pinfo_t {
@@ -12,9 +17,7 @@ class pinfo_t {
     char*        p_name;
     char*        p_longname;
     propid_t     cf_id;
-
- public:
-    void populate_property(const char* longname, const char* property_name);
+    propid_t     local_id;
 };
 
 class batchinfo_t {
@@ -72,8 +75,8 @@ class cfinfo_t {
     }*/ 
 
  public:
-    void create_columns(propid_t prop_count = 1);
-    void add_column(pinfo_t* prop_info);
+    void create_columns(propid_t prop_count);
+    void add_column(pinfo_t* prop_info, const char* longname, const char* shortname);
     
     void swap_log_buffer(); 
     void cleanup();

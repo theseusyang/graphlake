@@ -22,35 +22,26 @@ void wls_schema()
     
     longname = "gtype";
     shortname = "gtype";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new typekv_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     
     longname = "proc2parent";
     shortname = "proc2parent";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new unigraph<sid_t>;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     info->flag1 = 1;
     info->flag2 = 1;
     ++p_info;
     
     longname = "user2proc";
     shortname = "user2proc";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new unigraph<wls_dst_t>;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     info->setup_str(1<<30);
     info->flag1 = 2;
     info->flag2 = 1;
@@ -58,24 +49,18 @@ void wls_schema()
     
     longname = "userlabel";
     shortname = "userlabel";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new stringkv_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     info->flag1 = 2;
     //info->flag2 = 1;
     ++p_info;
     
     longname = "proclabel";
     shortname = "proclabel";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new numberkv_t<proc_label_t>;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     info->setup_str(1<<30);
     info->flag1 = 1;
     //info->flag2 = 1;

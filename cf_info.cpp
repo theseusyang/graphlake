@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 #include "cf_info.h"
-
+#include "graph.h"
 
 double bu_factor = 0.07;
 int32_t MAX_BCOUNT = 256;
@@ -44,23 +44,22 @@ void free_buf(void* buf)
     free(buf);
     buf = 0;
 }
-void cfinfo_t::create_columns(propid_t prop_count /* = 1 */)
+void cfinfo_t::create_columns(propid_t prop_count)
 {
     col_info = new pinfo_t* [prop_count];
     col_count = 0;
-    
-    /*
-    g->cf_info[g->cf_count] = this;
-    cf_id = g->cf_count;
-    g->cf_count++;
-    */
 }
 
-void cfinfo_t::add_column(pinfo_t* prop_info)
+void cfinfo_t::add_column(pinfo_t* prop_info, const char* longname, const char* shortname)
 {
+    g->add_property(longname);
+    prop_info->p_name = gstrdup(shortname);
+    prop_info->p_longname = gstrdup(longname);
+    prop_info->cf_id = cf_id;
+    prop_info->local_id = col_count;
+    
     col_info[col_count] = prop_info;
     ++col_count;
-    prop_info->cf_id = cf_id;
 }
 
 void cfinfo_t::add_edge_property(const char* longname, prop_encoder_t* prop_encoder)

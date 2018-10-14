@@ -15,436 +15,313 @@ void schema_ldbc()
     
     longname = "gtype";
     shortname = "gtype";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new typekv_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "comment_hasCreator_person";
     shortname = "comment_hasCreator_person";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new many2one_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "comment_hasTag_tag";
     shortname = "comment_hasTag_tag";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new dgraph_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "comment_isLocatedIn_place";
     shortname = "comment_isLocatedIn_place";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new many2one_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "comment_replyOf_comment";
     shortname = "comment_replyOf_comment";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new many2one_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "comment_replyOf_post";
     shortname = "comment_replyof_post";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new many2one_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "post_hasCreator_person";
     shortname = "post_hasCreator_person";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new many2one_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "post_hasTag_tag";
     shortname = "post_hasTag_tag";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new dgraph_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "post_isLocatedIn_place";
     shortname = "post_isLocatedIn_place";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new many2one_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "forum_containerOf_post";
     shortname = "forum_containerOf_post";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new one2many_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     //Join Date is missing as property
     longname = "forum_hasMember_person";
     shortname = "forum_hasMember_person";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     //info = new dgraph_t;
     info = new p_dgraph_t;
     info->add_edge_property("joinDate", new time_encoder_t);
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "forum_hasModerator_person";
     shortname = "forum_hasModerator_person";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new many2one_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "forum_hasTag_tag";
     shortname = "forum_hasTag_tag";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new dgraph_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "organisation_isLocatedIn_place";
     shortname = "organisation_isLocatedIn_place";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new many2one_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
 
     longname = "person_hasInterest_tag";
     shortname = "person_hasInterest_tag";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new dgraph_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "person_isLocatedIn_place";
     shortname = "person_isLocatedIn_place";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new many2one_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     //creation Date
     longname = "person_knows_person";
     shortname = "person_knows_person";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     //info = new ugraph_t;
     info = new p_ugraph_t;
     info->add_edge_property("creationDate", new time_encoder_t);
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
    
     //creation date 
     longname = "person_likes_comment";
     shortname = "person_likes_comment";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new p_dgraph_t;
     info->add_edge_property("creationDate", new time_encoder_t);
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     //creation date
     longname = "person_likes_post";
     shortname = "person_likes_post";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new p_dgraph_t;
     info->add_edge_property("creationDate", new time_encoder_t);
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     //class year
     longname = "person_studyAt_organisation";
     shortname = "person_studyAt_organisation";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new p_many2one_t;
     info->add_edge_property("classYear", new int64_encoder_t);
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     //workfrom year
     longname = "person_workAt_organisation";
     shortname = "person_workAt_organisation";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new p_dgraph_t;
     g->add_columnfamily(info);
+    info->add_column(p_info, longname, shortname);
     info->add_edge_property("workFrom", new int64_encoder_t);
-    info->create_columns();
-    info->add_column(p_info);
     ++p_info;
 
     longname = "place_isPartOf_place";
     shortname = "place_isPartOf_place";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new many2one_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "tagclass_isSubclassOf_tagclass";
     shortname = "tagclass_isSubclassOf_tagclass";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new many2one_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
 
     longname = "tag_hasType_tagclass";
     shortname = "tag_hasType_tagclass";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new many2one_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
    
     /*-------------------- Properties ---------------------------*/
     //Easy target of enum, multiple languages XXX
     longname = "person_speaks_language";
     shortname = "person_speaks_language";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new labelkv_t;
     info->add_edge_property(longname, new embedstr_encoder_t);
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
 
     //XXX : multiple email ids
     longname = "person_email_emailaddress";
     shortname = "person_email_emailaddress";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new stringkv_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
    
     longname = "creationDate";
     shortname = "creationDate";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new labelkv_t;
     info->add_edge_property(longname, new time_encoder_t);
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "locationIP";
     shortname = "locationIP";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new stringkv_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "browserUsed";
     shortname = "browserUsed";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new stringkv_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     
     longname = "content";
     shortname = "content";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new stringkv_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "length"; 
     shortname = "length"; 
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new labelkv_t;
     info->add_edge_property("length", new int64_encoder_t);
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "title"; 
     shortname = "title"; 
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new stringkv_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "type";
     shortname = "type";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new stringkv_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "name";
     shortname = "name";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new stringkv_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
 
     longname = "url";
     shortname = "url";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new stringkv_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "firstName";
     shortname = "firstName";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new stringkv_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "lastName";
     shortname = "lastName";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new stringkv_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "gender";
     shortname = "gender";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new labelkv_t;
     info->add_edge_property("gender", new embedstr_encoder_t);
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "birthday";
     shortname = "birthday";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new labelkv_t;
     info->add_edge_property(longname, new time_encoder_t);
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
 
     longname = "imageFile";
     shortname = "imageFile";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new stringkv_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "language";
     shortname = "language";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new stringkv_t;
     //info->add_edge_property(longname, new embedstr_encoder_t);
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
 }
 

@@ -100,22 +100,16 @@ void plaingraph_manager_t<T>::schema_plaingraph()
     
     longname = "gtype";
     shortname = "gtype";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new typekv_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "friend";
     shortname = "friend";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new ugraph<T>;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     set_pgraph(info);
 
@@ -134,22 +128,16 @@ void plaingraph_manager_t<T>::schema_plaingraphd()
     
     longname = "gtype";
     shortname = "gtype";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new typekv_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "friend";
     shortname = "friend";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new dgraph<T>;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     set_pgraph(info);
 }
@@ -167,22 +155,16 @@ void plaingraph_manager_t<T>::schema_plaingraphuni()
     
     longname = "gtype";
     shortname = "gtype";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new typekv_t;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "friend";
     shortname = "friend";
-    g->add_property(longname);
-    p_info->populate_property(longname, shortname);
     info = new unigraph<T>;
     g->add_columnfamily(info);
-    info->create_columns();
-    info->add_column(p_info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     set_pgraph(info);
 }

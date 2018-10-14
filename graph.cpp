@@ -128,8 +128,6 @@ void graph::create_schema(propid_t count, const string& conf_file)
                 }
                 longname = token;
                 shortname = token;
-                g->add_property(longname);
-                p_info1->populate_property(longname, shortname);
                 
                 if( 0 == (token = strtok_r(NULL, delim.c_str(), &saveptr))) {
                     assert(0);
@@ -151,8 +149,7 @@ void graph::create_schema(propid_t count, const string& conf_file)
                     info->add_edge_property(p_name, encoder);
                 }
                 g->add_columnfamily(info);
-                info->create_columns();
-                info->add_column(p_info1);
+                info->add_column(p_info1, longname, shortname);
                 ++p_info1;
             }
         }
@@ -232,19 +229,6 @@ sid_t graph::get_sid(const char* src)
     return get_typekv()->get_sid(src);
 }
 
-status_t graph::add_property(const char* longname)
-{
-    map<string, propid_t>::iterator iter;
-    iter = str2pid.find(longname);
-    if (str2pid.end() == iter) {
-        str2pid[longname] = p_count;
-        p_count++;
-        return eOK;
-    }
-    //XXX
-    return eOK;
-}
-    
 status_t graph::batch_update(const string& src, const string& dst, const string& predicate)
 {
     map<string, propid_t>::iterator str2pid_iter;
@@ -419,18 +403,25 @@ void graph::read_snapshot()
 }
 
 /////////////////////////////////////////
-void pinfo_t::populate_property(const char* longname, const char* property_name)
+status_t graph::add_property(const char* longname)
 {
-    p_name  = gstrdup(property_name);
-    p_longname = gstrdup(longname);
-    cf_id = 0;//will be corrected later
+    map<string, propid_t>::iterator iter;
+    iter = str2pid.find(longname);
+    if (str2pid.end() == iter) {
+        str2pid[longname] = p_count;
+        p_count++;
+        return eOK;
+    }
+    //XXX
+    return eOK;
 }
-
-void graph::add_columnfamily(cfinfo_t* cf) 
+    
+void graph::add_columnfamily(cfinfo_t* cf, propid_t p_count/*=1*/) 
 {
     cf_info[cf_count] = cf;
     cf->cf_id = cf_count;
     cf_count++;
+    cf->create_columns(p_count);
 }
 
 
