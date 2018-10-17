@@ -25,6 +25,8 @@ void schema_ldbc()
     info = new many2one_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<0);
+    info->flag2 = (1<<2);
     ++p_info;
     
     longname = "comment_hasTag_tag";
@@ -32,6 +34,8 @@ void schema_ldbc()
     info = new dgraph_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<0);
+    info->flag2 = (1<<5);
     ++p_info;
     
     longname = "comment_isLocatedIn_place";
@@ -39,6 +43,8 @@ void schema_ldbc()
     info = new many2one_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<0);
+    info->flag2 = (1<<3);
     ++p_info;
     
     longname = "comment_replyOf_comment";
@@ -46,6 +52,8 @@ void schema_ldbc()
     info = new many2one_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<0);
+    info->flag2 = (1<<0);
     ++p_info;
     
     longname = "comment_replyOf_post";
@@ -53,6 +61,8 @@ void schema_ldbc()
     info = new many2one_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<0);
+    info->flag2 = (1<<4);
     ++p_info;
     
     longname = "post_hasCreator_person";
@@ -60,6 +70,8 @@ void schema_ldbc()
     info = new many2one_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<4);
+    info->flag2 = (1<<2);
     ++p_info;
     
     longname = "post_hasTag_tag";
@@ -67,6 +79,8 @@ void schema_ldbc()
     info = new dgraph_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<4);
+    info->flag2 = (1<<5);
     ++p_info;
     
     longname = "post_isLocatedIn_place";
@@ -74,6 +88,8 @@ void schema_ldbc()
     info = new many2one_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<4);
+    info->flag2 = (1<<3);
     ++p_info;
     
     longname = "forum_containerOf_post";
@@ -81,16 +97,20 @@ void schema_ldbc()
     info = new one2many_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<1);
+    info->flag2 = (1<<4);
     ++p_info;
     
     //Join Date is missing as property
     longname = "forum_hasMember_person";
     shortname = "forum_hasMember_person";
-    //info = new dgraph_t;
-    info = new p_dgraph_t;
-    info->add_edge_property("joinDate", new time_encoder_t);
+    info = new dgraph_t;
+    //info = new p_dgraph_t;
+    //info->add_edge_property("joinDate", new time_encoder_t);
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<1);
+    info->flag2 = (1<<2);
     ++p_info;
     
     longname = "forum_hasModerator_person";
@@ -98,6 +118,8 @@ void schema_ldbc()
     info = new many2one_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<1);
+    info->flag2 = (1<<2);
     ++p_info;
     
     longname = "forum_hasTag_tag";
@@ -105,6 +127,8 @@ void schema_ldbc()
     info = new dgraph_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<1);
+    info->flag2 = (1<<5);
     ++p_info;
     
     longname = "organisation_isLocatedIn_place";
@@ -112,6 +136,8 @@ void schema_ldbc()
     info = new many2one_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<7);
+    info->flag2 = (1<<3);
     ++p_info;
 
     longname = "person_hasInterest_tag";
@@ -119,6 +145,8 @@ void schema_ldbc()
     info = new dgraph_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<2);
+    info->flag2 = (1<<5);
     ++p_info;
     
     longname = "person_isLocatedIn_place";
@@ -126,52 +154,68 @@ void schema_ldbc()
     info = new many2one_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<2);
+    info->flag2 = (1<<3);
     ++p_info;
     
     //creation Date
     longname = "person_knows_person";
     shortname = "person_knows_person";
-    //info = new ugraph_t;
-    info = new p_ugraph_t;
-    info->add_edge_property("creationDate", new time_encoder_t);
+    info = new ugraph_t;
+    //info = new p_ugraph_t;
+    //info->add_edge_property("creationDate", new time_encoder_t);
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<2);
+    info->flag2 = (1<<2);
     ++p_info;
    
     //creation date 
     longname = "person_likes_comment";
     shortname = "person_likes_comment";
-    info = new p_dgraph_t;
-    info->add_edge_property("creationDate", new time_encoder_t);
+    info = new dgraph_t;
+    //info = new p_dgraph_t;
+    //info->add_edge_property("creationDate", new time_encoder_t);
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<2);
+    info->flag2 = (1<<0);
     ++p_info;
     
     //creation date
     longname = "person_likes_post";
     shortname = "person_likes_post";
-    info = new p_dgraph_t;
-    info->add_edge_property("creationDate", new time_encoder_t);
+    info = new dgraph_t;
+    //info = new p_dgraph_t;
+    //info->add_edge_property("creationDate", new time_encoder_t);
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<2);
+    info->flag2 = (1<<4);
     ++p_info;
     
     //class year
     longname = "person_studyAt_organisation";
     shortname = "person_studyAt_organisation";
-    info = new p_many2one_t;
-    info->add_edge_property("classYear", new int64_encoder_t);
+    info = new many2one_t;
+    //info = new p_many2one_t;
+    //info->add_edge_property("classYear", new int64_encoder_t);
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<2);
+    info->flag2 = (1<<7);
     ++p_info;
     
     //workfrom year
     longname = "person_workAt_organisation";
     shortname = "person_workAt_organisation";
-    info = new p_dgraph_t;
+    info = new dgraph_t;
+    //info = new p_dgraph_t;
+    //info->add_edge_property("workFrom", new int64_encoder_t);
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
-    info->add_edge_property("workFrom", new int64_encoder_t);
+    info->flag1 = (1<<2);
+    info->flag2 = (1<<7);
     ++p_info;
 
     longname = "place_isPartOf_place";
@@ -179,6 +223,8 @@ void schema_ldbc()
     info = new many2one_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<3);
+    info->flag2 = (1<<3);
     ++p_info;
     
     longname = "tagclass_isSubclassOf_tagclass";
@@ -186,6 +232,8 @@ void schema_ldbc()
     info = new many2one_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<6);
+    info->flag2 = (1<<6);
     ++p_info;
 
     longname = "tag_hasType_tagclass";
@@ -193,16 +241,20 @@ void schema_ldbc()
     info = new many2one_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<5);
+    info->flag2 = (1<<6);
     ++p_info;
    
     /*-------------------- Properties ---------------------------*/
     //Easy target of enum, multiple languages XXX
     longname = "person_speaks_language";
     shortname = "person_speaks_language";
-    info = new labelkv_t;
-    info->add_edge_property(longname, new embedstr_encoder_t);
+    //info = new labelkv_t;
+    //info->add_edge_property(longname, new embedstr_encoder_t);
+    info = new stringkv_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<2);
     ++p_info;
 
     //XXX : multiple email ids
@@ -211,14 +263,17 @@ void schema_ldbc()
     info = new stringkv_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<2);
     ++p_info;
    
     longname = "creationDate";
     shortname = "creationDate";
-    info = new labelkv_t;
-    info->add_edge_property(longname, new time_encoder_t);
+    info = new stringkv_t;
+    //info = new labelkv_t;
+    //info->add_edge_property(longname, new time_encoder_t);
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<0) | (1<<1) | (1<<2) | (1<<4);
     ++p_info;
     
     longname = "locationIP";
@@ -226,6 +281,7 @@ void schema_ldbc()
     info = new stringkv_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 =(1<<0) | (1<<2) | (1<<4);
     ++p_info;
     
     longname = "browserUsed";
@@ -233,6 +289,7 @@ void schema_ldbc()
     info = new stringkv_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<0)| (1<<2) | (1<<4);
     ++p_info;
     
     
@@ -241,14 +298,17 @@ void schema_ldbc()
     info = new stringkv_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<0) | (1<<4);
     ++p_info;
     
     longname = "length"; 
     shortname = "length"; 
-    info = new labelkv_t;
-    info->add_edge_property("length", new int64_encoder_t);
+    info = new numberkv_t<uint64_t>;
+    //info = new labelkv_t;
+    //info->add_edge_property("length", new int64_encoder_t);
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<0) | (1<<4);
     ++p_info;
     
     longname = "title"; 
@@ -256,6 +316,7 @@ void schema_ldbc()
     info = new stringkv_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<1);
     ++p_info;
     
     longname = "type";
@@ -263,6 +324,7 @@ void schema_ldbc()
     info = new stringkv_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<3) | (1<<7);
     ++p_info;
     
     longname = "name";
@@ -270,6 +332,7 @@ void schema_ldbc()
     info = new stringkv_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<3) | (1<<5) | (1<<6) | (1<<7);
     ++p_info;
 
     longname = "url";
@@ -277,6 +340,7 @@ void schema_ldbc()
     info = new stringkv_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<3) | (1<<5) | (1<<6)| (1<<7);
     ++p_info;
     
     longname = "firstName";
@@ -284,6 +348,7 @@ void schema_ldbc()
     info = new stringkv_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<2);
     ++p_info;
     
     longname = "lastName";
@@ -291,22 +356,27 @@ void schema_ldbc()
     info = new stringkv_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<2);
     ++p_info;
     
     longname = "gender";
     shortname = "gender";
-    info = new labelkv_t;
-    info->add_edge_property("gender", new embedstr_encoder_t);
+    info = new stringkv_t;
+    //info = new labelkv_t;
+    //info->add_edge_property("gender", new embedstr_encoder_t);
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<2);
     ++p_info;
     
     longname = "birthday";
     shortname = "birthday";
-    info = new labelkv_t;
-    info->add_edge_property(longname, new time_encoder_t);
+    info = new stringkv_t;
+    //info = new labelkv_t;
+    //info->add_edge_property(longname, new time_encoder_t);
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<2);
     ++p_info;
 
     longname = "imageFile";
@@ -314,6 +384,7 @@ void schema_ldbc()
     info = new stringkv_t;
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<4);
     ++p_info;
     
     longname = "language";
@@ -322,6 +393,7 @@ void schema_ldbc()
     //info->add_edge_property(longname, new embedstr_encoder_t);
     g->add_columnfamily(info);
     info->add_column(p_info, longname, shortname);
+    info->flag1 = (1<<4);
     ++p_info;
 }
 

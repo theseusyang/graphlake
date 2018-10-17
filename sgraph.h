@@ -124,7 +124,7 @@ class pgraph_t: public cfinfo_t {
     
     void make_on_classify(onegraph_t<T>** sgraph, global_range_t<T>* global_range, vid_t j_start, vid_t j_end, vid_t bit_shift);
 
-    void estimate_classify (vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift);
+    void estimate_classify (vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift, vid_t bit_shift_in);
     void estimate_classify_uni (vid_t* vid_range, vid_t bit_shift);
     void estimate_classify_runi (vid_t* vid_range, vid_t bit_shift);
     void prefix_sum (global_range_t<T>* global_range, thd_local_t* thd_local,
@@ -132,7 +132,7 @@ class pgraph_t: public cfinfo_t {
     void work_division (global_range_t<T>* global_range, thd_local_t* thd_local,
                     vid_t range_count, vid_t thd_count, index_t equal_work);
     
-    void classify (vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift, 
+    void classify (vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift, vid_t bit_shift_in, 
             global_range_t<T>* global_range, global_range_t<T>* global_range_in);
     void classify_uni(vid_t* vid_range, vid_t bit_shift, global_range_t<T>* global_range);
     void classify_runi(vid_t* vid_range, vid_t bit_shift, global_range_t<T>* global_range);
@@ -815,10 +815,10 @@ void pgraph_t<T>::fill_skv_in(onekv_t<T>** skv, global_range_t<T>* global_range,
 {
     index_t total = 0;
     edgeT_t<T>* edges = 0;
-    tid_t src_index;
-    sid_t src;
-    T dst;
-    vid_t vert1_id;
+    tid_t dst_index;
+    sid_t src, dst2;
+    T     src2, dst;
+    vid_t vert2_id;
     
     for (vid_t j = j_start; j < j_end; ++j) {
         total = global_range[j].count;
@@ -827,10 +827,18 @@ void pgraph_t<T>::fill_skv_in(onekv_t<T>** skv, global_range_t<T>* global_range,
         for (index_t i = 0; i < total; ++ i) {
             src = edges[i].src_id;
             dst = edges[i].dst_id;
+            /*
             src_index = TO_TID(src);
             vert1_id = TO_VID(src);
-
             skv[src_index]->set_value(vert1_id, dst);
+            */
+
+            dst2 = get_sid(dst);
+            set_sid(src2, src);
+            set_weight(src2, dst);
+            dst_index = TO_TID(dst2);
+            vert2_id = TO_VID(dst2);
+            skv[dst_index]->set_value(vert2_id, src2); 
         }
     }
 }

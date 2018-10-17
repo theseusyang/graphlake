@@ -41,6 +41,11 @@ template<class T>
 status_t numberkv_t<T>::batch_update(const string& src, const string& dst, propid_t pid /*= 0*/)
 {
     assert(0);
+    /*
+    edge<T> edge;
+    edge.src_id = g->get_sid(src.c_str());
+    edge.dst_id = strtol(dst.c_str(), NULL, 0);
+    */
     return eOK;
 }
 

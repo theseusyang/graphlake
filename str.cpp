@@ -46,11 +46,7 @@ void strkv_t::setup(tid_t t)
     }*/
 }
 
-void strkv_t::persist_elog()
-{
-}
-
-void strkv_t::persist_vlog()
+void strkv_t::handle_write()
 {
     /*
     //Make a copy
@@ -60,11 +56,13 @@ void strkv_t::persist_vlog()
     dvt_count = 0;
 
     fwrite(dvt, sizeof(disk_strkv_t), count, vtf);*/
-    vid_t v_count = g->get_type_vcount(tid);
-    if (v_count != 0) {
-        pwrite(vtf, kv, v_count*sizeof(sid_t), 0);
+    
+    if (eOK == mem.handle_write()) {
+        vid_t v_count = g->get_type_vcount(tid);
+        if (v_count != 0) {
+            pwrite(vtf, kv, v_count*sizeof(sid_t), 0);
+        }
     }
-    mem.handle_write();
 }
 
 void strkv_t::file_open(const string& filename, bool trunc)

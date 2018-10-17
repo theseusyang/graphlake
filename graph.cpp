@@ -258,7 +258,6 @@ status_t graph::batch_update(const string& src, const string& dst, propid_t pid,
 
 void graph::prep_graph_baseline()
 {
-    //swap 
     for (int i = 0; i < cf_count; i++) {
         cf_info[i]->prep_graph_baseline();
     }

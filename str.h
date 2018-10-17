@@ -62,11 +62,15 @@ public:
         log_head = edge_count;
         }
     }
-    inline void  handle_write() {
-        index_t wpos = log_wpos;
-        log_wpos = log_head;
-        write(etf, log_beg+wpos, log_wpos-wpos);
-        //fwrite(log_beg+wpos, sizeof(char), log_head-wpos, etf);
+    inline status_t handle_write() {
+        if(log_head > 1) {
+            index_t wpos = log_wpos;
+            log_wpos = log_head;
+            write(etf, log_beg+wpos, log_wpos-wpos);
+            //fwrite(log_beg+wpos, sizeof(char), log_head-wpos, etf);
+            return eOK;
+        }
+        return eNoWork;
     }
     inline char* alloc_str(index_t size, index_t& offset) {
         char* ptr = log_beg + log_head;
@@ -115,8 +119,7 @@ class strkv_t {
     void setup(tid_t tid); 
     void set_value(vid_t vid, const char* value); 
     const char* get_value(vid_t vid);
-    void persist_vlog();
-    void persist_elog();
+    void handle_write();
     void read_vtable();
     void read_etable();
     void prep_str2sid(map<string, sid_t>& str2sid);

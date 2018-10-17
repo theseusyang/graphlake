@@ -40,7 +40,7 @@ sid_t typekv_t::type_update(const string& src, const string& dst)
             str2enum[dst] = type_id;
             t_info[type_id].vert_id = super_id; 
             t_info[type_id].type_name = strdup(dst.c_str());
-            t_info[type_id].max_vcount = (1<<20);//guess
+            t_info[type_id].max_vcount = (1<<21);//guess
             string filename = g->odirname + col_info[0]->p_name;
             t_info[type_id].strkv.setup(type_id);
             t_info[type_id].strkv.file_open(filename, true);
@@ -184,8 +184,7 @@ void typekv_t::store_graph_baseline(bool clean)
                 t_info[t].type_name);
 #endif    
         fwrite(type_text, sizeof(char), strlen(type_text), vtf);
-        t_info[t].strkv.persist_elog();
-        t_info[t].strkv.persist_vlog();
+        t_info[t].strkv.handle_write();
     }
     //str2enum: No need to write. We make it from disk during initial read.
     //XXX: write down the deleted id list

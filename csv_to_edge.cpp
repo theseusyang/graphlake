@@ -102,8 +102,16 @@ void csv_manager::prep_graph(const string& conf_file,
         prep_vtable(idirname + iter->filename, iter->predicate, odirname);
     }
     
-    g->type_done();
-    g->type_store(odirname);
+    //g->type_done();
+    //g->type_store(odirname);
+    g->prep_graph_baseline();
+    g->file_open(true);
+    
+    iter = vfile_list.begin();
+    for (; iter != vfile_list.end(); ++iter) {
+        prep_vlabel(idirname + iter->filename, iter->predicate, odirname);
+    }
+        
     
     //Read edge file
     vector<econf_t>::iterator e_iter = efile_list.begin();
@@ -112,9 +120,8 @@ void csv_manager::prep_graph(const string& conf_file,
         prep_etable(idirname + e_iter->filename, e_conf, odirname);
     }
     
-    g->prep_graph_baseline();
-    g->swap_log_buffer();
-    g->calc_degree();
+    //g->swap_log_buffer();
+    //g->calc_degree();
     g->make_graph_baseline();
     g->store_graph_baseline();
 }
@@ -123,14 +130,51 @@ void csv_manager::prep_graph(const string& conf_file,
 void csv_manager::prep_vtable(const string& filename, string predicate, const string& odir)
 {
     string delim = "|\n";
-    int pred_index = 0;
 
-    string subject, object;
+    string subject;
 
     //Read conf_file
     char* line = 0;
     size_t len = 0;
     size_t line_count = 1;
+    ssize_t read;
+
+    char* saveptr;
+    char* token;
+
+    FILE* fp = fopen(filename.c_str(), "r");
+    if (NULL == fp) assert(0);
+    
+    //First line is special
+    if ((read = getline(&line, &len, fp)) != -1) {
+        //ok
+    }
+    
+    //read the values now.
+    while((read = getline(&line, &len, fp)) != -1) {
+        ++line_count;
+        //First token is the id, which will be treated as name.
+        token = strtok_r(line, delim.c_str(), &saveptr);
+        subject = predicate + token;
+
+        if (eOK != g->type_update(subject, predicate)) {
+            //assert(0);
+        }
+
+        //Other tokens are its properties value, handlled later
+    }
+}
+
+void csv_manager::prep_vlabel(const string& filename, string predicate, const string& odir)
+{
+    string delim = "|\n";
+    int pred_index = 0;
+
+    string subject;
+
+    //Read conf_file
+    char* line = 0;
+    size_t len = 0;
     ssize_t read;
 
     char* saveptr;
@@ -150,16 +194,11 @@ void csv_manager::prep_vtable(const string& filename, string predicate, const st
             vtoken.push_back(token);
         }
     }
-    
     //read the values now.
     while((read = getline(&line, &len, fp)) != -1) {
-        ++line_count;
         //First token is the id, which will be treated as name.
         token = strtok_r(line, delim.c_str(), &saveptr);
         subject = predicate + token;
-
-        //Couldn't insert successfully, don't add its property
-        if (eOK != g->type_update(subject, predicate)) continue;
 
         //Other tokens are its properties value
         pred_index = 0;
@@ -183,7 +222,6 @@ void csv_manager::prep_etable(const string& filename, const econf_t& e_conf, con
 
     string subject, object;
     string predicate = e_conf.predicate;
-    propid_t pid = g->get_pid(predicate.c_str());
 
     //Read conf_file
     char* line = 0;
@@ -194,8 +232,8 @@ void csv_manager::prep_etable(const string& filename, const econf_t& e_conf, con
     char* saveptr;
     char* token;
     vector<string> prop_token;
-    size_t prop_count = 0;
-    size_t prop_index;
+    //propid_t pid = g->get_pid(predicate.c_str());
+    //size_t prop_index;
 
     FILE* fp = fopen(filename.c_str(), "r");
     if (NULL == fp) assert(0);
@@ -215,7 +253,7 @@ void csv_manager::prep_etable(const string& filename, const econf_t& e_conf, con
         }
     }
 
-    prop_count = prop_token.size();
+    //size_t prop_count = prop_token.size();
     
     //read the edges now.
     while((read = getline(&line, &len, fp)) != -1) {
@@ -228,8 +266,10 @@ void csv_manager::prep_etable(const string& filename, const econf_t& e_conf, con
         token = strtok_r(NULL, delim.c_str(), &saveptr);
         object = e_conf.dst_type + token;
 
+        g->batch_update(subject, object, predicate);
+        
+        /*
         if (0 == prop_count) {
-            g->batch_update(subject, object, predicate);
         } else {
 
             //Other tokens are edge properties value
@@ -240,7 +280,7 @@ void csv_manager::prep_etable(const string& filename, const econf_t& e_conf, con
                 g->batch_update(subject, object, pid, prop_count, &prop_pair);
                 ++prop_index;
             }
-        }
+        }*/
     }
     fclose(fp);
 }

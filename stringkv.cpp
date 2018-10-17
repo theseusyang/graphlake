@@ -19,7 +19,7 @@ status_t stringkv_t::batch_update(const string& src, const string& dst, propid_t
 {
     edgeT_t<char*> edge; 
     edge.src_id = g->get_sid(src.c_str());
-    edge.dst_id = const_cast<char*>(src.c_str());
+    edge.dst_id = const_cast<char*>(dst.c_str());
     batch_edge(edge);
     return eOK;
 }
@@ -91,8 +91,7 @@ void stringkv_t::store_graph_baseline(bool clean /*=false*/)
     for (tid_t i = 0; i < t_count; ++i) {
         if (strkv_out[i] == 0) continue;
 
-        strkv_out[i]->persist_vlog();
-        strkv_out[i]->persist_elog();
+        strkv_out[i]->handle_write();
     }
 }
 

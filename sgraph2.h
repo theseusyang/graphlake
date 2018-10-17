@@ -4,7 +4,7 @@
 
 
 template <class T>
-void pgraph_t<T>::estimate_classify(vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift) 
+void pgraph_t<T>::estimate_classify(vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift, vid_t bit_shift_in) 
 {
     sid_t src, dst;
     vid_t vert1_id, vert2_id;
@@ -26,7 +26,7 @@ void pgraph_t<T>::estimate_classify(vid_t* vid_range, vid_t* vid_range_in, vid_t
         vid_range[range]++;
         
         //gather high level info for 2
-        range = (vert2_id >> bit_shift);
+        range = (vert2_id >> bit_shift_in);
         vid_range_in[range]++;
     }
 }
@@ -134,7 +134,7 @@ void pgraph_t<T>::work_division(global_range_t<T>* global_range, thd_local_t* th
 
 
 template <class T>
-void pgraph_t<T>::classify(vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift, 
+void pgraph_t<T>::classify(vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shift, vid_t bit_shift_in, 
             global_range_t<T>* global_range, global_range_t<T>* global_range_in)
 {
     sid_t src, dst;
@@ -158,7 +158,7 @@ void pgraph_t<T>::classify(vid_t* vid_range, vid_t* vid_range_in, vid_t bit_shif
         edge->src_id = src;
         edge->dst_id = edges[index].dst_id;
         
-        range = (vert2_id >> bit_shift);
+        range = (vert2_id >> bit_shift_in);
         edge = global_range_in[range].edges + vid_range_in[range]++;
         edge->src_id = dst;
         set_dst(edge, src);
@@ -421,14 +421,14 @@ void pgraph_t<T>::make_graph_d()
         //double start = mywtime();
 
         //Get the count for classification
-        this->estimate_classify(vid_range, vid_range_in, bit_shift);
+        this->estimate_classify(vid_range, vid_range_in, bit_shift, bit_shift_in);
         
         this->prefix_sum(global_range, thd_local, range_count, thd_count, edge_buf_out);
         this->prefix_sum(global_range_in, thd_local_in, range_count, thd_count, edge_buf_in);
         #pragma omp barrier 
         
         //Classify
-        this->classify(vid_range, vid_range_in, bit_shift, global_range, global_range_in);
+        this->classify(vid_range, vid_range_in, bit_shift, bit_shift_in, global_range, global_range_in);
         
         #pragma omp master 
         {
@@ -546,13 +546,13 @@ void pgraph_t<T>::make_graph_u()
         thd_local[tid].vid_range = vid_range;
 
         //Get the count for classification
-        this->estimate_classify(vid_range, vid_range, bit_shift);
+        this->estimate_classify(vid_range, vid_range, bit_shift, bit_shift);
         
         this->prefix_sum(global_range, thd_local, range_count, thd_count, edge_buf_out);
         #pragma omp barrier 
         
         //Classify
-        this->classify(vid_range, vid_range, bit_shift, global_range, global_range);
+        this->classify(vid_range, vid_range, bit_shift, bit_shift, global_range, global_range);
         #pragma omp master 
         {
             print(" classify = ", start);
