@@ -529,6 +529,7 @@ void ldbc_test0(const string& conf_file, const string& idir, const string& odir)
     schema_ldbc();
     csv_manager::prep_graph(conf_file, idir, odir);
     cout << "----------Test 4-----------------" << endl;
+    /*
     test4();
     cout << "----------Test 1-----------------" << endl;
     test1();
@@ -540,6 +541,7 @@ void ldbc_test0(const string& conf_file, const string& idir, const string& odir)
 	test_bfs();
 	cout << "-----------Pagerank-------------" << endl;
 	test_pagerank();
+    */
 }
 
 void ldbc_test2(const string& odir)
@@ -547,6 +549,7 @@ void ldbc_test2(const string& odir)
     schema_ldbc();
     g->read_graph_baseline();
     cout << "----------Test 4-----------------" << endl;
+    /*
     test4();
     cout << "----------Test 1-----------------" << endl;
     test1();
@@ -558,4 +561,5 @@ void ldbc_test2(const string& odir)
 	test_bfs();
 	cout << "-----------Pagerank-------------" << endl;
 	test_pagerank();
+    */
 }
