@@ -28,11 +28,11 @@ int main(int argc, char* argv[])
 		{"help",      no_argument,        0, 'h'},
 		{"idir",      required_argument,  0, 'i'},
 		{"odir",      required_argument,  0, 'o'},
-		{"convert",   required_argument,  0, 'c'},
+		{"category",   required_argument,  0, 'c'},
 		{"job",       required_argument,  0, 'j'},
 		{"residue",   required_argument,  0, 'r'},
 		{"qfile",     required_argument,  0, 'q'},
-        {"typefile",  required_argument,  0, 'f'},
+        {"fileconf",  required_argument,  0, 'f'},
         {"threadcount",  required_argument,  0, 't'},
 		{0,			  0,				  0,  0},
 	};
@@ -90,7 +90,8 @@ int main(int argc, char* argv[])
                 sscanf(optarg, "%ld", &residue);
                 cout << "residue edge log = " << residue << endl;
 			default:
-                break;
+                cout << "invalid input " << endl;
+                return 1;
 		}
 	}
 	cout << "Total thds = " << THD_COUNT << endl;
@@ -107,10 +108,7 @@ int main(int argc, char* argv[])
         lubm_test(typefile, idir, odir, job);
             break;
         case 3:
-            ldbc_test0(typefile, idir, odir);
-            break;
-        case 4:
-            ldbc_test2(odir);
+            ldbc_test(typefile, idir, odir, job);
             break;
         case 5:
             darshan_test0(typefile, idir, odir);

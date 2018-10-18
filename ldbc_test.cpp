@@ -563,3 +563,18 @@ void ldbc_test2(const string& odir)
 	test_pagerank();
     */
 }
+
+void ldbc_test(const string& conf_file, const string& idir, const string& odir, int job) 
+{
+    switch(job) {
+        case 0: 
+            ldbc_test0(conf_file, idir, odir);
+            break;
+        case 1:
+            ldbc_test2(odir);
+            break;
+        default:
+            cout << "No testcase selected" << endl;
+            break;
+    }
+}
