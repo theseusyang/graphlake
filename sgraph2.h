@@ -377,10 +377,16 @@ void pgraph_t<T>::make_graph_d()
     tid_t src_index = TO_TID(blog->blog_beg[0].src_id);
     vid_t v_count = g->get_type_vcount(src_index);
     vid_t  base_vid = ((v_count -1)/range_count);
+    if (base_vid == 0) {
+        base_vid = 1024;
+    }
     
     tid_t dst_index = TO_TID(get_dst(&blog->blog_beg[0]));
     vid_t v_count_in = g->get_type_vcount(dst_index);
     vid_t  base_vid_in = ((v_count_in -1)/range_count);
+    if (base_vid_in == 0) {
+        base_vid_in = 1024;
+    }
     
     //find the number of bits to do shift to find the range
 #if B32    

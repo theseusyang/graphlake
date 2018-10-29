@@ -74,6 +74,7 @@ void ontology_lubm()
     //g->p_count++;
     info = new typekv_t;
     g->add_columnfamily(info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#advisor>";
@@ -167,6 +168,7 @@ void ontology_lubm()
     shortname = "undergraduateDegreeFrom";
     info = new many2one_t;
     g->add_columnfamily(info);
+    info->add_column(p_info, longname, shortname);
     ++p_info;
     
     longname = "<http://www.lehigh.edu/~zhp2/2004/0401/univ-bench.owl#worksFor>";
