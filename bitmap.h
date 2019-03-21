@@ -100,7 +100,7 @@ class Bitmap {
     } while (!__sync_bool_compare_and_swap(start_ + word_offset(pos), old_val, new_val));
   }
   
-
+  // 获得此处偏移量的值
   inline bool get_bit(size_t pos) const {
     return (start_[word_offset(pos)] >> bit_offset(pos)) & 1l;
   }
