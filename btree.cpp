@@ -31,7 +31,7 @@ btree_t::insert_inplace2(key_t key, value_t value)
 	}
 	return 0;
 }
-
+// 插入叶结点
 status_t
 btree_t::insert_in_leaf1(leaf_node_t* leaf_node1, key_t key, value_t value)
 {
@@ -123,7 +123,7 @@ btree_t::insert_in_leaf2(leaf_node_t* leaf_node1, key_t key, value_t value, spli
 
 	return 0;
 }
-
+// 插入键值对儿
 status_t 
 btree_t::insert(key_t key, value_t value)
 {
@@ -162,6 +162,7 @@ btree_t::insert(key_t key, value_t value)
 
 	return 0;
 }
+// 插入图遍历
 status_t 
 btree_t::insert_traverse(inner_node_t* root, key_t key, value_t value)
 {
@@ -230,7 +231,7 @@ btree_t::insert_traverse(inner_node_t* root, key_t key, value_t value)
 	}
 	return 0;
 }
-
+// 拆分叶结点
 status_t 
 btree_t::split_leaf(leaf_node_t* leaf_node1, key_t key, value_t value, int i, split_info_t* split_info)
 {
@@ -270,7 +271,7 @@ btree_t::split_leaf(leaf_node_t* leaf_node1, key_t key, value_t value, int i, sp
 
 	return 0;
 }
-
+// 拆分内部节点
 status_t
 btree_t::split_innernode(inner_node_t* inner_node1, int i, split_info_t* split_info)
 {
@@ -306,7 +307,7 @@ btree_t::split_innernode(inner_node_t* inner_node1, int i, split_info_t* split_i
 
 	return 0;
 }
-
+// 按照键值搜索结果
 status_t 
 btree_t::search(key_t key, kbtree_t* result)
 {
